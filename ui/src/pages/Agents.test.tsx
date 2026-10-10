@@ -400,9 +400,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -424,9 +426,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -493,9 +497,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -562,9 +568,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -596,9 +604,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -629,9 +639,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -657,9 +669,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -696,9 +710,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -755,9 +771,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -819,9 +837,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -863,9 +883,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -881,9 +903,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -901,9 +925,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -954,9 +980,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -976,9 +1004,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -1072,9 +1102,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -1096,9 +1128,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Agents />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <Agents />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });

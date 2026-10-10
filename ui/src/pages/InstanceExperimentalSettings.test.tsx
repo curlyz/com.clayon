@@ -210,9 +210,12 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
   it("renders a page-level warning about instability and lack of guarantees", async () => {
     await renderPage();
 
-    const warning = [...container.querySelectorAll('[role="alert"]')].find((alert) =>
-      alert.textContent?.includes("Experimental features may break at any time."),
+    // The banner is the shared InlineBanner (role="note"); assert its content
+    // rather than the retired per-page class soup.
+    const warning = [...container.querySelectorAll('[role="note"]')].find((note) =>
+      note.textContent?.includes("Experimental features may break at any time."),
     );
+    expect(warning).toBeTruthy();
     expect(warning?.textContent).toContain("Experimental features may break at any time.");
     expect(warning?.textContent).toContain("no compatibility guarantees");
   });
@@ -1056,12 +1059,18 @@ describe("InstanceExperimentalSettings — card ordering and headings (PAP-393)"
     }
   });
 
-  it("renders setting cards without a background color", async () => {
+  it("renders setting rows as bands without cards or colored backgrounds (PAP-393)", async () => {
     await renderPage(defaultExperimentalSettings());
 
-    const cards = [...container.querySelectorAll('[data-slot="card"]')];
-    expect(cards.length).toBeGreaterThan(10);
-    expect(cards.every((card) => card.classList.contains("bg-transparent"))).toBe(true);
+    // Toggle Cards became hairline band rows (leaf-node law): no Card chrome at
+    // all, and the spirit of PAP-393 holds — no background fill on setting rows.
+    expect(container.querySelectorAll('[data-slot="card"]')).toHaveLength(0);
+
+    const bands = [...container.querySelectorAll("section div.border-t.border-border")];
+    expect(bands.length).toBeGreaterThan(10);
+    for (const band of bands) {
+      expect([...band.classList].some((cls) => cls.startsWith("bg-"))).toBe(false);
+    }
   });
 
   it("no longer renders an 'Experimental' secondary badge on any card", async () => {
