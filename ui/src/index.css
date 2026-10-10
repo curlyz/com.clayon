@@ -41,7 +41,7 @@
 }
 
 @theme inline {
-  --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: var(--reader-font);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -84,11 +84,48 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--reader-font);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 }
+
+/* Reading-style face tokens: the reader's chosen typeface is the app's face,
+   everywhere — chrome, menus, forms, prose. Only mono/code glyph styles keep
+   their own face (the --font-mono utility and explicit font-mono usages).
+   --reader-font is runtime-tunable, so its values live here outside
+   @theme inline; the [data-reader-font] attribute is set before first paint
+   by the index.html head script and at runtime by ReadingFontContext.
+   Ids stay in sync with ui/src/lib/readingFonts.ts. */
+:root {
+  --reader-font-inter: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --reader-font-open-dyslexic: "OpenDyslexic", "InterVariable", ui-sans-serif, system-ui, sans-serif;
+  --reader-font-atkinson-hyperlegible: "Atkinson Hyperlegible", "InterVariable", ui-sans-serif, system-ui, sans-serif;
+  --reader-font-lexend: "Lexend", "InterVariable", ui-sans-serif, system-ui, sans-serif;
+  --reader-font-literata: "Literata", Georgia, serif;
+  --reader-font-system-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* MonoLisa is commercial and this repo is public: family reference only,
+     never a shipped woff2. Falls back to the platform mono stack. */
+  --reader-font-monolisa-nerd: "MonoLisa Nerd Font", "MonoLisa", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --reader-font: var(--reader-font-inter);
+}
+
+html[data-reader-font="inter"] { --reader-font: var(--reader-font-inter); }
+html[data-reader-font="open-dyslexic"] { --reader-font: var(--reader-font-open-dyslexic); }
+html[data-reader-font="atkinson-hyperlegible"] { --reader-font: var(--reader-font-atkinson-hyperlegible); }
+html[data-reader-font="lexend"] { --reader-font: var(--reader-font-lexend); }
+html[data-reader-font="literata"] { --reader-font: var(--reader-font-literata); }
+html[data-reader-font="system-sans"] { --reader-font: var(--reader-font-system-sans); }
+html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monolisa-nerd); }
+
+/* Picker previews: each option renders in its own face. */
+[data-font-preview="inter"] { font-family: var(--reader-font-inter); }
+[data-font-preview="open-dyslexic"] { font-family: var(--reader-font-open-dyslexic); }
+[data-font-preview="atkinson-hyperlegible"] { font-family: var(--reader-font-atkinson-hyperlegible); }
+[data-font-preview="lexend"] { font-family: var(--reader-font-lexend); }
+[data-font-preview="literata"] { font-family: var(--reader-font-literata); }
+[data-font-preview="system-sans"] { font-family: var(--reader-font-system-sans); }
+[data-font-preview="monolisa-nerd"] { font-family: var(--reader-font-monolisa-nerd); }
 
 :root {
   color-scheme: light;
@@ -555,7 +592,7 @@
   }
   body {
     @apply antialiased bg-background text-foreground;
-    font-family: var(--font-sans);
+    font-family: var(--reader-font);
     height: 100%;
     overflow: hidden;
   }

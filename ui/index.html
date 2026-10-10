@@ -41,6 +41,22 @@
         }
       })();
     </script>
+    <script>
+      // Reading-font pre-paint: set the face attribute before first paint so a
+      // returning reader never flashes the default. Keep the id list in sync
+      // with ui/src/lib/readingFonts.ts and the token maps in ui/src/index.css.
+      (() => {
+        const ids = ["inter", "open-dyslexic", "atkinson-hyperlegible", "lexend", "literata", "system-sans", "monolisa-nerd"];
+        try {
+          const raw = window.localStorage.getItem("paperclip.readerFont");
+          const parsed = raw ? JSON.parse(raw) : null;
+          document.documentElement.dataset.readerFont =
+            typeof parsed === "string" && ids.includes(parsed) ? parsed : "inter";
+        } catch {
+          document.documentElement.dataset.readerFont = "inter";
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -16,6 +16,7 @@ import { EditorAutocompleteProvider } from "./context/EditorAutocompleteContext"
 import { PrimaryAgentProvider } from "./context/PrimaryAgentProvider";
 import { ToastProvider } from "./context/ToastContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { ReadingFontProvider } from "./context/ReadingFontContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initPluginBridge } from "./plugins/bridge-init";
 import { PluginLauncherProvider } from "./plugins/launchers";
@@ -67,6 +68,7 @@ getOrCreatePaperclipReactRoot(window, rootElement).render(
       <QueryClientProvider client={queryClient}>
         <SentryGate />
         <ThemeProvider>
+          <ReadingFontProvider>
           <BrowserRouter>
             <CompanyProvider>
               <EditorAutocompleteProvider>
@@ -92,6 +94,7 @@ getOrCreatePaperclipReactRoot(window, rootElement).render(
               </EditorAutocompleteProvider>
             </CompanyProvider>
           </BrowserRouter>
+          </ReadingFontProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </AppErrorBoundary>

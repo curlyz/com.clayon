@@ -59,6 +59,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FontPicker } from "@/components/FontPicker";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { InlineBanner } from "@/components/InlineBanner";
@@ -616,6 +617,21 @@ export function DesignGuide() {
             <ThemeToggle />
             <ThemeToggle variant="menu-action" />
             <ThemeToggle variant="compact-menu-action" />
+          </div>
+        </SubSection>
+      </Section>
+
+      <Section title="Font Picker">
+        <p className="max-w-prose text-sm text-muted-foreground">
+          The reading-font switcher. The chosen face is global — chrome, menus, forms and prose all
+          wear it; only mono/code glyphs keep their own face. Each option previews in its own face.
+        </p>
+        <SubSection title="Variants">
+          <div className="flex max-w-sm flex-col items-start gap-3">
+            <FontPicker variant="menu-action" />
+            <div className="w-full max-w-xs rounded-lg border border-border p-1">
+              <FontPicker variant="compact-menu-action" />
+            </div>
           </div>
         </SubSection>
       </Section>
