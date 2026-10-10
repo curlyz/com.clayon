@@ -2,6 +2,7 @@ import { usePrimaryAgentPresentation } from "@/components/primary-agent/PrimaryA
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useAgentChatNavigation, useOpenAgentChat } from "@/hooks/useAgentChatNavigation";
@@ -51,31 +52,31 @@ function AgentChatsContent({ companyId, userId, enabled, loaded, agents, chats, 
   useEffect(() => {
     if (entryPath) navigate(entryPath, { replace: true });
   }, [navigate, entryPath]);
-  if (!loaded) return <p role="status" className="text-sm text-muted-foreground">Loading chat…</p>;
-  if (!enabled) return <p className="text-sm text-muted-foreground">Agent Chat is disabled. Enable it in Experimental settings.</p>;
-  if (!companyId) return <p className="text-sm text-muted-foreground">Select a company to start a conversation.</p>;
-  if (resolvingRecent || entryPath || primary?.loading) return <p role="status" className="text-sm text-muted-foreground">Opening chat…</p>;
+  if (!loaded) return <p role="status" className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Loading chat…</p>;
+  if (!enabled) return <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Agent Chat is disabled. Enable it in Experimental settings.</p>;
+  if (!companyId) return <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Select a company to start a conversation.</p>;
+  if (resolvingRecent || entryPath || primary?.loading) return <p role="status" className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Opening chat…</p>;
   const error = blockingError ?? (recentIds.length > 0 ? chats.error : null);
-  return <div className="mx-auto flex h-full max-w-xl flex-col justify-center gap-6 px-4 py-12">
-    <div className="flex flex-col gap-3">
-      <MessageCircle className="size-6 text-muted-foreground" />
-      <h1 className="text-xl font-semibold">Who would you like to talk to?</h1>
-      <p className="text-sm leading-relaxed text-muted-foreground">Ask a question, think through an idea, or plan the next step with your team.</p>
+  return <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center">
+    <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50">
+      <h1 className="flex items-center gap-3 px-4 py-3 text-xl font-semibold"><MessageCircle className="size-6 text-muted-foreground" />Who would you like to talk to?</h1>
+      <Badge variant="secondary">{Math.min(agents.data?.length ?? 0, 6)}</Badge>
     </div>
-    {error ? <div role="alert" className="flex flex-col items-start gap-3"><p className="text-sm">Couldn’t load your chats.</p><Button variant="outline" onClick={() => { void agents.refetch(); void chats.refetch(); void session.refetch(); }}>Try again</Button></div>
-      : agents.isPending || session.isPending ? <p role="status" className="text-sm text-muted-foreground">Loading agents…</p>
-      : <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {(agents.data ?? []).slice(0, 6).map(agent => <button key={agent.id} type="button" disabled={openingId !== null}
+    <p className="px-4 py-3 text-sm leading-relaxed text-muted-foreground">Ask a question, think through an idea, or plan the next step with your team.</p>
+    {error ? <div role="alert" className="flex flex-col items-start gap-3 border-t border-border"><p className="px-4 py-3 text-sm">Couldn’t load your chats.</p><Button variant="outline" onClick={() => { void agents.refetch(); void chats.refetch(); void session.refetch(); }}>Try again</Button></div>
+      : agents.isPending || session.isPending ? <p role="status" className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Loading agents…</p>
+      : <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2 xl:grid-cols-3">
+        {(agents.data ?? []).slice(0, 6).map(agent => <Button key={agent.id} variant="ghost" type="button" disabled={openingId !== null}
           onClick={async () => {
             setOpeningId(agent.id); setOpenError(null);
             try { await openChat(agent); } catch (error) { setOpenError(error instanceof Error ? error.message : "Couldn’t open chat. Try again."); } finally { setOpeningId(null); }
-          }} className="flex items-center gap-3 rounded-lg border border-border p-4 text-left hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
+          }} className="h-auto justify-start gap-3 whitespace-normal rounded-none border-t border-border px-4 py-4 text-left">
           <AgentAvatar agent={agent} size={32} />
           <span className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{agent.name}</span><span className="text-xs text-muted-foreground">{openingId === agent.id ? "Opening chat…" : agent.title ?? agent.role}</span></span>
-        </button>)}
+        </Button>)}
       </div>}
-    {openError && <p role="alert" className="text-sm text-destructive">{openError}</p>}
-    {agents.data?.length === 0 && <p className="text-sm text-muted-foreground">Add an agent to start a conversation.</p>}
-    <Button variant="ghost" className="self-start" asChild><Link to="/agents/all">Browse all agents</Link></Button>
+    {openError && <p role="alert" className="border-t border-border px-4 py-3 text-sm text-destructive">{openError}</p>}
+    {agents.data?.length === 0 && <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Add an agent to start a conversation.</p>}
+    <div className="flex border-t border-border"><Button variant="ghost" asChild><Link to="/agents/all">Browse all agents</Link></Button></div>
   </div>;
 }

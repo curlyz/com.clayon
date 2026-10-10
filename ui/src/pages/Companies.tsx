@@ -9,7 +9,6 @@ import { queryKeys } from "../lib/queryKeys";
 import { formatCents, relativeTime } from "../lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,22 +107,26 @@ export function Companies() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-end">
+    <div className="flex flex-col">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/50 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">Organizations</h1>
+          <Badge variant="secondary">{companies.length}</Badge>
+        </div>
         {isCloud ? null : (
           <Button size="sm" onClick={() => openOnboarding()}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            <Plus />
             New Organization
           </Button>
         )}
       </div>
 
-      <div className="h-6">
-        {loading && <p className="text-sm text-muted-foreground">Loading organizations...</p>}
-        {error && <p className="text-sm text-destructive">{error.message}</p>}
+      <div>
+        {loading && <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">Loading organizations...</p>}
+        {error && <p className="border-t border-border px-4 py-3 text-sm text-destructive">{error.message}</p>}
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-x-4 md:grid-cols-2 xl:grid-cols-3">
         {companies.map((company) => {
           const selected = company.id === selectedCompanyId;
           const isEditing = editingId === company.id;
@@ -139,7 +142,7 @@ export function Companies() {
               : 0;
 
           return (
-            <Card
+            <div
               key={company.id}
               role="button"
               tabIndex={0}
@@ -150,14 +153,13 @@ export function Companies() {
                   setSelectedCompanyId(company.id);
                 }
               }}
-              interactive
-              className={`block group text-left p-5 ${
-                selected ? "border-primary ring-1 ring-primary hover:border-primary" : ""
+              className={`group flex min-w-0 cursor-pointer flex-col border-t border-border text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${
+                selected ? "bg-accent/50" : ""
               }`}
             >
               {/* Header row: name + menu */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-3 bg-muted/50 px-4 py-3">
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
                   {isEditing ? (
                     <div
                       className="flex items-center gap-2"
@@ -179,30 +181,30 @@ export function Companies() {
                         onClick={saveEdit}
                         disabled={editMutation.isPending}
                       >
-                        <Check className="h-3.5 w-3.5 text-green-500" />
+                        <Check className="text-primary" />
                       </Button>
                       <Button variant="ghost" size="icon-xs" onClick={cancelEdit}>
                         <X className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-base">{company.name}</h3>
-                      <Badge variant="ghost"
-                        className={`text-(length:--text-micro) ${
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 break-words text-base font-semibold">{company.name}</h3>
+                      <Badge
+                        variant={
                           company.status === "active"
-                            ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                            ? "secondary"
                             : company.status === "paused"
-                              ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
-                              : "bg-muted text-muted-foreground"
-                        }`}
+                              ? "outline"
+                              : "ghost"
+                        }
                       >
                         {company.status}
                       </Badge>
                       <Button
                         variant="ghost"
                         size="icon-xs"
-                        className="text-muted-foreground opacity-0 group-hover:opacity-100"
+                        className="text-muted-foreground md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEdit(company.id, company.name);
@@ -213,7 +215,7 @@ export function Companies() {
                     </div>
                   )}
                   {company.description && !isEditing && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
                       {company.description}
                     </p>
                   )}
@@ -226,7 +228,7 @@ export function Companies() {
                       <Button
                         variant="ghost"
                         size="icon-xs"
-                        className="text-muted-foreground opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+                        className="text-muted-foreground md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 data-[state=open]:opacity-100"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
@@ -261,20 +263,20 @@ export function Companies() {
               </div>
 
               {/* Stats row */}
-              <div className="flex items-center gap-3 sm:gap-5 mt-4 text-sm text-muted-foreground flex-wrap">
-                <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 px-4 py-3 font-mono">
                   <Users className="h-3.5 w-3.5" />
                   <span>
                     {agentCount} {agentCount === 1 ? "agent" : "agents"}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-4 py-3 font-mono">
                   <CircleDot className="h-3.5 w-3.5" />
                   <span>
                     {issueCount} {issueCount === 1 ? "task" : "tasks"}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 tabular-nums">
+                <div className="col-span-2 flex flex-wrap items-center gap-1.5 px-4 py-3 font-mono tabular-nums">
                   <DollarSign className="h-3.5 w-3.5" />
                   <span>
                     {formatCents(company.spentMonthlyCents)}
@@ -283,7 +285,7 @@ export function Companies() {
                       : <span className="text-xs ml-1">Unlimited budget</span>}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 ml-auto">
+                <div className="col-span-2 flex items-center gap-1.5 px-4 py-3">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>Created {relativeTime(company.createdAt)}</span>
                 </div>
@@ -292,13 +294,13 @@ export function Companies() {
               {/* Delete confirmation */}
               {isConfirmingDelete && (
                 <div
-                  className="mt-4 flex items-center justify-between bg-destructive/5 border border-destructive/20 rounded-md px-4 py-3"
+                  className="flex flex-col gap-3 border-t border-border bg-destructive/5"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <p className="text-sm text-destructive font-medium">
+                  <p className="px-4 pt-3 text-sm font-medium text-destructive">
                     Delete this organization and all its data? This cannot be undone.
                   </p>
-                  <div className="flex items-center gap-2 ml-4 shrink-0">
+                  <div className="flex items-center justify-between gap-2 px-4 pb-3">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -318,7 +320,7 @@ export function Companies() {
                   </div>
                 </div>
               )}
-            </Card>
+            </div>
           );
         })}
       </div>

@@ -82,12 +82,11 @@ export function AuditHub({ section }: { section: AuditSection }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Audit</h1>
-      </div>
+    <div className="flex flex-col">
+      <h1 className="border-t border-border bg-muted/50 px-4 py-3 text-3xl font-semibold tracking-tight text-foreground">Audit</h1>
 
       <Tabs
+        className="border-t border-border bg-muted/50"
         value={section}
         onValueChange={(value) => {
           const next = value as AuditSection;

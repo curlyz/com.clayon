@@ -17,13 +17,13 @@ import { goalsApi } from "../api/goals";
 import { queryKeys } from "../lib/queryKeys";
 import { MarkdownBody } from "../components/MarkdownBody";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Activity, ArrowDown, History, MessageSquarePlus, X } from "lucide-react";
+import { Activity, ArrowDown, History, MessageSquarePlus } from "lucide-react";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { ChatComposer, type ChatComposerHandle } from "../components/ChatComposer";
 import {
@@ -51,7 +51,7 @@ const BOARD_CHAT_MARKDOWN_CLASS =
   "max-w-full overflow-visible [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto";
 
 const boardChatBubbleShell =
-  "min-w-0 max-w-(--pct-85) break-words px-3 py-2 text-sm overflow-x-auto overflow-y-visible";
+  "min-w-0 max-w-(--pct-85) break-words px-4 py-3 text-sm overflow-x-auto overflow-y-visible";
 
 /** First-letter(s) fallback for an agent with no icon. */
 function agentInitials(name: string): string {
@@ -64,7 +64,7 @@ function agentInitials(name: string): string {
  * the shared `[agent icon][agent name]` convention (PAP-105 / PAP-97).
  */
 function AgentBubbleHeader({ agent }: { agent: import("../components/AgentAvatar").AvatarAgent }) {
-  return <div className="mb-1 flex items-center gap-1.5 pl-1"><AgentAvatar agent={agent} size={24} /><span className="text-sm font-medium text-foreground">{agent.name}</span></div>;
+  return <div className="flex items-center gap-1.5 px-4 py-1"><AgentAvatar agent={agent} size={24} /><span className="text-sm font-medium text-foreground">{agent.name}</span></div>;
 }
 
 /** Agent-styled chat bubble containing the three-dot typing indicator. */
@@ -74,7 +74,7 @@ function TypingBubble() {
       <div
         className={cn(
           boardChatBubbleShell,
-          "bg-card border border-border text-foreground [border-radius:14px_14px_14px_4px]",
+          "rounded-xl rounded-bl-sm bg-muted/50 text-foreground",
         )}
       >
         <span className="typing-dots" aria-label="typing">
@@ -644,9 +644,9 @@ export function BoardChat() {
   if (!selectedCompanyId) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center max-w-sm">
-          <h2 className="text-lg font-semibold">No organization selected</h2>
-          <p className="text-sm text-muted-foreground mt-2">
+        <div className="flex max-w-sm flex-col gap-2 text-center">
+          <h2 className="px-4 text-lg font-semibold">No organization selected</h2>
+          <p className="px-4 text-sm text-muted-foreground">
             Select an organization to start chatting with your board concierge.
           </p>
         </div>
@@ -655,7 +655,7 @@ export function BoardChat() {
   }
 
   return (
-    <div className="flex h-(--sz-calc-29) flex-col -m-6">
+    <div className="flex h-full flex-col">
       <div
         ref={splitContainerRef}
         className="flex min-h-0 min-w-0 flex-1 flex-row"
@@ -669,34 +669,13 @@ export function BoardChat() {
           )}
           style={innerWidth > 0 && containerWidth >= 2 * SPLIT_MIN_PANE_PX + SPLIT_DIVIDER_PX ? { width: leftPaneWidth } : undefined}
         >
-          <div className="relative flex shrink-0 items-center justify-between gap-2 px-4 py-3">
-            <div
-              className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-border"
-              aria-hidden
-            />
-            <div className="min-w-0 flex-1">
+          <div className="flex shrink-0 items-center justify-between gap-2 bg-muted/50 px-4 py-3">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <h3 className="text-sm font-semibold">
                 {ceoAgent?.name ?? "Conference Room"}
               </h3>
-              <p className="text-xs text-muted-foreground">
-                {selectedCompany?.name ?? "Your organization"}
-              </p>
+              <Badge variant="secondary">{sortedComments.length}</Badge>
             </div>
-            <div className="flex shrink-0 items-center gap-0.5">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-muted-foreground"
-                    aria-label="chat history"
-                  >
-                    <History className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">chat history</TooltipContent>
-              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -711,17 +690,34 @@ export function BoardChat() {
                 </TooltipTrigger>
                 <TooltipContent side="bottom">new chat</TooltipContent>
               </Tooltip>
-            </div>
+          </div>
+          <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border px-4 py-1">
+            <p className="text-xs text-muted-foreground">
+              {selectedCompany?.name ?? "Your organization"}
+            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground"
+                  aria-label="chat history"
+                >
+                  <History className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">chat history</TooltipContent>
+            </Tooltip>
           </div>
           {/* Messages — scroll viewport flush right so the scrollbar sits on the pane/divider edge */}
           <div className="relative min-h-0 min-w-0 flex-1">
           <div
             ref={scrollContainerRef}
-            className="scrollbar-auto-hide absolute inset-0 overflow-y-auto overflow-x-hidden"
+            className="scrollbar-auto-hide absolute inset-0 overflow-y-auto overflow-x-hidden border-t border-border"
           >
-            {/* pb clears the floating glass dock (PAP-131) so the last bubble can
-                 scroll fully above the composer. */}
-            <div className="flex flex-col gap-4 px-6 pt-3 pb-32">
+            {/* The final scroll marker clears the floating dock so the last message stays visible. */}
+            <div className="flex flex-col gap-4">
               {/* Typing bubble — shown unconditionally until the reveal
                    timer fires, so the animation is guaranteed to be
                    visible even while agent/goal data is still loading. */}
@@ -767,27 +763,28 @@ export function BoardChat() {
                       <div
                         className={cn(
                           boardChatBubbleShell,
-                          "bg-card border border-border text-foreground [border-radius:14px_14px_14px_4px]",
+                          "rounded-xl rounded-bl-sm text-foreground",
                         )}
                       >
                         <MarkdownBody className={BOARD_CHAT_MARKDOWN_CLASS}>{welcomeBody}</MarkdownBody>
                       </div>
                     </div>
                     {!userHasReplied && chipsRevealed && (
-                      <div className="flex flex-wrap gap-2 pl-1">
+                      <div className="grid gap-2 md:grid-cols-2">
                         {chips.map((chip) => (
-                          <button
+                          <Button
                             key={chip.label}
                             type="button"
                             onClick={() => {
                               setInput(chip.prompt);
                               composerRef.current?.focus();
                             }}
-                            // design-allow(card-pattern): interactive suggestion-pill <button>, not a content card (C5a Run 3)
-                            className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
+                            variant="secondary"
+                            size="sm"
+                            className="h-auto justify-start whitespace-normal text-left"
                           >
                             {chip.label}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     )}
@@ -796,6 +793,7 @@ export function BoardChat() {
               })()}
 
               {sortedComments.map((comment) => {
+                // Messages stay chronological so replies retain their conversation context.
                 const isUser = !comment.authorAgentId && comment.authorUserId !== "board-concierge";
                 if (isUser) {
                   return (
@@ -803,7 +801,7 @@ export function BoardChat() {
                       <div
                         className={cn(
                           boardChatBubbleShell,
-                          "bg-blue-600 text-white [border-radius:14px_14px_4px_14px]",
+                          "rounded-xl rounded-br-sm bg-(--liveness-blue) text-primary-foreground",
                         )}
                       >
                         {comment.body ?? ""}
@@ -824,7 +822,7 @@ export function BoardChat() {
                     <div
                       className={cn(
                         boardChatBubbleShell,
-                        "bg-card border border-border text-foreground [border-radius:14px_14px_14px_4px]",
+                        "rounded-xl rounded-bl-sm text-foreground",
                       )}
                     >
                       <MarkdownBody className={BOARD_CHAT_MARKDOWN_CLASS}>
@@ -858,7 +856,7 @@ export function BoardChat() {
                   <div
                     className={cn(
                       boardChatBubbleShell,
-                      "bg-blue-600 text-white [border-radius:14px_14px_4px_14px]",
+                      "rounded-xl rounded-br-sm bg-(--liveness-blue) text-primary-foreground",
                     )}
                   >
                     {optimisticMessage}
@@ -875,7 +873,7 @@ export function BoardChat() {
                   <div
                     className={cn(
                       boardChatBubbleShell,
-                      "bg-card border border-border text-foreground [border-radius:14px_14px_14px_4px]",
+                      "rounded-xl rounded-bl-sm text-foreground",
                     )}
                   >
                     <MarkdownBody className={BOARD_CHAT_MARKDOWN_CLASS}>{streamingText}</MarkdownBody>
@@ -891,11 +889,11 @@ export function BoardChat() {
 
               {/* Status bar — always visible while sending, independent from the chat bubble */}
               {sending && (
-                <div className="flex items-center gap-2 pl-1 text-xs text-muted-foreground">
-                  <img src="/paperclip-thinking.svg" alt="" className="inline-block shrink-0" style={{ width: 14, height: 14 }} />
+                <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
+                  <img src="/paperclip-thinking.svg" alt="" className="inline-block size-3.5 shrink-0" />
                   <span>{statusText || "Thinking..."}</span>
                   {elapsedSec > 0 && (
-                    <span className="opacity-50">{elapsedSec.toFixed(1)}s</span>
+                    <span className="font-mono opacity-50">{elapsedSec.toFixed(1)}s</span>
                   )}
                 </div>
               )}
@@ -910,7 +908,7 @@ export function BoardChat() {
                   <div
                     className={cn(
                       boardChatBubbleShell,
-                      "bg-destructive/10 border border-destructive/30 text-destructive [border-radius:14px_14px_14px_4px]",
+                      "border-t border-border bg-destructive/10 text-destructive",
                     )}
                   >
                     {errorText}
@@ -918,22 +916,23 @@ export function BoardChat() {
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} className="h-32 shrink-0" />
             </div>
           </div>
           </div>
 
           {/* Jump-to-latest — shows when user is scrolled away and new content has arrived */}
           {hasNewBelow && (
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-sm"
               onClick={() => scrollToLatest("smooth")}
               aria-label="Jump to latest messages"
-              // design-allow(card-pattern): floating scroll-to-bottom <button>, not a content card (C5a Run 3)
-              className="absolute bottom-24 left-1/2 z-20 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-border bg-card text-foreground shadow-md transition-colors duration-150 hover:bg-accent hover:border-muted-foreground/30"
+              className="absolute bottom-24 left-1/2 z-(--z-20) -translate-x-1/2 rounded-full border-border shadow-md"
             >
               <ArrowDown className="h-4 w-4" />
-            </button>
+            </Button>
           )}
 
           {/* Input — shared ChatComposer (PAP-95a), adopted bare: textarea + send.
@@ -948,7 +947,7 @@ export function BoardChat() {
                mask is gone — the dock carries the task-style soft top fade instead
                (mirrors IssueChatThread's composer dock). pointer-events pass through
                the fade so the scrollbar stays usable; the composer re-enables them. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-background via-background/95 to-background/0 px-6 pt-6 pb-5">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-(--z-2) bg-gradient-to-t from-background via-background/95 to-background/0">
             <ChatComposer
               ref={composerRef}
               value={input}
@@ -960,7 +959,7 @@ export function BoardChat() {
               submitting={sending}
               disabled={sending}
               sendLabel="Send message"
-              className="pointer-events-auto"
+              className="pointer-events-auto mx-4 my-3"
             />
           </div>
         </div>
@@ -974,7 +973,7 @@ export function BoardChat() {
           onMouseDown={handleSplitDragStart}
         >
           <div
-            className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-border transition-colors group-hover:bg-foreground/20"
+            className="pointer-events-none absolute top-0 bottom-0 left-0 w-px bg-border"
             aria-hidden
           />
         </div>
@@ -993,7 +992,7 @@ export function BoardChat() {
               type="button"
               size="icon"
               variant="secondary"
-              className="fixed bottom-20 right-4 z-20 h-10 w-10 rounded-full shadow-lg"
+              className="fixed bottom-20 right-4 z-(--z-20) rounded-full shadow-lg"
               aria-label="Open agent feed"
             >
               <Activity className="h-4 w-4" />

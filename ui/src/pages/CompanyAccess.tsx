@@ -5,7 +5,7 @@ import {
   hidesCompanyPage,
   type Agent,
 } from "@paperclipai/shared";
-import { Shield, ShieldCheck, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { accessApi, type CompanyMember } from "@/api/access";
 import { agentsApi } from "@/api/agents";
 import { ApiError } from "@/api/client";
@@ -22,6 +22,15 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "@/context/CompanyContext";
 import { useToast } from "@/context/ToastContext";
@@ -276,14 +285,16 @@ export function CompanyAccess() {
       member.id !== removingMemberId,
   );
   const activeReassignmentAgents = (agentsQuery.data ?? []).filter(isAssignableAgent);
+  // Task previews stay ordered to match the assignment query and its six-item cutoff.
   const assignedIssues = assignedIssuesQuery.data ?? [];
 
+  // Members stay in a table so operators can compare aligned roles, status, and actions.
   return (
-    <div className="max-w-6xl space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex max-w-6xl flex-col">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/50 px-3 py-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-lg font-semibold">Organization Members</h1>
+          <Badge variant="secondary">{members.length}</Badge>
         </div>
         {cloudInviteUrl && (
           <Button asChild>
@@ -292,8 +303,9 @@ export function CompanyAccess() {
         )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-0">
         {!hideInvitesTab && (
+          <div className="border-t border-border bg-muted/50">
           <PageTabBar
             items={[
               { value: "members", label: "Members" },
@@ -303,28 +315,27 @@ export function CompanyAccess() {
             value={activeTab}
             onValueChange={handleTabChange}
           />
+          </div>
         )}
-        <TabsContent value="members" className="space-y-8">
+        <TabsContent value="members" className="flex flex-col gap-0">
 
       {access && !access.currentUserRole && (
-        <div className="rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+        <div className="border-t border-border bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
           This account can manage access here through instance-admin privileges, but it does not currently hold an active organization membership.
         </div>
       )}
 
-      <section className="space-y-4">
+      <section className="flex flex-col">
         {access?.canApproveJoinRequests && pendingHumanJoinRequests.length > 0 ? (
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-sm font-semibold">Pending human joins</h3>
-                <p className="text-sm text-muted-foreground">
-                  Review pending join requests before they become active organization members.
-                </p>
-              </div>
-              <Badge variant="outline">{pendingHumanJoinRequests.length} pending</Badge>
+          <div className="flex flex-col border-t border-border">
+            <div className="flex flex-wrap items-center gap-2 bg-muted/50 px-3 py-3">
+              <h3 className="text-sm font-semibold">Pending human joins</h3>
+              <Badge variant="secondary">{pendingHumanJoinRequests.length} pending</Badge>
             </div>
-            <div className="space-y-3">
+            <p className="px-3 py-3 text-sm text-muted-foreground">
+              Review pending join requests before they become active organization members.
+            </p>
+            <div className="grid gap-x-4 md:grid-cols-2 xl:grid-cols-3">
               {pendingHumanJoinRequests.map((request) => (
                 <PendingJoinRequestCard
                   key={request.id}
@@ -357,31 +368,31 @@ export function CompanyAccess() {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-(--sz-44rem) text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-muted-foreground">
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Email</th>
-                <th className="px-3 py-2 font-medium">Role</th>
-                <th className="px-3 py-2 font-medium">Status</th>
-                <th className="px-3 py-2 text-right font-medium">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="border-t border-border">
+          <Table className="min-w-(--sz-44rem) text-left">
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {members.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-3 py-8 text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-muted-foreground">
                     No user memberships found for this organization yet.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : members.map((member) => {
                 const removalReason = member.removal?.reason ?? null;
                 const canArchive = member.removal?.canArchive ?? true;
                 const displayName = memberDisplayName(member);
                 return (
-                  <tr key={member.id} className="border-b border-border last:border-b-0">
-                    <td className="px-3 py-3">
+                  <TableRow key={member.id}>
+                    <TableCell>
                       <div className="flex min-w-0 items-center gap-2.5">
                         <Avatar size="sm">
                           {member.user?.image ? <AvatarImage src={member.user.image} alt={displayName} /> : null}
@@ -389,21 +400,21 @@ export function CompanyAccess() {
                         </Avatar>
                         <span className="truncate font-medium">{displayName}</span>
                       </div>
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {member.user?.email || member.principalId}
-                    </td>
-                    <td className="px-3 py-3">
+                    </TableCell>
+                    <TableCell>
                       {member.membershipRole
                         ? HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS[member.membershipRole]
                         : "Unset"}
-                    </td>
-                    <td className="px-3 py-3">
+                    </TableCell>
+                    <TableCell>
                       <Badge variant={member.status === "active" ? "secondary" : member.status === "suspended" ? "destructive" : "outline"}>
                         {member.status.replace("_", " ")}
                       </Badge>
-                    </td>
-                    <td className="px-3 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="outline" onClick={() => setEditingMemberId(member.id)}>
                           Edit
@@ -419,35 +430,35 @@ export function CompanyAccess() {
                             disabled={!canArchive}
                             title={!canArchive ? removalReason ?? undefined : undefined}
                           >
-                            <Trash2 className="mr-1 h-3.5 w-3.5" />
+                            <Trash2 />
                             Remove
                           </Button>
                         </span>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
 
       <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMemberId(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit member</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl gap-0 border-border p-0">
+          <DialogHeader className="gap-0">
+            <DialogTitle className="bg-muted/50 px-4 py-4 pr-12">Edit member</DialogTitle>
+            <DialogDescription className="px-4 py-3">
               Update organization role and membership status for {editingMember?.user?.name || editingMember?.user?.email || editingMember?.principalId}.
             </DialogDescription>
           </DialogHeader>
           {editingMember && (
-            <div className="space-y-5">
+            <div className="border-t border-border">
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="space-y-2 text-sm">
-                  <span className="font-medium">Organization role</span>
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="px-4 pt-3 font-medium">Organization role</span>
                   <select
-                    className="w-full rounded-md border border-border bg-background px-3 py-2"
+                    className="w-full border-y border-border bg-background px-4 py-2"
                     value={draftRole ?? ""}
                     onChange={(event) =>
                       setDraftRole((event.target.value || null) as CompanyMember["membershipRole"])
@@ -461,10 +472,10 @@ export function CompanyAccess() {
                     ))}
                   </select>
                 </label>
-                <label className="space-y-2 text-sm">
-                  <span className="font-medium">Membership status</span>
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="px-4 pt-3 font-medium">Membership status</span>
                   <select
-                    className="w-full rounded-md border border-border bg-background px-3 py-2"
+                    className="w-full border-y border-border bg-background px-4 py-2"
                     value={draftStatus}
                     onChange={(event) =>
                       setDraftStatus(event.target.value as EditableMemberStatus)
@@ -478,7 +489,7 @@ export function CompanyAccess() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-row items-center justify-between border-t border-border px-4 py-3 sm:justify-between">
             <Button variant="outline" onClick={() => setEditingMemberId(null)}>
               Cancel
             </Button>
@@ -500,19 +511,19 @@ export function CompanyAccess() {
       </Dialog>
 
       <Dialog open={!!removingMember} onOpenChange={(open) => !open && setRemovingMemberId(null)}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Remove member</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-xl gap-0 border-border p-0">
+          <DialogHeader className="gap-0">
+            <DialogTitle className="bg-muted/50 px-4 py-4 pr-12">Remove member</DialogTitle>
+            <DialogDescription className="px-4 py-3">
               Archive {memberDisplayName(removingMember)} and move active assignments before hiding this user from assignment fields.
             </DialogDescription>
           </DialogHeader>
           {removingMember && (
-            <div className="space-y-5">
-              <div className="rounded-lg border border-border px-3 py-3">
-                <div className="text-sm font-medium">{memberDisplayName(removingMember)}</div>
-                <div className="text-sm text-muted-foreground">{removingMember.user?.email || removingMember.principalId}</div>
-                <div className="mt-2 text-sm text-muted-foreground">
+            <div className="flex flex-col">
+              <div className="flex flex-col gap-2 border-t border-border">
+                <div className="px-4 pt-3 text-sm font-medium">{memberDisplayName(removingMember)}</div>
+                <div className="px-4 text-sm text-muted-foreground">{removingMember.user?.email || removingMember.principalId}</div>
+                <div className="px-4 pb-3 font-mono text-sm text-muted-foreground">
                   {assignedIssuesQuery.isLoading
                     ? "Checking assigned tasks..."
                     : `${assignedIssues.length} open assigned task${assignedIssues.length === 1 ? "" : "s"}`}
@@ -520,10 +531,10 @@ export function CompanyAccess() {
               </div>
 
               {assignedIssues.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Task reassignment</div>
+                <div className="flex flex-col border-t border-border">
+                  <div className="bg-muted/50 px-4 py-3 text-sm font-medium">Task reassignment</div>
                   <select
-                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                    className="w-full border-y border-border bg-background px-4 py-2 text-sm"
                     value={reassignmentTarget}
                     onChange={(event) => setReassignmentTarget(event.target.value)}
                   >
@@ -547,24 +558,24 @@ export function CompanyAccess() {
                       </optgroup>
                     ) : null}
                   </select>
-                  <div className="max-h-36 overflow-auto rounded-lg border border-border">
+                  <ScrollArea className="max-h-36">
                     {assignedIssues.slice(0, 6).map((issue) => (
-                      <div key={issue.id} className="border-b border-border px-3 py-2 text-sm last:border-b-0">
-                        <div className="font-medium">{issue.identifier ?? issue.id.slice(0, 8)}</div>
-                        <div className="truncate text-muted-foreground">{issue.title}</div>
+                      <div key={issue.id} className="flex flex-col border-t border-border text-sm">
+                        <div className="px-4 pt-2 font-mono font-medium">{issue.identifier ?? issue.id.slice(0, 8)}</div>
+                        <div className="truncate px-4 pb-2 text-muted-foreground">{issue.title}</div>
                       </div>
                     ))}
                     {assignedIssues.length > 6 ? (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                      <div className="border-t border-border px-4 py-2 text-sm text-muted-foreground">
                         {assignedIssues.length - 6} more task{assignedIssues.length - 6 === 1 ? "" : "s"}
                       </div>
                     ) : null}
-                  </div>
+                  </ScrollArea>
                 </div>
               ) : null}
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex-row items-center justify-between border-t border-border px-4 py-3 sm:justify-between">
             <Button variant="outline" onClick={() => setRemovingMemberId(null)}>
               Cancel
             </Button>
@@ -621,28 +632,25 @@ export function CompanyAccessLegacyRoute() {
   }
 
   return (
-    <div className="max-w-2xl space-y-5">
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Advanced Permissions</h1>
-        </div>
-        <p className="text-sm text-muted-foreground">
+    <div className="flex max-w-2xl flex-col">
+      <div className="flex flex-col">
+        <h1 className="bg-muted/50 px-4 py-3 text-lg font-semibold">Advanced Permissions</h1>
+        <p className="px-4 py-3 text-sm text-muted-foreground">
           Advanced access, scoped assignment, and explicit grant controls are provided by installed organization settings extensions.
         </p>
       </div>
 
-      <div className="space-y-4 rounded-xl border border-border px-5 py-5">
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold">Advanced permissions unavailable</h2>
-          <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col border-t border-border">
+        <div className="flex flex-col">
+          <h2 className="bg-muted/50 px-4 py-3 text-sm font-semibold">Advanced permissions unavailable</h2>
+          <p className="px-4 py-3 text-sm text-muted-foreground">
             Core Paperclip keeps enforcing organization boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.
           </p>
           {errorMessage ? (
-            <p className="text-sm text-destructive">Plugin extensions unavailable: {errorMessage}</p>
+            <p className="px-4 py-3 text-sm text-destructive">Plugin extensions unavailable: {errorMessage}</p>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
           <Button asChild>
             <Link to="/company/settings/members">Open Members</Link>
           </Button>
@@ -701,18 +709,18 @@ function PendingJoinRequestCard({
   onReject: () => void;
 }) {
   return (
-    <div className="py-3">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <div>
-            <div className="font-medium">{title}</div>
-            <div className="text-sm text-muted-foreground">{subtitle}</div>
+    <div className="flex min-w-0 flex-col border-t border-border">
+      <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="break-words px-3 pt-3 font-medium">{title}</div>
+            <div className="break-words px-3 text-sm text-muted-foreground">{subtitle}</div>
           </div>
-          <div className="text-sm text-muted-foreground">{context}</div>
-          <div className="text-sm text-muted-foreground">{detail}</div>
-          {detailSecondary ? <div className="text-sm text-muted-foreground">{detailSecondary}</div> : null}
+          <div className="px-3 text-sm text-muted-foreground">{context}</div>
+          <div className="px-3 font-mono text-sm text-muted-foreground">{detail}</div>
+          {detailSecondary ? <div className="px-3 text-sm text-muted-foreground">{detailSecondary}</div> : null}
         </div>
-        <div className="flex gap-2">
+        <div className="mt-auto flex items-center justify-between gap-2 px-3 pb-3">
           <Button type="button" variant="outline" onClick={onReject} disabled={disabled}>
             {rejectLabel}
           </Button>

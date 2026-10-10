@@ -5,7 +5,7 @@ import { Download, ScrollText, ShieldAlert } from "lucide-react";
 import type { Agent } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Identity } from "@/components/Identity";
-import { cn, relativeTime } from "@/lib/utils";
+import { relativeTime } from "@/lib/utils";
 import { queryKeys } from "@/lib/queryKeys";
 import { formatActivityVerb } from "@/lib/activity-format";
 import { buildCompanyUserProfileMap, type CompanyUserProfile } from "@/lib/company-members";
@@ -211,16 +211,16 @@ function AuditRow({
   const documentKey = record.entity.issue && record.entity.document ? record.entity.document.key : null;
 
   return (
-    <li className="px-4 py-3 text-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
+    <li className="border-t border-border px-4 py-3 text-sm">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
+        <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-foreground">
             <AuditActor record={record} agentMap={agentMap} userProfileMap={userProfileMap} />
             <span className="text-muted-foreground">{verb}</span>
             <AuditEntityNode record={record} />
           </div>
           {excerpt ? (
-            <p className="line-clamp-2 border-l-2 border-border pl-2 text-muted-foreground">
+            <p className="line-clamp-2 border-l border-border pl-2 text-muted-foreground">
               “{excerpt}”
             </p>
           ) : null}
@@ -231,9 +231,9 @@ function AuditRow({
           ) : null}
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {showOnBehalf && responsibleLabel ? (
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
+              <Badge variant="secondary">
                 on behalf of {responsibleLabel}
-              </span>
+              </Badge>
             ) : null}
             {record.runId && record.agentId ? (
               <Link
@@ -247,7 +247,7 @@ function AuditRow({
           </div>
         </div>
         <time
-          className="shrink-0 whitespace-nowrap text-xs text-muted-foreground"
+          className="shrink-0 whitespace-nowrap font-mono text-xs text-muted-foreground"
           dateTime={record.createdAt}
           title={new Date(record.createdAt).toLocaleString()}
         >
@@ -261,21 +261,19 @@ function AuditRow({
 /** The permission-denied / upsell state shown when the caller lacks the grant. */
 function AuditUpsell() {
   return (
-    <Card>
-      <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-        <ShieldAlert className="h-10 w-10 text-muted-foreground/50" />
-        <div>
-          <p className="text-sm font-medium text-foreground">Agent audit is a Paperclip Enterprise view</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            The agent audit log gives you a searchable, exportable record of everything your agents
-            did — every comment, task change, approval, and run — with the responsible person for
-            each action. Ask an administrator to grant you the{" "}
-            <span className="font-mono text-(length:--text-micro)">audit:view_agent_actions</span>{" "}
-            permission to view it.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center gap-3 border-t border-border text-center">
+      <p className="flex items-center gap-3 px-4 pt-14 text-sm font-medium text-foreground">
+        <ShieldAlert className="size-10 shrink-0 text-muted-foreground" />
+        Agent audit is a Paperclip Enterprise view
+      </p>
+      <p className="max-w-md px-4 pb-14 text-sm text-muted-foreground">
+        The agent audit log gives you a searchable, exportable record of everything your agents
+        did — every comment, task change, approval, and run — with the responsible person for
+        each action. Ask an administrator to grant you the{" "}
+        <span className="font-mono text-(length:--text-micro)">audit:view_agent_actions</span>{" "}
+        permission to view it.
+      </p>
+    </div>
   );
 }
 
@@ -497,23 +495,24 @@ export function AuditFeed({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col">
       {!hideHeader ? (
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Activity</h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              {resolvedMode === "agents"
-                ? "Every recorded agent action, newest first — with the responsible person and run behind each one."
-                : "Everything happening in your organization, newest first — people, agents, and the system. Each line is one recorded action."}
-            </p>
+        <>
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50">
+            <h2 className="px-4 py-3 text-lg font-semibold text-foreground">Activity</h2>
+            <Badge variant="secondary">{items.length}</Badge>
           </div>
-        </div>
+          <p className="max-w-2xl px-4 py-3 text-sm text-muted-foreground">
+            {resolvedMode === "agents"
+              ? "Every recorded agent action, newest first — with the responsible person and run behind each one."
+              : "Everything happening in your organization, newest first — people, agents, and the system. Each line is one recorded action."}
+          </p>
+        </>
       ) : null}
 
       {showModeToggle ? (
-        <Tabs value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
-          <TabsList aria-label="Activity scope">
+        <Tabs className="border-t border-border bg-muted/50" value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
+          <TabsList variant="line" aria-label="Activity scope">
             <TabsTrigger value="all">Activity</TabsTrigger>
             <TabsTrigger
               value="agents"
@@ -527,7 +526,7 @@ export function AuditFeed({
       ) : null}
 
       {hasLockedScope ? (
-        <div className="border-y border-border px-1 py-2 text-xs text-muted-foreground">
+        <div className="border-t border-border px-4 py-2 font-mono text-xs text-muted-foreground">
           {lockedRunId
             ? `Scoped to run ${lockedRunId.slice(0, 8)}`
             : lockedAgentId
@@ -536,10 +535,10 @@ export function AuditFeed({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-3 border-y border-border py-3">
+      <div className="flex flex-wrap items-end gap-3 border-t border-border bg-muted/50">
         {canUseAdvancedControls && !lockedAgentId && !lockedRunId ? (
           <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-            <span>Agent</span>
+            <span className="px-3 pt-3">Agent</span>
             <Select value={agent} onValueChange={setAgent}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Agent" />
@@ -557,7 +556,7 @@ export function AuditFeed({
         ) : null}
         {canUseAdvancedControls ? (
           <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-            <span>Responsible user</span>
+            <span className="px-3 pt-3">Responsible user</span>
             <Select value={responsibleUser} onValueChange={setResponsibleUser}>
               {/* Wide enough for "All responsible users" — w-44 truncated it. */}
               <SelectTrigger className="w-52">
@@ -575,7 +574,7 @@ export function AuditFeed({
           </label>
         ) : null}
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-          <span>Action</span>
+          <span className="px-3 pt-3">Action</span>
           <Select value={actionDomain} onValueChange={setActionDomain}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Action" />
@@ -591,7 +590,7 @@ export function AuditFeed({
         </label>
         {!lockedEntity ? (
           <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-            <span>Entity</span>
+            <span className="px-3 pt-3">Entity</span>
             <Select value={entityType} onValueChange={setEntityType}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Entity" />
@@ -607,7 +606,7 @@ export function AuditFeed({
           </label>
         ) : null}
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-          <span>From</span>
+          <span className="px-3 pt-3">From</span>
           <Input
             type="date"
             aria-label="From date"
@@ -618,7 +617,7 @@ export function AuditFeed({
           />
         </label>
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
-          <span>To</span>
+          <span className="px-3 pt-3">To</span>
           <Input
             type="date"
             aria-label="To date"
@@ -641,73 +640,62 @@ export function AuditFeed({
             onClick={handleExport}
             disabled={exporting || feed.isLoading || items.length === 0}
           >
-            <Download className="mr-1.5 h-4 w-4" />
+            <Download />
             {exporting ? "Exporting…" : "Export CSV"}
           </Button>
         ) : null}
       </div>
 
       {recoveringFromAccessDowngrade || fallingBackToAllActivity ? (
-        <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">
-            Refreshing audit access…
-          </CardContent>
-        </Card>
+        <p className="border-t border-border px-4 py-14 text-center text-sm text-muted-foreground">
+          Refreshing audit access…
+        </p>
       ) : feed.isLoading ? (
-        <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">Loading…</CardContent>
-        </Card>
+        <p className="border-t border-border px-4 py-14 text-center text-sm text-muted-foreground">Loading…</p>
       ) : feed.error ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-            <p className="text-sm text-muted-foreground">
-              {feed.error instanceof Error ? feed.error.message : "Failed to load the audit log."}
-            </p>
-            <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
-              Try again
-            </Button>
-          </CardContent>
-        </Card>
-      ) : items.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
-            <ScrollText className="h-10 w-10 text-muted-foreground/40" />
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                {hasActiveFilters ? "No actions match these filters" : "Nothing here yet"}
-              </p>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                {hasActiveFilters
-                  ? "Try a wider date range or different filters."
-                  : resolvedMode === "agents"
-                    ? "As soon as your agents start doing things, their actions show up here."
-                    : "As soon as anyone in your organization does something, it shows up here."}
-              </p>
-            </div>
-            {hasActiveFilters ? (
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="border-y border-border">
-          <ul className={cn("divide-y divide-border")} aria-label="Audit activity">
-            {items.map((record) => (
-              <AuditRow
-                key={record.id}
-                record={record}
-                agentMap={agentMap}
-                userProfileMap={userProfileMap}
-              />
-            ))}
-          </ul>
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 border-t border-border text-center">
+          <p className="px-4 text-sm text-muted-foreground">
+            {feed.error instanceof Error ? feed.error.message : "Failed to load the audit log."}
+          </p>
+          <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
+            Try again
+          </Button>
         </div>
+      ) : items.length === 0 ? (
+        <div className="flex min-h-48 flex-col items-center justify-center gap-3 border-t border-border text-center">
+          <p className="flex items-center gap-3 px-4 text-sm font-medium text-foreground">
+            <ScrollText className="size-10 shrink-0 text-muted-foreground" />
+            {hasActiveFilters ? "No actions match these filters" : "Nothing here yet"}
+          </p>
+          <p className="max-w-md px-4 text-sm text-muted-foreground">
+            {hasActiveFilters
+              ? "Try a wider date range or different filters."
+              : resolvedMode === "agents"
+                ? "As soon as your agents start doing things, their actions show up here."
+                : "As soon as anyone in your organization does something, it shows up here."}
+          </p>
+          {hasActiveFilters ? (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        // Actions stay a list because their chronological order is the audit trail.
+        <ul aria-label="Audit activity">
+          {items.map((record) => (
+            <AuditRow
+              key={record.id}
+              record={record}
+              agentMap={agentMap}
+              userProfileMap={userProfileMap}
+            />
+          ))}
+        </ul>
       )}
 
       {feed.hasNextPage ? (
-        <div className="flex justify-center">
+        <div className="flex justify-center border-t border-border">
           <Button
             variant="outline"
             size="sm"
@@ -719,7 +707,7 @@ export function AuditFeed({
         </div>
       ) : null}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
         Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
       </p>
     </div>

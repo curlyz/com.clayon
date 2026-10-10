@@ -71,28 +71,29 @@ export function AgentChat() {
   }, [agent, selectedCompanyId, chat.data, client, userId]);
   if (!loaded || agents.isPending || session.isPending || historyAgent.isFetching && !agent)
     return (
-      <p className="text-sm text-muted-foreground">Loading conversation…</p>
+      <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Loading conversation…</p>
     );
   if (!enabled && !chat.data)
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">
         Agent Chat is disabled. Enable it in Experimental settings. Existing
         history remains available through task links.
       </p>
     );
   if (agents.error || chat.error || !rosterAgent && historyAgent.error)
     return (
-      <p className="text-sm text-destructive">
+      <p className="border-t border-border px-4 py-6 text-sm text-destructive">
         {(agents.error ?? chat.error ?? historyAgent.error)?.message}
       </p>
     );
   if (!agent)
-    return <p className="text-sm text-destructive">Agent not found.</p>;
+    return <p className="border-t border-border px-4 py-6 text-sm text-destructive">Agent not found.</p>;
   if (chat.isPending)
     return (
-      <p className="text-sm text-muted-foreground">Loading conversation…</p>
+      <p className="border-t border-border px-4 py-6 text-sm text-muted-foreground">Loading conversation…</p>
     );
   return (
+    // Keep the shared conversation surface: messages must be read in chronological order.
     <TaskDetailSurface
       key={`${agent.id}:${userId}`}
       conversation={{ agent, issue: chat.data ?? null, ensureIssue }}
