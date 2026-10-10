@@ -210,7 +210,7 @@ export function SidebarSection({
         <div className="px-3 py-1.5 pointer-coarse:py-1">
           <div className="flex min-h-6 items-center">
             <span className="sr-only">{label}</span>
-            <div className="h-px w-full bg-border/60" aria-hidden="true" />
+            <div className="h-px w-full bg-border" aria-hidden="true" />
           </div>
         </div>
         {content}
@@ -220,7 +220,14 @@ export function SidebarSection({
 
   if (collapsible) {
     return (
-      <Collapsible open={collapsible.open} onOpenChange={collapsible.onOpenChange}>
+      <Collapsible
+        open={collapsible.open}
+        onOpenChange={collapsible.onOpenChange}
+        // Sidebar column law: every group is a hairline-separated band; the
+        // first band in a column carries no border (per-page review, operator
+        // directive 2026-10-10).
+        className="border-t border-border pt-2 first:border-t-0 first:pt-0"
+      >
         <SidebarSectionHeader
           label={label}
           collapsible={collapsible}
@@ -233,7 +240,7 @@ export function SidebarSection({
   }
 
   return (
-    <div>
+    <div className="border-t border-border pt-2 first:border-t-0 first:pt-0">
       <SidebarSectionHeader label={label} menu={menu} headerAction={headerAction} />
       {content}
     </div>

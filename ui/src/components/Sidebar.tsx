@@ -131,7 +131,10 @@ export function Sidebar({ children }: { children?: ReactNode }) {
         "w-full h-full min-h-0 flex flex-col",
         streamlinedUiEnabled
           ? primarySidebarStyles.surface
-          : "border-r border-border bg-background",
+          : // Sidebar column law (operator directive 2026-10-10): the sidebar
+            // surface is the one-step-darker band; groups read as hairline
+            // bands on it.
+            "border-r border-border bg-sidebar text-sidebar-foreground",
       )}
     >
       {/* Top bar: company name, aligned with top sections and borderless.
@@ -307,8 +310,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
           errorBehavior="hidden"
           slotTypes={["sidebarPanel"]}
           context={pluginContext}
-          className="flex flex-col gap-3"
-          itemClassName="rounded-lg border border-border p-3"
+          className="flex flex-col gap-3 border-t border-border pt-2 first:border-t-0 first:pt-0"
           missingBehavior="placeholder"
         />
       </nav>

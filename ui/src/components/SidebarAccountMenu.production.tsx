@@ -171,7 +171,9 @@ export function SidebarAccountMenu({
   }
 
   return (
-    <div className="border-t border-r border-border bg-background px-3 py-2">
+    // Sidebar column law: same surface as the column (bg-sidebar family),
+    // separated by the one hairline token.
+    <div className="border-t border-r border-border bg-sidebar px-3 py-2 text-sidebar-foreground">
       <div className={cn("flex items-center gap-0.5", !rail && "px-2")}>
         <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

@@ -17,7 +17,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { InlineBanner } from "@/components/InlineBanner";
 import { Link } from "@/lib/router";
 
 type WorktreeRunExecutionDisplayState =
@@ -94,8 +94,13 @@ function ExperimentalToggleCard({
   const { hidden: hiddenSettings } = useHiddenSettings();
   const isManaged = managed?.managed === true;
   if (hiddenSettings.has(experimentalSettingKey(settingKey))) return null;
+  // Leaf-node law: a toggle setting is a band row, not a box — hairline above
+  // (except the first), title/description on the leaf, toggle trailing.
+  // List stays a list (per-page review criterion 1): feature flags are scanned
+  // in order with full-width descriptions, trailing toggles, and managed
+  // badges — tiling would break the hairline band rhythm and the scan order.
   return (
-    <Card className="block bg-transparent p-5">
+    <div className="border-t border-border pt-4 first:border-t-0 first:pt-0">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -115,7 +120,7 @@ function ExperimentalToggleCard({
           aria-label={ariaLabel}
         />
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -262,21 +267,10 @@ export function InstanceExperimentalSettings() {
         </p>
       </div>
 
-      <div
-        role="alert"
-        className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3"
-      >
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
-          <div className="space-y-1 text-sm">
-            <p className="font-medium text-foreground">Experimental features may break at any time.</p>
-            <p className="text-muted-foreground">
-              These features are opt-in and come with no compatibility guarantees. They may change, break, or be
-              removed without notice. Avoid relying on them for critical or production workflows.
-            </p>
-          </div>
-        </div>
-      </div>
+      <InlineBanner tone="warning" title="Experimental features may break at any time.">
+        These features are opt-in and come with no compatibility guarantees. They may change, break, or be
+        removed without notice. Avoid relying on them for critical or production workflows.
+      </InlineBanner>
 
       {actionError && (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
@@ -634,7 +628,7 @@ export function InstanceExperimentalSettings() {
           />
 
           {showWorktreeRunExecution ? (
-            <Card className="block bg-transparent p-5">
+            <div className="border-t border-border pt-4">
               <div className="flex flex-col gap-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1.5">
@@ -660,8 +654,8 @@ export function InstanceExperimentalSettings() {
                 </div>
 
                 {worktreeRunExecutionState.kind === "armed" ? (
-                  <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-foreground">
-                    <Play className="h-4 w-4 shrink-0 text-emerald-600" />
+                  <div className="flex items-center gap-2 rounded-md border border-(--status-task-icon-done)/30 bg-(--status-task-done)/5 px-3 py-2 text-sm text-foreground">
+                    <Play className="h-4 w-4 shrink-0 text-(--status-task-icon-done)" />
                     <span>
                       Running tasks created after{" "}
                       <span className="font-medium">
@@ -673,8 +667,8 @@ export function InstanceExperimentalSettings() {
                 ) : null}
 
                 {worktreeRunExecutionState.kind === "fail_closed" ? (
-                  <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                  <div className="flex items-start gap-2 rounded-md border border-(--status-task-todo)/30 bg-(--status-task-todo)/5 px-3 py-2 text-sm">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-(--status-task-icon-todo)" />
                     <div className="space-y-0.5">
                       <p className="font-medium text-foreground">Execution is suppressed — effectively off.</p>
                       <p className="text-muted-foreground">
@@ -687,7 +681,7 @@ export function InstanceExperimentalSettings() {
                   </div>
                 ) : null}
               </div>
-            </Card>
+            </div>
           ) : null}
 
           <ExperimentalToggleCard

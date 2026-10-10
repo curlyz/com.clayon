@@ -129,6 +129,7 @@ import {
   useResourceMemberships,
 } from "../hooks/useResourceMemberships";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const runStatusIcons: Record<string, { icon: typeof CheckCircle2; color: string }> = {
   succeeded: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
@@ -455,6 +456,8 @@ export function RunInvocationCard({
     || payload.env !== undefined;
 
   return (
+    // Card survivor (leaf-node law): the invocation payload is one diagnostic
+    // object (adapter command + collapsible details), not a grouping wrapper.
     <div className="rounded-lg border border-border bg-background/60 p-3 space-y-2">
       <div className="text-xs font-medium text-muted-foreground">Invocation</div>
       {typeof payload.adapterType === "string" && (
@@ -668,7 +671,9 @@ function WorkspaceOperationsSection({
   if (operations.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-border bg-background/60 p-3 space-y-3">
+    // Leaf-node: workspace operations are a diagnostic section rendered as a
+    // band (hairline above, one gap) — no outer grouping card.
+    <div className="space-y-3 border-t border-border pt-3">
       <div className="text-xs font-medium text-muted-foreground">
         Workspace ({operations.length})
       </div>
@@ -676,7 +681,9 @@ function WorkspaceOperationsSection({
         {operations.map((operation) => {
           const metadata = asRecord(operation.metadata);
           return (
-            <div key={operation.id} className="rounded-md border border-border/70 bg-background/70 p-3 space-y-2">
+            // Card survivor (leaf-node law): each operation is one object
+            // (phase, status, timing, excerpts) in the diagnostics band.
+            <div key={operation.id} className="rounded-md border border-border bg-background/70 p-3 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="text-sm font-medium">{workspaceOperationPhaseLabel(operation.phase)}</div>
                 <WorkspaceOperationStatusBadge status={operation.status} />
@@ -1723,6 +1730,8 @@ function LatestRunCard({
         </Link>
       </div>
 
+      {/* Card survivor (leaf-node law): the run summary is one clickable
+          object (the whole block links to the run), not a grouping wrapper. */}
       <Link
         to={rowHref}
         className={cn(
@@ -1796,8 +1805,9 @@ function AgentOverview({
       {/* Latest Run */}
       <LatestRunCard runs={runs} agentId={agentRouteId} issuesById={issuesById} />
 
-      {/* Charts */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Charts — Card survivor (leaf-node law): each ChartCard is one data
+          visualization object; the band below is split by a hairline. */}
+      <div className="grid grid-cols-2 gap-4 border-t border-border pt-8 lg:grid-cols-4">
         <ChartCard title="Run Activity" subtitle="Last 14 days">
           <RunActivityChart runs={runs} />
         </ChartCard>
@@ -1815,8 +1825,9 @@ function AgentOverview({
         </ChartCard>
       </div>
 
-      {/* Recent Issues */}
-      <div className="space-y-3">
+      {/* Leaf-node: sibling sections split by one hairline; task rows carry
+          their own dividers instead of a list card. */}
+      <div className="space-y-3 border-t border-border pt-8">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium">Recent Tasks</h3>
           <Link
@@ -1829,7 +1840,7 @@ function AgentOverview({
         {assignedIssues.length === 0 ? (
           <p className="text-sm text-muted-foreground">No recent tasks.</p>
         ) : (
-          <div className="border border-border rounded-lg">
+          <div>
             {assignedIssues.slice(0, 10).map((issue) => (
               <EntityRow
                 key={issue.id}
@@ -1849,7 +1860,7 @@ function AgentOverview({
       </div>
 
       {/* Costs */}
-      <div className="space-y-3">
+      <div className="space-y-3 border-t border-border pt-8">
         <h3 className="text-sm font-medium">Costs</h3>
         <CostsSection runtimeState={runtimeState} runs={runs} />
       </div>
@@ -1876,8 +1887,10 @@ function CostsSection({
   return (
     <div className="space-y-4">
       {runtimeState && (
-        <div className="border border-border rounded-lg p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 tabular-nums">
+        // Leaf-node: the lifetime usage totals are one band (hairline above,
+        // one gap) — no grouping card around the stat grid.
+        <div className="border-t border-border pt-4">
+          <div className="grid grid-cols-2 gap-4 tabular-nums md:grid-cols-4">
             <div>
               <span className="text-xs text-muted-foreground block">Input tokens</span>
               <span className="text-lg font-semibold">{formatTokens(runtimeState.totalInputTokens)}</span>
@@ -1898,37 +1911,40 @@ function CostsSection({
         </div>
       )}
       {runsWithCost.length > 0 && (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border bg-accent/20">
-                <th scope="col" className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                <th scope="col" className="text-left px-3 py-2 font-medium text-muted-foreground">Run</th>
-                <th scope="col" className="text-right px-3 py-2 font-medium text-muted-foreground">Input</th>
-                <th scope="col" className="text-right px-3 py-2 font-medium text-muted-foreground">Output</th>
-                <th scope="col" className="text-right px-3 py-2 font-medium text-muted-foreground">Cost</th>
-              </tr>
-            </thead>
-            <tbody>
+        // Leaf-node: the header row is its own darker band and rows carry
+        // hairline dividers via the Table primitive — no outer table card.
+        // Density (text-xs, h-auto py-2 heads) preserves the control-plane feel.
+        <div className="border-t border-border">
+          <Table className="text-xs">
+            <TableHeader>
+              <TableRow className="bg-accent/20 hover:bg-accent/20">
+                <TableHead scope="col" className="h-auto py-2">Date</TableHead>
+                <TableHead scope="col" className="h-auto py-2">Run</TableHead>
+                <TableHead scope="col" className="h-auto py-2 text-right">Input</TableHead>
+                <TableHead scope="col" className="h-auto py-2 text-right">Output</TableHead>
+                <TableHead scope="col" className="h-auto py-2 text-right">Cost</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {runsWithCost.slice(0, 10).map((run) => {
                 const metrics = runMetrics(run);
                 return (
-                  <tr key={run.id} className="border-b border-border last:border-b-0">
-                    <td className="px-3 py-2">{formatDate(run.createdAt)}</td>
-                    <td className="px-3 py-2 font-mono">{run.id.slice(0, 8)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatTokens(metrics.input)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatTokens(metrics.output)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                  <TableRow key={run.id}>
+                    <TableCell>{formatDate(run.createdAt)}</TableCell>
+                    <TableCell className="font-mono">{run.id.slice(0, 8)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatTokens(metrics.input)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatTokens(metrics.output)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {metrics.cost > 0
                         ? `$${metrics.cost.toFixed(4)}`
                         : "-"
                       }
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
@@ -2038,7 +2054,9 @@ function AgentConfigurePage({
             ) : (
               <div className="space-y-2">
                 {(configRevisions ?? []).slice(0, 10).map((revision) => (
-                  <div key={revision.id} className="border border-border/70 rounded-md p-3 space-y-2">
+                  // Card survivor (leaf-node law): each revision is one object
+                  // (id, date, source, restore action) in the list.
+                  <div key={revision.id} className="border border-border rounded-md p-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-xs text-muted-foreground">
                         <span className="font-mono">{revision.id.slice(0, 8)}</span>
@@ -2232,7 +2250,9 @@ function ConfigurationTab({
 
       {content === "configuration" ? <div>
         <h3 className="text-sm font-medium mb-3">Permissions</h3>
-        <div className="border border-border rounded-lg p-4 space-y-4">
+        {/* Leaf-node: the permission toggles are a band (hairline above, one
+            gap) — no grouping card around the three rows. */}
+        <div className="space-y-4 border-t border-border pt-4">
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="space-y-1">
               <div>Can create new agents</div>
@@ -3202,6 +3222,8 @@ function RunsTab({
       );
     }
     return (
+      // Card survivor (leaf-node law): the run list pane is one scrollable
+      // object on mobile; rows carry their own hairline dividers.
       <div className="border border-border rounded-lg overflow-x-hidden">
         {sorted.map((run) => (
           <RunListItem key={run.id} run={run} isSelected={false} agentId={agentRouteId} />
@@ -3213,7 +3235,9 @@ function RunsTab({
   // Desktop: side-by-side layout
   return (
     <div className="flex gap-0">
-      {/* Left: run list — border stretches full height, content sticks */}
+      {/* Left: run list — border stretches full height, content sticks.
+          Card survivor (leaf-node law): the sticky list pane is one object
+          beside the detail column; rows carry their own hairline dividers. */}
       <div className={cn(
         "shrink-0 border border-border rounded-lg",
         selectedRun ? "w-72" : "w-full",
@@ -3391,7 +3415,8 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
           git workspace it could not validate, wired to the same reconcile / repair / re-issue /
           break-glass handlers as the task detail page. */}
       <RunWorkspaceRecoverySurface run={run} />
-      {/* Run summary card */}
+      {/* Run summary card — Card survivor (leaf-node law): the run header is
+          one entity detail block (status, timing, metrics) on the page. */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="flex flex-col sm:flex-row">
           {/* Left column: status + timing */}
@@ -3560,7 +3585,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
               </div>
             )}
             {retryState && (
-              <div className="rounded-md border border-border/70 bg-accent/20 px-3 py-2 text-xs leading-5">
+              <div className="rounded-md border border-border bg-accent/20 px-3 py-2 text-xs leading-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={cn(
@@ -4222,7 +4247,7 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
           Transcript ({transcript.length})
         </span>
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-lg border border-border/70 bg-background/70 p-0.5">
+          <div className="inline-flex rounded-lg border border-border bg-background/70 p-0.5">
             {(["nice", "raw"] as const).map((mode) => (
               <button
                 key={mode}
@@ -4265,7 +4290,9 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
           )}
         </div>
       </div>
-      <div className="max-h-(--sz-38rem) overflow-y-auto rounded-2xl border border-border/70 bg-background/40 p-3 sm:p-4">
+      {/* Card survivor (leaf-node law): the transcript panel is one scrollable
+          log object, not a grouping wrapper for sibling sections. */}
+      <div className="max-h-(--sz-38rem) overflow-y-auto rounded-2xl border border-border bg-background/40 p-3 sm:p-4">
         <RunTranscriptView
           entries={transcript}
           toolDecisions={toolDecisionLookup.data?.decisions ?? []}
@@ -4275,7 +4302,7 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
           emptyMessage={run.logRef ? "Waiting for transcript..." : "No persisted transcript for this run."}
         />
         {hasMoreLog && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
             <Button
               type="button"
               variant="outline"
@@ -4421,7 +4448,8 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
 
   return (
     <div className="space-y-6">
-      {/* New token banner */}
+      {/* New token banner — Card survivor (leaf-node law): a one-shot status
+          callout the operator must act on (copy before dismissal), one object. */}
       {newToken && (
         <div className="border border-yellow-300 dark:border-yellow-600/40 bg-yellow-50 dark:bg-yellow-500/5 rounded-lg p-4 space-y-2">
           <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
@@ -4460,8 +4488,9 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
         </div>
       )}
 
-      {/* Create new key */}
-      <div className="border border-border rounded-lg p-4 space-y-3">
+      {/* Create new key — Leaf-node: a form band (hairline above, one gap), no
+          grouping card. */}
+      <div className="space-y-3 border-t border-border pt-4">
         <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-2">
           <Key className="h-3.5 w-3.5" />
           Create API Key
@@ -4502,7 +4531,8 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
           <h3 className="text-xs font-medium text-muted-foreground mb-2">
             Active Keys
           </h3>
-          <div className="border border-border rounded-lg divide-y divide-border">
+          {/* Leaf-node: key rows separated by hairlines — no list card. */}
+          <div className="divide-y divide-border">
             {activeKeys.map((key: AgentKey) => (
               <div key={key.id} className="flex items-center justify-between px-4 py-2.5">
                 <div>
@@ -4532,7 +4562,7 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
           <h3 className="text-xs font-medium text-muted-foreground mb-2">
             Revoked Keys
           </h3>
-          <div className="border border-border rounded-lg divide-y divide-border opacity-50">
+          <div className="divide-y divide-border opacity-50">
             {revokedKeys.map((key: AgentKey) => (
               <div key={key.id} className="flex items-center justify-between px-4 py-2.5">
                 <div>

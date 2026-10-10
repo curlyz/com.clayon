@@ -11,14 +11,8 @@ import { pluginsApi, type PluginLocalFolderStatus } from "@/api/plugins";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChoosePathButton } from "@/components/PathInstructionsModal";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PageTabBar } from "@/components/PageTabBar";
@@ -264,7 +258,7 @@ export function PluginSettings() {
                   supportsConfigTest={(plugin as unknown as { supportsConfigTest?: boolean }).supportsConfigTest === true}
                 />
               ) : environmentDrivers.length > 0 ? (
-                <div className="rounded-md border border-border/60 bg-muted/20 px-4 py-3 text-sm">
+                <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm">
                   <p className="font-medium text-foreground">Configure this plugin from Settings → Environments.</p>
                   <p className="mt-1 text-muted-foreground">
                     {driverLabel || "This plugin"} registers environment runtime settings there so the execution target
@@ -288,17 +282,17 @@ export function PluginSettings() {
         <TabsContent value="status" className="space-y-6">
           <div className="grid gap-6 xl:grid-cols-(--gtc-39)">
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-1.5">
+              <section className="space-y-4">
+                <div>
+                  <h2 className="flex items-center gap-1.5 text-base font-semibold">
                     <Cpu className="h-4 w-4" />
                     Runtime Dashboard
-                  </CardTitle>
-                  <CardDescription>
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
                     Worker process, scheduled jobs, and webhook deliveries
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+                  </p>
+                </div>
+                <div className="space-y-6">
                   {dashboardData ? (
                     <>
                       <div>
@@ -330,7 +324,7 @@ export function PluginSettings() {
                               <>
                                 <div className="flex justify-between col-span-2">
                                   <span className="text-muted-foreground flex items-center gap-1">
-                                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                    <AlertTriangle className="h-3 w-3 text-(--status-task-icon-todo)" />
                                     Crashes
                                   </span>
                                   <span className="text-xs">
@@ -358,6 +352,7 @@ export function PluginSettings() {
                           <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
                           Recent Job Runs
                         </h3>
+                        {/* Chronological scan order — list justified (criterion 1). */}
                         {dashboardData.recentJobRuns.length > 0 ? (
                           <div className="space-y-2">
                             {dashboardData.recentJobRuns.map((run) => (
@@ -393,6 +388,7 @@ export function PluginSettings() {
                           <Webhook className="h-3.5 w-3.5 text-muted-foreground" />
                           Recent Webhook Deliveries
                         </h3>
+                        {/* Chronological scan order — list justified (criterion 1). */}
                         {dashboardData.recentWebhookDeliveries.length > 0 ? (
                           <div className="space-y-2">
                             {dashboardData.recentWebhookDeliveries.map((delivery) => (
@@ -418,7 +414,7 @@ export function PluginSettings() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1.5 border-t border-border/50 pt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 border-t border-border pt-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         Last checked: {new Date(dashboardData.checkedAt).toLocaleTimeString()}
                       </div>
@@ -428,20 +424,21 @@ export function PluginSettings() {
                       Runtime diagnostics are unavailable right now.
                     </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
               {recentLogs && recentLogs.length > 0 ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-1.5">
+                <section className="space-y-4 border-t border-border pt-6">
+                  <div>
+                    <h2 className="flex items-center gap-1.5 text-base font-semibold">
                       <ActivitySquare className="h-4 w-4" />
                       Recent Logs
-                    </CardTitle>
-                    <CardDescription>Last {recentLogs.length} log entries</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="max-h-64 space-y-1 overflow-y-auto font-mono text-xs">
+                    </h2>
+                    <p className="text-sm text-muted-foreground">Last {recentLogs.length} log entries</p>
+                  </div>
+                  <div>
+                    <ScrollArea className="max-h-64 font-mono text-xs">
+                      <div className="space-y-1">
                       {recentLogs.map((entry) => (
                         <div
                           key={entry.id}
@@ -449,7 +446,7 @@ export function PluginSettings() {
                             entry.level === "error"
                               ? "text-destructive"
                               : entry.level === "warn"
-                                ? "text-yellow-600 dark:text-yellow-400"
+                                ? "text-(--status-task-icon-todo)"
                                 : entry.level === "debug"
                                   ? "text-muted-foreground/60"
                                   : "text-muted-foreground"
@@ -460,21 +457,22 @@ export function PluginSettings() {
                           <span className="truncate" title={entry.message}>{entry.message}</span>
                         </div>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </section>
               ) : null}
             </div>
 
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-1.5">
+              <section className="space-y-4">
+                <div>
+                  <h2 className="flex items-center gap-1.5 text-base font-semibold">
                     <ActivitySquare className="h-4 w-4" />
                     Health Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                  </h2>
+                </div>
+                <div>
                   {healthLoading ? (
                     <p className="text-sm text-muted-foreground">Checking health...</p>
                   ) : healthData ? (
@@ -487,14 +485,14 @@ export function PluginSettings() {
                       </div>
 
                       {healthData.checks.length > 0 ? (
-                        <div className="space-y-2 border-t border-border/50 pt-2">
+                        <div className="space-y-2 border-t border-border pt-2">
                           {healthData.checks.map((check, i) => (
                             <div key={i} className="flex items-start justify-between gap-2">
                               <span className="truncate text-muted-foreground" title={check.name}>
                                 {check.name}
                               </span>
                               {check.passed ? (
-                                <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />
+                                <CheckCircle className="h-4 w-4 shrink-0 text-(--status-task-icon-done)" />
                               ) : (
                                 <XCircle className="h-4 w-4 shrink-0 text-destructive" />
                               )}
@@ -523,14 +521,13 @@ export function PluginSettings() {
                       ) : null}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <section className="space-y-4 border-t border-border pt-6">
+                <h2 className="text-base font-semibold">Details</h2>
+                {/* Independent facts tile (per-page review criterion 1). */}
+                <div className="grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2">
                   <div className="flex justify-between gap-3">
                     <span>Plugin ID</span>
                     <span className="font-mono text-xs text-right">{plugin.id}</span>
@@ -549,19 +546,17 @@ export function PluginSettings() {
                     <span>Version</span>
                     <span className="text-right text-foreground">v{plugin.manifestJson.version ?? plugin.version}</span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-1.5">
-                    <ShieldAlert className="h-4 w-4" />
-                    Permissions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <section className="space-y-4 border-t border-border pt-6">
+                <h2 className="flex items-center gap-1.5 text-base font-semibold">
+                  <ShieldAlert className="h-4 w-4" />
+                  Permissions
+                </h2>
+                <div>
                   {pluginCapabilities.length > 0 ? (
-                    <ul className="space-y-2 text-sm text-muted-foreground">
+                    <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                       {pluginCapabilities.map((cap) => (
                         <li key={cap} className="rounded-md bg-muted/40 px-2.5 py-2 font-mono text-xs text-foreground/85">
                           {cap}
@@ -571,8 +566,8 @@ export function PluginSettings() {
                   ) : (
                     <p className="text-sm text-muted-foreground italic">No special permissions requested.</p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </section>
             </div>
           </div>
         </TabsContent>
@@ -604,7 +599,7 @@ function PluginLocalFoldersSettings({ pluginId, companyId, declarations }: Plugi
 
   if (!companyId) {
     return (
-      <div className="rounded-md border border-border/60 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+      <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
         Select an organization to configure this plugin's local folders.
       </div>
     );
@@ -701,7 +696,7 @@ function PluginLocalFolderRow({ pluginId, companyId, declaration, status }: Plug
   }, [saveMutation, trimmedPath]);
 
   return (
-    <div className="space-y-4 rounded-md border border-border/70 bg-background px-4 py-4">
+    <div className="space-y-4 rounded-md border border-border bg-background px-4 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -794,7 +789,7 @@ function PluginLocalFolderRow({ pluginId, companyId, declaration, status }: Plug
         <div
           className={`rounded-md border px-3 py-2 text-sm ${
             message.type === "success"
-              ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400"
+              ? "border-(--status-task-icon-done)/30 bg-(--status-task-done)/10 text-(--status-task-icon-done)"
               : "border-destructive/20 bg-destructive/10 text-destructive"
           }`}
         >
@@ -807,7 +802,7 @@ function PluginLocalFolderRow({ pluginId, companyId, declaration, status }: Plug
 
 function FolderStatusMetric({ label, value, ok }: { label: string; value: string; ok: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-md border border-border/60 px-2.5 py-2">
+    <div className="flex items-center justify-between rounded-md border border-border px-2.5 py-2">
       <span className="text-muted-foreground">{label}</span>
       <Badge variant={ok ? "default" : "secondary"}>{value}</Badge>
     </div>
@@ -870,7 +865,7 @@ function RequirementList({
   inspectionUnavailable?: boolean;
 }) {
   return (
-    <div className="space-y-2 rounded-md border border-border/60 px-3 py-2">
+    <div className="space-y-2 rounded-md border border-border px-3 py-2">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium text-muted-foreground">{title}</span>
         {inspectionUnavailable ? (
@@ -894,7 +889,7 @@ function RequirementList({
                 key={item}
                 className={`rounded border px-1.5 py-0.5 font-mono text-(length:--text-micro) ${
                   inspectionUnavailable
-                    ? "border-amber-300/60 bg-amber-50 text-amber-700 dark:border-amber-800/70 dark:bg-amber-950/30 dark:text-amber-300"
+                    ? "border-(--status-task-todo)/60 bg-(--status-task-todo)/10 text-(--status-task-icon-todo)"
                     : missing
                     ? "border-destructive/30 bg-destructive/10 text-destructive"
                     : "border-border bg-muted/50 text-foreground/80"
@@ -909,7 +904,7 @@ function RequirementList({
         <p className="text-xs text-muted-foreground">None declared.</p>
       )}
       {inspectionUnavailable ? (
-        <p className="text-xs text-amber-700 dark:text-amber-300">Configured root was not inspected.</p>
+        <p className="text-xs text-(--status-task-icon-todo)">Configured root was not inspected.</p>
       ) : missingItems.length > 0 ? (
         <p className="text-xs text-destructive">{missingLabel}: {missingItems.join(", ")}</p>
       ) : null}
@@ -1078,7 +1073,7 @@ function PluginConfigForm({ pluginId, companyId, schema, initialValues, isLoadin
         <div
           className={`text-sm p-2 rounded border ${
             saveMessage.type === "success"
-              ? "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-900"
+              ? "border-(--status-task-icon-done)/30 bg-(--status-task-done)/10 text-(--status-task-icon-done)"
               : "text-destructive bg-destructive/10 border-destructive/20"
           }`}
         >
@@ -1090,7 +1085,7 @@ function PluginConfigForm({ pluginId, companyId, schema, initialValues, isLoadin
         <div
           className={`text-sm p-2 rounded border ${
             testResult.type === "success"
-              ? "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-900"
+              ? "border-(--status-task-icon-done)/30 bg-(--status-task-done)/10 text-(--status-task-icon-done)"
               : "text-destructive bg-destructive/10 border-destructive/20"
           }`}
         >
@@ -1191,22 +1186,24 @@ function formatTimestamp(epochMs: number): string {
 }
 
 /**
- * Status indicator dot for job run statuses.
+ * Status indicator dot for job run statuses. Hues come from the shared
+ * --status-* token layer (DESIGN.md principle 5).
  */
 function JobStatusDot({ status }: { status: string }) {
-  const colorClass =
+  const color =
     status === "success" || status === "succeeded"
-      ? "bg-green-500"
+      ? "var(--status-task-icon-done)"
       : status === "failed"
-        ? "bg-red-500"
+        ? "var(--status-task-blocked)"
         : status === "running"
-          ? "bg-blue-500 animate-pulse"
+          ? "var(--status-agent-running)"
           : status === "cancelled"
-            ? "bg-gray-400"
-            : "bg-amber-500"; // queued, pending
+            ? "var(--status-agent-idle)"
+            : "var(--status-task-todo)"; // queued, pending
   return (
     <span
-      className={`inline-block h-2 w-2 rounded-full shrink-0 ${colorClass}`}
+      className={`inline-block h-2 w-2 rounded-full shrink-0 ${status === "running" ? "animate-pulse" : ""}`}
+      style={{ backgroundColor: color }}
       title={status}
     />
   );
@@ -1216,17 +1213,18 @@ function JobStatusDot({ status }: { status: string }) {
  * Status indicator dot for webhook delivery statuses.
  */
 function DeliveryStatusDot({ status }: { status: string }) {
-  const colorClass =
+  const color =
     status === "processed" || status === "success"
-      ? "bg-green-500"
+      ? "var(--status-task-icon-done)"
       : status === "failed"
-        ? "bg-red-500"
+        ? "var(--status-task-blocked)"
         : status === "received"
-          ? "bg-blue-500"
-          : "bg-amber-500"; // pending
+          ? "var(--status-agent-running)"
+          : "var(--status-task-todo)"; // pending
   return (
     <span
-      className={`inline-block h-2 w-2 rounded-full shrink-0 ${colorClass}`}
+      className="inline-block h-2 w-2 rounded-full shrink-0"
+      style={{ backgroundColor: color }}
       title={status}
     />
   );

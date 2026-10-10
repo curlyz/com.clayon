@@ -158,6 +158,9 @@ export function ProfileSettings() {
       ) : null}
 
       <section className="space-y-8">
+        {/* Kept Card: the profile hero is one entity detail block (DESIGN.md
+            leaf-node law 3) — gradient artwork, avatar, and identity belong to
+            a single object, not sibling bands. */}
         <Card className="block relative overflow-hidden rounded-(--rad-28) border-border/70">
           <div className="absolute inset-x-0 top-0 h-32 bg-(image:--gradient-extract-26)" />
           <div className="absolute inset-0 bg-(image:--gradient-extract-7)" />
@@ -182,7 +185,7 @@ export function ProfileSettings() {
                       event.target.value = "";
                     }}
                   />
-                  <span className="absolute inset-0 z-10 rounded-full bg-black/0 transition-colors group-hover:bg-black/14 group-focus-within:bg-black/14" />
+                  <span className="absolute inset-0 z-10 rounded-full bg-foreground/0 transition-colors group-hover:bg-foreground/14 group-focus-within:bg-foreground/14" />
                   <span className="absolute bottom-1 right-1 z-20 flex size-9 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground shadow-sm">
                     {uploadAvatarMutation.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Camera className="size-4" />}
                   </span>
@@ -229,7 +232,7 @@ export function ProfileSettings() {
         </Card>
 
         <form
-          className="grid gap-6 md:grid-cols-2"
+          className="grid gap-6 border-t border-border pt-8 md:grid-cols-2"
           onSubmit={(event) => {
             event.preventDefault();
             updateMutation.mutate({ name: resolveProfileName(), image: image.trim() || null });
@@ -270,7 +273,9 @@ export function ProfileSettings() {
           </div>
         </form>
 
-        <InboxAgentPolicyControl companyId={selectedCompanyId} />
+        <div className="border-t border-border pt-8">
+          <InboxAgentPolicyControl companyId={selectedCompanyId} />
+        </div>
       </section>
     </div>
   );

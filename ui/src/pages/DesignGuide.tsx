@@ -26,6 +26,9 @@ import { AiConnectionDesignExamples } from "@/components/ai-connections/AiConnec
 import { SavedProviderKeySelect } from "../components/onboarding/SavedProviderKeySelect";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AgentCharacter } from "@/components/AgentCharacter";
+import { AgentWorld } from "@/components/agentWorld/AgentWorld";
+import { AGENT_WORLD_DEMO_AGENTS } from "@/components/agentWorld/agentWorldScene";
+import { useTheme } from "@/context/ThemeContext";
 import { AGENT_PALETTE_IDS, appearanceForPalette } from "@paperclipai/shared";
 import { RepositoryEditor } from "@/components/RepositoryEditor";
 import { TaskChatRunnerActivityGroup } from "@/components/task-chat/TaskChatRunnerActivityGroup";
@@ -560,7 +563,7 @@ export function DesignGuide() {
                 "FilterBar", "InlineEditor", "PageSkeleton", "Identity", "CommentThread", "MarkdownEditor",
                 "PropertiesPanel", "Sidebar", "CommandPalette", "EnvironmentVariablesEditor",
                 "InlineBanner", "BuiltInAgentGate", "BuiltInLifecycleChip", "CollectionToolbar",
-                "IssueRow", "ContextualSidebarFrame",
+                "IssueRow", "ContextualSidebarFrame", "AgentWorld",
               ].map((name) => (
                 <Badge key={name} variant="ghost" className="font-mono text-(length:--text-nano)">
                   {name}
@@ -2535,8 +2538,26 @@ export function DesignGuide() {
           pending-approval / paused / ready states of a feature that depends on a built-in agent.
         </p>
       </Section>
+
+      <Section title="Agent World (3D)">
+        <p className="text-sm text-muted-foreground">
+          Procedural low-poly agent world (react-three-fiber, no external model or texture assets).
+          Each agent is colored by its accent and carries a floating name + status label. Behavior
+          follows status: running walks between waypoints, active mills and occasionally faces a
+          peer, idle/paused stands with a breathing bob, error stumbles with a pulsing red body,
+          offline sits dimmed. The scene follows the app theme and honors
+          prefers-reduced-motion by freezing to static poses. Full status coverage is in Storybook
+          under Product/Agent world.
+        </p>
+        <AgentWorldShowcase />
+      </Section>
     </div>
   );
+}
+
+function AgentWorldShowcase() {
+  const { theme } = useTheme();
+  return <AgentWorld agents={AGENT_WORLD_DEMO_AGENTS} theme={theme} />;
 }
 
 function SkillSourceTreeShowcase() {

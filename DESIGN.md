@@ -159,6 +159,25 @@ assertion changes beyond class strings that no longer exist. The gate is
 `pnpm check:token-gates`, `pnpm --dir ui typecheck`, `pnpm build`, and a
 browser proof on changed surfaces.
 
+## Per-page review criteria (operator directive, 2026-10-10)
+
+Every page is reviewed against three criteria, in this order:
+
+1. **Proper grid support, like Liquid Gold.** A page that renders only a
+   list must justify the list; collections that can tile, tile —
+   responsive grids (`grid md:grid-cols-2 xl:grid-cols-4` shape) of leaf
+   items (entity tiles, metric tiles), never wrapper cards. Density
+   stays: a grid item is a leaf band, not a nested box.
+2. **Leaf-node design with a palette that feels fancy.** The leaf-node
+   law below governs structure; the token palette must read premium —
+   one confident accent role, tuned dark surface ladder, hairlines that
+   whisper. Token values are authored in the tweakcn/shadcn variable
+   structure in `ui/src/index.css`.
+3. **Full tweakcn + shadcn/ui utilization.** Hand-rolled markup that a
+   shadcn primitive already covers is debt: use Table, Tabs, Sheet,
+   Command, ScrollArea, etc. before writing custom chrome. Variants come
+   from CVA in the primitive, not per-page class soup.
+
 ## Enforcement (what "compliant" means for the extraction run)
 
 - **Zero visual change is proven, not promised:** Storybook visual snapshots are baselined before any refactor, and all snapshots match baseline after it. A change that alters rendered output must be intentional and human-approved.

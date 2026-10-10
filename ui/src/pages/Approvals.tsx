@@ -114,7 +114,9 @@ export function Approvals() {
       )}
 
       {filtered.length > 0 && (
-        <div className="grid gap-3">
+        // Grid audit: approvals are independent entity tiles — they tile into
+        // a responsive grid of leaf cards (no wrapper nesting added).
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((approval) => (
             <ApprovalCard
               key={approval.id}

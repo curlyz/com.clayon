@@ -22,7 +22,6 @@ import type { IssueDocument } from "@paperclipai/shared";
 import { PROJECT_COLORS, type IssueLabel } from "@paperclipai/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -685,9 +684,8 @@ export function CaseDetail() {
           {description ? (
             <section className="space-y-2">
               <h2 className="text-sm font-semibold">Description</h2>
-              <Card className="px-4 py-3">
-                <CaseFieldValue value={description} />
-              </Card>
+              {/* Leaf-node: description renders as band content — no grouping card. */}
+              <CaseFieldValue value={description} />
             </section>
           ) : null}
 

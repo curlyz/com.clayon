@@ -1250,7 +1250,7 @@ function StageEventsList({
       {events.map((event) => (
         <div
           key={event.id}
-          className="grid min-h-11 grid-cols-(--gtc-15) items-center gap-3 border-b border-border/70 px-3 py-2 text-sm last:border-b-0"
+          className="grid min-h-11 grid-cols-(--gtc-15) items-center gap-3 border-b border-border px-3 py-2 text-sm last:border-b-0"
         >
           <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString()}>
             {relativeTime(event.createdAt)}
@@ -2422,7 +2422,7 @@ export function PipelineSettings() {
                   </Link>
                 ) : null}
                 {breakdownTargetArchived ? (
-                  <p className="flex items-center gap-1 text-amber-700 dark:text-amber-300">
+                  <p className="flex items-center gap-1 text-(--status-task-icon-todo)">
                     <Archive className="h-3 w-3 shrink-0" />
                     This destination pipeline is archived, so its validation fields can't be edited until it's restored.
                   </p>
@@ -2662,7 +2662,7 @@ export function PipelineSettings() {
                           <span className="flex items-start justify-between gap-2">
                             <span className="min-w-0 flex-1 font-semibold text-foreground">{stage.name}</span>
                             {warningCount > 0 ? (
-                              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-(--status-task-icon-todo)">
                                 <AlertTriangle className="h-3.5 w-3.5" />
                                 {warningCount} {warningCount === 1 ? "warning" : "warnings"}
                               </span>
@@ -2670,7 +2670,7 @@ export function PipelineSettings() {
                           </span>
                           <span className="mt-1 block text-xs text-muted-foreground">Step {index + 1}</span>
                           {stageNewEntriesDisabled(stage) ? (
-                            <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                            <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-(--status-task-icon-todo)">
                               <AlertTriangle className="h-3 w-3" />
                               New entries paused
                             </span>
@@ -2733,7 +2733,7 @@ export function PipelineSettings() {
                           className={cn(
                             "h-8 w-8",
                             newEntriesDisabled &&
-                              "border-amber-500/50 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300",
+                              "border-(--status-task-todo)/50 bg-(--status-task-todo)/10 text-(--status-task-icon-todo) hover:bg-(--status-task-todo)/20",
                           )}
                           title={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}
                           aria-label={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}
@@ -3052,7 +3052,7 @@ export function PipelineSettings() {
                                   </p>
                                 ) : null}
                                 {!canSaveAutomationWorkspace ? (
-                                  <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                                  <p className="mt-2 text-xs text-(--status-task-icon-todo)">
                                     Choose an existing workspace before saving reuse mode.
                                   </p>
                                 ) : null}

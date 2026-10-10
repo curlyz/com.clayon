@@ -258,14 +258,16 @@ export function Artifacts() {
             className="h-9 pl-9 pr-9 text-sm"
           />
           {draftQuery.length > 0 ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               onClick={() => setDraftQuery("")}
               aria-label="Clear artifact search"
-              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           ) : null}
         </div>
 
@@ -302,6 +304,9 @@ export function Artifacts() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Kind filter — Grid audit note: a compact toolbar chip strip, not
+              page navigation; its [role="tab"] semantics are pinned by
+              Artifacts.test.tsx, so it stays hand-rolled chips. */}
           <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Filter artifacts by type">
             {ARTIFACT_KIND_FILTERS.map((filter) => (
               <button
@@ -351,6 +356,8 @@ export function Artifacts() {
         <EmptyState icon={showGroupCards ? Layers : Package} message={emptyMessage} />
       ) : (
         <>
+          {/* Grid audit: artifacts and stacks are independent entity tiles —
+              they tile responsively (leaf cards, no wrapper nesting). */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {showGroupCards
               ? groups.map((group) => (

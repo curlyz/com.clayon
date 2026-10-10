@@ -221,11 +221,12 @@ export function CompanySettings() {
       </div>
 
       {/* General */}
-      <div className="max-w-2xl space-y-4">
+      <div className="max-w-2xl space-y-4 border-t border-border pt-8">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           General
         </div>
-        <div className="space-y-3">
+        {/* Independent fields tile (per-page review criterion 1). */}
+        <div className="grid gap-3 md:grid-cols-2">
           <Field label="Organization name" hint="The display name for your organization.">
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
@@ -256,7 +257,7 @@ export function CompanySettings() {
       </div>
 
       {/* Appearance */}
-      <div className="max-w-2xl space-y-4">
+      <div className="max-w-2xl space-y-4 border-t border-border pt-8">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Appearance
         </div>
@@ -340,7 +341,7 @@ export function CompanySettings() {
       )}
 
       {/* Hiring */}
-      <div className="max-w-2xl space-y-4" data-testid="company-settings-team-section">
+      <div className="max-w-2xl space-y-4 border-t border-border pt-8" data-testid="company-settings-team-section">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Hiring
         </div>
@@ -356,28 +357,38 @@ export function CompanySettings() {
       </div>
 
       {/* Interaction governance */}
-      {selectedCompanyId && <DecisionModelSettingsSection key={selectedCompanyId} companyId={selectedCompanyId} />}
+      {selectedCompanyId && (
+        <section className="border-t border-border pt-8">
+          <DecisionModelSettingsSection key={selectedCompanyId} companyId={selectedCompanyId} />
+        </section>
+      )}
 
-      <InteractionGovernancePanel
-        governance={governance}
-        onChange={handleGovernanceChange}
-        isPending={governanceMutation.isPending}
-        errorMessage={
-          governanceMutation.isError
-            ? governanceMutation.error instanceof Error
-              ? governanceMutation.error.message
-              : "Failed to save interaction governance"
-            : null
-        }
-      />
+      <section className="border-t border-border pt-8">
+        <InteractionGovernancePanel
+          governance={governance}
+          onChange={handleGovernanceChange}
+          isPending={governanceMutation.isPending}
+          errorMessage={
+            governanceMutation.isError
+              ? governanceMutation.error instanceof Error
+                ? governanceMutation.error.message
+                : "Failed to save interaction governance"
+              : null
+          }
+        />
+      </section>
 
-      <InstanceGeneralSettings embedded />
+      <section className="border-t border-border pt-8">
+        <InstanceGeneralSettings embedded />
+      </section>
 
       {/* Danger Zone */}
-      <div className="space-y-4">
+      <div className="space-y-4 border-t border-border pt-8">
         <div className="text-xs font-medium text-destructive uppercase tracking-wide">
           Danger Zone
         </div>
+        {/* Kept box: the destructive tint is information — it marks the only
+            irreversible action on the page (DESIGN.md leaf-node law 7). */}
         <div className="space-y-3 bg-destructive/5 px-4 py-4">
           <p className="text-sm text-muted-foreground">
             Archive this organization to hide it from the sidebar. This persists in

@@ -170,7 +170,9 @@ export function SidebarAccountMenu({
   }
 
   return (
-    <div className="bg-border/50 px-3 py-2 dark:bg-muted">
+    // Sidebar column law: the account footer is a hairline band on the sidebar
+    // surface — one rule token, no extra tinted fill (operator directive).
+    <div className="border-t border-border px-3 py-2">
       <div className={cn("flex items-center gap-0.5", !rail && "px-2")}>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>

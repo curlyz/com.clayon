@@ -12,16 +12,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+// Status hues come from the token layer (DESIGN.md principle 5): active maps
+// to the done green, paused to the agent paused amber, archived to the idle gray.
 function statusDotColor(status?: string): string {
   switch (status) {
     case "active":
-      return "bg-green-400";
+      return "var(--status-task-done)";
     case "paused":
-      return "bg-yellow-400";
+      return "var(--status-agent-paused)";
     case "archived":
-      return "bg-neutral-400";
+      return "var(--status-agent-idle)";
     default:
-      return "bg-green-400";
+      return "var(--status-task-done)";
   }
 }
 
@@ -47,7 +49,10 @@ export function CompanySwitcher({ open: controlledOpen, onOpenChange }: CompanyS
         >
           <div className="flex items-center gap-2 min-w-0">
             {selectedCompany && (
-              <span className={`h-2 w-2 rounded-full shrink-0 ${statusDotColor(selectedCompany.status)}`} />
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ backgroundColor: statusDotColor(selectedCompany.status) }}
+              />
             )}
             <span className="text-sm font-medium truncate">
               {selectedCompany?.name ?? "Select organization"}
@@ -65,7 +70,10 @@ export function CompanySwitcher({ open: controlledOpen, onOpenChange }: CompanyS
             onClick={() => setSelectedCompanyId(company.id)}
             className={company.id === selectedCompany?.id ? "bg-accent" : ""}
           >
-            <span className={`h-2 w-2 rounded-full shrink-0 mr-2 ${statusDotColor(company.status)}`} />
+            <span
+              className="h-2 w-2 rounded-full shrink-0 mr-2"
+              style={{ backgroundColor: statusDotColor(company.status) }}
+            />
             <span className="truncate">{company.name}</span>
           </DropdownMenuItem>
         ))}

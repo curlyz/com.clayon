@@ -286,9 +286,9 @@ function CollapsedFeedGroup({
             : <Settings className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         }
         <span className="flex-1 min-w-0 truncate">
-          <span data-fc="actor" className="font-medium text-(--hex-959596) group-hover:text-white">{actorName}</span>
+          <span data-fc="actor" className="font-medium text-(--hex-959596) group-hover:text-foreground">{actorName}</span>
           <span data-fc="verb" className="ml-1 text-(--hex-959596)">made {group.events.length} updates to</span>
-          <span data-fc="title" className="ml-1 text-(--hex-959596) group-hover:text-white">{entityName ?? group.entityId}</span>
+          <span data-fc="title" className="ml-1 text-(--hex-959596) group-hover:text-foreground">{entityName ?? group.entityId}</span>
         </span>
         <span data-fc="time" className="text-muted-foreground shrink-0">
           {timeAgo(group.latestEvent.createdAt)}
@@ -573,7 +573,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
 
       return (
         <div key={groupKey} className="mb-2">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-1.5">
+          <div className="sticky top-0 z-10 bg-muted/50 border-b border-border px-4 py-1.5">
             <p className="text-xs font-medium text-muted-foreground truncate">{label}</p>
           </div>
           {items.map((item, i) => renderItem(item, i, items))}

@@ -483,7 +483,7 @@ function CaseColumnHeader({
   trailingColumns: CaseColumn[];
 }) {
   return (
-    <div className="hidden border-b border-border px-2 py-1 text-(length:--text-micro) font-medium uppercase tracking-(--tracking-caps) text-muted-foreground sm:flex sm:items-center">
+    <div className="hidden border-b border-border bg-muted/50 px-2 py-1 text-(length:--text-micro) font-medium uppercase tracking-(--tracking-caps) text-muted-foreground sm:flex sm:items-center">
       {trailingColumns.length > 0 ? (
         <span className="grid min-w-0 flex-1 items-center gap-2" style={{ gridTemplateColumns: caseTrailingGridTemplate(trailingColumns) }}>
           {trailingColumns.map((column) => (
@@ -1341,6 +1341,9 @@ export function Cases() {
           {filtered.length === 0 ? (
             <EmptyState icon={SearchX} message="No cases match these filters." action="Clear filters" onAction={clearFilters} />
           ) : (
+            {/* Grid audit: stays a list by design — user-configurable columns,
+                sorting, and tree indentation make this a columnar scan surface;
+                tiles would lose the aligned columns. */}
             <div ref={caseListRef}>
               <CaseColumnHeader visibleColumnSet={visibleColumnSet} trailingColumns={trailingColumns} />
               {viewState.treeView ? (

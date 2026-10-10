@@ -120,7 +120,7 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
       )}
 
       {showDeploymentStatus && (
-      <section>
+      <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold">Deployment and auth</h2>
@@ -155,7 +155,7 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
       )}
 
       {showCensorUsernameInLogs && (
-      <section>
+      <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">Censor username in logs</h2>
@@ -176,7 +176,7 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
       )}
 
       {showBackupRetention && (
-      <section>
+      <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
         <div className="space-y-5">
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">Backup retention</h2>
@@ -187,6 +187,8 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
             </p>
           </div>
 
+          {/* Independent retention windows tile (per-page review criterion 1). */}
+          <div className="grid gap-5 lg:grid-cols-3">
           <div className="space-y-1.5">
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Daily</h3>
             <div className="flex flex-wrap gap-2">
@@ -275,12 +277,13 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
               })}
             </div>
           </div>
+          </div>
         </div>
       </section>
       )}
 
       {showFeedbackDataSharing && (
-      <section>
+      <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">AI feedback sharing</h2>
@@ -359,7 +362,7 @@ export function InstanceGeneralSettings({ embedded = false }: { embedded?: boole
       )}
 
       {showSignOut && (
-      <section>
+      <section className="border-t border-border pt-8 first:border-t-0 first:pt-0">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">Sign out</h2>

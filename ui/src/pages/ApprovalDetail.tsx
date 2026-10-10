@@ -199,6 +199,8 @@ export function ApprovalDetail() {
           </div>
         </div>
       )}
+      {/* Card survivor (leaf-node law): the approval itself is one entity
+          detail block — the box groups a single object, not sibling sections. */}
       <div className="border border-border rounded-lg p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -240,14 +242,14 @@ export function ApprovalDetail() {
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
         {linkedIssues && linkedIssues.length > 0 && (
-          <div className="pt-2 border-t border-border/60">
+          <div className="pt-2 border-t border-border">
             <p className="text-xs text-muted-foreground mb-1.5">Linked Tasks</p>
             <div className="space-y-1.5">
               {linkedIssues.map((issue) => (
                 <Link
                   key={issue.id}
                   to={`/issues/${issue.identifier ?? issue.id}`}
-                  className="block text-xs rounded border border-border/70 px-2 py-1.5 hover:bg-accent/20"
+                  className="block text-xs rounded border border-border px-2 py-1.5 hover:bg-accent/20"
                 >
                   <span className="font-mono text-muted-foreground mr-2">
                     {issue.identifier ?? issue.id.slice(0, 8)}
@@ -324,11 +326,15 @@ export function ApprovalDetail() {
         </div>
       </div>
 
-      <div className="border border-border rounded-lg p-4 space-y-3">
+      {/* Leaf-node: comments are a page section, not an object — band with one
+          hairline above instead of a grouping card. */}
+      <section className="space-y-3 border-t border-border pt-4">
         <h3 className="text-sm font-medium">Comments ({comments?.length ?? 0})</h3>
         <div className="space-y-2">
           {(comments ?? []).map((comment: ApprovalComment) => (
-            <div key={comment.id} className="border border-border/60 rounded-md p-3">
+            // Card survivor (leaf-node law): each comment is one object in the
+            // thread — kept as a bordered block, divider at full --border.
+            <div key={comment.id} className="border border-border rounded-md p-3">
               <div className="flex items-center justify-between mb-1">
                 {comment.authorAgentId ? (
                   <Link to={`/agents/${comment.authorAgentId}`} className="hover:underline">
@@ -363,7 +369,7 @@ export function ApprovalDetail() {
             {addCommentMutation.isPending ? "Posting…" : "Post comment"}
           </Button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
