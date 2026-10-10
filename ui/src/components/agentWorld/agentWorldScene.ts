@@ -12,6 +12,18 @@
 
 export type AgentWorldTheme = "light" | "dark";
 
+/** WebGL capability probe — no r3f import is safe without it (jsdom, blocked
+ *  GPUs, no-canvas browsers). Gate the lazy AgentWorld mount on this. */
+export function hasWebGL(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 /** Status vocabulary mirrors the agent status system (see `lib/status-colors`). */
 export type AgentWorldStatus =
   | "running"

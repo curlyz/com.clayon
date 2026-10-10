@@ -19,7 +19,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { isPlatformManagedEnvironment } from "../lib/managed-sandbox-environment";
 import { AgentStatusBadge, AgentStatusCapsule } from "../components/StatusBadge";
 import { AGENT_GRADIENT_COUNT } from "../components/AgentCapsule";
-import type { AgentWorldAgent } from "../components/agentWorld/agentWorldScene";
+import { hasWebGL, type AgentWorldAgent } from "../components/agentWorld/agentWorldScene";
 import { EntityRow } from "../components/EntityRow";
 import { BuiltInLifecycleChip } from "../components/BuiltInAgentBadges";
 import { EmptyState } from "../components/EmptyState";
@@ -483,8 +483,10 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         ? "flex h-full min-h-0 flex-col gap-4"
         : "space-y-4",
     )}>
-      {/* Living header: the world IS the band — no border chrome, lazy WebGL. */}
-      {worldAgents.length > 0 && (
+      {/* Living header: the world IS the band — no border chrome, lazy WebGL.
+       *  Guarded by hasWebGL so the r3f module never even imports where no
+         canvas context exists (tests, blocked GPUs). */}
+      {worldAgents.length > 0 && hasWebGL() && (
         <Suspense fallback={null}>
           <AgentWorld
             agents={worldAgents}

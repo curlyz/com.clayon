@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "../context/ThemeContext";
 import type { Agent, Environment, EnvironmentCapabilities } from "@paperclipai/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../context/ToastContext";
@@ -370,9 +371,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <AgentList />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <AgentList />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });
@@ -1013,9 +1016,11 @@ describe("Agents", () => {
     await act(async () => {
       root!.render(
         <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <AgentList />
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <AgentList />
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>,
       );
     });

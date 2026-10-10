@@ -5,6 +5,7 @@ import { AgentCharacter3D } from "./AgentCharacter3D";
 import {
   AGENT_WORLD_PALETTES,
   AGENT_WORLD_SIZE,
+  hasWebGL,
   type AgentWorldAgent,
   type AgentWorldPeerRegistry,
   type AgentWorldScenePalette,
@@ -75,6 +76,8 @@ export interface AgentWorldProps {
   className?: string;
 }
 
+/** WebGL-less environments (tests, blocked GPUs, old browsers) get no canvas. */
+
 /**
  * Self-contained 3D agent world: soft ground, gentle fog, three-point
  * lighting, and one procedural low-poly character per agent, each moving by
@@ -85,6 +88,18 @@ export function AgentWorld({ agents, theme, className }: AgentWorldProps) {
   const ariaLabel = `3D agent world: ${agents
     .map((agent) => `${agent.name} (${agent.status.replace(/[_-]/g, " ")})`)
     .join(", ")}`;
+
+  // Degrade to a quiet empty band rather than crashing the page when WebGL
+  // is unavailable (test environments, blocked GPUs, no-canvas browsers).
+  if (!hasWebGL()) {
+    return (
+      <div
+        role="img"
+        aria-label={ariaLabel}
+        className={cn("h-64 md:h-80 bg-muted/40", className)}
+      />
+    );
+  }
 
   return (
     <div

@@ -1341,9 +1341,9 @@ export function Cases() {
           {filtered.length === 0 ? (
             <EmptyState icon={SearchX} message="No cases match these filters." action="Clear filters" onAction={clearFilters} />
           ) : (
-            {/* Grid audit: stays a list by design — user-configurable columns,
-                sorting, and tree indentation make this a columnar scan surface;
-                tiles would lose the aligned columns. */}
+            // Grid audit: stays a list by design — user-configurable columns,
+            // sorting, and tree indentation make this a columnar scan surface;
+            // tiles would lose the aligned columns.
             <div ref={caseListRef}>
               <CaseColumnHeader visibleColumnSet={visibleColumnSet} trailingColumns={trailingColumns} />
               {viewState.treeView ? (
