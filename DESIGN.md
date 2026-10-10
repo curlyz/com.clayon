@@ -117,6 +117,48 @@ reminder; dismissing one clears the composer and stays effective after reload fo
 that person and task. Other inputs keep a pending indicator that can reopen them;
 resolving or skipping the input removes that indicator.
 
+## Leaf-node layout law (operator directive, 2026-10-10)
+
+The operator direction for every app under `~/usr`: "basically we take
+liquidgold as a gold standard to follow for every app." Paperclip adopts
+Liquid Gold's **leaf-node design method** (structure), keeping its own
+identity (dense control-plane temperament, palette, dark default). The
+three-zone layout (sidebar / content / properties) and its density stay;
+this law governs how surfaces are structured and decorated.
+
+1. **Leaf-only padding.** Padding lives on leaf content elements (rows,
+   cells, buttons, headers), never on grouping wrappers. A container that
+   only positions children gets `gap`, not padding. No double padding:
+   when a wrapper must pad, its direct children do not.
+2. **Sections are bands split by hairlines.** Sibling sections separate
+   with one hairline (`border-t border-border`), not with cards, boxes, or
+   whitespace blocks. Vertical rhythm within a band is one gap value.
+3. **No grouping cards.** A `Card` is not a layout device. Remove
+   Card/CardHeader/CardContent wrappers whose only job is grouping; the
+   content becomes the band. Cards remain only where the surface truly is
+   one object (a dialog, a popover, an entity detail block) — every
+   survivor is justified in a code comment.
+4. **Section headers are the title only.** No chrome around a section
+   header: text, count, and at most one trailing action. Header bands
+   (list headers, toolbar rows, table heads) sit one step darker than the
+   page (`bg-muted/50` or `bg-sidebar` tier), full-bleed across their
+   band.
+5. **One hairline token.** Every divider, separator, and outline is
+   `--border` (or a defined alias of it). No ad-hoc lighter/heavier border
+   colors.
+6. **One meaning per colour role**, CVA variants by meaning, and the
+   single `--z-*` scale — already law; the leaf-node run removes
+   violations it meets (raw Tailwind palette classes, ad-hoc z values).
+7. **Density comes from information, never chrome.** The operator scans
+   state; removing a box must not remove information. If a change would
+   delete information, stop and flag it instead.
+
+Scope of the leaf-node run: `ui/src/pages/**` and `ui/src/components/**`
+visual structure. No API, prop, route, or behavior changes; no test
+assertion changes beyond class strings that no longer exist. The gate is
+`pnpm check:token-gates`, `pnpm --dir ui typecheck`, `pnpm build`, and a
+browser proof on changed surfaces.
+
 ## Enforcement (what "compliant" means for the extraction run)
 
 - **Zero visual change is proven, not promised:** Storybook visual snapshots are baselined before any refactor, and all snapshots match baseline after it. A change that alters rendered output must be intentional and human-approved.

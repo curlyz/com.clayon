@@ -7,6 +7,13 @@ Guidance for human and AI contributors working in this repository.
 Paperclip is a control plane for AI-agent companies.
 The current implementation target is V1 and is defined in `doc/SPEC-implementation.md`.
 
+**Production runs on the antl VPS (2026-10-10):** Dokploy stack `paperclip`
+(project `server`, composeId `CSdiym07Up7Q1AjvEop7j`) on `contabo-eu-vps6`,
+live at https://paperclip.curly.ng with its own Postgres 17 service.
+Runbook, compose file and bootstrap gotchas:
+[`servers/contabo-eu-vps6/README.md`](../servers/contabo-eu-vps6/README.md) § Paperclip.
+Deploy through Dokploy (panel or authenticated API) — never SSH into the host.
+
 ## 2. Read This First
 
 Before making changes, read in this order:
