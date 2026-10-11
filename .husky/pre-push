@@ -1,2 +1,4 @@
-command -v ggshield >/dev/null || { echo "pre-push: ggshield missing. Install: brew install gitguardian/tap/ggshield, then: ggshield auth login"; exit 1; }
-ggshield secret scan pre-push "$@"
+command -v trufflehog >/dev/null || { echo "pre-push: trufflehog missing. Install: brew install trufflehog"; exit 1; }
+# t228: scan the lines added by the commits the upstream lacks; a branch with no upstream relies on the pre-commit scan
+upstream=$(git rev-parse --verify --quiet '@{upstream}') || exit 0
+git log -p --no-color "$upstream..HEAD" | grep '^+' | trufflehog stdin --no-verification --fail --no-update

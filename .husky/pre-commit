@@ -1,2 +1,3 @@
-command -v ggshield >/dev/null || { echo "pre-commit: ggshield missing. Install: brew install gitguardian/tap/ggshield, then: ggshield auth login"; exit 1; }
-ggshield secret scan pre-commit "$@"
+command -v trufflehog >/dev/null || { echo "pre-commit: trufflehog missing. Install: brew install trufflehog"; exit 1; }
+# t228: local secret scan of the lines this commit adds; no verification calls, nothing leaves this machine
+git diff --cached -U0 --no-color | grep '^+' | trufflehog stdin --no-verification --fail --no-update
