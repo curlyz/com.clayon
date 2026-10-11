@@ -19,7 +19,7 @@
       "agentServerVersion": "0.0.33",
       "agentRuntimePackage": "@earendil-works/pi-coding-agent",
       "agentRuntimeVersion": "1.0.0",
-      "commandDigest": "sha256:7f1b1fdd8a236e1293ccd794a2b7bcc86703bd286254e523e3160216b85186f6",
+      "commandDigest": "sha256:14bb89acd25ffe77f900f68a40f8e695750a2cd4ebb58708dec806d1bb8b1f83",
       "requiresProviderPolicy": true
     },
     "cursor": {
@@ -28,7 +28,7 @@
       "agentServerVersion": "2026.09.26-dd393fe",
       "agentRuntimePackage": null,
       "agentRuntimeVersion": null,
-      "commandDigest": "sha256:d916016f7154aeba4f281d372fe0023a7bc6c3ef9794b571f8c990e9713e8278",
+      "commandDigest": "sha256:f306b1f2a8387ea3e21f54d55c57bc83fb022ebcd267e9ff32be9d282781ce92",
       "requiresProviderPolicy": true
     },
     "copilot": {
@@ -37,7 +37,7 @@
       "agentServerVersion": "1.0.88",
       "agentRuntimePackage": null,
       "agentRuntimeVersion": null,
-      "commandDigest": "sha256:a58ec8bce53d0adbc0bf2caaeb10bad8f734bf4a3a9f7cbbabd249a01a181df5",
+      "commandDigest": "sha256:1904f4f9189297166095f24e37ea0eec178e77df42b53552a3e92414d0bc9fc3",
       "requiresProviderPolicy": true,
       "qualificationStatus": "pending"
     },

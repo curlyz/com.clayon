@@ -5,7 +5,7 @@
   "base": "dd868ed125cd709506dd9b29fca640a44d580501",
   "vendor": "2026.09.26-dd393fe",
   "nativePatch": "clayon-cursor-usage-v4",
-  "acpxPatchSha256": "a415fc0950c5235c8725781d400f8bc4513240a78521a3dcd7c9d4576eade137",
+  "acpxPatchSha256": "fdb84375bc86151c7533226c1ec285228ad317d33b3bfc0be48aaf2eb952fcfd",
   "publicSetup": "clayon runtime setup cursor",
   "assets": "public-server-and-provider-pack",
   "modes": [
@@ -19,5 +19,5 @@
   "planAcceptance": "successful-run-open-task-explicit-continuation",
   "otherProviders": "mainline-gated",
   "modelSelection": "explicit-provider-verified-startup-and-reconnect",
-  "commandDigest": "sha256:d916016f7154aeba4f281d372fe0023a7bc6c3ef9794b571f8c990e9713e8278"
+  "commandDigest": "sha256:f306b1f2a8387ea3e21f54d55c57bc83fb022ebcd267e9ff32be9d282781ce92"
 }

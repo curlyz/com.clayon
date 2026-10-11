@@ -29,7 +29,7 @@ pub(crate) fn acpx_release_profile(agent: &str) -> Option<AcpxReleaseProfile> {
             agent_runtime_package: Some("@earendil-works/pi-coding-agent"),
             agent_runtime_version: Some("1.0.0"),
             command_digest:
-                "sha256:7f1b1fdd8a236e1293ccd794a2b7bcc86703bd286254e523e3160216b85186f6",
+                "sha256:14bb89acd25ffe77f900f68a40f8e695750a2cd4ebb58708dec806d1bb8b1f83",
             requires_provider_policy: true,
         },
         "cursor" => AcpxReleaseProfile {
@@ -38,7 +38,7 @@ pub(crate) fn acpx_release_profile(agent: &str) -> Option<AcpxReleaseProfile> {
             agent_runtime_package: None,
             agent_runtime_version: None,
             command_digest:
-                "sha256:d916016f7154aeba4f281d372fe0023a7bc6c3ef9794b571f8c990e9713e8278",
+                "sha256:f306b1f2a8387ea3e21f54d55c57bc83fb022ebcd267e9ff32be9d282781ce92",
             requires_provider_policy: true,
         },
         "copilot" => AcpxReleaseProfile {
@@ -47,7 +47,7 @@ pub(crate) fn acpx_release_profile(agent: &str) -> Option<AcpxReleaseProfile> {
             agent_runtime_package: None,
             agent_runtime_version: None,
             command_digest:
-                "sha256:a58ec8bce53d0adbc0bf2caaeb10bad8f734bf4a3a9f7cbbabd249a01a181df5",
+                "sha256:1904f4f9189297166095f24e37ea0eec178e77df42b53552a3e92414d0bc9fc3",
             requires_provider_policy: true,
         },
         "claude" => AcpxReleaseProfile {

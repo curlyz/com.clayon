@@ -1,5 +1,5 @@
 {
-  "commandDigest": "sha256:a58ec8bce53d0adbc0bf2caaeb10bad8f734bf4a3a9f7cbbabd249a01a181df5",
+  "commandDigest": "sha256:1904f4f9189297166095f24e37ea0eec178e77df42b53552a3e92414d0bc9fc3",
   "declaration": {
     "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "copilot",
@@ -7,7 +7,7 @@
     "acpxVersion": "0.13.1",
     "agentServerVersion": "1.0.88",
     "protocolPolicyRevision": "copilot-agent-manual-v1",
-    "acpxPatchSha256": "a415fc0950c5235c8725781d400f8bc4513240a78521a3dcd7c9d4576eade137",
+    "acpxPatchSha256": "fdb84375bc86151c7533226c1ec285228ad317d33b3bfc0be48aaf2eb952fcfd",
     "policySha256": "a4be69be43db84052560420a3ca546a665c9165573c24d543eb33d144ba138a3",
     "distributionSourceSha256": "c0a65e247fc47b263bd369a3d5ab505c4b323d4e6493be8a9ecbeb0e9dbb9107",
     "agentFilesBinding": "registered-runtime-context-v1",

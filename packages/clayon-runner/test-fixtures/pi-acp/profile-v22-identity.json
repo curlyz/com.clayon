@@ -1,5 +1,5 @@
 {
-  "commandDigest": "sha256:7f1b1fdd8a236e1293ccd794a2b7bcc86703bd286254e523e3160216b85186f6",
+  "commandDigest": "sha256:14bb89acd25ffe77f900f68a40f8e695750a2cd4ebb58708dec806d1bb8b1f83",
   "declaration": {
     "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "pi",
@@ -20,7 +20,7 @@
     "nativeQuestions": "select-confirm-input-editor-v4-root-field-types",
     "pathPolicy": "sdk-normalization-v1",
     "mcpToolNames": "provider-safe-exact-source-v1",
-    "acpxPatchSha256": "a415fc0950c5235c8725781d400f8bc4513240a78521a3dcd7c9d4576eade137",
+    "acpxPatchSha256": "fdb84375bc86151c7533226c1ec285228ad317d33b3bfc0be48aaf2eb952fcfd",
     "nativeAssistantMessages": "pi1-rpc-deltas-v3-bound-message-and-tool-receipts",
     "nativeNotices": "session-extension-v2-bounded-runtime-failure",
     "messageProjectionSha256": "17d1e91b948dfa6a56e1905645add52b502041ad843c8d50a13b07956f22aadd",

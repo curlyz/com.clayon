@@ -24,7 +24,7 @@
     "prpVersion": 1,
     "nativeExecutionVersion": 1,
     "catalogVersion": 1,
-    "catalogSha256": "sha256:9fcfd2f1cb47233f5b4f8a776b00d8dbec0dfe70054ffc7cbb950573e0ec70c5",
+    "catalogSha256": "sha256:7f9feaf607a16e8585e284e6d71fc29bb0c5643138d36ec7124f28e7d97f8c12",
     "driverContractVersion": 1,
     "driverKind": "clayon-deterministic",
     "driverVersion": "1.0.0"
