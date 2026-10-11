@@ -67,8 +67,8 @@
   mask-image: var(--halo-portal-floor-mask);
   opacity: var(--halo-portal-floor-opacity);
 }
-.halo-portal[data-gaze="left"] { --halo-portal-parallax: var(--halo-portal-parallax-left); --halo-portal-crew-look: var(--halo-portal-pixel-left); }
-.halo-portal[data-gaze="right"] { --halo-portal-parallax: var(--halo-portal-parallax-right); --halo-portal-crew-look: var(--halo-portal-pixel-right); }
+.halo-portal[data-gaze="left"] { --halo-portal-parallax: var(--halo-portal-parallax-left); }
+.halo-portal[data-gaze="right"] { --halo-portal-parallax: var(--halo-portal-parallax-right); }
 .halo-portal-header, .halo-portal-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--halo-portal-gap); }
 .halo-portal-header { padding: var(--halo-portal-header-top) var(--halo-portal-safe-right) var(--halo-portal-space) var(--halo-portal-safe-left); }
 .halo-portal-brand { display: flex; align-items: center; gap: var(--halo-portal-brand-gap); }
@@ -167,38 +167,9 @@
 .halo-portal-secondary svg { width: var(--halo-portal-icon-size); height: var(--halo-portal-icon-size); }
 .halo-portal-text-action { min-height: var(--halo-portal-touch-size); color: var(--halo-portal-ink); font-size: var(--halo-portal-label-size); text-decoration: underline; text-underline-offset: var(--halo-portal-underline-offset); cursor: pointer; }
 .halo-portal-error { margin: var(--halo-portal-zero); color: var(--halo-portal-error); font-size: var(--halo-portal-label-size); line-height: var(--halo-portal-body-leading); }
-/* Crew owns a reserved ledge below entry controls, never a content overlay. */
-.halo-portal-crew { position: relative; display: flex; justify-content: space-between; align-items: flex-end; width: var(--halo-portal-full); max-width: var(--halo-portal-crew-width); min-height: var(--halo-portal-crew-height); margin-inline: auto; padding-inline: var(--halo-portal-safe-left) var(--halo-portal-safe-right); margin-top: var(--halo-portal-crew-overlap); border-bottom: var(--halo-portal-line-width) solid var(--halo-portal-frame-edge); }
-.halo-portal-crew-member { position: relative; }
-.halo-portal-crew-button { display: flex; flex-direction: column; align-items: center; gap: var(--halo-portal-field-gap); padding: var(--halo-portal-zero); border: none; background: none; color: var(--halo-portal-dim); font-size: var(--halo-portal-label-size); min-width: var(--halo-portal-touch-size); touch-action: pan-y; cursor: grab; transform: translateX(var(--halo-portal-crew-drag)); }
-.halo-portal-sprite { display: block; width: var(--halo-portal-sprite-size); height: var(--halo-portal-sprite-size); image-rendering: pixelated; mix-blend-mode: screen; transform: translateX(var(--halo-portal-crew-look)); animation: halo-portal-idle var(--halo-portal-idle-duration) var(--halo-portal-held-ease) infinite; }
-.halo-portal-orb .halo-portal-sprite { animation-name: halo-portal-hover; }
-.halo-portal-crew-button:is(:hover, :focus-visible) { color: var(--halo-portal-accent); }
-.halo-portal-crew-button:is(:hover, :focus-visible) .halo-portal-sprite { animation-play-state: paused; translate: var(--halo-portal-zero) var(--halo-portal-crew-lift); }
-.halo-portal-crew-button[data-cheering="true"] { animation: halo-portal-cheer var(--halo-portal-cheer-duration) var(--halo-portal-held-ease); }
-.halo-portal-speech { position: absolute; bottom: var(--halo-portal-speech-bottom); width: var(--halo-portal-speech-width); padding: var(--halo-portal-speech-padding); margin: var(--halo-portal-zero); border: var(--halo-portal-line-width) solid var(--halo-portal-control-border); background: var(--halo-portal-form-surface); color: var(--halo-portal-ink); font-size: var(--halo-portal-label-size); font-style: italic; line-height: var(--halo-portal-body-leading); box-shadow: var(--halo-portal-panel-shadow); }
-.halo-portal-speech strong { font-weight: var(--halo-portal-form-title-weight); }
-.halo-portal-doc .halo-portal-speech { left: var(--halo-portal-zero); }
-.halo-portal-orb .halo-portal-speech { right: var(--halo-portal-zero); }
-.halo-portal[data-paused="true"] .halo-portal-ring, .halo-portal[data-paused="true"] .halo-portal-sprite, .halo-portal[data-paused="true"] .halo-portal-crew-button { animation-play-state: paused; }
+.halo-portal[data-paused="true"] .halo-portal-ring { animation-play-state: paused; }
 .halo-portal[data-paused="true"] .halo-portal-orbit { transform: none; transition: none; }
-.halo-portal[data-paused="true"] .halo-portal-sprite { transform: none; translate: none; }
 @keyframes halo-portal-arrive { from { transform: translateY(var(--halo-portal-arrival-travel)); } to { transform: translateY(var(--halo-portal-zero)); } }
-@keyframes halo-portal-idle {
-  0%, 75%, 100% { translate: var(--halo-portal-zero) var(--halo-portal-zero); }
-  25% { translate: var(--halo-portal-zero) var(--halo-portal-pixel-left); }
-  50% { translate: var(--halo-portal-zero) var(--halo-portal-pixel-right); }
-}
-@keyframes halo-portal-hover {
-  0%, 75%, 100% { translate: var(--halo-portal-zero) var(--halo-portal-pixel-left); }
-  25% { translate: var(--halo-portal-zero) var(--halo-portal-crew-lift); }
-  50% { translate: var(--halo-portal-zero) var(--halo-portal-zero); }
-}
-@keyframes halo-portal-cheer {
-  0%, 100% { translate: var(--halo-portal-zero) var(--halo-portal-zero); }
-  25%, 50% { translate: var(--halo-portal-zero) var(--halo-portal-cheer-lift); }
-  75% { translate: var(--halo-portal-zero) var(--halo-portal-crew-lift); }
-}
 @media (width < 40rem) {
   .halo-portal-motion span { display: none; }
   .halo-portal-footer { flex-direction: column; gap: var(--halo-portal-field-gap); text-align: center; }
@@ -206,7 +177,7 @@
 }
 @media (max-height: 35rem) { .halo-portal-emblem { display: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .halo-portal-ring, .halo-portal-sprite, .halo-portal-crew-button { animation: none !important; transform: none !important; translate: none !important; }
+  .halo-portal-ring { animation: none !important; transform: none !important; translate: none !important; }
   .halo-portal-orbit { transform: none; transition: none; }
   .halo-portal-action { transition: none; }
   .halo-portal-action:hover { transform: none; }

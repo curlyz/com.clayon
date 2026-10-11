@@ -3,7 +3,7 @@ import { AiConnectionPoolRunDetails } from "@/components/ai-connections/AiConnec
 import { AgentConnectionInstructions } from "@/features/connections/ConnectionInstructions";
 import type { AgentInstructionCandidate, AgentInstructionsBundle } from "@clayon/shared";
 import { InstructionHistory } from "../components/InstructionHistory";
-import { AgentCharacter } from "../components/AgentCharacter";
+import { AgentAvatar } from "../components/AgentAvatar";
 import { characterStateForAgent } from "@clayon/shared";
 import { mergeRunLogChunks, readChunkSeq } from "../lib/run-log-chunks";
 import { getPageVisibility, usePageVisibility } from "../lib/page-visibility";
@@ -1162,7 +1162,7 @@ export function AgentDetail() {
       <header className="flex flex-wrap items-center justify-between gap-5 border-b border-border pb-6">
         <div className="flex min-w-0 items-center gap-4">
           <div role="img" aria-label={`${agent.name} avatar`} className="shrink-0">
-            <AgentCharacter agent={agent} state={characterStateForAgent(currentAgent.status)} size={96} trackingScope="page" />
+            <AgentAvatar agent={agent} pose={characterStateForAgent(currentAgent.status)} size={96} />
           </div>
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2"><h1 className="truncate text-2xl font-semibold tracking-tight">{agent.name}</h1><PrimaryAgentIndicator agentId={agent.id} companyId={agent.companyId} /></div>

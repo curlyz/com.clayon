@@ -27,8 +27,6 @@ import {
   type ModelSource,
 } from "./components/onboarding/ModelSourceTiles";
 import { OnboardingHeading } from "./components/onboarding/OnboardingPrimitives";
-import { AgentCharacter } from "./components/AgentCharacter";
-import { SleepingZs } from "./components/onboarding/SleepingZs";
 import { Stepper } from "./components/onboarding/Stepper";
 import "./index.css";
 
@@ -298,10 +296,6 @@ function ConnectFlowPreview({
         <Stepper step={done ? 3 : 2} />
 
         <div className="flex flex-col items-center">
-          <div className="relative size-(--sz-72px)">
-            <AgentCharacter muted={!done} state={done ? "success" : "sleepy"} size={128} className="size-full" />
-            {!done && <SleepingZs />}
-          </div>
           <AgentPreview agentName="Ron" agentRole="" />
         </div>
 

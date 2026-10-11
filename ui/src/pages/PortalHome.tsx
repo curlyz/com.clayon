@@ -69,7 +69,7 @@ export function PortalHome() {
               Create an organization <ArrowUpRight className="halo-portal-action-icon" aria-hidden="true" />
             </Link>
           )}
-          <p className="halo-portal-note">{company ? "You set the direction. Your agents take it forward." : "Meet the crew. Build what comes next."}</p>
+          <p className="halo-portal-note">{company ? "You set the direction. Your agents take it forward." : "Build what comes next."}</p>
         </div>
       </div>
     </Portal>

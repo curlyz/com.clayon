@@ -1,7 +1,7 @@
 import { useCompany } from "@/context/CompanyContext";
 import { useAgentAppearanceDraft } from "@/hooks/useAgentAppearanceDraft";
 import { AdapterMark } from "../AdapterMark";
-import { AgentCharacter } from "../AgentCharacter";
+import { AgentAvatar } from "../AgentAvatar";
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from "lucide-react";
@@ -31,7 +31,7 @@ export { AdapterMark } from "../AdapterMark";
 function AgentBasicsCharacter() {
   const { selectedCompanyId } = useCompany();
   const { appearance } = useAgentAppearanceDraft(`${selectedCompanyId}:new-agent`);
-  return <AgentCharacter appearance={appearance} state="sleepy" muted size={256} className="size-48" trackingScope="page" />;
+  return <AgentAvatar appearance={appearance} pose="rest" muted size={256} className="size-48" />;
 }
 
 export function AgentBasicsDialog({

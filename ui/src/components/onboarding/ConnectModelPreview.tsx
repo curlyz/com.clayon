@@ -1,4 +1,3 @@
-import { AgentCharacter } from "../AgentCharacter";
 import { useState } from "react";
 import { MotionConfig } from "motion/react";
 
@@ -12,8 +11,6 @@ import {
   type ModelSource,
 } from "./ModelSourceTiles";
 import { OnboardingHeading } from "./OnboardingPrimitives";
-import { PillGuy } from "./PillGuy";
-import { SleepingZs } from "./SleepingZs";
 import { Stepper } from "./Stepper";
 
 /**
@@ -94,12 +91,6 @@ export function ConnectModelPreview({
         <Stepper step={2} />
 
         <div className="flex flex-col items-center">
-          {/* `relative` is load-bearing: the sleep marks anchor to this box and
-              travel out past its top-right corner. */}
-          <div className="relative size-(--sz-72px)">
-            <AgentCharacter state="sleepy" muted size={128} className="size-full" />
-            <SleepingZs />
-          </div>
           <AgentPreview agentName="Darnold" agentRole="" />
         </div>
 

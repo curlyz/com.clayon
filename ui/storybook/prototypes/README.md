@@ -132,7 +132,7 @@ operations do not reach a live server. Linked audit, tool-management, and task
 pages are outside this configuration preview; unhandled mutations show an
 explicit fixture error. Switch stories to reset the example data.
 
-The configuration header uses the onboarding `PillGuy` avatar and omits the manual
+The configuration header uses the standard agent avatar and omits the manual
 heartbeat action and status badge. The unified **Secrets & variables** tab uses a
 single `AgentConfigForm` draft for environment bindings and API-access grants, so
 Save and Discard apply to both together. Variable bindings no longer appear on

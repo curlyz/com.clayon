@@ -25,10 +25,6 @@ import { TaskDetailTasksPanel } from "@/components/task-detail/TaskDetailTasksPa
 import { AiConnectionDesignExamples } from "@/components/ai-connections/AiConnectionDesignExamples";
 import { SavedProviderKeySelect } from "../components/onboarding/SavedProviderKeySelect";
 import { AgentAvatar } from "@/components/AgentAvatar";
-import { AgentCharacter } from "@/components/AgentCharacter";
-import { AgentWorld } from "@/components/agentWorld/AgentWorld";
-import { AGENT_WORLD_DEMO_AGENTS } from "@/components/agentWorld/agentWorldScene";
-import { useTheme } from "@/context/ThemeContext";
 import { AGENT_PALETTE_IDS, appearanceForPalette } from "@clayon/shared";
 import { RepositoryEditor } from "@/components/RepositoryEditor";
 import { TaskChatRunnerActivityGroup } from "@/components/task-chat/TaskChatRunnerActivityGroup";
@@ -563,7 +559,7 @@ export function DesignGuide() {
                 "FilterBar", "InlineEditor", "PageSkeleton", "Identity", "CommentThread", "MarkdownEditor",
                 "PropertiesPanel", "Sidebar", "CommandPalette", "EnvironmentVariablesEditor",
                 "InlineBanner", "BuiltInAgentGate", "BuiltInLifecycleChip", "CollectionToolbar",
-                "IssueRow", "AgentWorld",
+                "IssueRow",
               ].map((name) => (
                 <Badge key={name} variant="ghost" className="font-mono text-(length:--text-nano)">
                   {name}
@@ -1559,10 +1555,6 @@ export function DesignGuide() {
         <SubSection title="Stable palette identities">
           <div className="flex flex-wrap gap-3">{AGENT_PALETTE_IDS.map(palette => <AgentAvatar key={palette} appearance={appearanceForPalette(palette)} size={48} label={palette} />)}</div>
         </SubSection>
-        <SubSection title="Onboarding and live character">
-          <p className="text-sm text-muted-foreground">Place one live character beside the agent name. Onboarding uses a larger padded frame. Onboarding and agent headers follow the pointer across the page; other placements track within their region. Full-page examples are in Storybook under Agents / Personas / Full pages.</p>
-          <div className="flex gap-4"><AgentCharacter muted state="sleepy" motion="still" size={128} /><AgentCharacter size={128} /></div>
-        </SubSection>
       </Section>
       <Section title="Human identity">
         <SubSection title="Sizes">
@@ -2539,25 +2531,8 @@ export function DesignGuide() {
         </p>
       </Section>
 
-      <Section title="Agent World (3D)">
-        <p className="text-sm text-muted-foreground">
-          Procedural low-poly agent world (react-three-fiber, no external model or texture assets).
-          Each agent is colored by its accent and carries a floating name + status label. Behavior
-          follows status: running walks between waypoints, active mills and occasionally faces a
-          peer, idle/paused stands with a breathing bob, error stumbles with a pulsing red body,
-          offline sits dimmed. The scene follows the app theme and honors
-          prefers-reduced-motion by freezing to static poses. Full status coverage is in Storybook
-          under Product/Agent world.
-        </p>
-        <AgentWorldShowcase />
-      </Section>
     </div>
   );
-}
-
-function AgentWorldShowcase() {
-  const { theme } = useTheme();
-  return <AgentWorld agents={AGENT_WORLD_DEMO_AGENTS} theme={theme} />;
 }
 
 function SkillSourceTreeShowcase() {

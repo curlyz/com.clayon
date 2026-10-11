@@ -50,7 +50,7 @@ describe("Portal root entry", () => {
     render();
     expect(container.querySelector("h1")?.textContent).toBe("Your mission. Ready when you are.");
     expect(container.querySelector(".halo-portal-ring")?.getAttribute("src")).toBe("/portal/ring.webp");
-    expect(container.querySelectorAll("canvas")).toHaveLength(2);
+    expect(container.querySelectorAll("canvas")).toHaveLength(0);
     expect(container.querySelector("a")?.getAttribute("href")).toBe("/TWO/dashboard");
     expect(container.textContent).toContain("Step into Selected Mission.");
   });

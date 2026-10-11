@@ -28,8 +28,6 @@ describe("Portal scene", () => {
   it("keeps decorative art outside the keyboard path and gives the scene a text equivalent", () => {
     expect(container.querySelector("main h1")?.textContent).toBe("Your mission.");
     expect(container.querySelector(".halo-portal-scene")?.getAttribute("aria-hidden")).toBe("true");
-    expect(container.querySelector("#portal-scene-description")?.textContent).toContain("Doc");
-    expect(container.querySelector("#portal-scene-description")?.textContent).toContain("Orb");
     expect(container.querySelectorAll("[tabindex='-1']")).toHaveLength(0);
     expect(container.querySelector(".halo-portal-ring")?.getAttribute("src")).toBe("/portal/ring.webp");
   });
@@ -44,21 +42,6 @@ describe("Portal scene", () => {
     expect(container.querySelector(".halo-portal")?.getAttribute("data-paused")).toBe("false");
   });
 
-  it.each(["Doc", "Orb"])("opens %s's line with a real button and dismisses it with Escape", (name) => {
-    const member = container.querySelector<HTMLButtonElement>(`[aria-label='Talk to ${name}']`)!;
-    const speech = container.querySelector<HTMLParagraphElement>(`#${member.getAttribute("aria-controls")}`)!;
-    expect(speech.hidden).toBe(true);
-    flushSync(() => member.click());
-    expect(member.getAttribute("aria-expanded")).toBe("true");
-    expect(speech.hidden).toBe(false);
-    flushSync(() => member.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
-    expect(speech.hidden).toBe(true);
-    expect(member.getAttribute("aria-expanded")).toBe("false");
-    const cell = member.querySelector("canvas")!;
-    expect(cell.width).toBe(64);
-    expect(cell.height).toBe(64);
-  });
-
   it("tracks the pointer in the scene and restores the rest direction on exit", async () => {
     const scene = container.querySelector<HTMLDivElement>(".halo-portal")!;
     vi.spyOn(scene, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 1280, 800));
@@ -70,30 +53,4 @@ describe("Portal scene", () => {
     expect(scene.getAttribute("data-gaze")).toBe("center");
   });
 
-  it("holds the crew still under reduced motion without breaking tap speech", () => {
-    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
-    const member = container.querySelector<HTMLButtonElement>("[aria-label='Talk to Doc']")!;
-    const capture = vi.fn();
-    Object.defineProperty(member, "setPointerCapture", { value: capture });
-    flushSync(() => member.dispatchEvent(new MouseEvent("pointerdown", { button: 0, bubbles: true })));
-    expect(capture).not.toHaveBeenCalled();
-    flushSync(() => member.click());
-    expect(member.getAttribute("aria-expanded")).toBe("true");
-  });
-
-  it("cleans up atlas load handlers when leaving the portal", () => {
-    const images: HTMLImageElement[] = [];
-    const createImage = vi.fn(function () {
-      const art = document.createElement("img");
-      images.push(art);
-      return art;
-    });
-    vi.stubGlobal("Image", createImage);
-    flushSync(() => root.render(<Portal key="reload"><h1>New scene</h1></Portal>));
-    expect(images).toHaveLength(2);
-    expect(images.every((art) => art.onload !== null)).toBe(true);
-    flushSync(() => root.render(null));
-    expect(images.every((art) => art.onload === null)).toBe(true);
-    vi.unstubAllGlobals();
-  });
 });

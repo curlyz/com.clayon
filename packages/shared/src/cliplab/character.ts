@@ -1,4 +1,5 @@
-// Generated from ui/src/assets/cliplab/onboarding.character.json by scripts/sync-cliplab-character.mjs. Do not edit.
+// The ClipLab character definition (originally a studio export; its generator
+// script was removed with the mascot program — hand-maintained since).
 import type { Definition } from "./model.js";
 
 /** The persona character: Tonio's ClipLab studio export, every palette recolours its body. */

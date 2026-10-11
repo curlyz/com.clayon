@@ -21,7 +21,7 @@ import { AgentToolsTab } from "@/pages/AgentToolsTab";
 import { SectionTabs } from "@/components/SectionTabs";
 import { buildAgentSectionTabs } from "@/lib/section-tabs/agentSectionTabs";
 import { AgentActionButtons } from "@/components/AgentActionButtons";
-import { PillGuy } from "@/components/onboarding/PillGuy";
+import { AgentAvatar } from "@/components/AgentAvatar";
 import {
   AgentConfigForm,
   AdapterLoginPanel,
@@ -263,7 +263,7 @@ function SettingsPage({ runtimeContent }: { runtimeContent?: ReactNode }) {
                   aria-label={`${agent.name} avatar`}
                   className="shrink-0"
                 >
-                  <PillGuy state="alive" className="size-12" />
+                  <AgentAvatar size={48} />
                 </div>
                 <div className="space-y-1">
                   <h1 className="text-2xl font-semibold tracking-tight">

@@ -21,7 +21,6 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, Copy, CircleHelp, ExternalLink, Eye, EyeOff, Hammer, Loader2 } from "lucide-react";
 import { AgentAvatar } from "@/components/AgentAvatar";
-import { AgentCharacter } from "@/components/AgentCharacter";
 import { AgentSelect } from "@/components/AgentMultiSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -617,9 +616,9 @@ function ChatSdkEndpointSetup() {
         )}
         {endpoint && step === tryStep && (!automaticSlack || automaticSlackComplete) && (
           automaticSlack ? <div className="flex flex-col items-center gap-6 py-8 text-center">
-            <AgentCharacter
+            <AgentAvatar
               agent={selectedAgent ?? { id: endpoint.assignedAgentId, name: endpoint.assignedAgentName }}
-              size={256} state="success" trackingScope="page"
+              size={256} pose="success"
               label={`${selectedAgent?.name ?? endpoint.assignedAgentName} avatar`}
             />
             <div className="flex flex-col items-center gap-3">

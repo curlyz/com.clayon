@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from "react";
 import { Pause, Play } from "lucide-react";
-import { PortalCrew } from "@/components/portal/PortalCrew";
 import { cn } from "@/lib/utils";
 import "@/components/portal/Portal.css";
 
@@ -58,14 +57,11 @@ export function Portal({ children, detail = "Built around your mission.", classN
       </header>
       <p className="sr-only" id="portal-scene-description">
         A ring stretches across a star-filled sky. An amber emblem marks the portal.
-        Doc, a scientist with a clipboard, and Orb, a floating scanner drone, wait beside the entrance.
-        The entry controls sit inside the portal. Crew reactions are optional; use the primary action to continue.
       </p>
       <main id="portal-main" className="halo-portal-main" aria-describedby="portal-scene-description">
         <img className="halo-portal-emblem" src="/portal/emblem.webp" alt="" aria-hidden="true" />
         {children}
       </main>
-      <PortalCrew />
       <footer className="halo-portal-footer">
         <span>Human direction. Agent ambition.</span>
         <span>{detail}</span>

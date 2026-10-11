@@ -172,7 +172,7 @@ export function AuthPage() {
             <button ref={entryAction} type="button" className="halo-portal-action" onClick={() => setShowSignIn(true)}>
               Enter Clayon <ArrowUpRight className="halo-portal-action-icon" aria-hidden="true" />
             </button>
-            <p className="halo-portal-note">Meet the crew. Build what comes next.</p>
+            <p className="halo-portal-note">Build what comes next.</p>
           </div>
         </div>
       </Portal>

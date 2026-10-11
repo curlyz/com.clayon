@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PillGuy } from "@/components/onboarding/PillGuy";
+import { AgentAvatar } from "@/components/AgentAvatar";
 import { cn } from "@/lib/utils";
 import { ProviderConnectionPreview, type ConnectionMethod, type ConnectionProvider } from "./ProviderConnectionPreview";
 
@@ -232,7 +232,7 @@ export function NewAgentWizard({ initialScreen = "name", initialAdapter = null, 
                 }}>
                   <div className="flex min-h-0 flex-col gap-7 overflow-y-auto px-6 pb-8 sm:px-10">
                     <div className="flex flex-col items-center gap-4 text-center">
-                      <PillGuy state="dormant" className="size-16" />
+                      <AgentAvatar size={64} />
                       <div className="flex flex-col gap-2">
                         <DialogTitle className="text-3xl font-semibold tracking-tight">{screen === "name" ? "Meet your next agent" : "Choose an adapter"}</DialogTitle>
                         <DialogDescription className="text-base">
@@ -282,7 +282,7 @@ export function NewAgentWizard({ initialScreen = "name", initialAdapter = null, 
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><span>Agents</span><ChevronRight className="size-3" /><span>{name || "Darnold"}</span><ChevronRight className="size-3" /><span className="text-foreground">{screen === "connect" ? "Connect" : screen === "saved" ? "Confirmation" : "Configuration"}</span></div>
           <div className="flex items-start gap-4">
-            <PillGuy state="dormant" className="size-14 shrink-0" />
+            <AgentAvatar size={64} className="size-14 shrink-0" />
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-3"><h1 ref={heading} tabIndex={-1} className="break-words text-2xl font-semibold tracking-tight outline-none">{name || "Darnold"}</h1><Badge variant="outline">{screen === "saved" ? "Configured" : "Setup in progress"}</Badge></div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground"><AdapterMark adapter={brandAdapter} /><span>{getAdapterDisplay(brandAdapter).label}</span>{isRunner && <Badge variant="outline">{runnerProvider === "Codex (app server)" ? "Native app server runner" : runnerProvider === "Claude (ACPX)" ? "ACPX runner" : "Clayon Runner"}</Badge>}</div>

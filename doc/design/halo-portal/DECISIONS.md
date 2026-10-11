@@ -17,10 +17,8 @@ The bible confirms that the generated Doc pilot drifts and Orb has no animation 
 | :-- | :-- | :-- |
 | Composition | Full-screen ring sky, octagonal threshold, emblem, floor, entry object | Implements the supplied scene brief |
 | Palette | Pixel violet, space black, amber action, mint focus | Uses restored pixel/space references; text stays readable |
-| Crew art | Doc and Orb sampled from the supplied lab cast atlas | Small shared asset; recognizable silhouettes without drifting pilot frames |
 | Sprite grid | Nearest-neighbor 64 × 64 canvas cells, 1× phone and 2× desktop | Whole-multiple display scaling with smoothing disabled |
 | Idle | Four held positions over 500 ms; no easing | 8 fps stand-in until authored character rigs exist |
-| Reactions | Pointer tracking, hover lift, click/tap speech, double-click cheer, bounded horizontal drag | Follows the live mascot stage while keeping controls clear |
 | Keyboard | Primary action and crew use native controls; Escape closes speech | Optional crew interaction does not gate entry |
 | Motion | Six-second ring arrival, finite three-second pointer response, explicit pause | Reduced motion holds the rest pose and suppresses scene movement |
 | Fonts | Four local MonoLisa faces; entry uses Regular only | Other faces load after form or speech activation |

@@ -3,12 +3,9 @@
 Agents have a persisted visual identity independent of prompts and runtime
 configuration: `{ schemaVersion: 1, characterVersion: "cap-v1", paletteId }`.
 The cap-v1 library contains 17 permanent palettes and a presentation-only gray
-Muted dream palette. The character itself is one ClipLab studio export —
-`ui/src/assets/cliplab/onboarding.character.json` (end cap, custom idle,
-sleepy-to-wake) — mirrored into the shared package as
-`packages/shared/src/cliplab/character.ts` by
-`node scripts/sync-cliplab-character.mjs` (`--check` detects drift); every
-palette recolours its body. The onboarding hero and every avatar are the same
+Muted dream palette. The character itself is one ClipLab studio export, kept as
+`packages/shared/src/cliplab/character.ts`; every
+palette recolours its body. Every avatar is the same
 character on the same engine (ClipLab v0.2.0, see PROVENANCE.md). New agents get one random assignment; existing rows are
 backfilled with the same ID-based mapping used by legacy clients. Duplicating
 an agent generates another assignment. Export/import preserves it.
@@ -96,7 +93,6 @@ Focused checks:
 ```sh
 pnpm exec vitest run packages/shared/src/agent-appearance.test.ts server/src/__tests__/agent-avatars.test.ts
 node scripts/sync-agent-palette-tokens.mjs --check
-node scripts/sync-cliplab-character.mjs --check
 pnpm check:token-gates
 pnpm build-storybook
 ```

@@ -13,13 +13,10 @@ import { useCompany } from "../context/CompanyContext";
 import { useDialogActions } from "../context/DialogContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useSidebar } from "../context/SidebarContext";
-import { useTheme } from "../context/ThemeContext";
 import { useStreamlinedUiEnabled } from "../hooks/useStreamlinedUiEnabled";
 import { queryKeys } from "../lib/queryKeys";
 import { isPlatformManagedEnvironment } from "../lib/managed-sandbox-environment";
 import { AgentStatusBadge, AgentStatusCapsule } from "../components/StatusBadge";
-import { AGENT_GRADIENT_COUNT } from "../components/AgentCapsule";
-import { hasWebGL, type AgentWorldAgent } from "../components/agentWorld/agentWorldScene";
 import { BuiltInLifecycleChip } from "../components/BuiltInAgentBadges";
 import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
@@ -47,32 +44,6 @@ const ConfigureBuiltInAgentModal = lazy(() =>
     default: m.ConfigureBuiltInAgentModal,
   })),
 );
-
-// Lazy-loaded living header: the WebGL bundle (three.js) only downloads when
-// the roster actually renders its agent world.
-const AgentWorld = lazy(() =>
-  import("../components/agentWorld/AgentWorld").then((m) => ({
-    default: m.AgentWorld,
-  })),
-);
-
-/** Reads the brand agent-gradient bottom stops (real CSS hexes) from the token layer. */
-function readAgentGradientStops(): string[] {
-  if (typeof window === "undefined") return [];
-  const style = getComputedStyle(document.documentElement);
-  return Array.from({ length: AGENT_GRADIENT_COUNT }, (_, index) =>
-    style.getPropertyValue(`--agent-${index + 1}b`).trim(),
-  ).filter((value) => value.length > 0);
-}
-
-/** Stable id-hash into the gradient ladder — one agent always wears the same accent. */
-function agentWorldAccent(agentId: string, gradientStops: string[]): string {
-  let hash = 0;
-  for (let index = 0; index < agentId.length; index += 1) {
-    hash = (hash * 31 + agentId.charCodeAt(index)) >>> 0;
-  }
-  return gradientStops[hash % gradientStops.length] ?? "";
-}
 
 export const AGENT_FILTER_TABS = ["all", "active", "paused", "error", "builtin"] as const;
 type FilterTab = (typeof AGENT_FILTER_TABS)[number];
@@ -226,7 +197,6 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile } = useSidebar();
-  const { theme } = useTheme();
   const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
   const pathSegment = location.pathname.split("/").pop() ?? "all";
   const requestedTab: FilterTab = isFilterTab(pathSegment) ? pathSegment : "all";
@@ -309,9 +279,6 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   });
   usePublishSharedQueryData(sharedRuns, runs, runsUpdatedAt);
   const membershipsQuery = useResourceMemberships(selectedCompanyId);
-  // Living-header accents, read once from the token layer.
-  const gradientStops = useMemo(readAgentGradientStops, []);
-
   // Map agentId -> first live run + live run count
   const liveRunByAgent = useMemo(() => {
     const map = new Map<string, { runId: string; liveCount: number }>();
@@ -369,14 +336,6 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
 
   const filtered = filterAgents(agents ?? [], tab, builtInAgentIds);
   const filteredOrg = filterOrgTree(orgTree ?? [], tab, builtInAgentIds);
-  // The living header mirrors the filtered roster below it.
-  const worldAgents: AgentWorldAgent[] = filtered.map((agent) => ({
-    id: agent.id,
-    name: agent.name,
-    accentColor: agentWorldAccent(agent.id, gradientStops),
-    status: agent.status,
-    activityLabel: liveRunByAgent.has(agent.id) ? "Live run" : undefined,
-  }));
   const environmentDataLoading = environmentsEnabled && environments === undefined;
   const showEnvironmentColumn = environmentsEnabled && (environments === undefined || environments.length > 1);
   const resolveRenderedEnvironment = (agentId: string) => (
@@ -506,19 +465,6 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         ? "flex h-full min-h-0 flex-col gap-4"
         : "space-y-4",
     )}>
-      {/* Living header: the world IS the band — no border chrome, lazy WebGL.
-       *  Guarded by hasWebGL so the r3f module never even imports where no
-         canvas context exists (tests, blocked GPUs). */}
-      {worldAgents.length > 0 && hasWebGL() && (
-        <Suspense fallback={null}>
-          <AgentWorld
-            agents={worldAgents}
-            theme={theme}
-            className="h-64 rounded-none border-0 bg-transparent md:h-80"
-          />
-        </Suspense>
-      )}
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs value={tab} onValueChange={(v) => navigate(`/agents/${v}`)}>
           <PageTabBar

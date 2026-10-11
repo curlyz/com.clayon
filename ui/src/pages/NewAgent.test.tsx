@@ -87,7 +87,6 @@ vi.mock("@/components/AgentConfigForm", () => ({
     </button>
   ),
 }));
-vi.mock("@/components/onboarding/PillGuy", () => ({ PillGuy: () => null }));
 vi.mock("motion/react", () => ({
   AnimatePresence: ({ children }: any) => children,
   MotionConfig: ({ children }: any) => children,

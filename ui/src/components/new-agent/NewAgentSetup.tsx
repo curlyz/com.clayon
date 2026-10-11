@@ -1,5 +1,5 @@
 import { useConnectionModels } from "../ai-connections/useConnectionModels";
-import { AgentCharacter } from "../AgentCharacter";
+import { AgentAvatar } from "../AgentAvatar";
 import { useAgentAppearanceDraft } from "../../hooks/useAgentAppearanceDraft";
 import { AiConnectionField, aiProviderForAdapter } from "../ai-connections/AiConnectionField";
 import type { AiConnectionBinding } from "@clayon/shared";
@@ -645,8 +645,8 @@ function Setup({
     <MotionConfig reducedMotion="user">
       <div className="mx-auto flex max-w-5xl flex-col gap-8 py-6">
         <header className="flex items-center gap-4">
-          <AgentCharacter appearance={created?.appearance ?? appearanceDraft.appearance} size={256} className="size-48" trackingScope="page"
-            state={created || testState === "pass" ? "success" : testState === "running" ? "loading" : "sleepy"}
+          <AgentAvatar appearance={created?.appearance ?? appearanceDraft.appearance} size={256} className="size-48"
+            pose={created || testState === "pass" ? "success" : testState === "running" ? "loading" : "rest"}
             muted={!created && testState !== "pass"} />
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>

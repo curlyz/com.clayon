@@ -28,7 +28,6 @@ vi.mock("../context/DialogContext", () => ({
 vi.mock("@/api/adapters", () => ({
   adaptersApi: { list: async () => state.adapters },
 }));
-vi.mock("./onboarding/PillGuy", () => ({ PillGuy: () => null }));
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root;
 let container: HTMLDivElement;

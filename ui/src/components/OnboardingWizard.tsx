@@ -7,9 +7,8 @@ import type { AiConnectionBinding } from "@clayon/shared";
 import { storeProviderApiKey } from "../lib/provider-credential";
 import { SavedProviderKeySelect, useSavedProviderKeys } from "./onboarding/SavedProviderKeySelect";
 import { randomAgentAppearance, resolveAgentAppearance, agentAppearanceSchema } from "@clayon/shared";
-import { OnboardingCharacter } from "./onboarding/OnboardingCharacter";
 import { useEffect, useState, useMemo, useRef } from "react";
-import type { ComponentType, CSSProperties } from "react";
+import type { ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import type {
@@ -116,8 +115,6 @@ import {
   resolveRouteOnboardingOptions,
 } from "../lib/onboarding-route";
 import { useCloudInstance } from "../hooks/useCloudInstance";
-import { PillGuy } from "./onboarding/PillGuy";
-import { SleepingZs } from "./onboarding/SleepingZs";
 import {
   AGENT_ARC_WIZARD_STEPS,
   ONBOARDING_STEP_LABELS,
@@ -2390,7 +2387,7 @@ function OnboardingWizardInner({
         {/* Plain div instead of DialogOverlay — Radix's overlay wraps in
             RemoveScroll which blocks wheel events on our custom (non-DialogContent)
             scroll container. A plain div preserves the background without scroll-locking. */}
-        <div className="fixed inset-0 z-50 bg-background" />
+        <div className="fixed inset-0 z-(--z-50) bg-background" />
         {/* A deliberate hook for "the wizard mounted".
 
             The tests that assert it opens used to prove it by finding any text
@@ -2401,7 +2398,7 @@ function OnboardingWizardInner({
             mean rather than depending on whatever happens to render. */}
         <div
           data-testid="onboarding-wizard"
-          className="fixed inset-0 z-50 flex"
+          className="fixed inset-0 z-(--z-50) flex"
           onKeyDown={handleKeyDown}
         >
           {/* Form column — the wizard opens directly on step 1, so there is no
@@ -2529,14 +2526,6 @@ function OnboardingWizardInner({
                       transition={capsuleHeroMotion.transition}
                       className="flex flex-col items-center gap-2 pb-6"
                     >
-                      {/* Dozing and gray until the agent is actually hired.
-                          Review is the first step where one exists, so that is
-                          where it wakes and takes its colour — the arc's
-                          payoff, not a flourish along it. The sequence itself
-                          is the studio's export; see OnboardingCharacter. */}
-                      <div className="relative size-(--sz-160px)">
-                        <OnboardingCharacter appearance={agentAppearance} awake={step === 5} className="size-full" />
-                      </div>
                       <AgentPreview agentName={agentName} agentRole="" />
                     </motion.div>
                     </motion.div>
@@ -2932,10 +2921,7 @@ function OnboardingWizardInner({
                               status hue, so the pass banner derives its fill,
                               text, and border from the design tokens in both
                               modes instead of raw color values. */}
-                          <div
-                            className="status-chip flex items-center gap-2 rounded-md border px-2.5 py-2 text-(length:--text-micro)"
-                            style={{ "--sc": "var(--status-task-done)" } as CSSProperties}
-                          >
+                          <div className="status-chip status-sc-task-done flex items-center gap-2 rounded-md border px-2.5 py-2 text-(length:--text-micro)">
                             <Check className="size-3.5 shrink-0" />
                             <span className="font-medium">Passed</span>
                           </div>
