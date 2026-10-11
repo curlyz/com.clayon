@@ -15,10 +15,16 @@ function PopoverTrigger({
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
 
+// Rebased onto Liquid Gold's PopoverContent (t229 Gold-method transplant,
+// 2026-10-11): the z tier moves to the shared --z-popover step of the z
+// scale (portal content always carries a tier), sideOffset 8, motion-safe
+// prefixes on the enter/exit classes, border-border + bg-popover on the
+// surface tokens. Clayon's disablePortal escape hatch and the
+// Anchor/Header/Title/Description subcomponents stay (this app's surfaces).
 function PopoverContent({
   className,
   align = "center",
-  sideOffset = 4,
+  sideOffset = 8,
   disablePortal = false,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content> & { disablePortal?: boolean }) {
@@ -28,7 +34,7 @@ function PopoverContent({
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+        "bg-popover text-popover-foreground border-border shadow-md outline-hidden w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 z-(--z-popover) motion-safe:data-[state=open]:animate-in motion-safe:data-[state=closed]:animate-out motion-safe:data-[state=closed]:fade-out-0 motion-safe:data-[state=open]:fade-in-0 motion-safe:data-[state=closed]:zoom-out-95 motion-safe:data-[state=open]:zoom-in-95 motion-safe:data-[side=bottom]:slide-in-from-top-2 motion-safe:data-[side=left]:slide-in-from-right-2 motion-safe:data-[side=right]:slide-in-from-left-2 motion-safe:data-[side=top]:slide-in-from-bottom-2",
         className
       )}
       {...props}

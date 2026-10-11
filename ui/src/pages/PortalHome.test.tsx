@@ -49,7 +49,8 @@ describe("Portal root entry", () => {
   it("opens the selected company's dashboard without entering automatically", () => {
     render();
     expect(container.querySelector("h1")?.textContent).toBe("Your mission. Ready when you are.");
-    expect(container.querySelector(".halo-portal-ring")?.getAttribute("src")).toBe("/portal/ring.webp");
+    expect(container.querySelector(".halo-portal-emblem")?.getAttribute("src")).toBe("/portal/emblem.webp");
+    expect(container.querySelector(".halo-portal-scene")).toBeNull();
     expect(container.querySelectorAll("canvas")).toHaveLength(0);
     expect(container.querySelector("a")?.getAttribute("href")).toBe("/TWO/dashboard");
     expect(container.textContent).toContain("Step into Selected Mission.");

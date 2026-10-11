@@ -9,7 +9,7 @@ The current implementation target is V1 and is defined in `doc/SPEC-implementati
 
 **Production runs on the antl VPS (2026-10-10):** Dokploy stack `clayon`
 (project `server`, composeId `CSdiym07Up7Q1AjvEop7j`) on `contabo-eu-vps6`,
-live at https://clayon.curly.ng with its own Postgres 17 service.
+live at https://clayon.app with its own Postgres 17 service.
 Runbook, compose file and bootstrap gotchas:
 [`servers/contabo-eu-vps6/README.md`](../servers/contabo-eu-vps6/README.md) § Clayon.
 Deploy through Dokploy (panel or authenticated API) — never SSH into the host.
@@ -78,18 +78,19 @@ pnpm dev
 
 ### Dev UI against the production backend (operator, 2026-10-11)
 
-"Dev clayon" is the working-tree UI served by Vite on **http://localhost:10000**
-with `/api` proxied to the production backend `https://clayon.curly.ng`.
+"Dev clayon" is the working-tree UI served by Vite on **http://localhost:2009**
+with `/api` proxied to the production backend `https://clayon.app`.
 No local server, database or native runner build runs.
 
 ```sh
-pnpm --dir ui dev:remote   # from com.clayon; strict port 10000
+pnpm --dir ui dev:remote   # from com.clayon; strict port 2009
 ```
 
 - The proxy lives in `ui/src/lib/vite-api-proxy.ts` (`createRemoteApiProxy`) and is chosen in `ui/vite.config.ts` when `CLAYON_DEV_API_TARGET` is set. It sends the production origin upstream (the server's origin guard expects it) and strips the cookie `Domain` so the session sticks to localhost.
-- Sign in through the dev UI at `localhost:10000`; Chrome accepts the `Secure` session cookie on localhost.
+- Sign in through the dev UI at `localhost:2009`; Chrome accepts the `Secure` session cookie on localhost.
 - **Writes hit production data.** Autosave saves within a second, so edits in the dev UI change the real company.
-- A port above 65535 does not exist: the operator's "100000" was taken as 10000.
+- The port is 2009 (operator, 2026-10-11: "setup the dev frontend port to be 2009"); it was 10000 earlier the same day.
+- Google sign-in from the dev UI needs `http://localhost:2009/api/auth/callback/google` as an authorized redirect URI on the Google OAuth client, or the callback is rejected.
 
 ## 5. Core Engineering Rules
 
@@ -251,3 +252,5 @@ A change is done when all are true:
 ## Design system
 
 `DESIGN.md` at the repo root is the source of truth for UI design decisions. The token-only rule applies to all `ui/` changes: every color, spacing, radius, type, shadow, and motion value in `ui/src/components/**` and `ui/src/pages/**` comes from the token layer in `ui/src/index.css` — no hex, raw px, arbitrary Tailwind bracket values, or raw `font-size`/`fontSize` declarations in components, outside the documented allowlist in `ui/src/index.css`. Run `pnpm check:token-gates` (`scripts/check-token-gates.mjs`) before committing UI changes — it fails on any violation not covered by that allowlist.
+
+The portal carries no decorative scene (removed 2026-10-11, leader ruling): the emblem remains only as the logo, luminance-masked for transparency on both themes; the surface is flat and theme-aware (light and dark tokens). No further decorative elements.

@@ -254,16 +254,6 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
   --agent-10a: #f2d95f;
   --agent-10b: #4fbcba;
 
-  /* Onboarding mascot artwork (brand-fixed, theme-independent). Keeping the
-     SVG palette in the token layer preserves the source asset while allowing
-     components to remain token-only. */
-  --pill-guy-eye: #060606;
-  --pill-guy-dormant-top: #626262;
-  --pill-guy-dormant-bottom: #101010;
-  --pill-guy-tuft: #2d200d;
-  --pill-guy-alive-top: #3028aa;
-  --pill-guy-alive-bottom: #ff0000;
-
   /* Status colors — one base hue per status, consumed by the agent / task
      status chips and the task status icons. Mode-independent: the `.status-chip`,
      `.status-fill` and inline icon helpers derive the light vs dark
@@ -390,6 +380,15 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
   --motion-ease-scroll-pill-out: cubic-bezier(0.7, 0, 0.84, 0);
   --motion-pane-glide: 320ms;           /* properties-pane maximize/restore glide */
   --motion-side-panel-tab: var(--motion-duration-fast);
+
+  /* SwipeToArchive collapse/release and ActivityFeed slide-in — extracted
+     from inline component values so components stay value-free (gate law). */
+  --motion-swipe-collapse: 200ms;
+  --motion-ease-swipe-collapse: ease;
+  --motion-swipe-release: 180ms;
+  --motion-ease-swipe-release: ease-out;
+  --motion-feed-slide-in: 300ms;
+  --motion-ease-feed-slide-in: ease-out;
 
   /* Portable side-panel geometry and hierarchy. These stay centralized so
      task, project, agent, and future hosts render the same Codex-like chrome. */
@@ -3021,6 +3020,8 @@ span.clayon-mention-chip[data-mention-kind="external-object"] {
   --z-200: 200; /* Extracted from ui/src/components/Layout.tsx (z-[200]). */
   --z-9999: 9999; /* Extracted from ui/src/components/MarkdownEditor.tsx (z-[9999]). */
   --z-120: 120; /* Extracted from ui/src/components/ToastViewport.tsx (z-[120]). */
+  --z-40: 40; /* Extracted from ui/src/components/ui/dialog.tsx (z-40). */
+  --z-50: 50; /* Extracted from ui/src/components/ui/dialog.tsx (z-50). */
   --s-0_98: 0.98; /* Extracted from ui/src/pages/Inbox.tsx (scale-[0.98]). */
   --s-1_02: 1.02; /* Extracted from ui/src/components/CaseAttachmentsGallery.tsx (scale-[1.02]). */
   --e-cubic-bezier-0_16-1-0_3-1: cubic-bezier(0.16,1,0.3,1); /* Extracted from ui/src/components/ui/alert-dialog.tsx (ease-[cubic-bezier(0.16,1,0.3,1)]). */
@@ -3069,7 +3070,6 @@ span.clayon-mention-chip[data-mention-kind="external-object"] {
    * allow ui/src/pages/CompanySkills.tsx — DISCOVERY_ACCENTS palette array feeds skill.color, persisted/compared JS data (SkillCreateDraft), not just a rendered value; also fontSize: Math.round(size * 0.42), computed at runtime from a prop, not a static literal
    * allow ui/src/components/IssueColumns.tsx — accentColor fallback also feeds pickTextColorForPillBg() contrast math (lib/color-contrast.ts), which needs a real hex string to compute luminance
    * allow ui/src/components/CompanyPatternIcon.tsx — canvas 2D fillStyle built from a runtime-computed template literal, not a static literal at all
-   * allow ui/src/components/onboarding/PillGuy.tsx — inline rendering of the approved pill-1 dormant/alive brand SVG assets; their fixed eye, body, tuft, and gradient fills are the illustration artwork rather than themeable interface colors
    * allow ui/src/components/ui/scroll-area.tsx — rounded-[inherit] is a CSS keyword, not a literal value; nothing to extract
    * allow ui/src/components/ui/dialog.tsx — tw-animate-css plugin utilities (zoom-in-[0.97], zoom-out-[0.97], slide-in-from-top-[1%], slide-out-to-top-[1%], animate-in, animate-out, fade-in-0, fade-out-0) are dead/no-op classes today (the tw-animate-css plugin is not installed and no matching @utility exists in this file; confirmed via grep of the built storybook-static CSS — none of these class names emit any rule); nothing to tokenize without visually changing a currently-inert class
    * allow ui/src/components/ui/alert-dialog.tsx — same tw-animate-css dead-class situation as dialog.tsx (zoom-out-[0.97], zoom-in-[0.97])
@@ -3555,61 +3555,19 @@ span.clayon-mention-chip[data-mention-kind="external-object"] {
   --z-sticky: 20;
 }
 
-/* Brief 2 entry scene: pixel-violet / space-black, amber action, supplied lab crew.
-   Decorative rings are scene art; controls keep the square geometry.
-   First-paint art + Regular font: 1,116,360 bytes. Other faces load on interaction. */
+/* Portal geometry/type/motion tokens, scene-free edition (2026-10-11 leader
+   ruling: decorative ring/orbit scene removed; colors now resolve through the
+   app's semantic tokens inside Portal.css — light AND dark — so only layout,
+   type scale, spacing, and motion live here). Regular font at first paint;
+   other faces load on interaction. */
 :root {
-  --halo-portal-surface: #0b0a1a;
-  --halo-portal-ink: #ecebff;
-  --halo-portal-dim: #b2afd6;
-  --halo-portal-line: #2c2a58;
-  --halo-portal-frame-edge: #595777;
-  --halo-portal-accent: #ffb454;
-  --halo-portal-action-ink: #0b0a1a;
-  --halo-portal-action-hover: #ffcd88;
-  --halo-portal-focus: #7fe8c1;
-  --halo-portal-error: #ff7a90;
-  --halo-portal-control-surface: #1a1938;
-  --halo-portal-control-border: #807ba8;
-  --halo-portal-form-surface: #12112a;
-  --halo-portal-atmosphere: linear-gradient(180deg, #0b0a1a22, #0b0a1a55 40%, #0b0a1ae8 85%, #0b0a1a);
-  --halo-portal-interior: #12112a;
-  --halo-portal-grid-image: linear-gradient(to right, var(--halo-portal-line) var(--halo-portal-line-width), transparent var(--halo-portal-line-width)), linear-gradient(to bottom, var(--halo-portal-line) var(--halo-portal-line-width), transparent var(--halo-portal-line-width));
-  --halo-portal-grid-mask: linear-gradient(to right, black, transparent 38%, transparent 62%, black);
-  --halo-portal-floor-image: linear-gradient(to right, var(--halo-portal-frame-edge) var(--halo-portal-line-width), transparent var(--halo-portal-line-width)), linear-gradient(to bottom, var(--halo-portal-frame-edge) var(--halo-portal-line-width), transparent var(--halo-portal-line-width));
-  --halo-portal-floor-mask: linear-gradient(to bottom, transparent, black 24%, transparent 90%);
-  --halo-portal-action-shadow: 4px 4px 0 #595777;
-  --halo-portal-panel-shadow: 6px 6px 0 #05060d;
   --halo-portal-font: "MonoLisa Nerd Font", monospace;
   --halo-portal-zero: 0;
   --halo-portal-full: 100%;
-  --halo-portal-center: 50%;
-  --halo-portal-center-offset: -50%;
   --halo-portal-grow: 1;
-  --halo-portal-scene-layer: -1;
   --halo-portal-viewport: 100dvh;
   --halo-portal-radius: 0;
   --halo-portal-line-width: 2px;
-  --halo-portal-rail-width: 2px;
-  --halo-portal-grid-cell: 64px;
-  --halo-portal-grid-opacity: 0.2;
-  --halo-portal-frame-top: 45%;
-  --halo-portal-orbit-size: 640px;
-  --halo-portal-orbit-opacity: 0.75;
-  --halo-portal-orbit-cut: polygon(30% 2.5%, 70% 2.5%, 97.5% 30%, 97.5% 70%, 70% 97.5%, 30% 97.5%, 2.5% 70%, 2.5% 30%);
-  --halo-portal-ring-position: 50% 30%;
-  --halo-portal-ring-opacity: 0.9;
-  --halo-portal-parallax: 0px;
-  --halo-portal-parallax-left: -12px;
-  --halo-portal-parallax-right: 12px;
-  --halo-portal-orbit-duration: 3000ms;
-  --halo-portal-orbit-ease: steps(24, end);
-  --halo-portal-floor-top: 82%;
-  --halo-portal-floor-width: 140%;
-  --halo-portal-floor-height: 65%;
-  --halo-portal-floor-cell: 64px;
-  --halo-portal-floor-transform: perspective(500px) rotateX(58deg);
-  --halo-portal-floor-opacity: 0.4;
   --halo-portal-space: 1.5rem;
   --halo-portal-gap: 1rem;
   --halo-portal-brand-gap: 0.75rem;
@@ -3653,60 +3611,181 @@ span.clayon-mention-chip[data-mention-kind="external-object"] {
   --halo-portal-input-padding: 0.5rem 0.75rem;
   --halo-portal-secondary-padding: 0.5rem 0.75rem;
   --halo-portal-underline-offset: 0.25rem;
-  --halo-portal-arrival-duration: 6000ms;
-  --halo-portal-arrival-ease: steps(24, end);
-  --halo-portal-arrival-travel: -24px;
   --halo-portal-interaction-duration: 125ms;
   --halo-portal-interaction-ease: steps(1, end);
-  --halo-portal-held-ease: steps(1, end);
-  --halo-portal-idle-duration: 500ms;
-  --halo-portal-cheer-duration: 500ms;
-  --halo-portal-sprite-size: 128px;
-  --halo-portal-pixel-left: -2px;
-  --halo-portal-pixel-right: 2px;
-  --halo-portal-crew-lift: -4px;
-  --halo-portal-cheer-lift: -12px;
-  --halo-portal-crew-look: 0px;
-  --halo-portal-crew-drag: 0px;
-  --halo-portal-crew-width: 48rem;
-  --halo-portal-crew-height: 10rem;
-  --halo-portal-crew-overlap: -4rem;
-  --halo-portal-speech-bottom: 100%;
-  --halo-portal-speech-width: 14rem;
-  --halo-portal-speech-padding: 0.5rem 0.75rem;
 }
 
 @media (width < 40rem) {
   :root {
-    --halo-portal-grid-cell: 32px;
-    --halo-portal-frame-top: 43%;
-    --halo-portal-orbit-size: 512px;
-    --halo-portal-floor-top: 80%;
-    --halo-portal-floor-cell: 32px;
     --halo-portal-safe-left: max(1.5rem, env(safe-area-inset-left));
     --halo-portal-safe-right: max(1.5rem, env(safe-area-inset-right));
-    --halo-portal-main-top: 1rem;
     --halo-portal-main-bottom: 3rem;
     --halo-portal-title-size: 1.75rem;
     --halo-portal-form-padding: 1rem;
-    --halo-portal-sprite-size: 64px;
-    --halo-portal-crew-height: 6rem;
-    --halo-portal-crew-overlap: 0rem;
-    --halo-portal-pixel-left: -1px;
-    --halo-portal-pixel-right: 1px;
-    --halo-portal-crew-lift: -2px;
-    --halo-portal-cheer-lift: -6px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --halo-portal-arrival-duration: 0ms;
     --halo-portal-interaction-duration: 0ms;
     --halo-portal-action-lift: none;
-    --halo-portal-parallax-left: 0px;
-    --halo-portal-parallax-right: 0px;
-    --halo-portal-pixel-left: 0px;
-    --halo-portal-pixel-right: 0px;
+  }
+}
+
+/* ===== Gold-method token transplant (t229, 2026-10-11) =====
+   One appended block, stream-2 peer scope: Liquid Gold's STRUCTURE with
+   Clayon's pixel-lab VALUES (design-system.md § "every app follows this").
+   Appended, not rewritten — later declarations of the same property win,
+   so this block overrides the base definitions above without touching them
+   (same convention as the DOCK peer block). What lands:
+   - surface ladder (background-depth / surface / raised / quiet / deep,
+     foreground-faint) with shadcn aliases repointed onto it
+   - the one-hairline law: --border = foreground at 10%, plus -subtle/-faint
+   - --provenance: the amber accent (entry-scene amber, darkened for AA on
+     paper in light) powering the locked InlineSelect spec and the button's
+     provenance variants
+   - one meaning per colour role: success/danger/running from the existing
+     status hues, warning = burnt orange (DESIGN.md; todo keeps amber)
+   - the z scale completed (content 10, sticky 20, dock 30, popover 40,
+     modal 50, toast 60)
+   - --radius: 0 — DESIGN.md locked decision 4 (square law); the whole
+     multiplicative ladder collapses to square
+   - the app face defaults to MonoLisa Nerd Font (pixel-lab identity; an
+     explicit [data-reader-font] choice still wins — higher specificity)
+   - section bands: every section owns its width (Gold t86) via band/band-wide
+   The light theme's paper values stay (leader ruling b); the dark theme
+   re-hues from the retired cool blue-violet to the warm lab palette carried
+   by the --halo-portal-* scene tokens. No glass, no blur, no pills. */
+:root {
+  /* surface ladder (light keeps the paper values; aliases ride the ladder) */
+  --background-depth: oklch(0.945 0.012 85);
+  --surface: oklch(0.955 0.012 85);
+  --surface-raised: oklch(0.993 0.005 85);
+  --surface-quiet: oklch(0.945 0.012 85);
+  --surface-deep: oklch(0.93 0.014 85);
+  --foreground-faint: oklch(0.52 0.02 75);
+  --card: var(--surface);
+  --popover: var(--surface-raised);
+  --secondary: var(--surface-quiet);
+  --accent: var(--surface-quiet);
+
+  /* one hairline (Gold rule 1): every structural border/divider is the
+     foreground at 10% */
+  --border: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --border-subtle: oklch(0.9 0.012 85);
+  --border-faint: oklch(0.925 0.01 85);
+  --input: rgb(28 25 20 / 0.28);
+
+  /* the amber accent (pixel-lab identity): darkened in light for AA on
+     paper; the entry scene's amber in dark with the space-black ink */
+  --provenance: oklch(0.55 0.11 65);
+  --provenance-foreground: oklch(0.985 0 0);
+  --provenance-soft: color-mix(in srgb, var(--provenance) 14%, transparent);
+  --ring: var(--provenance);
+
+  /* one meaning per colour role, sourced from the existing status hues */
+  --success: var(--status-task-done);
+  --danger: var(--status-task-blocked);
+  --running: var(--status-task-in_progress);
+  --warning: #c2410c; /* burnt orange — DESIGN.md warnings; todo keeps amber */
+
+  /* z scale completed beside the DOCK/OVERVIEW peers' --z-sticky/--z-dock */
+  --z-content: 10;
+  --z-popover: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* square law (DESIGN.md locked decision 4): the whole radius ladder
+     collapses to 0 through the single knob */
+  --radius: 0;
+
+  /* the locked InlineSelect spec's 5px dotted-underline offset */
+  --inline-select-underline-offset: 5px;
+}
+
+/* the app face is MonoLisa (pixel-lab identity); an explicit reader choice
+   still overrides — the html[data-reader-font] rules above are more
+   specific than this :root declaration */
+:root {
+  --reader-font: var(--reader-font-monolisa-nerd);
+}
+
+.dark {
+  /* warm lab palette (was the cool blue-violet set): hues carried from the
+     --halo-portal-* entry scene — space-black ground, violet-warm surfaces,
+     cream ink, amber accent */
+  --background: #100e1e;
+  --background-depth: #0a0916;
+  --surface: #16142b;
+  --surface-raised: #1a1834;
+  --surface-quiet: #12112a;
+  --surface-deep: #0d0c1c;
+  --foreground: #ecebff;
+  --foreground-faint: #b2afd6;
+  --muted: #1b1936;
+  --muted-foreground: #a5a3c4;
+  --border: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --border-subtle: #2c2a58;
+  --border-faint: #201e45;
+  --input: rgb(236 235 255 / 0.24);
+  --card: var(--surface);
+  --popover: var(--surface-raised);
+  --secondary: var(--surface-quiet);
+  --accent: var(--surface-quiet);
+  --bubble-agent: oklch(0.17 0.01 300);
+  --provenance: #ffb454;
+  --provenance-foreground: #0b0a1a;
+  --provenance-soft: rgb(255 180 84 / 0.14);
+  --ring: var(--provenance);
+  --warning: #ff8a5c;
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-quiet: var(--surface-quiet);
+  --color-surface-deep: var(--surface-deep);
+  --color-background-depth: var(--background-depth);
+  --color-foreground-faint: var(--foreground-faint);
+  --color-provenance: var(--provenance);
+  --color-provenance-foreground: var(--provenance-foreground);
+  --color-provenance-soft: var(--provenance-soft);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-running: var(--running);
+}
+
+/* every section owns its width (Gold t86): gutters are grid tracks, never
+   shell padding; `band` caps the middle track at the content width,
+   `band-wide` gives grid-heavy sections the full width minus the gutters */
+@theme {
+  --container-content: 80rem;
+  --spacing-gutter: 1rem;
+}
+
+@layer base {
+  @media (min-width: 640px) {
+    :root {
+      --spacing-gutter: 1.5rem;
+    }
+  }
+}
+
+@utility band {
+  display: grid;
+  grid-template-columns:
+    minmax(var(--spacing-gutter), 1fr) minmax(0, var(--container-content))
+    minmax(var(--spacing-gutter), 1fr);
+  & > * {
+    grid-column: 2;
+  }
+}
+
+@utility band-wide {
+  display: grid;
+  grid-template-columns: var(--spacing-gutter) minmax(0, 1fr) var(--spacing-gutter);
+  & > * {
+    grid-column: 2;
   }
 }

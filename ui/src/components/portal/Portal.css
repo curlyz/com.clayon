@@ -1,4 +1,27 @@
+/*
+ * The entry threshold, reworked 2026-10-11 (leader ruling): the decorative
+ * ring/orbit scene is removed; the surface is flat and THEME-AWARE — every
+ * color resolves through the app's semantic tokens (Gold law: light and dark
+ * on every surface), with the amber provenance accent and the emblem as the
+ * logo. The palette mapping lives here on the component scope so the portal
+ * follows the app theme (light paper / warm lab dark) with no fixed scheme.
+ */
 .halo-portal {
+  --halo-portal-surface: var(--background);
+  --halo-portal-ink: var(--foreground);
+  --halo-portal-dim: var(--muted-foreground);
+  --halo-portal-accent: var(--provenance);
+  --halo-portal-action-ink: var(--provenance-foreground);
+  --halo-portal-action-hover: color-mix(in srgb, var(--provenance) 82%, white);
+  --halo-portal-control-surface: var(--surface-quiet);
+  --halo-portal-control-border: var(--border);
+  --halo-portal-form-surface: var(--surface);
+  --halo-portal-error: var(--danger);
+  --halo-portal-focus: var(--ring);
+  /* hard offset shadows (the only depth devices) derive from the theme ink,
+     not the retired scene's fixed dark hexes */
+  --halo-portal-action-shadow: 4px 4px 0 color-mix(in srgb, var(--foreground) 30%, transparent);
+  --halo-portal-panel-shadow: 6px 6px 0 color-mix(in srgb, var(--foreground) 24%, transparent);
   position: relative;
   isolation: isolate;
   display: flex;
@@ -9,66 +32,7 @@
   background: var(--halo-portal-surface);
   font-family: var(--halo-portal-font);
   font-weight: var(--halo-portal-label-weight);
-  color-scheme: dark;
 }
-.halo-portal-scene {
-  position: absolute;
-  inset: var(--halo-portal-zero);
-  z-index: var(--halo-portal-scene-layer);
-  overflow: hidden;
-  pointer-events: none;
-}
-.halo-portal-ring {
-  position: absolute;
-  width: var(--halo-portal-full);
-  height: var(--halo-portal-full);
-  object-fit: cover;
-  object-position: var(--halo-portal-ring-position);
-  image-rendering: pixelated;
-  opacity: var(--halo-portal-ring-opacity);
-  animation: halo-portal-arrive var(--halo-portal-arrival-duration) var(--halo-portal-arrival-ease) both;
-}
-.halo-portal-atmosphere { position: absolute; inset: var(--halo-portal-zero); background: var(--halo-portal-atmosphere); }
-.halo-portal-grid {
-  position: absolute;
-  inset: var(--halo-portal-zero);
-  background-image: var(--halo-portal-grid-image);
-  background-size: var(--halo-portal-grid-cell) var(--halo-portal-grid-cell);
-  mask-image: var(--halo-portal-grid-mask);
-  opacity: var(--halo-portal-grid-opacity);
-}
-.halo-portal-orbit, .halo-portal-orbit-core {
-  position: absolute;
-  top: var(--halo-portal-frame-top);
-  left: var(--halo-portal-center);
-  translate: var(--halo-portal-center-offset) var(--halo-portal-center-offset);
-  width: var(--halo-portal-orbit-size);
-  height: var(--halo-portal-orbit-size);
-}
-.halo-portal-orbit {
-  stroke: var(--halo-portal-accent);
-  stroke-width: var(--halo-portal-line-width);
-  opacity: var(--halo-portal-orbit-opacity);
-  transform: translateX(var(--halo-portal-parallax));
-  transition: transform var(--halo-portal-orbit-duration) var(--halo-portal-orbit-ease);
-}
-.halo-portal-orbit-core { background: var(--halo-portal-interior); clip-path: var(--halo-portal-orbit-cut); }
-.halo-portal-floor {
-  position: absolute;
-  top: var(--halo-portal-floor-top);
-  left: var(--halo-portal-center);
-  width: var(--halo-portal-floor-width);
-  height: var(--halo-portal-floor-height);
-  translate: var(--halo-portal-center-offset) var(--halo-portal-zero);
-  transform: var(--halo-portal-floor-transform);
-  transform-origin: top center;
-  background-image: var(--halo-portal-floor-image);
-  background-size: var(--halo-portal-floor-cell) var(--halo-portal-floor-cell);
-  mask-image: var(--halo-portal-floor-mask);
-  opacity: var(--halo-portal-floor-opacity);
-}
-.halo-portal[data-gaze="left"] { --halo-portal-parallax: var(--halo-portal-parallax-left); }
-.halo-portal[data-gaze="right"] { --halo-portal-parallax: var(--halo-portal-parallax-right); }
 .halo-portal-header, .halo-portal-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--halo-portal-gap); }
 .halo-portal-header { padding: var(--halo-portal-header-top) var(--halo-portal-safe-right) var(--halo-portal-space) var(--halo-portal-safe-left); }
 .halo-portal-brand { display: flex; align-items: center; gap: var(--halo-portal-brand-gap); }
@@ -79,21 +43,6 @@
   padding-inline-end: var(--halo-portal-brand-gap);
 }
 .halo-portal-wordmark { color: var(--halo-portal-ink); font-size: var(--halo-portal-wordmark-size); letter-spacing: var(--halo-portal-label-tracking); }
-.halo-portal-motion {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--halo-portal-brand-gap);
-  min-width: var(--halo-portal-touch-size);
-  min-height: var(--halo-portal-touch-size);
-  border: var(--halo-portal-line-width) solid var(--halo-portal-control-border);
-  background: var(--halo-portal-control-surface);
-  color: var(--halo-portal-dim);
-  padding: var(--halo-portal-secondary-padding);
-  font-size: var(--halo-portal-label-size);
-  cursor: pointer;
-}
-.halo-portal-motion svg { width: var(--halo-portal-icon-size); height: var(--halo-portal-icon-size); }
 .halo-portal-main {
   display: flex;
   flex: var(--halo-portal-grow);
@@ -104,7 +53,11 @@
   min-width: var(--halo-portal-zero);
   padding: var(--halo-portal-main-top) var(--halo-portal-safe-right) var(--halo-portal-main-bottom) var(--halo-portal-safe-left);
 }
-.halo-portal-emblem { width: var(--halo-portal-emblem-size); height: var(--halo-portal-emblem-size); image-rendering: pixelated; mix-blend-mode: screen; flex-shrink: var(--halo-portal-zero); }
+/* The emblem asset is opaque with a uniform near-black background (rgb 3,3,3,
+   dwebp-probed 2026-10-11). A luminance mask keyed on the asset itself makes
+   that background fully transparent and keeps only the bright emblem — the
+   logo reads cleanly on both the light and dark themes. */
+.halo-portal-emblem { width: var(--halo-portal-emblem-size); height: var(--halo-portal-emblem-size); image-rendering: pixelated; mask-image: url("/portal/emblem.webp"); mask-mode: luminance; mask-size: 100% 100%; flex-shrink: var(--halo-portal-zero); }
 .halo-portal-content { display: flex; flex-direction: column; align-items: center; gap: var(--halo-portal-gap); width: var(--halo-portal-full); max-width: var(--halo-portal-content-width); text-align: center; }
 .halo-portal-eyebrow { margin: var(--halo-portal-zero); color: var(--halo-portal-dim); font-size: var(--halo-portal-label-size); font-weight: var(--halo-portal-label-weight); letter-spacing: var(--halo-portal-label-tracking); text-transform: uppercase; }
 .halo-portal-title { margin: var(--halo-portal-zero); font-size: var(--halo-portal-title-size); font-weight: var(--halo-portal-title-weight); line-height: var(--halo-portal-title-leading); letter-spacing: var(--halo-portal-title-tracking); text-wrap: balance; }
@@ -167,19 +120,8 @@
 .halo-portal-secondary svg { width: var(--halo-portal-icon-size); height: var(--halo-portal-icon-size); }
 .halo-portal-text-action { min-height: var(--halo-portal-touch-size); color: var(--halo-portal-ink); font-size: var(--halo-portal-label-size); text-decoration: underline; text-underline-offset: var(--halo-portal-underline-offset); cursor: pointer; }
 .halo-portal-error { margin: var(--halo-portal-zero); color: var(--halo-portal-error); font-size: var(--halo-portal-label-size); line-height: var(--halo-portal-body-leading); }
-.halo-portal[data-paused="true"] .halo-portal-ring { animation-play-state: paused; }
-.halo-portal[data-paused="true"] .halo-portal-orbit { transform: none; transition: none; }
-@keyframes halo-portal-arrive { from { transform: translateY(var(--halo-portal-arrival-travel)); } to { transform: translateY(var(--halo-portal-zero)); } }
 @media (width < 40rem) {
-  .halo-portal-motion span { display: none; }
   .halo-portal-footer { flex-direction: column; gap: var(--halo-portal-field-gap); text-align: center; }
   .halo-portal-footer span:last-child { text-align: center; }
 }
 @media (max-height: 35rem) { .halo-portal-emblem { display: none; } }
-@media (prefers-reduced-motion: reduce) {
-  .halo-portal-ring { animation: none !important; transform: none !important; translate: none !important; }
-  .halo-portal-orbit { transform: none; transition: none; }
-  .halo-portal-action { transition: none; }
-  .halo-portal-action:hover { transform: none; }
-  .halo-portal-motion { display: none; }
-}

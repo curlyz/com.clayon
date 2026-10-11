@@ -136,7 +136,7 @@ describe("AuthPage", () => {
     expect(container.querySelector("h1")?.textContent).toContain("Your mission.");
     expect(container.querySelector(".halo-portal-emblem")?.getAttribute("src")).toBe("/portal/emblem.webp");
     expect(container.querySelectorAll(".halo-portal-sprite")).toHaveLength(0);
-    expect(container.querySelector("#portal-scene-description")?.textContent).toContain("An amber emblem marks the portal.");
+    expect(container.querySelector(".halo-portal-scene")).toBeNull();
     expect(container.querySelector("form")).toBeNull();
     expect(signInEmailMock).not.toHaveBeenCalled();
     const entry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Enter Clayon"));
