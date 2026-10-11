@@ -56,6 +56,7 @@ import {
   applyTrustProxy,
   parseTrustProxyEnv,
 } from "./middleware/trust-proxy.js";
+import { crossOriginApiMiddleware } from "./middleware/cross-origin-api.js";
 import {
   IMPORT_TRANSFER_SPOOL_SWEEP_INTERVAL_MS,
   resolveDefaultImportTransferSpoolRoot,
@@ -505,6 +506,8 @@ export async function createApp(
     deploymentMode: DeploymentMode;
     deploymentExposure: DeploymentExposure;
     allowedHostnames: string[];
+    /** Origins allowed to call the API cross-origin with credentials (mobile shell). */
+    crossOriginApiOrigins?: string[];
     bindHost: string;
     authPublicBaseUrl?: string;
     chatWebhookPublicBaseUrl?: string;
@@ -557,6 +560,12 @@ export async function createApp(
   // Default is unset → Express trusts nothing, which is the only safe choice
   // when the server may be reachable without a known reverse proxy in front.
   applyTrustProxy(app, parseTrustProxyEnv(process.env.TRUST_PROXY));
+
+  // Credential-bearing CORS for allowlisted cross-origin API callers (native
+  // mobile shell). Mounted before every /api route, including the app-level
+  // auth and webhook mounts below; non-allowlisted requests pass through
+  // untouched, so same-origin behavior is unchanged.
+  app.use(crossOriginApiMiddleware(opts.crossOriginApiOrigins ?? []));
 
   app.use(
     COMPANY_IMPORT_API_PATH,

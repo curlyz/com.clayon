@@ -57,11 +57,39 @@ export function deriveAuthCookiePrefix(instanceId = resolvePaperclipInstanceId()
   return `paperclip-${scopedInstanceId}`;
 }
 
-export function buildBetterAuthAdvancedOptions(input: { disableSecureCookies: boolean }) {
+export function buildBetterAuthAdvancedOptions(input: {
+  disableSecureCookies: boolean;
+  /**
+   * Emit SameSite=None; Secure session cookies so allowlisted cross-origin
+   * callers (the native mobile shell's WebView) keep their session. Only
+   * meaningful together with the Secure attribute, so a loopback (insecure)
+   * instance never carries it.
+   */
+  crossOriginCookies?: boolean;
+}) {
+  const crossOriginCookieAttributes = {
+    sameSite: "none",
+    secure: true,
+  } satisfies {
+    sameSite: "strict" | "lax" | "none" | "Strict" | "Lax" | "None";
+    secure: boolean;
+  };
   return {
     cookiePrefix: deriveAuthCookiePrefix(),
     ...(input.disableSecureCookies ? { useSecureCookies: false } : {}),
+    ...(input.crossOriginCookies && !input.disableSecureCookies
+      ? { defaultCookieAttributes: crossOriginCookieAttributes }
+      : {}),
   };
+}
+
+/** True when the request Origin is an allowlisted cross-origin API origin. */
+export function isCrossOriginAuthRequest(
+  origin: string | null | undefined,
+  allowedOrigins: string[],
+): boolean {
+  if (origin === null || origin === undefined) return false;
+  return allowedOrigins.includes(origin);
 }
 
 export function shouldEnableAuthRateLimit(input: {
@@ -84,6 +112,34 @@ export function buildBetterAuthRateLimitOptions(input: {
   return {
     enabled: shouldEnableAuthRateLimit(input),
   };
+}
+
+/**
+ * Google social sign-in, configured only when both credentials are set
+ * (trimmed, non-empty); otherwise no social provider is registered at all.
+ * `disableSignUp` follows the existing email sign-up policy so a public
+ * instance never lets an arbitrary Google account create a user — an existing
+ * user whose verified email matches still signs in via Better Auth's default
+ * account linking.
+ */
+export function resolveGoogleSocialProvider(input: {
+  clientId: string | undefined;
+  clientSecret: string | undefined;
+  disableSignUp: boolean;
+}): { google: { clientId: string; clientSecret: string; disableSignUp: boolean } } | null {
+  const clientId = input.clientId?.trim();
+  const clientSecret = input.clientSecret?.trim();
+  if (!clientId || !clientSecret) return null;
+  return { google: { clientId, clientSecret, disableSignUp: input.disableSignUp } };
+}
+
+/** Social provider ids /api/health advertises — provider names only, never a secret. */
+export function enabledAuthSocialProviders(env: NodeJS.ProcessEnv = process.env): string[] {
+  return resolveGoogleSocialProvider({
+    clientId: env.PAPERCLIP_AUTH_GOOGLE_CLIENT_ID,
+    clientSecret: env.PAPERCLIP_AUTH_GOOGLE_CLIENT_SECRET,
+    disableSignUp: false,
+  }) ? ["google"] : [];
 }
 
 export function shouldDisableSecureAuthCookies(input: {
@@ -206,6 +262,12 @@ export function deriveAuthTrustedOrigins(config: Config, opts?: { listenPort?: n
       }
     }
   }
+  // Cross-origin API origins are full origins already — trust them verbatim
+  // so Better Auth's origin check accepts the shell's auth POSTs.
+  for (const origin of config.crossOriginApiOrigins) {
+    const trimmed = origin.trim();
+    if (trimmed) trustedOrigins.add(trimmed);
+  }
 
   return Array.from(trustedOrigins);
 }
@@ -256,6 +318,11 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     authPublicBaseUrl: config.authPublicBaseUrl,
     publicUrl,
   });
+  const googleSocialProvider = resolveGoogleSocialProvider({
+    clientId: process.env.PAPERCLIP_AUTH_GOOGLE_CLIENT_ID,
+    clientSecret: process.env.PAPERCLIP_AUTH_GOOGLE_CLIENT_SECRET,
+    disableSignUp: config.authDisableSignUp,
+  });
 
   const authConfig = {
     baseURL: baseUrl,
@@ -275,6 +342,9 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
       requireEmailVerification: false,
       disableSignUp: config.authDisableSignUp,
     },
+    // Registered only when both Google credentials are configured; the spread
+    // below keeps an unconfigured instance free of any social provider.
+    ...(googleSocialProvider ? { socialProviders: googleSocialProvider } : {}),
     rateLimit: buildBetterAuthRateLimitOptions({
       deploymentMode: config.deploymentMode,
       deploymentExposure: config.deploymentExposure,
@@ -310,20 +380,38 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
   }
 
   const defaultAuth = betterAuth(authConfig);
+  const crossOriginOrigins = config.crossOriginApiOrigins
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+  // A dedicated instance carries SameSite=None; Secure session cookies so the
+  // native shell's cross-site WebView calls keep their session. Skipped when
+  // secure cookies are disabled (SameSite=None without Secure is rejected by
+  // browsers outright) or the allowlist is empty.
+  const crossOriginAuth = crossOriginOrigins.length > 0 && !disableSecureCookies
+    ? betterAuth({
+        ...authConfig,
+        advanced: buildBetterAuthAdvancedOptions({
+          disableSecureCookies: false,
+          crossOriginCookies: true,
+        }),
+      })
+    : null;
   const supportsManagedLoopbackAuth = Boolean(
     !disableSecureCookies &&
     isHttpsUrl(publicUrl) &&
     isHttpsUrl(managedRuntimePublicUrl),
   );
-  if (!supportsManagedLoopbackAuth) return defaultAuth;
+  if (!supportsManagedLoopbackAuth && !crossOriginAuth) return defaultAuth;
 
   // Better Auth fixes both the Secure attribute and the __Secure- name prefix
   // when an instance is created. Keep the public instance unchanged and route
   // only managed HTTP-loopback requests through a cookie-compatible instance.
-  const loopbackAuth = betterAuth({
-    ...authConfig,
-    advanced: buildBetterAuthAdvancedOptions({ disableSecureCookies: true }),
-  });
+  const loopbackAuth = supportsManagedLoopbackAuth
+    ? betterAuth({
+        ...authConfig,
+        advanced: buildBetterAuthAdvancedOptions({ disableSecureCookies: true }),
+      })
+    : null;
   const cookieSecurityInput = {
     deploymentMode: config.deploymentMode,
     deploymentExposure: config.deploymentExposure,
@@ -332,23 +420,20 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     publicUrl,
     managedRuntimePublicUrl,
   };
+  const selectAuth = (url: string | undefined, headers: Headers) => {
+    if (crossOriginAuth && isCrossOriginAuthRequest(headers.get("origin"), crossOriginOrigins)) {
+      return crossOriginAuth;
+    }
+    if (loopbackAuth && shouldDisableSecureAuthCookies({ ...cookieSecurityInput, requestUrl: url })) {
+      return loopbackAuth;
+    }
+    return defaultAuth;
+  };
 
   return {
-    handler: (request) => {
-      const auth = shouldDisableSecureAuthCookies({
-        ...cookieSecurityInput,
-        requestUrl: request.url,
-      }) ? loopbackAuth : defaultAuth;
-      return auth.handler(request);
-    },
+    handler: (request) => selectAuth(request.url, request.headers).handler(request),
     api: {
-      getSession: (input) => {
-        const auth = shouldDisableSecureAuthCookies({
-          ...cookieSecurityInput,
-          requestUrl: requestUrlFromHeaders(input.headers),
-        }) ? loopbackAuth : defaultAuth;
-        return auth.api.getSession(input);
-      },
+      getSession: (input) => selectAuth(requestUrlFromHeaders(input.headers), input.headers).api.getSession(input),
     },
   };
 }

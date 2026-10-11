@@ -53,6 +53,11 @@ export const serverConfigSchema = z.object({
   host: z.string().default("127.0.0.1"),
   port: z.number().int().min(1).max(65535).default(3100),
   allowedHostnames: z.array(z.string().min(1)).default([]),
+  // Full origins (scheme + host, e.g. "https://app.example.com") allowed to
+  // call this instance's API cross-origin with credentials — the native
+  // mobile shell's WebView origin. Drives the /api CORS allowlist and the
+  // SameSite=None session-cookie switch.
+  crossOriginApiOrigins: z.array(z.string().min(1)).default([]),
   serveUi: z.boolean().default(true),
 }).passthrough();
 

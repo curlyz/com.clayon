@@ -66,6 +66,7 @@ export interface Config {
   host: string;
   port: number;
   allowedHostnames: string[];
+  crossOriginApiOrigins: string[];
   authBaseUrlMode: AuthBaseUrlMode;
   authPublicBaseUrl: string | undefined;
   chatWebhookPublicBaseUrl: string | undefined;
@@ -251,6 +252,18 @@ export function loadConfig(): Config {
         .filter(Boolean),
     ),
   );
+  // Full origins (scheme + host) allowed to call the API cross-origin with
+  // credentials. Comma-separated env (PAPERCLIP_CROSS_ORIGIN_API_ORIGINS)
+  // wins over config.json's server.crossOriginApiOrigins, matching the
+  // allowedHostnames precedent above.
+  const crossOriginApiOriginsFromEnvRaw = process.env.PAPERCLIP_CROSS_ORIGIN_API_ORIGINS;
+  const crossOriginApiOrigins = crossOriginApiOriginsFromEnvRaw
+    ? crossOriginApiOriginsFromEnvRaw
+      .split(",")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0)
+    : (fileConfig?.server.crossOriginApiOrigins ?? []);
+
   const companyDeletionEnvRaw = process.env.PAPERCLIP_ENABLE_COMPANY_DELETION;
   const companyDeletionEnabled =
     companyDeletionEnvRaw !== undefined
@@ -320,6 +333,7 @@ export function loadConfig(): Config {
     host: resolvedBind.host,
     port: Number(process.env.PORT) || fileConfig?.server.port || 3100,
     allowedHostnames,
+    crossOriginApiOrigins,
     authBaseUrlMode,
     authPublicBaseUrl,
     chatWebhookPublicBaseUrl: parseChatWebhookPublicBaseUrl(

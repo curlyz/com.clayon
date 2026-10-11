@@ -932,6 +932,7 @@ async function startServerWithDatabaseTeardown(
     deploymentMode: config.deploymentMode,
     deploymentExposure: config.deploymentExposure,
     allowedHostnames: config.allowedHostnames,
+    crossOriginApiOrigins: config.crossOriginApiOrigins,
     bindHost: config.host,
     authPublicBaseUrl: config.authPublicBaseUrl,
     chatWebhookPublicBaseUrl: config.chatWebhookPublicBaseUrl,
