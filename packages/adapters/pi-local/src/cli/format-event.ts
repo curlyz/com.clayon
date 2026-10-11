@@ -1,4 +1,5 @@
 import pc from "picocolors";
+import { asRecord, asString } from "@clayon/adapter-utils/unknown-json";
 
 function safeJsonParse(text: string): unknown {
   try {
@@ -6,15 +7,6 @@ function safeJsonParse(text: string): unknown {
   } catch {
     return null;
   }
-}
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
-
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
 }
 
 function extractTextContent(content: string | Array<{ type: string; text?: string }>): string {

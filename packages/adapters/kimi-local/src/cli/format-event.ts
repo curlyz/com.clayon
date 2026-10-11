@@ -1,24 +1,6 @@
 import pc from "picocolors";
 import { printAcpxStreamEvent } from "@clayon/adapter-utils/acpx-engine/cli";
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
-
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
-}
-
-function stringifyUnknown(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value === null || value === undefined) return "";
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
+import { asRecord, asString, stringifyUnknown } from "@clayon/adapter-utils/unknown-json";
 
 export function printKimiStreamEvent(raw: string, _debug: boolean): void {
   const line = raw.trim();

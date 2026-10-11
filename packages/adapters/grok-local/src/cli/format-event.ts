@@ -1,13 +1,5 @@
 import pc from "picocolors";
-
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
-
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
-}
+import { asRecord, asString } from "@clayon/adapter-utils/unknown-json";
 
 export function printGrokStreamEvent(raw: string, _debug: boolean): void {
   const line = raw.trim();

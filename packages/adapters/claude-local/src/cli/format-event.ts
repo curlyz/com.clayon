@@ -1,22 +1,6 @@
 import pc from "picocolors";
 import { printAcpxStreamEvent } from "@clayon/adapter-utils/acpx-engine/cli";
-
-function asErrorText(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return "";
-  const obj = value as Record<string, unknown>;
-  const message =
-    (typeof obj.message === "string" && obj.message) ||
-    (typeof obj.error === "string" && obj.error) ||
-    (typeof obj.code === "string" && obj.code) ||
-    "";
-  if (message) return message;
-  try {
-    return JSON.stringify(obj);
-  } catch {
-    return "";
-  }
-}
+import { errorText as asErrorText } from "@clayon/adapter-utils/unknown-json";
 
 function printToolResult(block: Record<string, unknown>): void {
   const isError = block.is_error === true;
