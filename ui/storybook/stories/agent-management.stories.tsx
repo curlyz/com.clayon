@@ -9,7 +9,7 @@ import {
   type CompanySecret,
   type EnvBinding,
   type Environment,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { ActiveAgentsPanel } from "@/components/ActiveAgentsPanel";
 import { AgentConfigForm, type CreateConfigValues } from "@/components/AgentConfigForm";
 import { defaultCreateValues } from "@/components/agent-config-defaults";
@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { storybookAgents, storybookIssues } from "../fixtures/paperclipData";
+import { storybookAgents, storybookIssues } from "../fixtures/clayonData";
 
 const COMPANY_ID = "company-storybook";
 const now = new Date("2026-04-20T12:00:00.000Z");
@@ -54,9 +54,9 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="paperclip-story__frame overflow-hidden">
+    <section className="clayon-story__frame overflow-hidden">
       <div className="border-b border-border px-5 py-4">
-        <div className="paperclip-story__label">{eyebrow}</div>
+        <div className="clayon-story__label">{eyebrow}</div>
         <h2 className="mt-1 text-xl font-semibold">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
@@ -108,7 +108,7 @@ const agentManagementAgents: Agent[] = [
       extraArgs: ["--full-auto"],
       env: {
         OPENAI_API_KEY: { type: "secret_ref", secretId: "secret-openai", version: "latest" },
-        PAPERCLIP_TRACE: { type: "plain", value: "storybook" },
+        CLAYON_TRACE: { type: "plain", value: "storybook" },
       } satisfies Record<string, EnvBinding>,
       timeoutSec: 7200,
       graceSec: 20,
@@ -206,7 +206,7 @@ const agentManagementAgents: Agent[] = [
     pausedAt: null,
     adapterConfig: {
       webhookUrl: "https://ops.internal.example/heartbeat",
-      payloadTemplateJson: JSON.stringify({ channel: "paperclip-storybook", priority: "normal" }, null, 2),
+      payloadTemplateJson: JSON.stringify({ channel: "clayon-storybook", priority: "normal" }, null, 2),
       env: {
         OPS_WEBHOOK_TOKEN: { type: "secret_ref", secretId: "secret-ops-webhook", version: 3 },
       } satisfies Record<string, EnvBinding>,
@@ -305,8 +305,8 @@ const storybookSecrets: CompanySecret[] = [
 	    scope: "company",
 	    ownerUserId: null,
 	    userSecretDefinitionId: null,
-	    key: "/paperclip-cloud/prod/database/url",
-	    name: "/paperclip-cloud/prod/database/url",
+	    key: "/clayon-cloud/prod/database/url",
+	    name: "/clayon-cloud/prod/database/url",
 	    provider: "local_encrypted",
 	    status: "active",
 	    managedMode: "paperclip_managed",
@@ -494,7 +494,7 @@ function AgentConfigFormStory() {
     extraArgs: "--full-auto, --search",
     envBindings: {
       OPENAI_API_KEY: { type: "secret_ref", secretId: "secret-openai", version: "latest" },
-      PAPERCLIP_TRACE: { type: "plain", value: "storybook" },
+      CLAYON_TRACE: { type: "plain", value: "storybook" },
     },
     runtimeServicesJson: JSON.stringify(
       [
@@ -539,7 +539,6 @@ function AgentSecretsFormStory() {
       onSave={() => undefined}
       content="secrets"
       sectionLayout="cards"
-      hideInlineSave
     />
   );
 }
@@ -663,7 +662,7 @@ function ConfigPrimitivesStory() {
     runtimeServices: [
       { name: "api", command: "pnpm dev:once", healthUrl: "http://localhost:3100/api/health" },
     ],
-    env: { PAPERCLIP_BIND: "lan" },
+    env: { CLAYON_BIND: "lan" },
   }, null, 2));
 
   return (
@@ -714,12 +713,12 @@ function ConfigPrimitivesStory() {
 function AgentManagementStories() {
   return (
     <StorybookQueryFixtures>
-      <div className="paperclip-story">
-        <main className="paperclip-story__inner space-y-6">
-          <section className="paperclip-story__frame p-6">
+      <div className="clayon-story">
+        <main className="clayon-story__inner space-y-6">
+          <section className="clayon-story__frame p-6">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
-                <div className="paperclip-story__label">Agent management</div>
+                <div className="clayon-story__label">Agent management</div>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight">Agent details, controls, and config surfaces</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
                   Management stories exercise the dense pieces of the agent lifecycle: status detail panels,
@@ -825,7 +824,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Agent management stories cover detail, configuration, icon, action, live-run, and config primitive states using extended Paperclip fixtures.",
+          "Agent management stories cover detail, configuration, icon, action, live-run, and config primitive states using extended Clayon fixtures.",
       },
     },
   },
@@ -853,7 +852,7 @@ const managedKubernetesEnvironment: Environment = {
     egressMode: "cilium",
   },
   envVars: {},
-  metadata: { managedByPaperclip: true, managedKubernetesSandbox: true },
+  metadata: { managedByClayon: true, managedKubernetesSandbox: true },
   createdAt: recent(2_000),
   updatedAt: recent(60),
 };
@@ -871,7 +870,7 @@ function ForcedKubernetesFixtures({
   queryClient.setQueryData(queryKeys.secrets.list(COMPANY_ID), storybookSecrets);
   queryClient.setQueryData(queryKeys.adapters.all, adapterFixtures);
   // The instance-level execution policy that forces all agent execution onto
-  // the managed Kubernetes sandbox (PAPERCLIP_EXECUTION_MODE=kubernetes).
+  // the managed Kubernetes sandbox (CLAYON_EXECUTION_MODE=kubernetes).
   queryClient.setQueryData(queryKeys.instance.generalSettings, {
     censorUsernameInLogs: false,
     executionMode: "kubernetes",

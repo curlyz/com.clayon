@@ -27,14 +27,14 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents,
   environmentLeases,
   heartbeatRuns,
   issues,
   nativeRunFinalizations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { logger } from "../../middleware/logger.js";
 import {
   claimNativeRestartRecoveries,
@@ -49,7 +49,7 @@ import {
   reconcileRetainedNativeSessionCleanup,
   reconcileRetainedNativeSessionCleanups,
 } from "../native-runtime/index.js";
-import { drainRetainedRunnerdMaintenanceOperations } from "../../vendor/paperclip-runner/index.js";
+import { drainRetainedRunnerdMaintenanceOperations } from "../../vendor/clayon-runner/index.js";
 import { runningProcesses } from "../../adapters/index.js";
 import { parseObject } from "../../adapters/utils.js";
 import {
@@ -1962,7 +1962,7 @@ export function createHeartbeatRecovery(db: Db, dependencies: HeartbeatRecoveryD
         : await dispatchNativeSessionResumptions({
             db,
             runnerInstanceId:
-              runtimeEnv.PAPERCLIP_INSTANCE_ID?.trim() || "paperclip-heartbeat",
+              runtimeEnv.CLAYON_INSTANCE_ID?.trim() || "clayon-heartbeat",
             now,
             runIds: [...claimableNativeRunIds],
             dispatch: (claim) => {
@@ -2160,7 +2160,7 @@ export function createHeartbeatRecovery(db: Db, dependencies: HeartbeatRecoveryD
         !resumedRunIds.has(run.id) &&
         !locallyTracked;
       // Persisted numeric process identifiers prove only that some process is
-      // alive, not that Paperclip still owns it. Likewise an observed native
+      // alive, not that Clayon still owns it. Likewise an observed native
       // coordinator without a live in-process execution has no durable proof
       // that its prior provider owner stopped. Keep both cases running but
       // blocked: never signal, finalize, or retry them automatically. This gate

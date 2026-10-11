@@ -6,14 +6,14 @@ import path from "node:path";
 import { buildHeartbeatRunStopMetadata, mergeHeartbeatRunStopMetadata } from "../services/heartbeat-stop-metadata.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { collectRunFailureDiagnostics, sanitizeRunFailureDiagnostics } from "../services/run-failure-diagnostics.js";
-import type { heartbeatRuns } from "@paperclipai/db";
+import type { heartbeatRuns } from "@clayon/db";
 import {
   preserveWorkspaceRestoreErrorDiagnostic,
   withWorkspaceRestoreDiagnostics,
   withWorkspaceRestoreStep,
   withWorkspaceRestoreGitCommand,
-} from "@paperclipai/adapter-utils/workspace-restore-diagnostics";
-import { createWorkspaceRestoreTeardown } from "@paperclipai/adapter-utils/workspace-restore-teardown";
+} from "@clayon/adapter-utils/workspace-restore-diagnostics";
+import { createWorkspaceRestoreTeardown } from "@clayon/adapter-utils/workspace-restore-teardown";
 
 // Sentry is an optional peer. When installed, exercise the real SDK with an
 // in-memory transport, including its context behavior without an OTel manager.
@@ -34,7 +34,7 @@ const sentryPackage = (() => {
   }
 })();
 
-if (process.env.PAPERCLIP_REQUIRE_SENTRY_TEST_SDK === "1" && !sentryPackage) {
+if (process.env.CLAYON_REQUIRE_SENTRY_TEST_SDK === "1" && !sentryPackage) {
   throw new Error("The Sentry SDK contract job requires the audited optional peer");
 }
 
@@ -43,7 +43,7 @@ afterEach(async () => {
   vi.unstubAllEnvs();
   vi.doUnmock("@sentry/node");
   vi.doUnmock("../peer-version-check.js");
-  vi.doUnmock("@paperclipai/adapter-utils/execution-target");
+  vi.doUnmock("@clayon/adapter-utils/execution-target");
   vi.resetModules();
 });
 
@@ -51,7 +51,7 @@ describe.skipIf(!sentryPackage)("run failure context with the real Sentry SDK", 
   it("captures an early OpenCode timeout without inventing a deadline or exporting provider output", async () => {
     const Sentry = sentryPackage!;
     const events: Array<Record<string, unknown>> = [];
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-sentry-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-opencode-sentry-"));
     const restore = vi.fn(async () => {});
     const stop = vi.fn(async () => {});
     const processResult = {
@@ -74,8 +74,8 @@ describe.skipIf(!sentryPackage)("run failure context with the real Sentry SDK", 
     }));
     // Only external execution/setup seams are replaced. The real adapter owns
     // the message/policy, and the real finalization/collector/SDK send the event.
-    vi.doMock("@paperclipai/adapter-utils/execution-target", async (importOriginal) => ({
-      ...await importOriginal<typeof import("@paperclipai/adapter-utils/execution-target")>(),
+    vi.doMock("@clayon/adapter-utils/execution-target", async (importOriginal) => ({
+      ...await importOriginal<typeof import("@clayon/adapter-utils/execution-target")>(),
       ensureAdapterExecutionTargetRuntimeCommandInstalled: vi.fn(),
       ensureAdapterExecutionTargetCommandResolvable: vi.fn(),
       prepareAdapterExecutionTargetRuntime: vi.fn(async () => ({
@@ -83,12 +83,12 @@ describe.skipIf(!sentryPackage)("run failure context with the real Sentry SDK", 
         assetDirs: {}, restoreWorkspace: restore,
       })),
       readAdapterExecutionTargetHomeDir: vi.fn(async () => "/home/fixture"),
-      startAdapterExecutionTargetPaperclipBridge: vi.fn(async () => ({ env: {}, stop })),
+      startAdapterExecutionTargetClayonBridge: vi.fn(async () => ({ env: {}, stop })),
       runAdapterExecutionTargetProcess: runProcess,
     }));
     vi.resetModules();
     try {
-      const { execute } = await import("@paperclipai/adapter-opencode-local/server");
+      const { execute } = await import("@clayon/adapter-opencode-local/server");
       const { sentryReady, captureRunFailure, captureException } = await import("../sentry.js");
       await sentryReady;
       const result = await execute({

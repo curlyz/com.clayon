@@ -9,7 +9,7 @@ import {
   createDb,
   heartbeatRunEvents,
   heartbeatRuns,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -30,7 +30,7 @@ describeEmbeddedPostgres("agent service clearError", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-agent-clear-error-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-agent-clear-error-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -74,7 +74,7 @@ describeEmbeddedPostgres("agent service clearError", () => {
 
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
     });
@@ -186,7 +186,7 @@ describeEmbeddedPostgres("agent service clearError", () => {
 
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
     });
@@ -217,7 +217,7 @@ describeEmbeddedPostgres("agent service clearError", () => {
 
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
     });

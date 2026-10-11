@@ -238,7 +238,7 @@ describe("Artifacts page", () => {
     });
   });
 
-  it("keeps the artifacts grid max-width constrained and left aligned", async () => {
+  it("renders a full-bleed band shell with no width cap or wrapper padding", async () => {
     artifactsApiMock.list.mockResolvedValue({ artifacts: [sampleArtifact()], nextCursor: null });
 
     const { root } = renderArtifacts(container, ["/artifacts?groupBy=none"]);
@@ -248,8 +248,12 @@ describe("Artifacts page", () => {
     });
 
     const pageShell = container.firstElementChild as HTMLElement | null;
-    expect(pageShell?.className).toContain("max-w-6xl");
+    // Full-bleed bands (2026-10-11 redesign): no max-width cap, no centered
+    // wrapper, no page-surface padding.
+    expect(pageShell?.className).toContain("flex");
+    expect(pageShell?.className).not.toContain("max-w-6xl");
     expect(pageShell?.className).not.toContain("mx-auto");
+    expect(pageShell?.className).not.toContain("px-4");
 
     flushSync(() => {
       root.unmount();

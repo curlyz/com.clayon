@@ -1,4 +1,5 @@
-import type { DashboardRunActivityDay, HeartbeatRun } from "@paperclipai/shared";
+import type { DashboardRunActivityDay, HeartbeatRun } from "@clayon/shared";
+import { cn } from "@/lib/utils";
 
 /* ---- Utilities ---- */
 
@@ -71,9 +72,9 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
 
 // Leaf-node law: a chart is a band, not a box — title-only header, no border
 // or padding chrome; the surrounding grid gap separates sibling charts.
-export function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+export function ChartCard({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className="space-y-3">
+    <section className={cn("space-y-3", className)}>
       <div>
         <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
         {subtitle && <span className="text-(length:--text-nano) text-muted-foreground/60">{subtitle}</span>}

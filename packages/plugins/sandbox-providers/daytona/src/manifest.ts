@@ -1,6 +1,6 @@
-import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
+import type { ClayonPluginManifestV1 } from "@clayon/plugin-sdk";
 
-const PLUGIN_ID = "paperclip.daytona-sandbox-provider";
+const PLUGIN_ID = "clayon.daytona-sandbox-provider";
 export const DEFAULT_DAYTONA_OPERATION_TIMEOUT_MS = 300_000;
 // The bundled-plugin boot reconcile refreshes the persisted manifest for an
 // existing install only when PLUGIN_VERSION changes. A manifest change without a
@@ -17,14 +17,14 @@ export const DEFAULT_DAYTONA_OPERATION_TIMEOUT_MS = 300_000;
 // 0.1.8 declares the default provider acquisition budget to the host.
 const PLUGIN_VERSION = "0.1.8";
 
-const manifest: PaperclipPluginManifestV1 = {
+const manifest: ClayonPluginManifestV1 = {
   id: PLUGIN_ID,
   apiVersion: 1,
   version: PLUGIN_VERSION,
   displayName: "Daytona Sandbox Provider",
   description:
-    "First-party sandbox provider plugin that provisions Daytona sandboxes as Paperclip execution environments.",
-  author: "Paperclip",
+    "First-party sandbox provider plugin that provisions Daytona sandboxes as Clayon execution environments.",
+  author: "Clayon",
   categories: ["automation"],
   capabilities: ["environment.drivers.register"],
   entrypoints: {
@@ -79,7 +79,7 @@ const manifest: PaperclipPluginManifestV1 = {
       // only bundled provider that implements the login pseudo-terminal methods,
       // so it advertises the capability. The session home helpers and the
       // credential reader run on node, and the sandbox already runs node for the
-      // Paperclip bridge. So the login has no extra runtime prerequisite, and the
+      // Clayon bridge. So the login has no extra runtime prerequisite, and the
       // advertised capability matches the runtime contract for every configured
       // image or snapshot.
       supportsLoginPty: true,
@@ -90,7 +90,7 @@ const manifest: PaperclipPluginManifestV1 = {
             type: "string",
             format: "secret-ref",
             description:
-              "Environment-specific Daytona API key. Paste a key or an existing Paperclip secret reference; saved environments store pasted values as company secrets. Falls back to DAYTONA_API_KEY if omitted.",
+              "Environment-specific Daytona API key. Paste a key or an existing Clayon secret reference; saved environments store pasted values as company secrets. Falls back to DAYTONA_API_KEY if omitted.",
           },
           apiUrl: {
             type: "string",

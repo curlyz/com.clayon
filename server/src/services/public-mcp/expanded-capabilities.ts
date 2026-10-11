@@ -5,7 +5,7 @@ import {
   aiRuntimeConnectionBindingSchema, createProjectSchema, updateProjectSchema,
   companySkillCreateSchema, companySkillUpdateSchema, companySkillFileUpdateSchema,
   createIssueWorkProductSchema, updateIssueWorkProductSchema,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { McpApiError, company, task, requestId, pathId, object, pick, rows, taskFields, documentFields, type Capability } from "./contracts.js";
 
 const agent = { ...company, agentId: z.uuid() };
@@ -57,7 +57,7 @@ const nonempty = <T extends z.ZodObject>(schema: T) => schema.refine(v => Object
 export const expandedMcpCapabilities: Capability[] = [
   {
     name: "paperclip_update_task", write: true, destructive: true,
-    description: "Edit a task's title, description, priority, project, parent, dependencies, assignment or status as the connected person. Assignment/status changes may schedule agents and spend configured budget. Review decisions must be made in Paperclip. Reuse requestId on retries.",
+    description: "Edit a task's title, description, priority, project, parent, dependencies, assignment or status as the connected person. Assignment/status changes may schedule agents and spend configured budget. Review decisions must be made in Clayon. Reuse requestId on retries.",
     schema: z.object({ ...task, requestId, changes: nonempty(taskChanges) }).strict(),
     run: async (p, a, api) => ({ task: pick(await api(p, "PATCH", `/issues/${pathId(a.taskId)}`, a.changes), taskFields) }),
   },
@@ -116,7 +116,7 @@ export const expandedMcpCapabilities: Capability[] = [
   },
   {
     name: "paperclip_update_agent_instructions", configure: true, destructive: true,
-    description: "Update an existing agent's instruction file. Requires configuration consent and the revision/hash from a prior read; use null for a new file. Managed paths and normal instruction permissions apply. Legacy promptTemplate.legacy.md must be migrated in Paperclip before editing.",
+    description: "Update an existing agent's instruction file. Requires configuration consent and the revision/hash from a prior read; use null for a new file. Managed paths and normal instruction permissions apply. Legacy promptTemplate.legacy.md must be migrated in Clayon before editing.",
     schema: z.object({ ...agent, requestId, file: upsertAgentInstructionsFileSchema.omit({ clearLegacyPromptTemplate: true }).extend({ path: filePath }).refine(v => v.baseRevisionId !== undefined || v.baseHash !== undefined, "Read the file and provide its baseRevisionId or baseHash") }).strict(),
     run: async (p, a, api) => ({ instructions: await api(p, "PUT", `/agents/${pathId(a.agentId)}/instructions-bundle/file`, a.file) }),
   },
@@ -184,7 +184,7 @@ async function attachmentDeliverable(p: Parameters<Capability["run"]>[0], a: Rec
   const attachment = rows(await api(p, "GET", `/issues/${pathId(a.taskId)}/attachments`)).find(v => object(v).id === a.attachmentId);
   if (!attachment) throw new McpApiError(404);
   const contentPath = `/api/attachments/${a.attachmentId}/content`;
-  return { ...result, type: "artifact", provider: "paperclip", externalId: a.attachmentId, metadata: {
+  return { ...result, type: "artifact", provider: "clayon", externalId: a.attachmentId, metadata: {
     ...pick(attachment, ["contentType", "byteSize", "originalFilename"]), attachmentId: a.attachmentId,
     contentPath, openPath: contentPath, downloadPath: contentPath + "?download=1",
   } };

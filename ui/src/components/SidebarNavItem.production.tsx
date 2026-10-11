@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { NavLink } from "@/lib/router";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useSidebar } from "../context/SidebarContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { LucideIcon } from "lucide-react";
@@ -11,12 +12,12 @@ import { Badge } from "@/components/ui/badge";
  * Forces the full-label (non-rail) presentation for any `SidebarNavItem`
  * rendered beneath it, regardless of the global `useSidebar().collapsed` state.
  *
- * Takeover routes (PAP-10695) collapse the app `<Sidebar/>` to its 64px rail
- * and render the contextual nav in a fixed 240px `SecondarySidebar`. That pane
- * is always wide enough for labels, but its `SidebarNavItem` children still
- * read the *global* `collapsed=true` and would otherwise render icon-only —
- * leaving the settings nav unreadable (PAP-10700). Wrapping the pane in this
- * provider decouples its items from the global rail collapse.
+ * Surfaces rendered beside a collapsed global rail (dock popovers, PAP-10700)
+ * are always wide enough for labels, but their `SidebarNavItem` children still
+ * read the *global* `collapsed=true` and would otherwise render icon-only.
+ * Wrapping the pane in this provider decouples its items from the rail state.
+ * (The former contextual `SecondarySidebar` panes were removed with the peer
+ * column in the 2026-10-11 redesign.)
  */
 const SidebarNavExpandedContext = createContext(false);
 
@@ -90,8 +91,8 @@ export function SidebarNavItem({
   liveAccessory,
 }: SidebarNavItemProps) {
   const { isMobile, setSidebarOpen, collapsed, peeking } = useSidebar();
-  // A fixed-width contextual pane (SecondarySidebar) forces full labels even
-  // when the global app sidebar is collapsed to its rail (PAP-10700).
+  // A surface beside the collapsed rail (dock popovers, PAP-10700) forces full
+  // labels even when the global app sidebar is collapsed to its rail.
   const forceExpanded = useSidebarNavExpanded();
   // The icon-only rail presentation only applies when pinned collapsed and not
   // peeking; a peek/expanded panel — or an expanded contextual pane — restores
@@ -123,14 +124,17 @@ export function SidebarNavItem({
       onClick={() => { if (isMobile) setSidebarOpen(false); }}
       className={({ isActive }) =>
         cn(
-          // One rhythm and one inset pill highlight: mx-2 floats the row off
-          // the sidebar edges, rounded-lg matches the card anchor, px-2 gives
-          // the icon breathing room inside the pill. Rows with hover menus
+          // Leaf-node law (operator directive 2026-10-11): the nav wrapper
+          // carries gap only; this row is the one leaf that pads, full-bleed
+          // across the sidebar (no mx, no rounded pill). The active row is a
+          // full-bleed bg-sidebar-accent band. Rows with hover menus
           // (agents/projects) reserve extra right padding via className.
-          "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
+          primarySidebarStyles.row,
+          // Collapsed rail: center the icon in the fixed rail width.
+          rail && "justify-center px-0",
           (active ?? isActive)
-            ? "bg-accent text-foreground"
-            : "text-foreground/80 hover:bg-accent/50 hover:text-foreground",
+            ? primarySidebarStyles.rowActive
+            : primarySidebarStyles.rowMuted,
           className,
         )
       }

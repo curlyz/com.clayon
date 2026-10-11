@@ -95,7 +95,7 @@ import {
   type TaskCollectionPreferenceLocation,
 } from "../lib/task-collection-preferences";
 import { taskDateGroup, taskDateGroupSeparator, type TaskDateGroup } from "../lib/task-date-groups";
-import { deriveOriginatingActor, ISSUE_STATUSES, type Issue, type IssueStatus, type Project } from "@paperclipai/shared";
+import { deriveOriginatingActor, ISSUE_STATUSES, type Issue, type IssueStatus, type Project } from "@clayon/shared";
 import { Badge } from "@/components/ui/badge";
 const ISSUE_SEARCH_DEBOUNCE_MS = 250;
 const ISSUE_SEARCH_RESULT_LIMIT = 200;
@@ -1738,18 +1738,21 @@ function StreamlinedIssuesList({
   const IssuesToolbar = toolbarPresentation === "collection" ? CollectionToolbar : LegacyIssuesToolbar;
 
   return (
-    <div ref={rootRef} className="space-y-4">
+    <div ref={rootRef} className="flex flex-col">
       {progressSummary ? (
-        <SubIssueProgressSummaryStrip
-          summary={progressSummary}
-          issueLinkState={issueLinkState}
-          parentIssueIdForCostSummary={parentIssueIdForCostSummary}
-        />
+        <div className="px-4 py-3">
+          <SubIssueProgressSummaryStrip
+            summary={progressSummary}
+            issueLinkState={issueLinkState}
+            parentIssueIdForCostSummary={parentIssueIdForCostSummary}
+          />
+        </div>
       ) : null}
 
-      {/* Toolbar */}
+      {/* Toolbar — one header-band row, full bleed (leaf-node law). */}
+      <div className="border-b border-border bg-muted/50 px-4 py-3">
       <IssuesToolbar
-        className="paperclip-task-list-toolbar"
+        className="clayon-task-list-toolbar"
         ariaLabel={toolbarPresentation === "collection" ? "Task controls" : undefined}
         context={toolbarContext ? (
           <div className="flex min-w-0 items-center gap-2">
@@ -2003,16 +2006,17 @@ function StreamlinedIssuesList({
           </>
         )}
       />
+      </div>
 
       {(isLoading || externalObjectFilterLoading) && <PageSkeleton variant="issues-list" />}
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
       {!searchWithinLoadedIssues && normalizedIssueSearch.length > 0 && searchedIssues.length === ISSUE_SEARCH_RESULT_LIMIT && (
-        <p className="text-xs text-muted-foreground">
+        <p className="px-4 py-2 text-xs text-muted-foreground">
           Showing up to {ISSUE_SEARCH_RESULT_LIMIT} matches. Refine the search to narrow further.
         </p>
       )}
       {boardColumnLimitReached && (
-        <p className="text-xs text-muted-foreground">
+        <p className="px-4 py-2 text-xs text-muted-foreground">
           Some board columns are showing up to {ISSUE_BOARD_COLUMN_RESULT_LIMIT} tasks. Refine filters or search to reveal the rest.
         </p>
       )}
@@ -2037,7 +2041,7 @@ function StreamlinedIssuesList({
           onUpdateIssue={onUpdateIssue}
         />
       ) : (
-        <div className="-mx-2 sm:mx-0">
+        <div>
           {groupedContent.map((group) => {
           if (remainingRowsToRender <= 0) return null;
           return (

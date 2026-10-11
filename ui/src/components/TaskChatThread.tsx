@@ -3,13 +3,13 @@ import {
   ISSUE_DETAIL_CONTENT_MEASURE,
   scheduleIssueDetailPaintMeasure,
 } from "@/lib/issue-detail-performance";
-import { hasWorkspaceRestoreFailure } from "@paperclipai/shared";
+import { hasWorkspaceRestoreFailure } from "@clayon/shared";
 import { workspaceRestoreMarkerDetail } from "@/lib/workspace-restore-marker";
 import { credentialAccessNotice } from "@/lib/credential-access-notice";
-import type { ActivityEvent, IssueQueuedCommentQueue, TaskBrowser } from "@paperclipai/shared";
+import type { ActivityEvent, IssueQueuedCommentQueue, TaskBrowser } from "@clayon/shared";
 import { useProjectCreatedItems } from "@/hooks/useProjectCreatedItems";
 import { skillCreatedItems } from "@/components/task-chat/skill-created-items";
-import { requiresExecutionReconciliation } from "@paperclipai/shared";
+import { requiresExecutionReconciliation } from "@clayon/shared";
 import { TaskChatExpansionState } from "@/components/task-chat/expansion-state";
 import { TaskChatScrollReady } from "@/components/task-chat/scroll-navigation";
 import {
@@ -49,9 +49,9 @@ import {
   isTerminalRunStatus,
   embedPlanDocumentAtWriteBoundary,
   omitProgressRepeatedByResponseAcrossSegments,
-  paperclipRunnerFinalResponse,
-  paperclipRunnerAcceptedResponseWake,
-  paperclipRunnerTimelineItems,
+  clayonRunnerFinalResponse,
+  clayonRunnerAcceptedResponseWake,
+  clayonRunnerTimelineItems,
   prependIssueBrief,
   settledRunChildren,
   splitTranscriptAtAnchors,
@@ -93,7 +93,7 @@ import type {
   FeedbackVoteValue,
   IssueDocument,
   IssueThreadInteraction,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   TaskChatThreadView,
   taskChatContentKey,
@@ -261,7 +261,7 @@ export function shouldRepeatTaskChatBlockers(items: TaskChatItem[]): boolean {
   return conversationItems.length >= LONG_THREAD_BLOCKER_REPEAT_COUNT;
 }
 
-function isNativePaperclipRunnerRun(
+function isNativeClayonRunnerRun(
   run:
     | {
         adapterType?: string | null;
@@ -1018,23 +1018,23 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     });
   }, [liveRun]);
 
-  const heldPaperclipRunnerRunId =
-    liveRun && isNativePaperclipRunnerRun(liveRun)
+  const heldClayonRunnerRunId =
+    liveRun && isNativeClayonRunnerRun(liveRun)
       ? liveRun.id
       : settlingRun &&
-          isNativePaperclipRunnerRun(
+          isNativeClayonRunnerRun(
             runs.find((run) => run.id === settlingRun.id),
           )
         ? settlingRun.id
         : null;
-  const heldPaperclipRunnerStartedAtMs =
-    liveRun && heldPaperclipRunnerRunId === liveRun.id
+  const heldClayonRunnerStartedAtMs =
+    liveRun && heldClayonRunnerRunId === liveRun.id
       ? ((liveRun.startedAt ? toMs(liveRun.startedAt) : null) ??
         toMs(liveRun.createdAt))
       : (settlingRun?.startedAtMs ?? null);
-  const heldPaperclipRunnerFinalText = useMemo(() => {
-    if (!heldPaperclipRunnerRunId) return null;
-    const entries = transcriptByRun.get(heldPaperclipRunnerRunId) ?? [];
+  const heldClayonRunnerFinalText = useMemo(() => {
+    if (!heldClayonRunnerRunId) return null;
+    const entries = transcriptByRun.get(heldClayonRunnerRunId) ?? [];
     for (let index = entries.length - 1; index >= 0; index -= 1) {
       const entry = entries[index];
       if (
@@ -1046,7 +1046,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       }
     }
     return null;
-  }, [heldPaperclipRunnerRunId, transcriptByRun]);
+  }, [heldClayonRunnerRunId, transcriptByRun]);
 
   // Runs observed non-terminal while mounted: their turns ANIMATE the fold when
   // they settle. Runs already terminal at mount collapse instantly.
@@ -1066,7 +1066,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       if (comment.deletedAt || !comment.runId || !comment.id) continue;
       map.set(comment.runId, comment.id);
     }
-    // A settled Paperclip turn normally attaches to its durable final reply.
+    // A settled Clayon turn normally attaches to its durable final reply.
     // Same-turn steering splits that causal interval into timestamped segments,
     // so each segment must stay unanchored and interleave around the injected
     // human bubble through the chronological assembler.
@@ -1135,7 +1135,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       if (!interaction.sourceRunId) return false;
       const sourceRun = candidates.get(interaction.sourceRunId);
       return (
-        isNativePaperclipRunnerRun(sourceRun) &&
+        isNativeClayonRunnerRun(sourceRun) &&
         interactionTargetsPlanRevision(interaction, planDocument)
       );
     });
@@ -1143,7 +1143,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
 
     const documentAtMs = toMs(planDocument.updatedAt);
     const matchingRuns = [...candidates.values()].filter((run) => {
-      if (!isNativePaperclipRunnerRun(run)) return false;
+      if (!isNativeClayonRunnerRun(run)) return false;
       if (
         planDocument.updatedByAgentId &&
         run.agentId &&
@@ -1198,12 +1198,12 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       // Keep a just-persisted duplicate out of the backbone until the complete
       // canonical bubble + Worked header can replace that lane atomically.
       if (
-        heldPaperclipRunnerRunId &&
+        heldClayonRunnerRunId &&
         isRunnerResponseComment({
           comment,
-          runId: heldPaperclipRunnerRunId,
-          runStartedAtMs: heldPaperclipRunnerStartedAtMs,
-          finalText: heldPaperclipRunnerFinalText,
+          runId: heldClayonRunnerRunId,
+          runStartedAtMs: heldClayonRunnerStartedAtMs,
+          finalText: heldClayonRunnerFinalText,
         })
       )
         return;
@@ -1407,9 +1407,9 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     liveRuns,
     planDocument,
     planDocumentSourceRunId,
-    heldPaperclipRunnerRunId,
-    heldPaperclipRunnerStartedAtMs,
-    heldPaperclipRunnerFinalText,
+    heldClayonRunnerRunId,
+    heldClayonRunnerStartedAtMs,
+    heldClayonRunnerFinalText,
     queuedCommentIds,
   ]);
 
@@ -1453,7 +1453,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     const anchorsByRun = new Map<string, number[]>();
     for (const [runId, window] of windows) {
       if (
-        isNativePaperclipRunnerRun(window) ||
+        isNativeClayonRunnerRun(window) ||
         !Number.isFinite(window.startMs)
       ) {
         continue;
@@ -1584,7 +1584,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       const sourceAcceptedResponseWake =
         source.status === "succeeded" &&
         !sourceHasPendingAttention &&
-        paperclipRunnerAcceptedResponseWake(parsedSource, source.id);
+        clayonRunnerAcceptedResponseWake(parsedSource, source.id);
       const sourceYielded =
         (acceptedSemanticResultDisposition(meta?.resultJson) === "yielded" ||
           entries.some(
@@ -1592,7 +1592,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               entry.kind === "run_result" && entry.disposition === "yielded",
           )) &&
         !sourceAcceptedResponseWake;
-      const sourceIsPaperclipRunner = isNativePaperclipRunnerRun(source);
+      const sourceIsClayonRunner = isNativeClayonRunnerRun(source);
       const decidedCommentId = presentationDecisionCommentId(meta?.resultJson);
       const progressCommentIds = semanticProgressCommentIds(meta?.resultJson);
       const sourcePresentationCommentId =
@@ -1621,7 +1621,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
           )?.body ?? null)
         : null;
       const sourceHasNativeResponse =
-        sourceIsPaperclipRunner &&
+        sourceIsClayonRunner &&
         !sourceYielded &&
         (sourceHasPresentationComment ||
           Boolean(acceptedSummary) ||
@@ -1633,7 +1633,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               (entry.kind === "run_result" && Boolean(entry.summary.trim())),
           ));
       const sourceHasNativeStop =
-        sourceIsPaperclipRunner &&
+        sourceIsClayonRunner &&
         (source.status === "failed" ||
           source.status === "timed_out" ||
           source.status === "cancelled" ||
@@ -1713,7 +1713,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       }
       // A failed run still needs its own retry target when it produced output
       // or a final comment. Otherwise the thread keeps retrying an older run.
-      const sourceHasLegacyStop = !sourceIsPaperclipRunner && (
+      const sourceHasLegacyStop = !sourceIsClayonRunner && (
         source.status === "failed" || source.status === "timed_out" ||
         (source.status === "cancelled" && entries.length === 0)
       );
@@ -1777,12 +1777,12 @@ export function TaskChatThread(props: TaskChatThreadProps) {
         });
       }
       if (entries.length === 0) {
-        if (sourceIsPaperclipRunner && sourceYielded) {
+        if (sourceIsClayonRunner && sourceYielded) {
           settledRunIds.add(source.id);
           continue;
         }
         if (
-          isNativePaperclipRunnerRun(source) &&
+          isNativeClayonRunnerRun(source) &&
           acceptedSummary &&
           !sourceHasPresentationComment
         ) {
@@ -1815,7 +1815,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               standaloneHeader: true,
               animateFold: liveSeenRef.current.has(source.id),
               items: [],
-              finalResponse: paperclipRunnerFinalResponse([], {
+              finalResponse: clayonRunnerFinalResponse([], {
                 runId: source.id,
                 agentName: meta?.agentName,
                 fallbackSummary: acceptedSummary,
@@ -1880,7 +1880,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       const startSlotMs = startSlotRaw
         ? toMs(startSlotRaw)
         : Number.POSITIVE_INFINITY;
-      const timelineAnchors = sourceIsPaperclipRunner
+      const timelineAnchors = sourceIsClayonRunner
         ? (steeringAnchorsByRun.get(source.id) ?? [])
         : (legacyTimelineAnchorsByRun.get(source.id) ?? []);
       const segments = splitTranscriptAtAnchors(
@@ -1905,21 +1905,21 @@ export function TaskChatThread(props: TaskChatThreadProps) {
         return {
           segment,
           parsed,
-          timelineItems: sourceIsPaperclipRunner
-            ? paperclipRunnerTimelineItems(visibleActivity)
+          timelineItems: sourceIsClayonRunner
+            ? clayonRunnerTimelineItems(visibleActivity)
             : visibleActivity,
         };
       });
       const sourceResponseText =
-        sourceIsPaperclipRunner && !sourceYielded
+        sourceIsClayonRunner && !sourceYielded
           ? (sourcePresentationText ??
-            paperclipRunnerFinalResponse(parsedSource, {
+            clayonRunnerFinalResponse(parsedSource, {
               runId: source.id,
               agentName: meta?.agentName,
               fallbackSummary: acceptedSummary,
             })?.text)
           : undefined;
-      const timelineItemsBySegment = sourceIsPaperclipRunner
+      const timelineItemsBySegment = sourceIsClayonRunner
         ? omitProgressRepeatedByResponseAcrossSegments(
             projectedSegments.map(({ timelineItems }) => timelineItems),
             sourceResponseText,
@@ -1936,19 +1936,19 @@ export function TaskChatThread(props: TaskChatThreadProps) {
         const { segment, parsed } = projected;
         if (segment.entries.length === 0) continue;
         const finalResponse =
-          sourceIsPaperclipRunner &&
+          sourceIsClayonRunner &&
           !sourceYielded &&
           !sourceHasPresentationComment
             ? sourceAcceptedResponseWake
               ? // A steering anchor may split acceptance from its terminal.
                 // Keep the whole-run proof and render its answer exactly once.
                 segmentIndex === lastPopulatedSegmentIndex
-                ? paperclipRunnerFinalResponse(parsedSource, {
+                ? clayonRunnerFinalResponse(parsedSource, {
                     runId: source.id,
                     agentName: meta?.agentName,
                   })
                 : undefined
-              : paperclipRunnerFinalResponse(parsed, {
+              : clayonRunnerFinalResponse(parsed, {
                   runId: source.id,
                   agentName: meta?.agentName,
                   fallbackSummary:
@@ -1960,7 +1960,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
         const children = settledRunChildren(
           timelineItemsBySegment[segmentIndex] ?? [],
         );
-        if (children.length === 0 && !finalResponse && !sourceIsPaperclipRunner)
+        if (children.length === 0 && !finalResponse && !sourceIsClayonRunner)
           continue;
         settledRunIds.add(source.id);
         if (finalResponse) settledReplyRunIds.add(source.id);
@@ -1995,8 +1995,8 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               agentIcon: meta?.agentId
               ? agentMap?.get(meta.agentId)?.icon
               : undefined,
-            standaloneHeader: sourceIsPaperclipRunner,
-            continuedAfterSteering: sourceIsPaperclipRunner && segmentIndex > 0,
+            standaloneHeader: sourceIsClayonRunner,
+            continuedAfterSteering: sourceIsClayonRunner && segmentIndex > 0,
             animateFold: liveSeenRef.current.has(source.id),
             items: children,
             finalResponse,
@@ -2007,7 +2007,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
           },
           anchorCommentId: segmented
             ? null
-            : sourceIsPaperclipRunner
+            : sourceIsClayonRunner
               ? sourceHasPresentationComment
                 ? sourcePresentationCommentId
                 : null
@@ -2026,7 +2026,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     // settled ids and projection makes the terminal handoff structurally
     // identical instead of moving one unsplit live turn around the steer.
     if (liveRun) {
-      const timelineAnchors = isNativePaperclipRunnerRun(liveRun)
+      const timelineAnchors = isNativeClayonRunnerRun(liveRun)
         ? (steeringAnchorsByRun.get(liveRun.id) ?? [])
         : (legacyTimelineAnchorsByRun.get(liveRun.id) ?? []);
       if (timelineAnchors.length > 0) {
@@ -2054,8 +2054,8 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               ? embedPlanDocumentAtWriteBoundary(parsedTranscript, planTurnItem)
               : parsedTranscript;
           const children = settledRunChildren(
-            isNativePaperclipRunnerRun(liveRun)
-              ? paperclipRunnerTimelineItems(parsed)
+            isNativeClayonRunnerRun(liveRun)
+              ? clayonRunnerTimelineItems(parsed)
               : parsed,
           );
           if (children.length === 0) continue;
@@ -2089,9 +2089,9 @@ export function TaskChatThread(props: TaskChatThreadProps) {
               agentIcon: liveRun.agentId
                 ? agentMap?.get(liveRun.agentId)?.icon
                 : undefined,
-              standaloneHeader: isNativePaperclipRunnerRun(liveRun),
+              standaloneHeader: isNativeClayonRunnerRun(liveRun),
               continuedAfterSteering:
-                isNativePaperclipRunnerRun(liveRun) && segmentIndex > 0,
+                isNativeClayonRunnerRun(liveRun) && segmentIndex > 0,
               items: children,
               summary: buildTurnSummary(segment.entries, {
                 durationMs: segmentDurationMs,
@@ -2177,18 +2177,18 @@ export function TaskChatThread(props: TaskChatThreadProps) {
   // Hand off once the settled turn or its reply comment is in the thread; a
   // stopped run that yields neither is released by the backstop timeout so the
   // tail never lingers indefinitely.
-  const settlingIsPaperclipRunner =
+  const settlingIsClayonRunner =
     settlingRun != null &&
-    isNativePaperclipRunnerRun(runs.find((run) => run.id === settlingRun.id));
+    isNativeClayonRunnerRun(runs.find((run) => run.id === settlingRun.id));
   const settlingHasComment =
     settlingRun != null &&
     comments.some((comment) =>
-      settlingIsPaperclipRunner
+      settlingIsClayonRunner
         ? isRunnerResponseComment({
             comment,
             runId: settlingRun.id,
             runStartedAtMs: settlingRun.startedAtMs,
-            finalText: heldPaperclipRunnerFinalText,
+            finalText: heldClayonRunnerFinalText,
           })
         : comment.runId === settlingRun.id && !comment.deletedAt,
     );
@@ -2202,7 +2202,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     );
   const settledRunRendered =
     settlingRun != null &&
-    (settlingIsPaperclipRunner
+    (settlingIsClayonRunner
       ? settledRunIds.has(settlingRun.id) &&
         (settlingHasComment ||
           settlingHasDurableInteraction ||
@@ -2240,9 +2240,9 @@ export function TaskChatThread(props: TaskChatThreadProps) {
   const tailRunSource = tailRunId
     ? runs.find((run) => run.id === tailRunId)
     : undefined;
-  const paperclipRunnerTail = isNativePaperclipRunnerRun(tailRunSource);
-  const suppressPaperclipRunnerTailFinal = Boolean(
-    paperclipRunnerTail &&
+  const clayonRunnerTail = isNativeClayonRunnerRun(tailRunSource);
+  const suppressClayonRunnerTailFinal = Boolean(
+    clayonRunnerTail &&
     (acceptedSemanticResultDisposition(
       tailRunId ? linkedRunMetaById.get(tailRunId)?.resultJson : null,
     ) === "yielded" ||
@@ -2262,7 +2262,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     !logsAreInitiallyHydrating,
   );
   const tailTimelineAnchors = tailRunId
-    ? paperclipRunnerTail
+    ? clayonRunnerTail
       ? (steeringAnchorsByRun.get(tailRunId) ?? [])
       : (legacyTimelineAnchorsByRun.get(tailRunId) ?? [])
     : [];
@@ -2559,7 +2559,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     currentPendingInputs[0] ??
     null;
   const interactionDraftKey = selectedPendingInput
-    ? `paperclip:task-input:${issueId ?? "unknown"}:${selectedPendingInput.key}`
+    ? `clayon:task-input:${issueId ?? "unknown"}:${selectedPendingInput.key}`
     : undefined;
   const openPendingTakeover = useCallback(() => {
     if (!pendingReminderInputs.some(input => input.key === selectedPendingInput?.key)) {
@@ -2591,7 +2591,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     [handleRuntimeRequestDecision, onSkipInteraction],
   );
   const runtimeComposerDisabledReason = composerDisabledReason ?? undefined;
-  const assigneeUsesPaperclipRunner = Boolean(
+  const assigneeUsesClayonRunner = Boolean(
     issueAssigneeAgentId &&
     agentMap?.get(issueAssigneeAgentId)?.adapterType === "paperclip_runner",
   );
@@ -2609,7 +2609,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
   }, [runnerSubmissionPending, tailRunId]);
   const handleThreadAdd = useCallback(
     async (...args: Parameters<typeof onAdd>) => {
-      if (assigneeUsesPaperclipRunner) setRunnerSubmissionPending(true);
+      if (assigneeUsesClayonRunner) setRunnerSubmissionPending(true);
       try {
         await onAdd(...args);
         if (selectedPendingInput?.kind === "durable" && selectedPendingInput.interaction.kind === "ask_user_questions") {
@@ -2622,10 +2622,10 @@ export function TaskChatThread(props: TaskChatThreadProps) {
         throw error;
       }
     },
-    [assigneeUsesPaperclipRunner, onAdd, selectedPendingInput, dismissQuestion],
+    [assigneeUsesClayonRunner, onAdd, selectedPendingInput, dismissQuestion],
   );
   const optimisticRunnerStartup =
-    assigneeUsesPaperclipRunner &&
+    assigneeUsesClayonRunner &&
     !tailRunId &&
     (runnerSubmissionPending ||
       commentItems.some(
@@ -3073,7 +3073,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
                         <>
                           {tailRunId || optimisticRunnerStartup ? (
                             <div data-testid="task-chat-live-transcript">
-                              {paperclipRunnerTail ||
+                              {clayonRunnerTail ||
                               optimisticRunnerStartup ? (
                                 <TaskChatRunnerTurn
                                   runId={tailRunId}
@@ -3095,10 +3095,10 @@ export function TaskChatThread(props: TaskChatThreadProps) {
                                   finishedAtMs={tailFinishedAtMs}
                                   activityUnavailable={tailActivityUnavailable}
                                   suppressFinal={
-                                    suppressPaperclipRunnerTailFinal
+                                    suppressClayonRunnerTailFinal
                                   }
                                   continuedAfterSteering={
-                                    paperclipRunnerTail &&
+                                    clayonRunnerTail &&
                                     tailTimelineAnchors.length > 0
                                   }
                                   onRuntimeRequestDecision={

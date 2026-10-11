@@ -1,11 +1,11 @@
 import { useLayoutEffect, useState } from "react";
 import { ChatEndpointSetup } from "@/pages/apps/chat/ChatEndpointSetup";
 import { Button } from "@/components/ui/button";
-import { ChatSetupSidebar } from "@/components/chat/ChatSetupNavigation";
+import { SetupWizardSidebar } from "@/components/SetupWizard";
 import { ChatSetupSidebarProvider } from "@/context/ChatSetupSidebarContext";
 import { type ChatEndpoint } from "@/api/chatEndpoints";
-import { storybookAgents, storybookAuthSession } from "./paperclipData";
-import { defaultSlackAppConfiguration } from "@paperclipai/shared";
+import { storybookAgents, storybookAuthSession } from "./clayonData";
+import { defaultSlackAppConfiguration } from "@clayon/shared";
 
 export type SlackSetupScenario = "choose" | "create" | "manual" | "install" | "declined" | "uncertain" | "manifest_pending" | "recovery" | "verify" | "avatar_failed" | "welcome_failed" | "success";
 
@@ -34,7 +34,7 @@ export function SlackSetupFixture({ scenario = "create" }: { scenario?: SlackSet
     const installed = () => {
       created(); endpoint.setup!.slackRegistration!.status = "configured";
       linked = true;
-      endpoint.setup!.slackAccount = { externalUserId: "UPERSON", paperclipUserId: storybookAuthSession.user.id, status: "linked", welcomeStatus: scenario === "welcome_failed" ? "failed" : "sent", ...(scenario === "welcome_failed" ? {} : { dmChannelId: "DSTORY" }) };
+      endpoint.setup!.slackAccount = { externalUserId: "UPERSON", clayonUserId: storybookAuthSession.user.id, status: "linked", welcomeStatus: scenario === "welcome_failed" ? "failed" : "sent", ...(scenario === "welcome_failed" ? {} : { dmChannelId: "DSTORY" }) };
       endpoint.status = "verifying"; endpoint.providerAccountId = "TSTORY"; endpoint.botExternalId = "USTORY"; endpoint.botUsername = "maya";
     };
     if (["install", "declined", "recovery", "manifest_pending"].includes(scenario)) created();
@@ -83,7 +83,7 @@ export function SlackSetupFixture({ scenario = "create" }: { scenario?: SlackSet
       }
       if (path === "/api/chat-endpoints/slack-story/principals") return Response.json([{
         id: "slack-person", principalId: "slack-person", externalLabel: "Preview person", externalDetail: "Preview workspace",
-        status: linked ? "linked" : "pending", paperclipUserId: linked ? storybookAuthSession.user.id : null,
+        status: linked ? "linked" : "pending", clayonUserId: linked ? storybookAuthSession.user.id : null,
         lastConnectAt: new Date().toISOString(),
       }]);
       if (path.endsWith("/slack-person/link-intent")) return Response.json({ confirmationUrl: "https://board.example/confirm?token=fixture" });
@@ -100,6 +100,6 @@ export function SlackSetupFixture({ scenario = "create" }: { scenario?: SlackSet
       Preview fixture: Slack consent, callbacks, and identity discovery are simulated.
       <Button variant="outline" size="sm" onClick={signalVerification}>Simulate connection evidence</Button>
     </aside>
-    {ready && <ChatSetupSidebarProvider><div className="flex flex-col gap-8 md:flex-row"><aside className="w-56 shrink-0"><ChatSetupSidebar /></aside><main className="min-w-0 flex-1"><ChatEndpointSetup /></main></div></ChatSetupSidebarProvider>}
+    {ready && <ChatSetupSidebarProvider><div className="flex flex-col gap-8 md:flex-row"><aside className="w-56 shrink-0"><SetupWizardSidebar /></aside><main className="min-w-0 flex-1"><ChatEndpointSetup /></main></div></ChatSetupSidebarProvider>}
   </div>;
 }

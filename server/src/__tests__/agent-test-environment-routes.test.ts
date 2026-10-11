@@ -216,9 +216,9 @@ describe("agent test-environment route", () => {
         provider: "daytona",
         providerLeaseId: "provider-lease-1",
         metadata: {
-          remoteCwd: "/home/user/paperclip-workspace",
+          remoteCwd: "/home/user/clayon-workspace",
           sandboxId: "sandbox-1",
-          sandboxName: "paperclip-probe",
+          sandboxName: "clayon-probe",
           templateKind: "snapshot",
           templateRef: "snapshot-1",
         },
@@ -229,7 +229,7 @@ describe("agent test-environment route", () => {
       },
     });
     mockEnvironmentRuntime.realizeWorkspace.mockResolvedValue({
-      cwd: "/home/user/paperclip-workspace",
+      cwd: "/home/user/clayon-workspace",
     });
     mockResolveEnvironmentExecutionTarget.mockResolvedValue(null);
     testEnvironmentSpy.mockResolvedValue({
@@ -254,7 +254,7 @@ describe("agent test-environment route", () => {
   });
 
   it("accepts a managed Dot environment without allocating an idle sandbox", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
     mockInstanceSettingsService.get.mockResolvedValue({ defaultEnvironmentId: "11111111-1111-4111-8111-111111111111" });
     const app = await createApp();
     try {
@@ -268,8 +268,8 @@ describe("agent test-environment route", () => {
   });
 
   it("fails the Cloud Dot check without a managed sandbox instead of probing the host", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN", "test-cloud");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_CLOUD_TENANT_SERVER_TOKEN", "test-cloud");
     const app = await createApp();
     try {
       const res = await request(app).post("/api/companies/company-1/adapters/paperclip_runner/test-environment")
@@ -631,7 +631,7 @@ describe("agent test-environment route", () => {
     mockResolveEnvironmentExecutionTarget.mockResolvedValueOnce({
       kind: "remote",
       transport: "sandbox",
-      remoteCwd: "/home/user/paperclip-workspace",
+      remoteCwd: "/home/user/clayon-workspace",
       providerKey: "fake-plugin",
       runner: { execute: vi.fn() },
     });
@@ -687,7 +687,7 @@ describe("agent test-environment route", () => {
         code: "sandbox_test_identity",
         level: "info",
         message: 'Environment test identity for "Sandbox QA".',
-        detail: expect.stringContaining("paperclipLeaseId=lease-1"),
+        detail: expect.stringContaining("clayonLeaseId=lease-1"),
       }),
       expect.objectContaining({
         code: "external_test_hello_probe_passed",
@@ -698,7 +698,7 @@ describe("agent test-environment route", () => {
     expect(res.body.checks[0].detail).toContain("providerLeaseId=provider-lease-1");
     expect(res.body.checks[0].detail).toContain("provider=daytona");
     expect(res.body.checks[0].detail).toContain("sandboxId=sandbox-1");
-    expect(res.body.checks[0].detail).toContain("sandboxName=paperclip-probe");
+    expect(res.body.checks[0].detail).toContain("sandboxName=clayon-probe");
     expect(res.body.checks[0].detail).toContain("snapshotRef=snapshot-1");
     expect(mockReleaseRunLease).toHaveBeenCalledWith({
       environment: expect.objectContaining({ id: "11111111-1111-4111-8111-111111111111" }),
@@ -744,7 +744,7 @@ describe("agent test-environment route", () => {
     const sandboxExecutionTarget = {
       kind: "remote",
       transport: "sandbox",
-      remoteCwd: "/home/user/paperclip-workspace",
+      remoteCwd: "/home/user/clayon-workspace",
       providerKey: "fake-plugin",
       runner: { execute: vi.fn() },
     };
@@ -759,7 +759,7 @@ describe("agent test-environment route", () => {
         envVars: {
           CLAUDE_CODE_OAUTH_TOKEN: { type: "secret_ref", secretId: "secret-1" },
           FOO: { type: "plain", value: "env-foo" },
-          PAPERCLIP_API_KEY: { type: "plain", value: "must-not-flow" },
+          CLAYON_API_KEY: { type: "plain", value: "must-not-flow" },
         },
       });
       mockResolveEnvironmentExecutionTarget.mockResolvedValueOnce(sandboxExecutionTarget);
@@ -992,7 +992,7 @@ describe("agent test-environment route", () => {
       mockResolveEnvironmentExecutionTarget.mockResolvedValueOnce({
         kind: "remote",
         transport: "sandbox",
-        remoteCwd: "/home/user/paperclip-workspace",
+        remoteCwd: "/home/user/clayon-workspace",
         providerKey: "fake-plugin",
         runner: { execute: vi.fn() },
       });

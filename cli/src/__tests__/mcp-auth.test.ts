@@ -6,9 +6,9 @@ import { once } from "node:events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { credentialPath, mcpAccessToken, mcpResource, mcpRpc, replaceMcpCredential, withMcpCredentialLock } from "../client/mcp-auth.js";
 
-const resource = "https://paperclip.example/mcp/paperclip";
+const resource = "https://clayon.example/mcp/clayon";
 let home: string;
-beforeEach(async () => { home = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-credentials-")); vi.stubEnv("PAPERCLIP_HOME", home); });
+beforeEach(async () => { home = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-credentials-")); vi.stubEnv("CLAYON_HOME", home); });
 afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); await fs.rm(home, { recursive: true, force: true }); });
 async function seed(value: unknown, mode = 0o600) {
   const file = credentialPath(resource);
@@ -16,20 +16,20 @@ async function seed(value: unknown, mode = 0o600) {
   await fs.writeFile(file, typeof value === "string" ? value : JSON.stringify(value), { mode });
   return file;
 }
-const stored = () => ({ resource, issuer: "https://paperclip.example", clientId: "client", companyId: "company", accessToken: "private-access", refreshToken: "private-refresh", expiresAt: 0 });
+const stored = () => ({ resource, issuer: "https://clayon.example", clientId: "client", companyId: "company", accessToken: "private-access", refreshToken: "private-refresh", expiresAt: 0 });
 describe("MCP protected credential transport", () => {
   it("rejects noncanonical resources and isolates credential files by resource", () => {
-    for (const url of ["http://evil.example/mcp/paperclip", resource + "?token=secret", resource + "#x", "https://u:p@paperclip.example/mcp/paperclip", "https://paperclip.example/other"]) expect(() => mcpResource(url)).toThrow();
-    expect(mcpResource("http://127.0.0.1:3100/mcp/paperclip")).toContain("127.0.0.1");
-    expect(credentialPath(resource)).not.toBe(credentialPath("https://other.example/mcp/paperclip"));
+    for (const url of ["http://evil.example/mcp/clayon", resource + "?token=secret", resource + "#x", "https://u:p@clayon.example/mcp/clayon", "https://clayon.example/other"]) expect(() => mcpResource(url)).toThrow();
+    expect(mcpResource("http://127.0.0.1:3100/mcp/clayon")).toContain("127.0.0.1");
+    expect(credentialPath(resource)).not.toBe(credentialPath("https://other.example/mcp/clayon"));
   });
   it("serializes rotating refreshes and persists only the replacement token privately", async () => {
     const file = await seed(stored()); let refreshes = 0;
     vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
       expect(init?.redirect).toBe("error");
-      if (url.includes("oauth-protected-resource")) return Response.json({ resource, authorization_servers: ["https://paperclip.example"] });
-      if (url.includes("oauth-authorization-server")) return Response.json({ issuer: "https://paperclip.example", token_endpoint: "https://paperclip.example/mcp/oauth/token", device_authorization_endpoint: "https://paperclip.example/mcp/oauth/device_authorization", registration_endpoint: "https://paperclip.example/mcp/oauth/register" });
-      expect(url).toBe("https://paperclip.example/mcp/oauth/token");
+      if (url.includes("oauth-protected-resource")) return Response.json({ resource, authorization_servers: ["https://clayon.example"] });
+      if (url.includes("oauth-authorization-server")) return Response.json({ issuer: "https://clayon.example", token_endpoint: "https://clayon.example/mcp/oauth/token", device_authorization_endpoint: "https://clayon.example/mcp/oauth/device_authorization", registration_endpoint: "https://clayon.example/mcp/oauth/register" });
+      expect(url).toBe("https://clayon.example/mcp/oauth/token");
       expect(JSON.parse(init!.body as string).refresh_token).toBe("private-refresh"); refreshes++;
       return Response.json({ access_token: "replacement-access", refresh_token: "replacement-refresh", token_type: "Bearer", expires_in: 900 });
     }));
@@ -108,6 +108,6 @@ describe("MCP protected credential transport", () => {
       return new Response(null, { status: 503 });
     }));
     await replaceMcpCredential(file, { ...stored(), accessToken: "new-access" }, notify);
-    expect(notify).toHaveBeenCalledWith(expect.stringContaining("revoke it in Paperclip Connections"));
+    expect(notify).toHaveBeenCalledWith(expect.stringContaining("revoke it in Clayon Connections"));
   });
 });

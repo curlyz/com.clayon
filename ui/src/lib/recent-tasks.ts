@@ -1,9 +1,9 @@
-import type { Issue, IssueStatus } from "@paperclipai/shared";
+import type { Issue, IssueStatus } from "@clayon/shared";
 
 export const RECENT_TASKS_LIMIT = 5;
-export const RECENT_TASKS_UPDATED_EVENT = "paperclip:recent-tasks-updated";
-const STORAGE_PREFIX = "paperclip.recentTasks.v2:";
-const LEGACY_STORAGE_PREFIX = "paperclip.recentTasks:";
+export const RECENT_TASKS_UPDATED_EVENT = "clayon:recent-tasks-updated";
+const STORAGE_PREFIX = "clayon.recentTasks.v2:";
+const LEGACY_STORAGE_PREFIX = "clayon.recentTasks:";
 
 export interface RecentTaskEntry {
   id: string;

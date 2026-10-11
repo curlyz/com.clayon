@@ -5,13 +5,13 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "../context/ThemeContext";
-import type { Agent, Environment, EnvironmentCapabilities } from "@paperclipai/shared";
+import type { Agent, Environment, EnvironmentCapabilities } from "@clayon/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../context/ToastContext";
 import type { BuiltInAgentState } from "../api/builtInAgents";
 import { Agents } from "./Agents";
 import { Agents as ProductionAgents } from "./Agents.production";
-import type { AgentOrgChainHealth } from "@paperclipai/shared";
+import type { AgentOrgChainHealth } from "@clayon/shared";
 
 const mockRouterState = vi.hoisted(() => ({
   pathname: "/agents/all",
@@ -149,7 +149,7 @@ function makeBuiltInAgentState(overrides: Partial<BuiltInAgentState> = {}): Buil
       displayName: "Briefs Agent",
       featureKeys: ["Briefs"],
       shortPurpose: "Generates briefs.",
-      defaultInstructions: "You are Paperclip's built-in Briefs agent.",
+      defaultInstructions: "You are Clayon's built-in Briefs agent.",
       defaultRole: "engineer",
     },
     status: "ready",
@@ -414,9 +414,9 @@ describe("Agents", () => {
     expect(container.textContent).toContain("codex_local");
     expect(container.textContent).toContain("gpt-5.4");
 
-    // The heartbeat cell must render on a single line so full dates like
-    // "Apr 30, 2026" never wrap (PAP-85 defect #2).
-    const heartbeatCell = container.querySelector(".whitespace-nowrap.w-24");
+    // The tile's heartbeat value must render on a single line so full dates
+    // like "Apr 30, 2026" never wrap (PAP-85 defect #2).
+    const heartbeatCell = container.querySelector(".whitespace-nowrap");
     expect(heartbeatCell).not.toBeNull();
     expect(heartbeatCell?.textContent).not.toContain("\n");
   });
@@ -471,7 +471,7 @@ describe("Agents", () => {
     expect(container.textContent).toContain("gpt-5.4");
   });
 
-  it("gives mobile agent names the full row width after the leading status indicator", async () => {
+  it("renders each roster agent as a truncating leaf tile in the grid", async () => {
     mockSidebarState.isMobile = true;
     mockResourceMembershipsApi.listMine.mockResolvedValue({
       projectMemberships: {},
@@ -487,9 +487,9 @@ describe("Agents", () => {
     mockAgentsApi.list.mockResolvedValue([
       makeAgent({
         id: "agent-mobile",
-        name: "Paperclip Engineer With A Much Longer Display Name",
+        name: "Clayon Engineer With A Much Longer Display Name",
         title: "Software Engineer With A Much Longer Specialty Title",
-        urlKey: "paperclip-engineer-long",
+        urlKey: "clayon-engineer-long",
       }),
     ]);
 
@@ -508,21 +508,23 @@ describe("Agents", () => {
     await flushReact();
     await flushReact();
 
-    const row = findAgentRow(container, "Paperclip Engineer With A Much Longer Display Name");
+    const row = findAgentRow(container, "Clayon Engineer With A Much Longer Display Name");
     expect(row).not.toBeNull();
-    expect(row?.querySelector(".sm\\:hidden")).toBeNull();
-    expect(row?.querySelector(".hidden.sm\\:flex")).not.toBeNull();
-    expect(row?.querySelector(".flex-1.hidden.\\@5xl\\:block")).not.toBeNull();
+    // Tile grid: the tile pads as a leaf inside the responsive grid container.
+    const grid = row?.parentElement;
+    expect(grid?.classList.contains("grid")).toBe(true);
+    expect(grid?.classList.contains("md:grid-cols-2")).toBe(true);
+    expect(grid?.classList.contains("xl:grid-cols-4")).toBe(true);
     expect(row?.classList.contains("text-foreground/55")).toBe(false);
     expect(row?.classList.contains("sm:text-foreground/55")).toBe(true);
-    const name = row?.querySelector("span[title='Paperclip Engineer With A Much Longer Display Name']");
+    const name = row?.querySelector("span[title='Clayon Engineer With A Much Longer Display Name']");
     const subtitle = Array.from(row?.querySelectorAll("p") ?? []).find((node) =>
       node.textContent?.includes("Software Engineer With A Much Longer Specialty Title"),
     );
     expect(name?.classList.contains("truncate")).toBe(true);
     expect(subtitle).toBeDefined();
     expect(subtitle?.classList.contains("truncate")).toBe(true);
-    const actions = row?.querySelector('button[aria-label="Open actions for Paperclip Engineer With A Much Longer Display Name"]');
+    const actions = row?.querySelector('button[aria-label="Open actions for Clayon Engineer With A Much Longer Display Name"]');
     expect(actions).toBeNull();
     expect(row?.textContent).not.toContain("Assign Task");
     expect(row?.textContent).not.toContain("Run Heartbeat");
@@ -651,7 +653,7 @@ describe("Agents", () => {
     await flushReact();
 
     expect(container.textContent).toContain("Dev Laptop");
-    expect(container.textContent).toContain("Paperclip host");
+    expect(container.textContent).toContain("Clayon host");
   });
 
   it("reserves the environment column while environment metadata is loading", async () => {
@@ -995,11 +997,11 @@ describe("Agents", () => {
     expect(container.textContent).toContain("Built-in");
     expect(container.textContent).toContain("Briefs Agent");
     expect(container.textContent).not.toContain("Regular Agent");
-    expect(container.querySelector('[title="Ships with Paperclip"]')).toBeNull();
+    expect(container.querySelector('[title="Ships with Clayon"]')).toBeNull();
     expect(mockRouterState.navigate).not.toHaveBeenCalledWith("/agents/all", { replace: true });
   });
 
-  it("gives list-view rows a fixed-width title so meta columns align (PAP-86)", async () => {
+  it("renders the list view as a responsive leaf-tile grid (supersedes PAP-86 row alignment)", async () => {
     root = createRoot(container);
     await act(async () => {
       root!.render(
@@ -1025,17 +1027,20 @@ describe("Agents", () => {
     });
     await flushReact();
 
-    // The title cell carries a constant width in a wide container, not a
-    // content-sized `min-w-(--sz-7rem)`, so the `meta` group starts at the same
-    // x on every row and the model + timestamp columns line up vertically.
-    // In narrower containers metadata is hidden and the title flexes (`flex-1`)
-    // instead, so the shrink-0 trailing actions can't squeeze the agent name
-    // to zero width on mobile.
-    const titleCell = container.querySelector(".\\@5xl\\:w-56");
-    expect(titleCell).not.toBeNull();
-    expect(titleCell?.textContent).toContain("Alpha");
-    expect(titleCell?.classList.contains("flex-1")).toBe(true);
-    expect(container.querySelector(".min-w-\\(--sz-7rem\\)")).toBeNull();
+    // The roster tiles: a responsive grid (md:2 / xl:4) of leaf tiles, each
+    // tile truncating its title so a long agent name never starves siblings.
+    // The old fixed-width row title (PAP-86 column alignment) is superseded —
+    // tiles stack their metadata instead of aligning columns.
+    const grid = container.querySelector(".md\\:grid-cols-2.xl\\:grid-cols-4");
+    expect(grid).not.toBeNull();
+    expect(grid?.classList.contains("grid")).toBe(true);
+    expect(grid?.textContent).toContain("Alpha");
+    const tile = Array.from(grid?.querySelectorAll("a") ?? []).find((node) =>
+      node.textContent?.includes("Alpha"),
+    );
+    expect(tile).toBeDefined();
+    const name = tile?.querySelector("span[title='Alpha']");
+    expect(name?.classList.contains("truncate")).toBe(true);
   });
 
   it.each([

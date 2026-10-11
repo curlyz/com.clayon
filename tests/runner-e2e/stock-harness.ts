@@ -5,17 +5,17 @@ import { readStockInstructionVariant } from "./stock-harness-instruction-variant
 
 // These are an independent product contract, not imports of the implementation
 // constants. Otherwise a larger shipped manual could silently update the oracle.
-export const STOCK_HIRE_IDENTITY = "You are an agent in a Paperclip company.\n";
+export const STOCK_HIRE_IDENTITY = "You are an agent in a Clayon company.\n";
 export const STOCK_TEMPLATE_IDENTITY = "You are agent";
-const SKILL_SOURCES = ["../../skills/paperclip/SKILL.md", "../../skills/paperclip/references/issue-documents.md",
-  "../../scripts/paperclip-issue-update.sh", "../../skills/paperclip/scripts/paperclip-issue-update.sh"];
+const SKILL_SOURCES = ["../../skills/clayon/SKILL.md", "../../skills/clayon/references/issue-documents.md",
+  "../../scripts/clayon-issue-update.sh", "../../skills/clayon/scripts/clayon-issue-update.sh"];
 export function stockHarnessSkillSources() {
   return SKILL_SOURCES.map(source => {
     try {
       return { path: source.replace(/^\.\.\/\.\.\//, ""), present: true,
         sha256: createHash("sha256").update(readFileSync(new URL(source, import.meta.url))).digest("hex") };
     } catch (error) {
-      if ((source.endsWith("/references/issue-documents.md") || source === "../../skills/paperclip/scripts/paperclip-issue-update.sh")
+      if ((source.endsWith("/references/issue-documents.md") || source === "../../skills/clayon/scripts/clayon-issue-update.sh")
         && (error as NodeJS.ErrnoException).code === "ENOENT")
         return { path: source.replace(/^\.\.\/\.\.\//, ""), present: false, sha256: null };
       throw error;
@@ -89,12 +89,12 @@ export function gradeStockHarness(evidence: StockHarnessEvidence, instructionVar
       check("historical-invocation-classification", prompts.length > 0 && classified,
         "Every invocation needs public run-scoped conversation mode and explicit template-delivery metrics.");
       check("historical-startup-contract", classified && fresh.length > 0 && fresh.every(row => row.conversationMode
-        ? String(row.prompt).includes("Continue your Paperclip conversation using the supplied chat mode directive.") &&
+        ? String(row.prompt).includes("Continue your Clayon conversation using the supplied chat mode directive.") &&
           String(row.prompt).includes("After 2 consecutive failures of the same control-plane write")
         : String(row.prompt).includes("Execution contract:") && String(row.prompt).includes("Final disposition checklist:")),
       `Check each of ${fresh.length} fresh invocations against its historical task or conversation template.`);
       check("historical-continuation-contract", classified && resumed.every(row =>
-        String(row.prompt).includes("## Paperclip Resume Delta") && (row.conversationMode
+        String(row.prompt).includes("## Clayon Resume Delta") && (row.conversationMode
           ? !String(row.prompt).includes("Execution contract:")
           : String(row.prompt).includes("Execution contract: take concrete action") &&
             String(row.prompt).includes("a successful process exit or final response is not sufficient"))),
@@ -165,18 +165,18 @@ export function stockHarnessSourceDigest() {
     "../../packages/adapter-utils/src/acpx-engine/execute.ts",
     "../../packages/adapter-utils/src/acpx-engine/ephemeral-session-environment.ts",
     "../../packages/adapter-utils/src/acpx-engine/ephemeral-session-environment.test.ts",
-    "../../packages/paperclip-runner/scripts/generate-capability-contract.mjs",
-    "../../packages/paperclip-runner/scripts/check-capability-inventory.mjs",
-    "../../packages/paperclip-runner/scripts/lib/capability-inventory.mjs",
-    "../../packages/paperclip-runner/spec/capability/source-contract.json",
-    "../../packages/paperclip-runner/spec/capability/capabilities.yaml",
-    "../../packages/paperclip-runner/spec/capability/eval-traceability.yaml",
-    "../../packages/paperclip-runner/spec/capability/mcp-tool-map.yaml",
-    "../../packages/paperclip-runner/spec/capability/inventory.schema.json",
-    "../../packages/paperclip-runner/src/generated/capability-contract.ts",
-    "../../packages/paperclip-runner/docs/capability-contract.md",
+    "../../packages/clayon-runner/scripts/generate-capability-contract.mjs",
+    "../../packages/clayon-runner/scripts/check-capability-inventory.mjs",
+    "../../packages/clayon-runner/scripts/lib/capability-inventory.mjs",
+    "../../packages/clayon-runner/spec/capability/source-contract.json",
+    "../../packages/clayon-runner/spec/capability/capabilities.yaml",
+    "../../packages/clayon-runner/spec/capability/eval-traceability.yaml",
+    "../../packages/clayon-runner/spec/capability/mcp-tool-map.yaml",
+    "../../packages/clayon-runner/spec/capability/inventory.schema.json",
+    "../../packages/clayon-runner/src/generated/capability-contract.ts",
+    "../../packages/clayon-runner/docs/capability-contract.md",
     ...["capabilities.yaml", "mcp-tool-map.yaml", "eval-traceability.yaml", "capability-contract.md", "downstream-handoff.md"]
-      .map(file => `../../packages/paperclip-runner/generated/capability/${file}`),
+      .map(file => `../../packages/clayon-runner/generated/capability/${file}`),
     "../../server/src/onboarding-assets/default/AGENTS.md",
     "../../packages/adapter-utils/src/server-utils.ts",
     "../../packages/shared/src/connection-intent-guidance.ts",

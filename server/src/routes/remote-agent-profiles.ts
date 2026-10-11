@@ -1,5 +1,5 @@
 import { Router } from "express";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 
 import { unprocessable } from "../errors.js";
 import { logActivity } from "../services/activity-log.js";

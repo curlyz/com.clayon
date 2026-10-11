@@ -3,14 +3,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-vi.mock("@paperclipai/adapter-utils/execution-target", async (importOriginal) => {
+vi.mock("@clayon/adapter-utils/execution-target", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return { ...actual, runAdapterExecutionTargetProcess: vi.fn() };
 });
 
 import { ensureRemoteOpenCodeModelConfiguredAndAvailable, execute } from "./execute.js";
-import { runAdapterExecutionTargetProcess } from "@paperclipai/adapter-utils/execution-target";
-import { createPromptContextFixture } from "@paperclipai/adapter-utils/test-fixtures/prompt-context";
+import { runAdapterExecutionTargetProcess } from "@clayon/adapter-utils/execution-target";
+import { createPromptContextFixture } from "@clayon/adapter-utils/test-fixtures/prompt-context";
 
 const runProcessMock = vi.mocked(runAdapterExecutionTargetProcess);
 
@@ -38,7 +38,7 @@ describe("OpenCode local skill injection", () => {
   let configHome: string;
 
   beforeEach(async () => {
-    configHome = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-test-config-"));
+    configHome = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-opencode-test-config-"));
     vi.stubEnv("XDG_CONFIG_HOME", configHome);
   });
 
@@ -66,8 +66,8 @@ describe("OpenCode local skill injection", () => {
       },
       context: {
         conversationMode: true,
-        paperclipTaskMarkdown: directive,
-        paperclipWake: {
+        clayonTaskMarkdown: directive,
+        clayonWake: {
           reason: "issue_commented", issue: { id: "chat-1", status: "in_progress", workMode: "planning" },
           interactionKind: "request_confirmation", interactionStatus: "accepted",
         },
@@ -108,12 +108,12 @@ describe("OpenCode local skill injection", () => {
   });
 
   it("injects runtime skills into the configured child HOME", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-configured-home-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-opencode-configured-home-"));
     const processHome = path.join(root, "process-home");
     const configuredHome = path.join(root, "configured-home");
     const workspace = path.join(root, "workspace");
     const commandPath = path.join(root, "opencode");
-    const skillSource = await createSkillDir(path.join(root, "runtime-skills"), "paperclip");
+    const skillSource = await createSkillDir(path.join(root, "runtime-skills"), "clayon");
     await fs.mkdir(workspace, { recursive: true });
     await fs.writeFile(commandPath, "#!/bin/sh\nexit 0\n", "utf8");
     await fs.chmod(commandPath, 0o755);
@@ -153,12 +153,12 @@ describe("OpenCode local skill injection", () => {
             HOME: configuredHome,
             OPENCODE_ALLOW_ALL_MODELS: "1",
           },
-          paperclipRuntimeSkills: [{
-            key: "paperclipai/paperclip/paperclip",
-            runtimeName: "paperclip",
+          clayonRuntimeSkills: [{
+            key: "paperclipai/paperclip/clayon",
+            runtimeName: "clayon",
             source: skillSource,
           }],
-          promptTemplate: "Follow the paperclip heartbeat.",
+          promptTemplate: "Follow the clayon heartbeat.",
         },
         context: {},
         authToken: "run-jwt-token",
@@ -166,10 +166,10 @@ describe("OpenCode local skill injection", () => {
       });
 
       expect(result.exitCode).toBe(0);
-      const installedSkill = path.join(configuredHome, ".claude", "skills", "paperclip");
+      const installedSkill = path.join(configuredHome, ".claude", "skills", "clayon");
       expect((await fs.lstat(installedSkill)).isSymbolicLink()).toBe(true);
       expect(await fs.realpath(installedSkill)).toBe(await fs.realpath(skillSource));
-      await expect(fs.lstat(path.join(processHome, ".claude", "skills", "paperclip"))).rejects.toThrow();
+      await expect(fs.lstat(path.join(processHome, ".claude", "skills", "clayon"))).rejects.toThrow();
     } finally {
       if (previousHome === undefined) delete process.env.HOME;
       else process.env.HOME = previousHome;
@@ -178,7 +178,7 @@ describe("OpenCode local skill injection", () => {
   });
 
   it("passes an OpenRouter key and complete model to OpenCode without logging the key", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-openrouter-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-opencode-openrouter-"));
     const workspace = path.join(root, "workspace");
     const commandPath = path.join(root, "opencode");
     const apiKey = "openrouter-test-secret";

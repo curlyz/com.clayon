@@ -4,7 +4,7 @@ import { webcrypto } from "node:crypto";
 import type { ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { CompanyPortabilityImportResult, CompanyPortabilityPreviewResult } from "@paperclipai/shared";
+import type { CompanyPortabilityImportResult, CompanyPortabilityPreviewResult } from "@clayon/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../api/client";
 import type { CompanyImportJobAccepted } from "../api/companies";
@@ -101,7 +101,7 @@ vi.mock("../context/BreadcrumbContext", () => ({
 vi.mock("../context/CompanyContext", () => ({
   useCompany: () => ({
     selectedCompanyId: "company-1",
-    selectedCompany: { id: "company-1", name: "Paperclip" },
+    selectedCompany: { id: "company-1", name: "Clayon" },
     setSelectedCompanyId: mockSetSelectedCompanyId,
   }),
   useOptionalCompany: () => null,
@@ -152,7 +152,7 @@ async function settle(times = 6) {
 }
 
 const previewFiles = {
-  ".paperclip.yaml": 'schema: "paperclip/v1"\n',
+  ".clayon.yaml": 'schema: "clayon/v1"\n',
   "agents/coder/AGENTS.md": "---\nname: Coder\n---\n\nYou write code.\n",
   "tasks/weekly-report/TASK.md": "---\nname: Weekly Report\nrecurring: true\n---\n\nSend the report.\n",
 };
@@ -212,7 +212,7 @@ function buildMixedAdapterPreviewResult(): CompanyPortabilityPreviewResult {
       company: null,
     },
     files: {
-      ".paperclip.yaml": 'schema: "paperclip/v1"\n',
+      ".clayon.yaml": 'schema: "clayon/v1"\n',
       "agents/coder/AGENTS.md": "---\nname: Coder\n---\n\nYou write code.\n",
       "agents/researcher/AGENTS.md": "---\nname: Researcher\n---\n\nYou research.\n",
     },
@@ -429,7 +429,7 @@ describe("CompanyImport", () => {
       rootPath: "big-package",
       files: {
         "COMPANY.md": "---\nname: Big\n---\n",
-        ".paperclip.yaml": 'schema: "paperclip/v1"\n',
+        ".clayon.yaml": 'schema: "clayon/v1"\n',
         "blobs/4f2d1c9a": {
           encoding: "base64",
           data: "A".repeat(57 * 1024 * 1024),
@@ -1024,7 +1024,7 @@ describe("CompanyImport", () => {
     // A previous page load persisted a running job; reloading must resume
     // watching it rather than showing the stale form.
     sessionStorage.setItem(
-      "paperclip:company-import-job:company-1:acme/starter",
+      "clayon:company-import-job:company-1:acme/starter",
       JSON.stringify({ jobId: "job-resume", pauseAutomations: false }),
     );
 
@@ -1052,7 +1052,7 @@ describe("CompanyImport", () => {
     expect(container.textContent).not.toContain("Resume watching import");
     expect(container.textContent).toContain("Import complete");
     // The stored entry is cleared once the job settles.
-    expect(sessionStorage.getItem("paperclip:company-import-job:company-1:acme/starter")).toBeNull();
+    expect(sessionStorage.getItem("clayon:company-import-job:company-1:acme/starter")).toBeNull();
   });
 
   /** Adapter selects in the picker list, in manifest order (excludes the target/collision selects). */
@@ -1108,7 +1108,7 @@ describe("CompanyImport", () => {
     });
   });
 
-  it("hides Paperclip Runner import configuration while its experimental flag is off", async () => {
+  it("hides Clayon Runner import configuration while its experimental flag is off", async () => {
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },
       { type: "codex_local", disabled: false },
@@ -1122,7 +1122,7 @@ describe("CompanyImport", () => {
     }
   });
 
-  it("offers Paperclip Runner import configuration after its experimental flag is enabled", async () => {
+  it("offers Clayon Runner import configuration after its experimental flag is enabled", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableNativeRunner: true, enableOpenAiDot: false });
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },

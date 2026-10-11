@@ -20,8 +20,8 @@ import {
   pluginManagedResources,
   plugins,
   principalPermissionGrants,
-} from "@paperclipai/db";
-import type { PaperclipPluginManifestV1 } from "@paperclipai/shared";
+} from "@clayon/db";
+import type { ClayonPluginManifestV1 } from "@clayon/shared";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -50,14 +50,14 @@ function issuePrefix(id: string) {
   return `T${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 }
 
-function manifest(): PaperclipPluginManifestV1 {
+function manifest(): ClayonPluginManifestV1 {
   return {
-    id: "paperclip.managed-agents-test",
+    id: "clayon.managed-agents-test",
     apiVersion: 1,
     version: "0.1.0",
     displayName: "Managed Agents Test",
     description: "Test plugin",
-    author: "Paperclip",
+    author: "Clayon",
     categories: ["automation"],
     capabilities: ["agents.managed"],
     entrypoints: { worker: "./dist/worker.js" },
@@ -78,7 +78,7 @@ function manifest(): PaperclipPluginManifestV1 {
   };
 }
 
-function pausedManifest(): PaperclipPluginManifestV1 {
+function pausedManifest(): ClayonPluginManifestV1 {
   const pluginManifest = manifest();
   pluginManifest.agents![0] = {
     ...pluginManifest.agents![0]!,
@@ -98,7 +98,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-plugin-managed-agents-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-plugin-managed-agents-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -120,20 +120,20 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
     await tempDb?.cleanup();
   });
 
-  async function seedCompanyAndPlugin(options: { requireApproval?: boolean; manifest?: PaperclipPluginManifestV1 } = {}) {
+  async function seedCompanyAndPlugin(options: { requireApproval?: boolean; manifest?: ClayonPluginManifestV1 } = {}) {
     const companyId = randomUUID();
     const pluginId = randomUUID();
     const pluginManifest = options.manifest ?? manifest();
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix: issuePrefix(companyId),
       requireBoardApprovalForNewAgents: options.requireApproval ?? false,
     });
     await db.insert(plugins).values({
       id: pluginId,
       pluginKey: pluginManifest.id,
-      packageName: "@paperclipai/plugin-managed-agents-test",
+      packageName: "@clayon/plugin-managed-agents-test",
       version: pluginManifest.version,
       apiVersion: pluginManifest.apiVersion,
       categories: pluginManifest.categories,
@@ -217,7 +217,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
 
     expect(created.agent).toMatchObject({
       status: "paused",
-      pauseReason: "Provisioned paused by plugin paperclip.managed-agents-test; requires explicit activation.",
+      pauseReason: "Provisioned paused by plugin clayon.managed-agents-test; requires explicit activation.",
     });
     expect(created.agent?.pausedAt).toBeInstanceOf(Date);
   });
@@ -234,7 +234,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
 
     expect(reconciled.agent).toMatchObject({
       status: "paused",
-      pauseReason: "Provisioned paused by plugin paperclip.managed-agents-test; requires explicit activation.",
+      pauseReason: "Provisioned paused by plugin clayon.managed-agents-test; requires explicit activation.",
     });
   });
 
@@ -324,12 +324,12 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
   });
 
   it("materializes declared managed agent instructions with local folder paths", async () => {
-    const previousHome = process.env.PAPERCLIP_HOME;
-    const previousInstance = process.env.PAPERCLIP_INSTANCE_ID;
-    const tempHome = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-managed-agent-home-")));
-    const wikiRoot = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-managed-agent-wiki-")));
-    process.env.PAPERCLIP_HOME = tempHome;
-    process.env.PAPERCLIP_INSTANCE_ID = "test";
+    const previousHome = process.env.CLAYON_HOME;
+    const previousInstance = process.env.CLAYON_INSTANCE_ID;
+    const tempHome = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "clayon-managed-agent-home-")));
+    const wikiRoot = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "clayon-managed-agent-wiki-")));
+    process.env.CLAYON_HOME = tempHome;
+    process.env.CLAYON_INSTANCE_ID = "test";
     try {
       const pluginManifest = manifest();
       pluginManifest.localFolders = [
@@ -417,19 +417,19 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
 
 
     } finally {
-      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME;
-      else process.env.PAPERCLIP_HOME = previousHome;
-      if (previousInstance === undefined) delete process.env.PAPERCLIP_INSTANCE_ID;
-      else process.env.PAPERCLIP_INSTANCE_ID = previousInstance;
+      if (previousHome === undefined) delete process.env.CLAYON_HOME;
+      else process.env.CLAYON_HOME = previousHome;
+      if (previousInstance === undefined) delete process.env.CLAYON_INSTANCE_ID;
+      else process.env.CLAYON_INSTANCE_ID = previousInstance;
       await fs.rm(tempHome, { recursive: true, force: true });
       await fs.rm(wikiRoot, { recursive: true, force: true });
     }
   });
 
   it("fences plugin instruction reset by exact ownership, current capability and canonical CAS", async () => {
-    const previousHome = process.env.PAPERCLIP_HOME;
+    const previousHome = process.env.CLAYON_HOME;
     const tempHome = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "plugin-reset-cas-")));
-    process.env.PAPERCLIP_HOME = tempHome;
+    process.env.CLAYON_HOME = tempHome;
     try {
       const pluginManifest = manifest();
       pluginManifest.agents![0]!.instructions = { content: "# Default\n" };
@@ -475,7 +475,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
       const history = await db.select().from(agentInstructionRevisions).where(eq(agentInstructionRevisions.agentId, target.agentId));
       expect(history).toHaveLength(0);
     } finally {
-      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME; else process.env.PAPERCLIP_HOME = previousHome;
+      if (previousHome === undefined) delete process.env.CLAYON_HOME; else process.env.CLAYON_HOME = previousHome;
       await fs.rm(tempHome, { recursive: true, force: true });
     }
   });
@@ -494,7 +494,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
       runtimeConfig: {},
       permissions: {},
       metadata: {
-        paperclipManagedResource: {
+        clayonManagedResource: {
           pluginId,
           pluginKey: pluginManifest.id,
           resourceKind: "agent",
@@ -513,9 +513,9 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
   });
 
   it("preserves current-file authority when relinking after a hard uninstall and reinstall", async () => {
-    const previousHome = process.env.PAPERCLIP_HOME;
+    const previousHome = process.env.CLAYON_HOME;
     const tempHome = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "plugin-reinstall-reset-")));
-    process.env.PAPERCLIP_HOME = tempHome;
+    process.env.CLAYON_HOME = tempHome;
     try {
       const pluginManifest = manifest();
       pluginManifest.agents![0]!.instructions = { content: "# Original stock\n" };
@@ -532,7 +532,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
       expect(await db.select().from(pluginEntities)).toHaveLength(0);
       const nextManifest = structuredClone(pluginManifest);
       nextManifest.agents![0]!.instructions = { content: "# Reinstalled stock\n" };
-      const installed = await registry.install({ packageName: "@paperclipai/plugin-managed-agents-test" }, nextManifest);
+      const installed = await registry.install({ packageName: "@clayon/plugin-managed-agents-test" }, nextManifest);
       expect(installed!.id).not.toBe(pluginId);
       await registry.updateStatus(installed!.id, { status: "ready" });
       const reinstalledServices = buildHostServices(db, installed!.id, nextManifest.id, createEventBusStub(), undefined, {
@@ -543,12 +543,12 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
       expect(relinked.agentId).toBe(created.agentId);
       const reset = await reinstalledServices.agents.managedReset({ companyId, agentKey: "wiki-maintainer" });
       expect(reset.agentId).toBe(created.agentId);
-      expect(reset.agent!.metadata).toMatchObject({ paperclipManagedResource: { pluginId: installed!.id }, pluginManagedAgent: { pluginId: installed!.id } });
+      expect(reset.agent!.metadata).toMatchObject({ clayonManagedResource: { pluginId: installed!.id }, pluginManagedAgent: { pluginId: installed!.id } });
       expect(await fs.readFile(reset.agent!.adapterConfig.instructionsFilePath as string, "utf8")).toBe("# Reinstalled stock\n");
       const history = await db.select().from(agentInstructionRevisions).where(eq(agentInstructionRevisions.agentId, created.agentId!));
       expect(history).toHaveLength(0);
     } finally {
-      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME; else process.env.PAPERCLIP_HOME = previousHome;
+      if (previousHome === undefined) delete process.env.CLAYON_HOME; else process.env.CLAYON_HOME = previousHome;
       await fs.rm(tempHome, { recursive: true, force: true });
     }
   });
@@ -567,10 +567,10 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
         await db.update(plugins).set({ manifestJson: { ...pluginManifest, agents: [] } }).where(eq(plugins.id, pluginId));
       } else {
         const otherId = randomUUID();
-        await db.insert(plugins).values({ id: otherId, pluginKey: "paperclip.other-owner", packageName: "other",
-          version: "0.1.0", apiVersion: 1, categories: [], manifestJson: { ...pluginManifest, id: "paperclip.other-owner" }, status: "ready", installOrder: 2 });
+        await db.insert(plugins).values({ id: otherId, pluginKey: "clayon.other-owner", packageName: "other",
+          version: "0.1.0", apiVersion: 1, categories: [], manifestJson: { ...pluginManifest, id: "clayon.other-owner" }, status: "ready", installOrder: 2 });
         await db.update(agents).set({ metadata: { ...created.agent!.metadata,
-          paperclipManagedResource: { pluginId: otherId, pluginKey: pluginManifest.id, resourceKind: "agent", resourceKey: "wiki-maintainer" },
+          clayonManagedResource: { pluginId: otherId, pluginKey: pluginManifest.id, resourceKind: "agent", resourceKey: "wiki-maintainer" },
         } }).where(eq(agents.id, created.agentId!));
       }
       const [before] = await db.select().from(agents).where(eq(agents.id, created.agentId!));
@@ -598,7 +598,7 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
     });
     expect(approval?.payload).toMatchObject({
       agentId: created.agentId,
-      sourcePluginKey: "paperclip.managed-agents-test",
+      sourcePluginKey: "clayon.managed-agents-test",
       managedResourceKey: "wiki-maintainer",
     });
   });

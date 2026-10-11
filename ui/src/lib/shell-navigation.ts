@@ -12,8 +12,6 @@ export interface ShellRouteClassification {
   builtInContextualSurface: Exclude<ContextualSidebarSurface, `plugin:${string}`> | null;
 }
 
-const CONTEXTUAL_ORIGIN_KEY_PREFIX = "paperclip.contextualSidebar.origin";
-
 export function getCompanyPathSegments(pathname: string, companyPrefix: string | undefined): string[] {
   if (!companyPrefix) return [];
   const segments = pathname.split("/").filter(Boolean);
@@ -54,53 +52,4 @@ export function classifyShellRoute(
               ? "skills"
         : null,
   };
-}
-
-function contextualOriginStorageKey(surface: ContextualSidebarSurface, companyPrefix: string) {
-  return `${CONTEXTUAL_ORIGIN_KEY_PREFIX}:${companyPrefix.toUpperCase()}:${surface}`;
-}
-
-function isCompanyPath(pathname: string, companyPrefix: string) {
-  const first = pathname.split("/").filter(Boolean)[0];
-  return first?.toUpperCase() === companyPrefix.toUpperCase();
-}
-
-export function rememberContextualSidebarOrigin({
-  surface,
-  companyPrefix,
-  previousPathname,
-}: {
-  surface: ContextualSidebarSurface;
-  companyPrefix: string;
-  previousPathname: string;
-}) {
-  if (typeof window === "undefined" || !isCompanyPath(previousPathname, companyPrefix)) return;
-
-  try {
-    window.sessionStorage.setItem(
-      contextualOriginStorageKey(surface, companyPrefix),
-      previousPathname,
-    );
-  } catch {
-    // Navigation still has a deterministic fallback when storage is unavailable.
-  }
-}
-
-export function readContextualSidebarOrigin({
-  surface,
-  companyPrefix,
-  fallbackTo,
-}: {
-  surface: ContextualSidebarSurface;
-  companyPrefix: string | null | undefined;
-  fallbackTo: string;
-}) {
-  if (typeof window === "undefined" || !companyPrefix) return fallbackTo;
-
-  try {
-    const stored = window.sessionStorage.getItem(contextualOriginStorageKey(surface, companyPrefix));
-    return stored && isCompanyPath(stored, companyPrefix) ? stored : fallbackTo;
-  } catch {
-    return fallbackTo;
-  }
 }

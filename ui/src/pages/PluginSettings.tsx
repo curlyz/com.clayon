@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Puzzle, ArrowLeft, ShieldAlert, ActivitySquare, CheckCircle, XCircle, Loader2, Clock, Cpu, Webhook, CalendarClock, AlertTriangle, FolderOpen, Save } from "lucide-react";
-import type { PluginLocalFolderDeclaration } from "@paperclipai/shared";
+import type { PluginLocalFolderDeclaration } from "@clayon/shared";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useManagedSandboxOnly } from "@/hooks/useManagedSandboxOnly";
@@ -16,6 +16,7 @@ import { ChoosePathButton } from "@/components/PathInstructionsModal";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PageTabBar } from "@/components/PageTabBar";
+import { SettingsPageTabs } from "@/components/SettingsPageTabs";
 import {
   JsonSchemaForm,
   validateJsonSchemaForm,
@@ -159,6 +160,7 @@ export function PluginSettings() {
 
   return (
     <div className="max-w-6xl space-y-6">
+      <SettingsPageTabs />
       <div className="flex items-center gap-4">
         <Link to="/company/settings/instance/plugins">
           <Button variant="outline" size="icon" className="h-8 w-8">

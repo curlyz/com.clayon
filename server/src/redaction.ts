@@ -1,5 +1,5 @@
-import { redactCommandText } from "@paperclipai/adapter-utils";
-import { isPublicExecutorToolSelector, looksLikeCredentialJwt } from "@paperclipai/adapter-utils/command-redaction";
+import { redactCommandText } from "@clayon/adapter-utils";
+import { isPublicExecutorToolSelector, looksLikeCredentialJwt } from "@clayon/adapter-utils/command-redaction";
 
 const SECRET_FIELD_NAME_PATTERN = String.raw`[A-Za-z0-9_-]*(?:api[-_]?key|access[-_]?token|auth(?:_?token)?|token|authorization(?:[-_]?code)?|bearer|secrets?|passwd|passwords?|credentials?|jwt|private[-_]?key|cookie|connectionstring|browser[-_]?code|login[-_]?url)(?:[-_]?(?:value|header|prod(?:uction)?|dev(?:elopment)?|test|staging|primary|secondary))*`;
 
@@ -42,12 +42,12 @@ function isAuditCountField(key: string, value: unknown): boolean {
   );
 }
 const COMMAND_PAYLOAD_KEY_RE =
-  /(^command$|^cmd$|command[-_]?line|resolved[-_]?command|PAPERCLIP_RESOLVED_COMMAND)/i;
+  /(^command$|^cmd$|command[-_]?line|resolved[-_]?command|CLAYON_RESOLVED_COMMAND)/i;
 const COMMAND_ARGS_PAYLOAD_KEY_RE = /^(commandArgs|command_?args|argv)$/i;
 // Public protocol discriminators are retained verbatim. A dotted identifier
 // alone is not a credential; JWT detection requires an encoded JSON header.
-const PAPERCLIP_SCHEMA_FIELDS = new Set(["schema", "runtimeSchema"]);
-export const PAPERCLIP_PUBLIC_SCHEMA_IDS = new Set([
+const CLAYON_SCHEMA_FIELDS = new Set(["schema", "runtimeSchema"]);
+export const CLAYON_PUBLIC_SCHEMA_IDS = new Set([
   "paperclip.artifact.generated.v1",
   "paperclip.artifact.viewed.v1",
   "paperclip.capability-discovery.v1",
@@ -867,14 +867,14 @@ function isKnownPrpEventDiscriminator(
   );
 }
 
-function isPaperclipSchemaDiscriminator(
+function isClayonSchemaDiscriminator(
   key: string,
   value: unknown,
 ): value is string {
   return (
-    PAPERCLIP_SCHEMA_FIELDS.has(key) &&
+    CLAYON_SCHEMA_FIELDS.has(key) &&
     typeof value === "string" &&
-    PAPERCLIP_PUBLIC_SCHEMA_IDS.has(value)
+    CLAYON_PUBLIC_SCHEMA_IDS.has(value)
   );
 }
 
@@ -916,7 +916,7 @@ export function sanitizeRecord(
       redacted[key] = value;
       continue;
     }
-    if (isPaperclipSchemaDiscriminator(key, value)) {
+    if (isClayonSchemaDiscriminator(key, value)) {
       redacted[key] = value;
       continue;
     }
@@ -928,7 +928,7 @@ export function sanitizeRecord(
       typeof value === "string" &&
       looksLikeCredentialJwt(value) &&
       !isPublicExecutorToolSelector(value) &&
-      !isPaperclipSchemaDiscriminator(key, value)
+      !isClayonSchemaDiscriminator(key, value)
     ) {
       redacted[key] = REDACTED_EVENT_VALUE;
       continue;

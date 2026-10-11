@@ -5,16 +5,16 @@ import path from "node:path";
 import express from "express";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { agents, companies, createDb, heartbeatRuns } from "@paperclipai/db";
+import { agents, companies, createDb, heartbeatRuns } from "@clayon/db";
 import { companySkillRoutes } from "../routes/company-skills.js";
 import { agentRoutes } from "../routes/agents.js";
 import { errorHandler } from "../middleware/error-handler.js";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { preparePlanSkills, selectPlanSkills, verifyPlanSkills, verifyPlanSelection } from "../../../tests/runner-e2e/plan-task-skills.js";
 import { planInvocations, planInvocationPrompt } from "../../../tests/runner-e2e/plan-task-exposure.js";
-import { nativeTaskSkillInputs } from "../../../packages/paperclip-runner/src/backends/runtime-context.js";
-import { resolveRunnerdCodexSkillInputs } from "../../../packages/paperclip-runner/src/live/runnerd-codex-transport.js";
-import type { NativeRuntimeContextSnapshot } from "../../../packages/paperclip-runner/src/contracts/runtime-context.js";
+import { nativeTaskSkillInputs } from "../../../packages/clayon-runner/src/backends/runtime-context.js";
+import { resolveRunnerdCodexSkillInputs } from "../../../packages/clayon-runner/src/live/runnerd-codex-transport.js";
+import type { NativeRuntimeContextSnapshot } from "../../../packages/clayon-runner/src/contracts/runtime-context.js";
 import { PLAN_SKILLS, PLAN_VARIANTS, planHash } from "../../../tests/runner-e2e/plan-task-cases.js";
 import type { RunnerApi } from "../../../tests/runner-e2e/api.js";
 
@@ -24,14 +24,14 @@ if (!support.supported) console.warn(`Planning fixture API calibration skipped: 
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
   let db: ReturnType<typeof createDb>;
   let root: string;
-  const savedHome = process.env.PAPERCLIP_HOME, savedInstance = process.env.PAPERCLIP_INSTANCE_ID;
+  const savedHome = process.env.CLAYON_HOME, savedInstance = process.env.CLAYON_INSTANCE_ID;
   let api: Pick<RunnerApi, "get" | "post">;
   let app: express.Express;
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-plan-fixture-");
-    root = await mkdtemp(path.join(os.tmpdir(), "paperclip-plan-fixture-home-"));
-    process.env.PAPERCLIP_HOME = root;
-    process.env.PAPERCLIP_INSTANCE_ID = "default";
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-plan-fixture-");
+    root = await mkdtemp(path.join(os.tmpdir(), "clayon-plan-fixture-home-"));
+    process.env.CLAYON_HOME = root;
+    process.env.CLAYON_INSTANCE_ID = "default";
     db = createDb(tempDb.connectionString);
     app = express();
     app.use(express.json());
@@ -53,8 +53,8 @@ if (!support.supported) console.warn(`Planning fixture API calibration skipped: 
     };
   });
   afterAll(async () => {
-    if (savedHome === undefined) delete process.env.PAPERCLIP_HOME; else process.env.PAPERCLIP_HOME = savedHome;
-    if (savedInstance === undefined) delete process.env.PAPERCLIP_INSTANCE_ID; else process.env.PAPERCLIP_INSTANCE_ID = savedInstance;
+    if (savedHome === undefined) delete process.env.CLAYON_HOME; else process.env.CLAYON_HOME = savedHome;
+    if (savedInstance === undefined) delete process.env.CLAYON_INSTANCE_ID; else process.env.CLAYON_INSTANCE_ID = savedInstance;
     await tempDb?.cleanup();
     if (root) await rm(root, { recursive: true, force: true });
   });

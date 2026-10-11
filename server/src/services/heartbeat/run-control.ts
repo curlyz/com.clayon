@@ -21,7 +21,7 @@ import {
   isAcknowledgedNativeStop,
   acknowledgedNativeStopExecutionHasStopped,
 } from "../acknowledged-native-stop.js";
-import { completeTerminatedRemoteNativeSessionCleanup } from "../../vendor/paperclip-runner/index.js";
+import { completeTerminatedRemoteNativeSessionCleanup } from "../../vendor/clayon-runner/index.js";
 import {
   hasRemoteTerminationReceipt,
   remoteExecutionHasStopped,
@@ -64,10 +64,10 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   type EnvironmentLeaseStatus,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   agentWakeupRequests,
   companies,
@@ -77,7 +77,7 @@ import {
   issueRecoveryActions,
   issues,
   nativeRunFinalizations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   conflict,
   HttpError,
@@ -103,7 +103,7 @@ import {
 import { terminateLocalService } from "../local-service-supervisor.js";
 import { deriveCommentId } from "../../modules/run-dispatch/index.js";
 import { WakeQueueApplicationError } from "../../modules/wake-queue/index.js";
-import { isUuidLike } from "@paperclipai/shared";
+import { isUuidLike } from "@clayon/shared";
 import {
   type ProviderResourceDisposition,
 } from "../environment-runtime.js";
@@ -620,7 +620,7 @@ export function createHeartbeatRunControl(db: Db, dependencies: HeartbeatRunCont
     await enqueueWakeup(wake.agentId, {
       source: "on_demand", triggerDetail: "manual", reason: "issue_commented",
       payload: deliveryPayload, contextSnapshot: response
-        ? { ...parseObject(payload._paperclipWakeContext), issueId, triggeredBy: "board", actorId,
+        ? { ...parseObject(payload._clayonWakeContext), issueId, triggeredBy: "board", actorId,
             responsibleUserId: actorId }
         : withQueuedCommentIdsInRunContext({
             issueId, triggeredBy: "board", actorId, responsibleUserId: actorId,

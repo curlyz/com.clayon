@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -18,10 +17,7 @@ import {
   useParams,
 } from "@/lib/router";
 import { Sidebar } from "./Sidebar.production";
-import { CompanySettingsSidebar } from "./CompanySettingsSidebar.production";
 import { CompanySettingsNav } from "./access/CompanySettingsNav";
-import { AppsSidebar } from "./AppsSidebar.production";
-import { AppDetailSidebar } from "./AppConnectionSidebar.production";
 import { BreadcrumbBar } from "./BreadcrumbBar.production";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { CommandPalette } from "./CommandPalette";
@@ -31,13 +27,13 @@ import { NewGoalDialog } from "./NewGoalDialog";
 import { NewAgentDialog } from "./NewAgentDialog";
 import { KeyboardShortcutsCheatsheet } from "./KeyboardShortcutsCheatsheet";
 import { ToastViewport } from "./ToastViewport";
-import { MobileBottomNav } from "./MobileBottomNav";
+import { Dock } from "./dock/Dock";
+import { useNavLayout } from "../stores/navLayoutStore";
 import { WorktreeBanner } from "./WorktreeBanner";
 import { DevRestartBanner } from "./DevRestartBanner";
 import { StandaloneBrowserControls } from "./StandaloneBrowserControls";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
 import { SidebarShell } from "./SidebarShell.production";
-import { SecondarySidebar } from "./SecondarySidebar.production";
 import { SidebarAccountMenu } from "./SidebarAccountMenu.production";
 import { useDialogActions } from "../context/DialogContext";
 import { usePanel } from "../context/PanelContext";
@@ -64,56 +60,6 @@ import { pinDocumentScrollToZero } from "../lib/pin-document-scroll";
 import { cn } from "../lib/utils";
 import { classifyShellRoute } from "../lib/shell-navigation";
 import { NotFoundPage } from "../pages/NotFound";
-import {
-  PluginSlotMount,
-  resolveRouteSidebarSlot,
-  usePluginSlots,
-} from "../plugins/slots";
-
-function getCompanyRouteSegment(
-  pathname: string,
-  companyPrefix: string | undefined,
-): string | null {
-  return (
-    getCompanyPathSegments(pathname, companyPrefix)[0]?.toLowerCase() ?? null
-  );
-}
-
-function getCompanyPathSegments(
-  pathname: string,
-  companyPrefix: string | undefined,
-): string[] {
-  if (!companyPrefix) return [];
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length < 2) return [];
-  if (segments[0]?.toUpperCase() !== companyPrefix.toUpperCase()) return [];
-  return segments.slice(1);
-}
-
-const RESERVED_APP_SUBPATHS = new Set([
-  "browse",
-  "connections",
-  "connect",
-  "chat",
-  "review",
-  "attention",
-  "gateways",
-  "advanced",
-  "app",
-]);
-
-function isSkillsStoreRoute(
-  pathname: string,
-  companyPrefix: string | undefined,
-) {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments[0]?.toLowerCase() === "skills") return true;
-  if (!companyPrefix) return false;
-  return (
-    segments[0]?.toUpperCase() === companyPrefix.toUpperCase() &&
-    segments[1]?.toLowerCase() === "skills"
-  );
-}
 
 export function Layout() {
   const {
@@ -124,7 +70,6 @@ export function Layout() {
     peeking,
     setPeeking,
     isMobile,
-    setForceCollapsed,
   } = useSidebar();
   const { openNewIssue, openOnboarding } = useDialogActions();
   const { togglePanelVisible } = usePanel();
@@ -138,40 +83,23 @@ export function Layout() {
     selectionSource,
     setSelectedCompanyId,
   } = useCompany();
-  const { companyPrefix, pluginRoutePath: matchedPluginRoutePath } = useParams<{
+  const { companyPrefix } = useParams<{
     companyPrefix: string;
-    pluginRoutePath?: string;
   }>();
   const navigate = useNavigate();
   const location = useLocation();
   const navigationType = useNavigationType();
+  // Primary navigation shape (ADDENDUM 2): "dock" = the bottom dock is the
+  // only primary nav at every width; "sidebar" = left sidebar above lg with
+  // the dock below lg. Contextual secondary sidebars stay wired in both.
+  const navLayout = useNavLayout();
+  const dockLayout = navLayout === "dock";
   const isTaskDetailRoute = classifyShellRoute(location.pathname, companyPrefix).isTaskDetail;
   const isCompanySettingsRoute = [
     "/company/settings",
     "/company/export",
     "/company/import",
   ].some((settingsPath) => location.pathname.includes(settingsPath));
-  const companyPathSegments = getCompanyPathSegments(
-    location.pathname,
-    companyPrefix,
-  );
-  const isToolsRoute = companyPathSegments[0]?.toLowerCase() === "tools";
-  const isAppsRoute = companyPathSegments[0]?.toLowerCase() === "apps";
-  const appDetailConnectionId =
-    isAppsRoute &&
-    companyPathSegments[1] &&
-    !RESERVED_APP_SUBPATHS.has(companyPathSegments[1].toLowerCase())
-      ? companyPathSegments[1]
-      : null;
-  const appDetailApplicationId =
-    isAppsRoute &&
-    companyPathSegments[1]?.toLowerCase() === "app" &&
-    companyPathSegments[2]
-      ? companyPathSegments[2]
-      : null;
-  // The Skills Store renders its own secondary (category) sidebar, so the main
-  // app nav collapses to its rail throughout the Skills Store section (PAP-10879).
-  const isSkillsRoute = isSkillsStoreRoute(location.pathname, companyPrefix);
   const onboardingTriggered = useRef(false);
   const previousPathname = useRef<string | null>(null);
   const mainContentRef = useRef<HTMLElement | null>(null);
@@ -193,54 +121,6 @@ export function Layout() {
     !companiesLoading &&
     companies.length > 0 &&
     !matchedCompany;
-  const pluginRoutePath = useMemo(
-    () =>
-      matchedPluginRoutePath?.toLowerCase() ??
-      getCompanyRouteSegment(location.pathname, companyPrefix),
-    [companyPrefix, location.pathname, matchedPluginRoutePath],
-  );
-  const routeSidebarCompanyId = matchedCompany?.id ?? null;
-  const routeSidebarCompanyPrefix = matchedCompany?.issuePrefix ?? null;
-  const { slots: routeSidebarSlots } = usePluginSlots({
-    slotTypes: ["page", "routeSidebar"],
-    companyId: routeSidebarCompanyId,
-    enabled: Boolean(routeSidebarCompanyId && pluginRoutePath),
-  });
-  const routeSidebarSlot = useMemo(
-    () => resolveRouteSidebarSlot(routeSidebarSlots, pluginRoutePath),
-    [pluginRoutePath, routeSidebarSlots],
-  );
-  const sidebarContext = useMemo(
-    () => ({
-      companyId: routeSidebarCompanyId,
-      companyPrefix: routeSidebarCompanyPrefix,
-    }),
-    [routeSidebarCompanyId, routeSidebarCompanyPrefix],
-  );
-  // Takeover routes (company settings, plugin `routeSidebar`) no longer replace
-  // the app `<Sidebar/>`. Instead the host collapses it to its rail and renders
-  // the contextual sidebar in a second pane (PAP-10695). One resolver drives
-  // both desktop (SecondarySidebar) and mobile (off-canvas drawer).
-  const secondarySidebar = isCompanySettingsRoute ? (
-    <CompanySettingsSidebar />
-  ) : appDetailConnectionId ? (
-    <AppDetailSidebar kind="connection" connectionId={appDetailConnectionId} />
-  ) : appDetailApplicationId ? (
-    <AppDetailSidebar
-      kind="application"
-      applicationId={appDetailApplicationId}
-    />
-  ) : isAppsRoute || isToolsRoute ? (
-    <AppsSidebar />
-  ) : routeSidebarSlot ? (
-    <PluginSlotMount
-      slot={routeSidebarSlot}
-      context={sidebarContext}
-      className="h-full w-full"
-      missingBehavior="placeholder"
-    />
-  ) : null;
-  const hasSecondarySidebar = secondarySidebar != null;
   const { data: health } = useQuery({
     queryKey: queryKeys.health,
     queryFn: () => healthApi.get(),
@@ -252,17 +132,6 @@ export function Layout() {
     },
     refetchIntervalInBackground: false,
   });
-
-  // A secondary sidebar always collapses the app sidebar to its rail (still
-  // peek-able) — a hard invariant that overrides the user pin while the route
-  // is active, but does NOT mutate the persisted preference. Clearing the force
-  // on cleanup restores the user's expanded/collapsed choice when navigating
-  // off the takeover route (PAP-10694).
-  const forceRailCollapsed = hasSecondarySidebar || isSkillsRoute;
-  useLayoutEffect(() => {
-    setForceCollapsed(forceRailCollapsed);
-    return () => setForceCollapsed(false);
-  }, [forceRailCollapsed, setForceCollapsed]);
 
   useEffect(() => {
     if (companiesLoading || onboardingTriggered.current) return;
@@ -631,12 +500,12 @@ export function Layout() {
             >
               <div className="flex flex-1 min-h-0 overflow-hidden">
                 <div className="w-60 shrink-0 overflow-hidden">
-                  {hasSecondarySidebar ? secondarySidebar : <Sidebar />}
+                  {dockLayout ? null : <Sidebar />}
                 </div>
               </div>
               <SidebarAccountMenu deploymentMode={health?.deploymentMode} />
             </div>
-          ) : (
+          ) : dockLayout ? null : (
             <SidebarShell
               open={sidebarOpen}
               collapsed={collapsed}
@@ -654,13 +523,9 @@ export function Layout() {
             </SidebarShell>
           )}
 
-          {!isMobile && hasSecondarySidebar ? (
-            <SecondarySidebar>{secondarySidebar}</SecondarySidebar>
-          ) : null}
-
           <div
             className={cn(
-              "flex min-w-0 flex-col",
+              "relative flex min-w-0 flex-col",
               isMobile ? "w-full" : "h-full flex-1",
             )}
           >
@@ -683,36 +548,29 @@ export function Layout() {
                 id="main-content"
                 ref={mainContentRef}
                 tabIndex={-1}
-                // Publish the pinned-composer bottom offset to descendants
-                // (PAP-495): while the auto-hiding mobile nav is on screen, raise
-                // it to the nav height so a sticky composer clears the nav; drop
-                // it back to the safe-area dock when the nav hides. Desktop leaves
-                // the token at its :root default.
-                style={
-                  isMobile
-                    ? ({
-                      "--tc-composer-bottom": mobileNavVisible
-                          ? "var(--tc-composer-visible-nav-offset)"
-                          : "var(--sz-calc-8)",
-                      "--mobile-nav-motion-duration": mobileNavVisible
-                          ? "var(--motion-mobile-nav-enter)"
-                          : "var(--motion-mobile-nav-exit)",
-                      "--mobile-nav-motion-ease": mobileNavVisible
-                          ? "var(--motion-ease-out-expo)"
-                          : "var(--motion-ease-standard)",
-                      } as CSSProperties)
-                    : undefined
-                }
                 className={cn(
-                  "flex-1 p-4 outline-none md:p-6",
-                  // Reserve the scrollbar gutter on desktop so pages whose height
-                  // changes (e.g. switching skill-detail tabs) don't widen/shift
-                  // when the vertical scrollbar appears or disappears (PAP-10907).
+                  // Publish the pinned-composer bottom offset to descendants
+                  // (PAP-495): while the auto-hiding mobile nav is on screen, the
+                  // visible class raises it so a sticky composer clears the nav.
+                  // Pages are full-bleed bands with leaf padding (operator
+                  // directive, 2026-10-11): no container padding here — only
+                  // the dock clearance below, so the overlay dock never covers
+                  // content.
+                  "flex-1 outline-none",
+                  isMobile &&
+                    (mobileNavVisible
+                      ? "tc-composer-nav-visible"
+                      : "tc-composer-nav-hidden"),
                   isMobile
                     ? isTaskDetailRoute
                       ? "overflow-visible pb-(--tc-composer-visible-nav-offset)"
-                      : "overflow-visible pb-(--sz-calc-14)"
-                    : "overflow-auto [scrollbar-gutter:stable]",
+                      : "overflow-visible pb-(--sz-dock-clearance)"
+                    : // Reserve the scrollbar gutter on desktop so pages whose
+                      // height changes don't widen/shift when the vertical
+                      // scrollbar appears or disappears (PAP-10907).
+                      dockLayout
+                      ? "overflow-auto [scrollbar-gutter:stable] pb-(--sz-dock-clearance)"
+                      : "overflow-auto [scrollbar-gutter:stable] max-lg:pb-(--sz-dock-clearance)",
                 )}
               >
                 {hasUnknownCompanyPrefix ? (
@@ -730,9 +588,15 @@ export function Layout() {
               </main>
               <PropertiesPanel />
             </div>
+            {/* The dock floats over the content column (never over a sidebar
+                column) and hides behind a modal sidebar drawer below lg. */}
+            <Dock
+              hidden={isMobile && sidebarOpen}
+              sidebarLayout={!dockLayout}
+              deploymentMode={health?.deploymentMode}
+            />
           </div>
         </div>
-        {isMobile && <MobileBottomNav visible={mobileNavVisible} />}
         <CommandPalette />
         <NewIssueDialog />
         <NewProjectDialog />

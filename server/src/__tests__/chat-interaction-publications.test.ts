@@ -18,8 +18,8 @@ import {
   issues,
   toolApplications,
   toolConnections,
-} from "@paperclipai/db";
-import type { ChatProvider } from "@paperclipai/shared";
+} from "@clayon/db";
+import type { ChatProvider } from "@clayon/shared";
 import { enqueueIssueInteractionChatPublications, enqueueTerminalIssueInteractionChatPublications } from "../services/chat-interaction-publications.js";
 import { issueThreadInteractionService } from "../services/issue-thread-interactions.js";
 import {
@@ -39,20 +39,20 @@ describeEmbeddedPostgres(
     let tempDb: Awaited<
       ReturnType<typeof startEmbeddedPostgresTestDatabase>
     > | null = null;
-    const previousPublicUrl = process.env.PAPERCLIP_PUBLIC_URL;
+    const previousPublicUrl = process.env.CLAYON_PUBLIC_URL;
 
     beforeAll(async () => {
-      process.env.PAPERCLIP_PUBLIC_URL = "https://paperclip.example";
+      process.env.CLAYON_PUBLIC_URL = "https://clayon.example";
       tempDb = await startEmbeddedPostgresTestDatabase(
-        "paperclip-terminal-chat-interaction-",
+        "clayon-terminal-chat-interaction-",
       );
       db = createDb(tempDb.connectionString);
     }, 20_000);
 
     afterAll(async () => {
       if (previousPublicUrl === undefined)
-        delete process.env.PAPERCLIP_PUBLIC_URL;
-      else process.env.PAPERCLIP_PUBLIC_URL = previousPublicUrl;
+        delete process.env.CLAYON_PUBLIC_URL;
+      else process.env.CLAYON_PUBLIC_URL = previousPublicUrl;
       await tempDb?.cleanup();
     });
 
@@ -342,7 +342,7 @@ describeEmbeddedPostgres(
       expect(await publicationsForInteraction(fixture.companyId, interaction.id)).toEqual([]);
     });
 
-    it("keeps unsupported governance interactions authoritative in Paperclip", async () => {
+    it("keeps unsupported governance interactions authoritative in Clayon", async () => {
       const fixture = await seedBoundIssue();
       const interaction = await issueThreadInteractionService(db).create(
         { id: fixture.issueId, companyId: fixture.companyId },
@@ -564,7 +564,7 @@ describeEmbeddedPostgres(
           "private free-text label",
         );
         expect(JSON.stringify(settlement.payload)).not.toContain(
-          "Answered in Paperclip",
+          "Answered in Clayon",
         );
       }
     });
@@ -700,7 +700,7 @@ describeEmbeddedPostgres(
       expect(skippedSettlements).toHaveLength(2);
       expect(
         skippedSettlements.every(
-          (row) => row.payload.card?.body === "Skipped in Paperclip.",
+          (row) => row.payload.card?.body === "Skipped in Clayon.",
         ),
       ).toBe(true);
       expect(
@@ -746,7 +746,7 @@ describeEmbeddedPostgres(
           originals.find((row) => row.endpointId === fixture.endpointIds.slack)
             ?.payload.card?.actions,
         ).toEqual([
-          expect.objectContaining({ type: "link", label: "Open in Paperclip" }),
+          expect.objectContaining({ type: "link", label: "Open in Clayon" }),
         ]);
         expect(
           originals.find(

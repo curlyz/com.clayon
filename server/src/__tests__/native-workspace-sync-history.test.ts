@@ -3,11 +3,11 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { heartbeatRuns, type Db } from "@paperclipai/db";
-import type { EnvironmentLease } from "@paperclipai/shared";
-import type { AdapterSandboxExecutionTarget } from "@paperclipai/adapter-utils/execution-target";
-import type { CommandManagedRuntimeRunner } from "@paperclipai/adapter-utils/command-managed-runtime";
-import { runLocalGit } from "@paperclipai/adapter-utils/git-workspace-sync";
+import { heartbeatRuns, type Db } from "@clayon/db";
+import type { EnvironmentLease } from "@clayon/shared";
+import type { AdapterSandboxExecutionTarget } from "@clayon/adapter-utils/execution-target";
+import type { CommandManagedRuntimeRunner } from "@clayon/adapter-utils/command-managed-runtime";
+import { runLocalGit } from "@clayon/adapter-utils/git-workspace-sync";
 import { prepareNativeWorkspaceSync } from "../services/native-runtime/native-workspace-sync.js";
 
 const runner: CommandManagedRuntimeRunner = {
@@ -33,23 +33,23 @@ async function git(cwd: string, ...args: string[]) {
 }
 
 describe("native warm workspace Git history", () => {
-  const oldHome = process.env.PAPERCLIP_HOME;
-  const oldInstance = process.env.PAPERCLIP_INSTANCE_ID;
+  const oldHome = process.env.CLAYON_HOME;
+  const oldInstance = process.env.CLAYON_INSTANCE_ID;
   const roots: string[] = [];
   afterEach(async () => {
-    if (oldHome === undefined) delete process.env.PAPERCLIP_HOME;
-    else process.env.PAPERCLIP_HOME = oldHome;
-    if (oldInstance === undefined) delete process.env.PAPERCLIP_INSTANCE_ID;
-    else process.env.PAPERCLIP_INSTANCE_ID = oldInstance;
+    if (oldHome === undefined) delete process.env.CLAYON_HOME;
+    else process.env.CLAYON_HOME = oldHome;
+    if (oldInstance === undefined) delete process.env.CLAYON_INSTANCE_ID;
+    else process.env.CLAYON_INSTANCE_ID = oldInstance;
     await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })));
   });
 
   it.each(["unchanged", "host_commit", "host_branch", "remote_commit", "nested_commit"] as const)(
     "checks Git identity before reusing a warm sandbox: %s", async (change) => {
-      const root = await mkdtemp(path.join(os.tmpdir(), "paperclip-warm-history-"));
+      const root = await mkdtemp(path.join(os.tmpdir(), "clayon-warm-history-"));
       roots.push(root);
-      process.env.PAPERCLIP_HOME = path.join(root, "home");
-      process.env.PAPERCLIP_INSTANCE_ID = "test";
+      process.env.CLAYON_HOME = path.join(root, "home");
+      process.env.CLAYON_INSTANCE_ID = "test";
       const host = path.join(root, "host");
       const remote = path.join(root, "remote");
       async function initRepo(dir: string) {
@@ -62,7 +62,7 @@ describe("native warm workspace Git history", () => {
         await git(dir, "commit", "-m", "base");
       }
       await initRepo(host);
-      const nestedPath = path.join(".paperclip-repositories", "nested");
+      const nestedPath = path.join(".clayon-repositories", "nested");
       if (change === "nested_commit") await initRepo(path.join(host, nestedPath));
       const lease = { id: "lease", providerLeaseId: "sandbox", metadata: {} } as EnvironmentLease;
       let runnerProfileJson: Record<string, unknown> = {};

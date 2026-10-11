@@ -1,7 +1,7 @@
 import type { CompanyUserProfile } from "./company-members";
 
-/** Task messages load uploaded Paperclip avatars automatically, never remote URLs. */
-export function paperclipHumanAvatarUrl(value: string | null | undefined): string | null {
+/** Task messages load uploaded Clayon avatars automatically, never remote URLs. */
+export function clayonHumanAvatarUrl(value: string | null | undefined): string | null {
   return value && /^\/api\/assets\/[^/?#]+\/content$/.test(value) ? value : null;
 }
 

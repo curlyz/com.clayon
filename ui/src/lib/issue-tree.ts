@@ -1,4 +1,4 @@
-import type { Issue } from "@paperclipai/shared";
+import type { Issue } from "@clayon/shared";
 
 export interface IssueTree {
   roots: Issue[];

@@ -1,4 +1,4 @@
-import type { ExecutionWorkspaceMode, Issue } from "@paperclipai/shared";
+import type { ExecutionWorkspaceMode, Issue } from "@clayon/shared";
 import {
   defaultExecutionWorkspaceModeForProject,
   issueExecutionWorkspaceModeForExistingWorkspace,

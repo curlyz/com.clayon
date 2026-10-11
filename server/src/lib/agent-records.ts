@@ -1,11 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
-import { agents, costEvents, type Db } from "@paperclipai/db";
+import { agents, costEvents, type Db } from "@clayon/db";
 import {
   agentAppearanceSchema, resolveAgentAppearance, agentAvatarUrl,
   AGENT_DEFAULT_MAX_CONCURRENT_RUNS, agentRuntimeConfigSchema, getAgentWorkEligibility,
   normalizeAgentUrlKey, type AgentEligibilityAgent,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { conflict, notFound, unprocessable } from "../errors.js";
 import { REDACTED_EVENT_VALUE, sanitizeRecord } from "../redaction.js";
 import { normalizeAgentPermissions } from "./agent-permissions.js";
@@ -462,7 +462,7 @@ export function agentRecordQueries(db: Db) {
     const beforeMarker = readBuiltInAgentMarker(beforeMetadata);
     const afterMarker = readBuiltInAgentMarker(afterMetadata);
     if (builtInAgentMarkersEqual(beforeMarker, afterMarker)) return;
-    throw conflict("Built-in agent marker is managed by Paperclip and cannot be edited directly", {
+    throw conflict("Built-in agent marker is managed by Clayon and cannot be edited directly", {
       code: "built_in_agent_marker_readonly",
       key: beforeMarker?.key ?? afterMarker?.key ?? null,
     });

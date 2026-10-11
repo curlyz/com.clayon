@@ -8,12 +8,12 @@ import type {
   RoutineDetail as RoutineDetailType,
   RoutineTrigger,
   RoutineVariable,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { Badge } from "@/components/ui/badge";
 import { RunButton } from "@/components/AgentActionButtons";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { RoutineSubSidebar, RoutineSectionPicker } from "@/components/RoutineSubSidebar";
-import { RoutineSaveBar } from "@/components/RoutineSaveBar";
+import { SaveStatus } from "@/components/SaveStatus";
 import {
   EDITABLE_SECTIONS,
   RoutineDetailContext,
@@ -33,7 +33,7 @@ import {
   ActivitySection,
 } from "@/components/routine-sections/operate-sections";
 import { queryKeys } from "@/lib/queryKeys";
-import { storybookAgents, storybookProjects } from "../fixtures/paperclipData";
+import { storybookAgents, storybookProjects } from "../fixtures/clayonData";
 
 const COMPANY_ID = "company-storybook";
 const ROUTINE_ID = "routine-storybook";
@@ -198,7 +198,7 @@ function stubSecret(id: string, name: string, latestVersion: number, referenceCo
     companyId: COMPANY_ID,
     key: name.toLowerCase(),
     name,
-    provider: "paperclip",
+    provider: "clayon",
     status: "active",
     managedMode: "managed",
     externalRef: null,
@@ -274,7 +274,14 @@ function makeContext(
     sectionDirtyFields: (s) => (s === "overview" ? dirtyFields : []),
     isSectionDirty: (s) => dirty && s === "overview",
     discardSection: () => {},
-    saveRoutine: stubMutation(),
+    autosave: {
+      status: dirty ? "saved" : "idle",
+      isDirty: dirty,
+      errorMessage: null,
+      flush: () => {},
+      retry: () => {},
+      reset: () => {},
+    },
     saveConflict: false,
     reloadLatest: () => {},
     automationEnabled: true,
@@ -422,14 +429,7 @@ function RoutineCShell({
                 descriptionAnnotationsInitiallyOpen={withDescriptionAnnotations}
               />
               {isEditable ? (
-                <RoutineSaveBar
-                  dirtyFields={ctx.sectionDirtyFields(section)}
-                  isSaving={false}
-                  saveConflict={false}
-                  onSave={() => {}}
-                  onDiscard={() => {}}
-                  onReload={() => {}}
-                />
+                <SaveStatus status={ctx.autosave.status} errorMessage={ctx.autosave.errorMessage} onRetry={ctx.autosave.retry} />
               ) : null}
             </section>
           </main>

@@ -7,7 +7,7 @@ import type {
   EnvBinding,
   UserSecretCoverageSummary,
   UserSecretDefinition,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { Secrets } from "@/pages/Secrets";
 import { SecretBindingPicker, type SecretBindingValue } from "@/components/SecretBindingPicker";
 import { EnvironmentVariablesEditor } from "@/components/environment-variables-editor";
@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useCompany } from "@/context/CompanyContext";
 import { queryKeys } from "@/lib/queryKeys";
-import { storybookCompanies, storybookSecrets } from "../fixtures/paperclipData";
+import { storybookCompanies, storybookSecrets } from "../fixtures/clayonData";
 
 const COMPANY_ID = "company-storybook";
 
@@ -79,7 +79,7 @@ const storybookUserSecretCoverage: Record<string, UserSecretCoverageSummary> = {
 
 // Seed localStorage before CompanyContext mounts so its `useState` initializer reads the right id.
 if (typeof window !== "undefined") {
-  window.localStorage.setItem("paperclip.selectedCompanyId", COMPANY_ID);
+  window.localStorage.setItem("clayon.selectedCompanyId", COMPANY_ID);
 }
 
 function StorybookSecretsFixtures({ children }: { children: ReactNode }) {

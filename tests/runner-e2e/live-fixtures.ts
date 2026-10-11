@@ -210,7 +210,7 @@ export async function setupLiveFixtures(input: {
       const company = value<CompanyRecord>(resolved, "company");
       const secretRefs = value<SecretReferenceMap>(resolved, "secrets");
       if (execution.environment.id === "local") {
-        // Paperclip has one instance-managed local environment. The company
+        // Clayon has one instance-managed local environment. The company
         // creation API ensures it exists; creating a second local environment
         // is intentionally rejected by the public API.
         const environments = await api.get<EnvironmentRecord[]>(
@@ -221,7 +221,7 @@ export async function setupLiveFixtures(input: {
         );
         if (!local)
           throw new Error(
-            "Isolated Paperclip instance did not create its managed local environment",
+            "Isolated Clayon instance did not create its managed local environment",
           );
         return local;
       }

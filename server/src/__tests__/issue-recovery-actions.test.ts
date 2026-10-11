@@ -6,7 +6,7 @@ import express from "express";
 import request from "supertest";
 import { and, eq, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { renderPaperclipWakePrompt } from "@paperclipai/adapter-utils/server-utils";
+import { renderClayonWakePrompt } from "@clayon/adapter-utils/server-utils";
 import {
   costEvents,
   agents,
@@ -26,14 +26,14 @@ import {
   issueThreadInteractions,
   workspaceOperations,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
 } from "./helpers/embedded-postgres.js";
 import { errorHandler } from "../middleware/index.js";
 import { issueRoutes } from "../routes/issues.js";
-import { buildPaperclipWakePayload, heartbeatService } from "../services/heartbeat.js";
+import { buildClayonWakePayload, heartbeatService } from "../services/heartbeat.js";
 import { deliverReconciledExecutions } from "../services/execution-recovery-resolution.js";
 import { workspaceOperationService, isNativeWorkspaceFinalizationOperationActive } from "../services/workspace-operations.js";
 import { issueRecoveryActionService } from "../services/issue-recovery-actions.js";
@@ -143,9 +143,9 @@ describeEmbeddedPostgres("issue recovery actions", () => {
   const priorOperationLogRoot = process.env.WORKSPACE_OPERATION_LOG_BASE_PATH;
 
   beforeAll(async () => {
-    operationLogRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-recovery-operation-logs-"));
+    operationLogRoot = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-recovery-operation-logs-"));
     process.env.WORKSPACE_OPERATION_LOG_BASE_PATH = operationLogRoot;
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-issue-recovery-actions-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-issue-recovery-actions-");
     db = createDb(tempDb.connectionString);
   }, 30_000);
 
@@ -1772,7 +1772,7 @@ describeEmbeddedPostgres("issue recovery actions", () => {
       maxAttempts: 3,
     });
 
-    const payload = await buildPaperclipWakePayload({
+    const payload = await buildClayonWakePayload({
       db,
       companyId,
       contextSnapshot: {
@@ -1804,13 +1804,13 @@ describeEmbeddedPostgres("issue recovery actions", () => {
     });
     await db.update(issueRecoveryActions).set({ status, outcome: "handed_back", resolvedAt: new Date() })
       .where(eq(issueRecoveryActions.id, action.id));
-    const payload = await buildPaperclipWakePayload({ db, companyId, contextSnapshot: {
+    const payload = await buildClayonWakePayload({ db, companyId, contextSnapshot: {
       issueId: sourceIssueId, wakeReason: "issue_recovery_action_restored",
       recoveryActionId: action.id, recoveryCause: action.cause,
     } });
     expect(payload?.issue?.id).toBe(sourceIssueId);
     expect(payload?.recovery).toBeNull();
-    const prompt = renderPaperclipWakePrompt(payload);
+    const prompt = renderClayonWakePrompt(payload);
     expect(prompt).toContain("Implement backend recovery");
     expect(prompt).not.toContain("Recovery contract:");
     expect(prompt).not.toContain(action.nextAction);

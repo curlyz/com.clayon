@@ -43,7 +43,7 @@ describe("resolveNativeRuntimeMode", () => {
     }
   });
 
-  it("rejects a fresh Paperclip Runner start while the rollout flag is disabled", () => {
+  it("rejects a fresh Clayon Runner start while the rollout flag is disabled", () => {
     expect(() => resolveNativeRuntimeMode({
       ...eligible,
       enabled: false,
@@ -52,7 +52,7 @@ describe("resolveNativeRuntimeMode", () => {
     }));
   });
 
-  it("rejects unknown Paperclip Runner providers", () => {
+  it("rejects unknown Clayon Runner providers", () => {
     expect(() => resolveNativeRuntimeMode({
       ...eligible,
       runtimeConfig: {},
@@ -427,7 +427,7 @@ describe("resolveHeartbeatRuntimeMode compatibility", () => {
         adapterType,
       })).toEqual({
         kind: "legacy",
-        resolverVersion: "paperclip-runner-v1",
+        resolverVersion: "clayon-runner-v1",
         reason: "direct_adapter",
       });
     }
@@ -439,7 +439,7 @@ describe("resolveHeartbeatRuntimeMode compatibility", () => {
       adapterType: "paperclip_runner",
     })).toEqual({
       kind: "native",
-      resolverVersion: "paperclip-runner-v1",
+      resolverVersion: "clayon-runner-v1",
       reason: "explicit_paperclip_runner",
       provider: "codex",
     });
@@ -450,7 +450,7 @@ describe("resolveHeartbeatRuntimeMode compatibility", () => {
       persisted: { runtimeMode: "native", runtimeModeResolvedAt: new Date() },
     })).toEqual({
       kind: "native",
-      resolverVersion: "paperclip-runner-v1",
+      resolverVersion: "clayon-runner-v1",
       reason: "persisted_native_selection",
       provider: "codex",
     });

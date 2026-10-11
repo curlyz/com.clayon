@@ -11,42 +11,42 @@ function required(name: string) {
   return value;
 }
 
-const port = Number(required("PAPERCLIP_RUNNER_E2E_PORT"));
-const temporaryRoot = required("PAPERCLIP_RUNNER_E2E_TEMP_ROOT");
-const privateDir = required("PAPERCLIP_RUNNER_E2E_PRIVATE_DIR");
-const paperclipHome = required("PAPERCLIP_HOME");
-const configPath = required("PAPERCLIP_CONFIG");
+const port = Number(required("CLAYON_RUNNER_E2E_PORT"));
+const temporaryRoot = required("CLAYON_RUNNER_E2E_TEMP_ROOT");
+const privateDir = required("CLAYON_RUNNER_E2E_PRIVATE_DIR");
+const clayonHome = required("CLAYON_HOME");
+const configPath = required("CLAYON_CONFIG");
 const baseURL = `http://127.0.0.1:${port}`;
-const playwrightChannel = process.env.PAPERCLIP_PLAYWRIGHT_CHANNEL?.trim();
+const playwrightChannel = process.env.CLAYON_PLAYWRIGHT_CHANNEL?.trim();
 const chromiumExecutable =
-  process.env.PAPERCLIP_RUNNER_E2E_CHROMIUM_EXECUTABLE?.trim();
+  process.env.CLAYON_RUNNER_E2E_CHROMIUM_EXECUTABLE?.trim();
 if (playwrightChannel && chromiumExecutable) {
   throw new Error(
-    "PAPERCLIP_PLAYWRIGHT_CHANNEL and PAPERCLIP_RUNNER_E2E_CHROMIUM_EXECUTABLE are mutually exclusive",
+    "CLAYON_PLAYWRIGHT_CHANNEL and CLAYON_RUNNER_E2E_CHROMIUM_EXECUTABLE are mutually exclusive",
   );
 }
 if (chromiumExecutable && !path.isAbsolute(chromiumExecutable)) {
   throw new Error(
-    "PAPERCLIP_RUNNER_E2E_CHROMIUM_EXECUTABLE must be an absolute path",
+    "CLAYON_RUNNER_E2E_CHROMIUM_EXECUTABLE must be an absolute path",
   );
 }
-required("PAPERCLIP_INSTANCE_ID");
-required("PAPERCLIP_AGENT_JWT_SECRET");
-required("PAPERCLIP_DECISION_SIGNING_SECRET");
-required("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET");
+required("CLAYON_INSTANCE_ID");
+required("CLAYON_AGENT_JWT_SECRET");
+required("CLAYON_DECISION_SIGNING_SECRET");
+required("CLAYON_TOOL_ACTION_SIGNING_SECRET");
 required("BETTER_AUTH_SECRET");
 if (
-  !paperclipHome.startsWith(`${temporaryRoot}${path.sep}`) ||
+  !clayonHome.startsWith(`${temporaryRoot}${path.sep}`) ||
   !configPath.startsWith(`${temporaryRoot}${path.sep}`)
 ) {
-  throw new Error("Paperclip server paths escape the isolated temporary root");
+  throw new Error("Clayon server paths escape the isolated temporary root");
 }
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 
 export default defineConfig({
   testDir: ".",
-  testMatch: process.env.PAPERCLIP_RUNNER_E2E_INSTALLED_STARTUP_ONLY === "1" ? "installed-startup.spec.ts" : "runner.spec.ts",
-  timeout: Number(process.env.PAPERCLIP_RUNNER_E2E_TEST_TIMEOUT_MS ?? 600_000),
+  testMatch: process.env.CLAYON_RUNNER_E2E_INSTALLED_STARTUP_ONLY === "1" ? "installed-startup.spec.ts" : "runner.spec.ts",
+  timeout: Number(process.env.CLAYON_RUNNER_E2E_TEST_TIMEOUT_MS ?? 600_000),
   expect: { timeout: 30_000 },
   fullyParallel: false,
   workers: 1,
@@ -61,16 +61,16 @@ export default defineConfig({
     headless: true,
     actionTimeout: 30_000,
     navigationTimeout: 30_000,
-    screenshot: process.env.PAPERCLIP_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "only-on-failure",
-    trace: process.env.PAPERCLIP_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "retain-on-failure",
+    screenshot: process.env.CLAYON_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "only-on-failure",
+    trace: process.env.CLAYON_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "retain-on-failure",
     // A developer-supplied system Chromium keeps the local smoke loop
     // installation-free; CI's managed browser retains failure video as usual.
-    video: chromiumExecutable || process.env.PAPERCLIP_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "retain-on-failure",
+    video: chromiumExecutable || process.env.CLAYON_RUNNER_E2E_PUBLIC_MCP === "1" ? "off" : "retain-on-failure",
   },
   webServer: {
     // Do not put an env object here: Playwright serializes webServer config in
     // blob reports. The wrapper inherits the test process and strips provider
-    // keys before spawning the real Paperclip process.
+    // keys before spawning the real Clayon process.
     command: runnerE2EWebServerCommand(repositoryRoot),
     gracefulShutdown: runnerE2EWebServerGracefulShutdown,
     url: `${baseURL}/api/health`,

@@ -73,8 +73,8 @@ describe("classifyJsonlText", () => {
 
 describe("encodeClaudeCwd", () => {
   it("mirrors the claude-local adapter encoding rule", () => {
-    expect(encodeClaudeCwd("/Users/dj/.paperclip/instances/default/workspaces/abc")).toBe(
-      "-Users-dj--paperclip-instances-default-workspaces-abc",
+    expect(encodeClaudeCwd("/Users/dj/.clayon/instances/default/workspaces/abc")).toBe(
+      "-Users-dj--clayon-instances-default-workspaces-abc",
     );
   });
 });

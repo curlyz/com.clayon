@@ -42,7 +42,7 @@ test('only the scripts-disabled dependency download gets network access', () => 
 });
 
 test('Pi assembly gets bounded scratch capacity while preserving sandbox restrictions', () => {
-  const args = grokConsumerDockerArgs({ ...paths, download: true, temporarySizeMiB: 2048, command: ['node', '/consumer/node_modules/paperclipai/dist/index.js', 'runtime', 'setup', 'pi'] });
+  const args = grokConsumerDockerArgs({ ...paths, download: true, temporarySizeMiB: 2048, command: ['node', '/consumer/node_modules/clayon/dist/index.js', 'runtime', 'setup', 'pi'] });
   assert.deepEqual(values(args, '--tmpfs'), ['/tmp:rw,nosuid,nodev,noexec,size=2048m,mode=1777']);
   assert.deepEqual(values(args, '--memory'), ['3g']);
   assert.ok(args.includes('--read-only'));
@@ -54,7 +54,7 @@ test('Pi assembly gets bounded scratch capacity while preserving sandbox restric
 });
 
 test('only an offline runtime probe can execute its verified scratch snapshot', () => {
-  const command = ['node', '/packages/pi-public-install-probe.mjs', '/consumer/node_modules/@paperclipai/server'];
+  const command = ['node', '/packages/pi-public-install-probe.mjs', '/consumer/node_modules/@clayon/server'];
   const args = grokConsumerDockerArgs({ ...paths, command, temporarySizeMiB: 2048, temporaryExecutable: true });
   assert.deepEqual(values(args, '--tmpfs'), ['/tmp:rw,nosuid,nodev,exec,size=2048m,mode=1777']);
   assert.deepEqual(values(args, '--network'), ['none']);
@@ -72,7 +72,7 @@ test('the separately provisioned executable is exposed read-only to the offline 
   const prerequisite = '/private/staging/native/grok';
   const args = grokConsumerDockerArgs({ ...paths, prerequisite, command: ['node', '/packages/probe.mjs', 'present'] });
   assert.deepEqual(values(args, '--network'), ['none']);
-  assert.equal(values(args, '--mount').at(-1), `type=bind,src=${prerequisite},dst=/opt/paperclip/providers/grok/1.0.13/grok,readonly`);
+  assert.equal(values(args, '--mount').at(-1), `type=bind,src=${prerequisite},dst=/opt/clayon/providers/grok/1.0.13/grok,readonly`);
 });
 
 test('verification never elevates PR-controlled provisioning or cleanup on the host', () => {
@@ -95,9 +95,9 @@ test('the installed Codex probe exercises the public export and rejects incomple
       resolved: `https://registry.npmjs.org/@openai/codex/-/codex-${manifest.version}.tgz`, integrity: `sha512-${Buffer.alloc(64, 1).toString('base64')}` };
     const lock = { lockfileVersion: 3, packages: { [platformPath]: entry } };
     writeFileSync(join(consumer, 'package-lock.json'), JSON.stringify(lock));
-    const server = join(consumer, 'node_modules/@paperclipai/server');
-    const vendor = join(server, 'dist/vendor/paperclip-runner'), drivers = join(vendor, 'drivers/acpx'); mkdirSync(drivers, { recursive: true });
-    writeFileSync(join(server, 'package.json'), JSON.stringify({ name: '@paperclipai/server', type: 'module' }));
+    const server = join(consumer, 'node_modules/@clayon/server');
+    const vendor = join(server, 'dist/vendor/clayon-runner'), drivers = join(vendor, 'drivers/acpx'); mkdirSync(drivers, { recursive: true });
+    writeFileSync(join(server, 'package.json'), JSON.stringify({ name: '@clayon/server', type: 'module' }));
     const integrity = join(drivers, 'installation-integrity.js');
     const security = join(vendor, 'drivers/codex/codex-security-config.js'); mkdirSync(join(vendor, 'drivers/codex'));
     const securitySource = `export const codexExecutableReadOnlyRoots = () => [${JSON.stringify(nativeVendor)}];
@@ -192,7 +192,7 @@ test('the installed Codex probe exercises the public export and rejects incomple
 
 test('actual tar member checks allow Codex JavaScript but reject nested platform packages and native vendor payloads', () => {
   const javascript = ['package/package.json', 'package/node_modules/@openai/codex/package.json',
-    'package/node_modules/@openai/codex/bin/codex.js', 'package/dist/vendor/paperclip-runner/index.js'];
+    'package/node_modules/@openai/codex/bin/codex.js', 'package/dist/vendor/clayon-runner/index.js'];
   assert.doesNotThrow(() => assertNoBundledCodexPayloads(javascript));
   for (const payload of [
     'package/node_modules/@openai/codex-linux-x64/package.json',

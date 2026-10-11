@@ -5,21 +5,21 @@ import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { and, eq } from "drizzle-orm";
 
-import type { AdapterExecutionResult } from "@paperclipai/adapter-utils";
-import type { Db } from "@paperclipai/db";
-import { agentSessionGoalActions, agentTaskSessions } from "@paperclipai/db";
+import type { AdapterExecutionResult } from "@clayon/adapter-utils";
+import type { Db } from "@clayon/db";
+import { agentSessionGoalActions, agentTaskSessions } from "@clayon/db";
 
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 import { failRunnerGoalAction } from "../runner-goals.js";
 import {
-  createPaperclipRunnerAuthorizedToolSet,
+  createClayonRunnerAuthorizedToolSet,
   defaultCapabilityRunnerdBinary,
-  type PaperclipSemanticToolDefinition,
-} from "../../vendor/paperclip-runner/index.js";
+  type ClayonSemanticToolDefinition,
+} from "../../vendor/clayon-runner/index.js";
 import { runnerPrpCoordinator } from "./runner-prp-coordinator.js";
 
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
-const RUNNER_VERSION = "paperclip-runner-v1";
+const RUNNER_VERSION = "clayon-runner-v1";
 
 interface NativeGoalControl {
   sessionId: string;
@@ -137,7 +137,7 @@ interface NativeRunnerPrepareInput {
   readonly model: string | null;
   readonly resumeProviderSessionId: string | null;
   readonly completionContract: { revision: string; criterionIds: string[] };
-  readonly semanticTools: readonly PaperclipSemanticToolDefinition[];
+  readonly semanticTools: readonly ClayonSemanticToolDefinition[];
   readonly providerLaunch?: NativeRunnerProviderLaunch;
 }
 
@@ -161,19 +161,19 @@ export function buildNativeRunnerPreparePayload(
       approvalPolicy: "never",
     },
     completionContract: input.completionContract,
-    authorizedTools: createPaperclipRunnerAuthorizedToolSet(input.semanticTools),
+    authorizedTools: createClayonRunnerAuthorizedToolSet(input.semanticTools),
   };
 }
 
 function executableName(): string {
-  return process.platform === "win32" ? "paperclip-runnerd.exe" : "paperclip-runnerd";
+  return process.platform === "win32" ? "clayon-runnerd.exe" : "clayon-runnerd";
 }
 
-export function resolvePaperclipRunnerBinary(
-  configuredPath = process.env.PAPERCLIP_RUNNER_BINARY,
+export function resolveClayonRunnerBinary(
+  configuredPath = process.env.CLAYON_RUNNER_BINARY,
 ): string {
   if (configuredPath && !isAbsolute(configuredPath)) {
-    throw new Error("PAPERCLIP_RUNNER_BINARY must be an absolute path");
+    throw new Error("CLAYON_RUNNER_BINARY must be an absolute path");
   }
   if (configuredPath) {
     try {
@@ -189,7 +189,7 @@ export function resolvePaperclipRunnerBinary(
     defaultCapabilityRunnerdBinary(),
     resolve(
       moduleDirectory,
-      "../../../../packages/paperclip-runner/runner/target/release",
+      "../../../../packages/clayon-runner/runner/target/release",
       executableName(),
     ),
   ].filter((candidate): candidate is string => Boolean(candidate));
@@ -202,7 +202,7 @@ export function resolvePaperclipRunnerBinary(
     }
   }
   throw new Error(
-    "paperclip_runner_binary_missing: build @paperclipai/paperclip-runner or set PAPERCLIP_RUNNER_BINARY",
+    "paperclip_runner_binary_missing: build @clayon/clayon-runner or set CLAYON_RUNNER_BINARY",
   );
 }
 
@@ -322,11 +322,11 @@ export async function executeNativeCodexRunner(input: {
     startedAt: string;
   }) => Promise<void>;
 }): Promise<AdapterExecutionResult> {
-  const binary = input.runnerBinary ?? resolvePaperclipRunnerBinary();
+  const binary = input.runnerBinary ?? resolveClayonRunnerBinary();
   const runnerDigest = `sha256:${createHash("sha256").update(readFileSync(binary)).digest("hex")}`;
   const runtimeRoot = input.runtimeRoot
     ? resolve(input.runtimeRoot)
-    : resolve(resolvePaperclipInstanceRoot(), "runtime", "paperclip-runner");
+    : resolve(resolveClayonInstanceRoot(), "runtime", "clayon-runner");
   const runnerStateDirectory = resolve(runtimeRoot, "runner", input.runId);
   const goalControl = await readNativeGoalControl({
     db: input.db,
@@ -407,7 +407,7 @@ export async function executeNativeCodexRunner(input: {
     env: {
       ...process.env,
       ...input.environment,
-      PAPERCLIP_RUNNER_BOOTSTRAP_TICKET: prepared.bootstrapTicket,
+      CLAYON_RUNNER_BOOTSTRAP_TICKET: prepared.bootstrapTicket,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

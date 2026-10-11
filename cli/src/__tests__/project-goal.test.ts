@@ -25,15 +25,15 @@ function createProgram(): Command {
 describe("project and goal commands", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    delete process.env.PAPERCLIP_API_KEY;
-    delete process.env.PAPERCLIP_API_URL;
-    delete process.env.PAPERCLIP_COMPANY_ID;
-    process.env.PAPERCLIP_CONTEXT = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-project-goal-")), "context.json");
+    delete process.env.CLAYON_API_KEY;
+    delete process.env.CLAYON_API_URL;
+    delete process.env.CLAYON_COMPANY_ID;
+    process.env.CLAYON_CONTEXT = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "clayon-project-goal-")), "context.json");
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    delete process.env.PAPERCLIP_CONTEXT;
+    delete process.env.CLAYON_CONTEXT;
   });
 
   it("creates and updates projects with shared schemas", async () => {

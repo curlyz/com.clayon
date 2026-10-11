@@ -5,8 +5,8 @@ import { accessSync, constants as fsConstants, existsSync, readFileSync } from "
 import path from "node:path";
 import { and, eq } from "drizzle-orm";
 import { Router, type Request, type Response } from "express";
-import type { Db } from "@paperclipai/db";
-import { issues, projects, projectWorkspaces } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { issues, projects, projectWorkspaces } from "@clayon/db";
 import {
   findWorkspaceCommandDefinition,
   matchWorkspaceRuntimeServiceToCommand,
@@ -14,14 +14,14 @@ import {
   updateExecutionWorkspaceSchema,
   workspaceOverviewQuerySchema,
   workspaceRuntimeControlTargetSchema,
-} from "@paperclipai/shared";
-import type { WorkspaceRuntimeDesiredState, WorkspaceRuntimeServiceStateMap } from "@paperclipai/shared";
+} from "@clayon/shared";
+import type { WorkspaceRuntimeDesiredState, WorkspaceRuntimeServiceStateMap } from "@clayon/shared";
 import {
   baseWorkspaceDeclaresInstanceConfig,
   resolveCanonicalWorktreeSeedSource,
   type CanonicalWorktreeSeedSource,
-} from "@paperclipai/shared/worktree-seed-source";
-import { resolvePaperclipConfigPath } from "../paths.js";
+} from "@clayon/shared/worktree-seed-source";
+import { resolveClayonConfigPath } from "../paths.js";
 import { validate } from "../middleware/validate.js";
 import {
   accessService,
@@ -82,7 +82,7 @@ function isReadableFile(filePath: string) {
  * still rejected.
  */
 function resolveFallbackSeedSourceConfigPath(baseWorkspaceCwd: string): string | null {
-  return baseWorkspaceDeclaresInstanceConfig(baseWorkspaceCwd) ? null : resolvePaperclipConfigPath();
+  return baseWorkspaceDeclaresInstanceConfig(baseWorkspaceCwd) ? null : resolveClayonConfigPath();
 }
 
 export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: PluginWorkerManager } = {}) {
@@ -302,7 +302,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
 
     const workspaceCwd = existing.cwd;
     if (!workspaceCwd) {
-      res.status(422).json({ error: "Execution workspace needs a local path before Paperclip can run workspace commands" });
+      res.status(422).json({ error: "Execution workspace needs a local path before Clayon can run workspace commands" });
       return;
     }
 
@@ -399,7 +399,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
     let repairPreviousAttemptId: string | null = null;
     let repairCliArgs: string[] | null = null;
     if (action === "repair") {
-      const manifestPath = path.join(workspaceCwd, ".paperclip", "seed-manifest.json");
+      const manifestPath = path.join(workspaceCwd, ".clayon", "seed-manifest.json");
       let manifest: {
         attemptId?: unknown;
         source?: { configPath?: unknown; instanceId?: unknown };
@@ -426,7 +426,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
         repairSeedSource = resolveCanonicalWorktreeSeedSource({
           registeredBaseWorkspaceCwd: projectWorkspace.cwd,
           explicitSourceConfigPath: resolveFallbackSeedSourceConfigPath(projectWorkspace.cwd),
-          targetConfigPath: path.join(workspaceCwd, ".paperclip", "config.json"),
+          targetConfigPath: path.join(workspaceCwd, ".clayon", "config.json"),
           expectedTargetInstanceId,
           manifestSource: manifest.source,
           manifestTargetInstanceId: manifest.targetInstanceId,
@@ -446,7 +446,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
             ? [cliDist]
             : null;
         if (!repairCliArgs) {
-          throw new Error("Workspace repair cannot find a runnable Paperclip CLI in the base workspace.");
+          throw new Error("Workspace repair cannot find a runnable Clayon CLI in the base workspace.");
         }
       } catch (error) {
         throw unprocessable(
@@ -595,7 +595,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
           }
           const availableWorkspace = await ensureWorkspaceAvailable();
           if (!availableWorkspace) {
-            throw new Error("Execution workspace needs a local path before Paperclip can run workspace commands");
+            throw new Error("Execution workspace needs a local path before Clayon can run workspace commands");
           }
           return await runWorkspaceJobForControl({
             actor: {
@@ -695,7 +695,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
             if (!repairSeedSource?.baseWorkspaceCwd || !repairCliArgs) {
               throw new Error("Workspace repair source preflight did not complete.");
             }
-            const manifestPath = path.join(workspaceCwd, ".paperclip", "seed-manifest.json");
+            const manifestPath = path.join(workspaceCwd, ".clayon", "seed-manifest.json");
             const sourceConfigPath = repairSeedSource.configPath;
             const baseWorkspaceCwd = repairSeedSource.baseWorkspaceCwd;
 
@@ -716,9 +716,9 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
               cwd: baseWorkspaceCwd,
               env: {
                 ...process.env,
-                PAPERCLIP_SEED_EXPECTED_COMPANY_ID: existing.companyId,
-                PAPERCLIP_WORKSPACE_BASE_CWD: baseWorkspaceCwd,
-                PAPERCLIP_PROJECT_WORKSPACE_ID: existing.projectWorkspaceId ?? "",
+                CLAYON_SEED_EXPECTED_COMPANY_ID: existing.companyId,
+                CLAYON_WORKSPACE_BASE_CWD: baseWorkspaceCwd,
+                CLAYON_PROJECT_WORKSPACE_ID: existing.projectWorkspaceId ?? "",
               },
               stdio: ["ignore", "pipe", "pipe"],
             });
@@ -814,7 +814,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
             resolveCanonicalWorktreeSeedSource({
               registeredBaseWorkspaceCwd: baseWorkspaceCwd,
               explicitSourceConfigPath: resolveFallbackSeedSourceConfigPath(baseWorkspaceCwd),
-              targetConfigPath: path.join(workspaceCwd, ".paperclip", "config.json"),
+              targetConfigPath: path.join(workspaceCwd, ".clayon", "config.json"),
               expectedTargetInstanceId: repairSeedSource.targetInstanceId,
               manifestSource: manifest.source as { configPath?: unknown; instanceId?: unknown } | undefined,
               manifestTargetInstanceId: manifest.targetInstanceId,
@@ -826,7 +826,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
             if (repairRestartsRuntimeServices) {
               const availableWorkspace = await ensureWorkspaceAvailable();
               if (!availableWorkspace) {
-                throw new Error("Execution workspace needs a local path before Paperclip can restart it.");
+                throw new Error("Execution workspace needs a local path before Clayon can restart it.");
               }
               startedServices = await startRuntimeServicesForWorkspaceControl({
                 db,
@@ -882,7 +882,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
         if (action === "start" || action === "restart") {
           const availableWorkspace = await ensureWorkspaceAvailable();
           if (!availableWorkspace) {
-            throw new Error("Execution workspace needs a local path before Paperclip can manage local runtime services");
+            throw new Error("Execution workspace needs a local path before Clayon can manage local runtime services");
           }
           let startedServices;
           try {

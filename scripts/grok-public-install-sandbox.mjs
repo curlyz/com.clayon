@@ -16,11 +16,11 @@ export function assertNoBundledCodexPayloads(entries) {
     assert.equal(typeof entry, 'string');
     assert.ok(!entry.startsWith('/') && !entry.split('/').includes('..'), 'Tar member must remain inside the package');
     assert.doesNotMatch(entry, /(?:^|\/)node_modules\/@openai\/codex-(?:linux|darwin|win32)-(?:x64|arm64)(?:\/|$)/,
-      'Paperclip tarballs must not bundle Codex platform packages');
+      'Clayon tarballs must not bundle Codex platform packages');
     assert.doesNotMatch(entry, /(?:^|\/)node_modules\/@openai\/codex\/vendor(?:\/|$)/,
-      'Paperclip tarballs must not bundle the Codex wrapper vendor payload');
+      'Clayon tarballs must not bundle the Codex wrapper vendor payload');
     if (!entry.endsWith('/')) assert.doesNotMatch(entry, /(?:^|\/)codex(?:\.exe)?$/,
-      'Paperclip tarballs must not bundle native Codex executables');
+      'Clayon tarballs must not bundle native Codex executables');
   }
 }
 
@@ -175,7 +175,7 @@ export function grokConsumerDockerArgs({ assets, consumer, cache, command, uid, 
     '--mount', `type=bind,src=${assets},dst=/packages,readonly`,
     '--mount', `type=bind,src=${consumer},dst=/consumer`,
     '--mount', `type=bind,src=${cache},dst=/cache`,
-    ...(prerequisite ? ['--mount', `type=bind,src=${prerequisite},dst=/opt/paperclip/providers/grok/1.0.13/grok,readonly`] : []),
+    ...(prerequisite ? ['--mount', `type=bind,src=${prerequisite},dst=/opt/clayon/providers/grok/1.0.13/grok,readonly`] : []),
     '--workdir', '/consumer', GROK_PUBLIC_INSTALL_IMAGE, ...command,
   ];
 }

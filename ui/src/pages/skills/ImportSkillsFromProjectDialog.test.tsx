@@ -4,7 +4,7 @@ import type {
   CompanySkillProjectScanCandidate,
   Project,
   ProjectWorkspace,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { describe, expect, it } from "vitest";
 import {
   defaultSelection,

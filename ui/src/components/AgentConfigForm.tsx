@@ -1,7 +1,9 @@
 import { useConnectionModels } from "./ai-connections/useConnectionModels";
-import { aiRoutingHarness } from "@paperclipai/shared";
+import { useAutosave, autosaveJsonEqual } from "../hooks/useAutosave";
+import { SaveStatus } from "./SaveStatus";
+import { aiRoutingHarness } from "@clayon/shared";
 import { AiConnectionField } from "./ai-connections/AiConnectionField";
-import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema } from "@paperclipai/shared";
+import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema } from "@clayon/shared";
 import { testAgentSetup } from "@/lib/test-agent-setup";
 import { setupEfforts } from "../lib/agent-setup-fields";
 import { RuntimeTestCard } from "./RuntimeTestCard";
@@ -20,8 +22,8 @@ import type {
   EnvBinding,
   EnvSecretRefBinding,
   Environment,
-} from "@paperclipai/shared";
-import { AGENT_DEFAULT_MAX_CONCURRENT_RUNS, supportedEnvironmentDriversForAdapter, isValidBrowserCode, ADAPTER_AUTH_MISSING_CHECK_CODE } from "@paperclipai/shared";
+} from "@clayon/shared";
+import { AGENT_DEFAULT_MAX_CONCURRENT_RUNS, supportedEnvironmentDriversForAdapter, isValidBrowserCode, ADAPTER_AUTH_MISSING_CHECK_CODE } from "@clayon/shared";
 import type { AdapterModel } from "../api/agents";
 import { agentsApi } from "../api/agents";
 import { ApiError } from "../api/client";
@@ -32,12 +34,12 @@ import { assetsApi } from "../api/assets";
 import {
   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
   DEFAULT_CODEX_LOCAL_MODEL,
-} from "@paperclipai/adapter-codex-local";
-import { DEFAULT_CLAUDE_LOCAL_MODEL } from "@paperclipai/adapter-claude-local";
-import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
-import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
-import { DEFAULT_KIMI_LOCAL_MODEL } from "@paperclipai/adapter-kimi-local";
-import { DEFAULT_OPENCODE_LOCAL_MODEL } from "@paperclipai/adapter-opencode-local";
+} from "@clayon/adapter-codex-local";
+import { DEFAULT_CLAUDE_LOCAL_MODEL } from "@clayon/adapter-claude-local";
+import { DEFAULT_CURSOR_LOCAL_MODEL } from "@clayon/adapter-cursor-local";
+import { DEFAULT_GEMINI_LOCAL_MODEL } from "@clayon/adapter-gemini-local";
+import { DEFAULT_KIMI_LOCAL_MODEL } from "@clayon/adapter-kimi-local";
+import { DEFAULT_OPENCODE_LOCAL_MODEL } from "@clayon/adapter-opencode-local";
 import {
   Popover,
   PopoverContent,
@@ -101,23 +103,20 @@ import { codexReasoningEffortOptions } from "../lib/codex-reasoning-effort";
 
 /* ---- Create mode values ---- */
 
-// Canonical type lives in @paperclipai/adapter-utils; re-exported here
+// Canonical type lives in @clayon/adapter-utils; re-exported here
 // so existing imports from this file keep working.
-export type { CreateConfigValues } from "@paperclipai/adapter-utils";
+export type { CreateConfigValues } from "@clayon/adapter-utils";
 import {
-  PAPERCLIP_RUNNER_PERMISSION_CAPABILITIES,
-  paperclipRunnerTransitionConfig,
+  CLAYON_RUNNER_PERMISSION_CAPABILITIES,
+  clayonRunnerTransitionConfig,
   type CreateConfigValues,
-} from "@paperclipai/adapter-utils";
+} from "@clayon/adapter-utils";
 import { Badge } from "@/components/ui/badge";
 
 /* ---- Props ---- */
 
 type AgentConfigFormProps = {
   adapterModels?: AdapterModel[];
-  onDirtyChange?: (dirty: boolean) => void;
-  onSaveActionChange?: (save: (() => void) | null) => void;
-  onCancelActionChange?: (cancel: (() => void) | null) => void;
   onTestActionChange?: (test: (() => void) | null) => void;
   onTestActionStateChange?: (state: { disabled: boolean; pending: boolean }) => void;
   onTestFeedbackChange?: (feedback: {
@@ -130,7 +129,6 @@ type AgentConfigFormProps = {
     // way the panel reaches a parent that hides the inline branch.
     login: AdapterLoginDescriptor | null;
   }) => void;
-  hideInlineSave?: boolean;
   showAdapterTypeField?: boolean;
   showAdapterTestEnvironmentButton?: boolean;
   compactTestFeedback?: boolean;
@@ -180,11 +178,11 @@ export function supportsAdapterModelRefresh(adapterType: string): boolean {
   return adapterType === "claude_local" || adapterType === "codex_local" || adapterType === "paperclip_runner" || adapterType === "opencode_local";
 }
 
-export function resolvePaperclipRunnerTransitionModel(
+export function resolveClayonRunnerTransitionModel(
   previousAdapterType: string,
   previousModel: unknown,
 ): string {
-  return paperclipRunnerTransitionConfig(previousAdapterType, previousModel).model as string;
+  return clayonRunnerTransitionConfig(previousAdapterType, previousModel).model as string;
 }
 
 function isOverlayDirty(o: AgentConfigOverlay): boolean {
@@ -506,12 +504,14 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
         setOverlay((prev) =>
           persisted ? subtractPersistedOverlay(prev, persisted) : { ...emptyOverlay },
         );
+        // The refreshed agent is the new autosave baseline: everything the
+        // server holds is saved, and only overlay entries that survived the
+        // subtract are still drafts.
+        setSavedOverlay({ ...emptyOverlay });
       }
       agentRef.current = props.agent;
     }
   }, [isCreate, !isCreate ? props.agent : undefined]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isDirty = !isCreate && (isOverlayDirty(overlay) || environmentDraftDirty);
 
   type RecordOverlayGroup = "identity" | "adapterConfig" | "heartbeat" | "debug" | "runtime";
 
@@ -557,45 +557,45 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     });
   }, [isCreate, !isCreate ? props.agent : undefined]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** Build accumulated patch and send to parent */
-  const handleCancel = useCallback(() => {
-    setOverlay({ ...emptyOverlay });
-    setEnvironmentDraftDirty(false);
-    setEnvironmentEditorKey(key => key + 1);
-  }, []);
-
-  const handleSave = useCallback(async () => {
-    if (isCreate) return;
-    const flushedEnv = flushEnvironmentDraft();
-    const nextOverlay = flushedEnv
-      ? {
-          ...overlay,
-          adapterConfig: {
-            ...overlay.adapterConfig,
-            env: flushedEnv,
-          },
-        }
-      : overlay;
-    if (!isOverlayDirty(nextOverlay)) return;
-    await props.onSave(buildAgentUpdatePatch(props.agent, nextOverlay));
-  }, [isCreate, isDirty, overlay, props]);
-
-  useEffect(() => {
-    if (!isCreate) {
-      props.onDirtyChange?.(isDirty);
-      props.onSaveActionChange?.(handleSave);
-      props.onCancelActionChange?.(handleCancel);
-    }
-  }, [isCreate, isDirty, props.onDirtyChange, props.onSaveActionChange, props.onCancelActionChange, handleSave, handleCancel]);
-
-  useEffect(() => {
-    if (isCreate) return;
-    return () => {
-      props.onSaveActionChange?.(null);
-      props.onCancelActionChange?.(null);
-      props.onDirtyChange?.(false);
-    };
-  }, [isCreate, props.onDirtyChange, props.onSaveActionChange, props.onCancelActionChange]);
+  // Autosave (operator directive): edit-mode drafts save themselves through
+  // the parent's existing save mutation — no Save/Discard bar, no
+  // registration contract. The baseline is the last-saved overlay (not a
+  // subtract-on-success), so inputs keep showing the saved draft until the
+  // post-save agent refresh clears the overlay — no revert flicker while
+  // the refetch is in flight. The value includes the environment editor's
+  // pending-row flag so a pending row draft schedules a save that flushes
+  // it into the overlay.
+  const [savedOverlay, setSavedOverlay] = useState<AgentConfigOverlay>(emptyOverlay);
+  const autosaveDraft = useMemo(
+    () => ({ overlay, envDraft: environmentDraftDirty }),
+    [overlay, environmentDraftDirty],
+  );
+  const autosaveBaseline = useMemo(
+    () => ({ overlay: savedOverlay, envDraft: false }),
+    [savedOverlay],
+  );
+  const autosave = useAutosave({
+    value: autosaveDraft,
+    savedValue: autosaveBaseline,
+    isEqual: autosaveJsonEqual,
+    save: async (next) => {
+      if (isCreate) return;
+      const flushedEnv = flushEnvironmentDraft();
+      const nextOverlay = flushedEnv
+        ? {
+            ...next.overlay,
+            adapterConfig: {
+              ...next.overlay.adapterConfig,
+              env: flushedEnv,
+            },
+          }
+        : next.overlay;
+      setSavedOverlay(nextOverlay);
+      if (!isOverlayDirty(nextOverlay)) return;
+      await props.onSave(buildAgentUpdatePatch(props.agent, nextOverlay));
+      setEnvironmentDraftDirty(false);
+    },
+  });
 
   // ---- Resolve values ----
   const config = !isCreate ? ((props.agent.adapterConfig ?? {}) as Record<string, unknown>) : {};
@@ -892,7 +892,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   const inheritedEnvironmentLabel = instanceDefaultEnvironment
     ? environmentDisplayLabel(instanceDefaultEnvironment)
     : managedSandboxOnly
-      ? "Paperclip Computer"
+      ? "Clayon Computer"
       : "Local";
 
   const runnerProvider = adapterType === "paperclip_runner"
@@ -1374,7 +1374,6 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       ref={environmentVariablesEditorRef}
       key={environmentEditorKey}
       onDirtyChange={setEnvironmentDraftDirty}
-      hideDraftActions={!isCreate && props.hideInlineSave}
       value={
         isCreate
           ? ((val!.envBindings ?? EMPTY_ENV) as Record<string, EnvBinding>)
@@ -1398,16 +1397,9 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   if (!isCreate && props.content === "secrets") {
     return (
       <div className={cn("relative", cards && "space-y-6")}>
-        {isDirty && !props.hideInlineSave && (
-          <div className="sticky top-0 z-10 flex items-center justify-end border-b border-primary/20 bg-background/90 px-4 py-2 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">Unsaved changes</span>
-              <Button size="sm" onClick={handleSave} disabled={props.isSaving}>
-                {props.isSaving ? "Saving..." : "Save"}
-              </Button>
-            </div>
-          </div>
-        )}
+        <div className="flex justify-end">
+          <SaveStatus status={autosave.status} errorMessage={autosave.errorMessage} onRetry={autosave.retry} />
+        </div>
 
         {props.environmentVariablesPlacement === "secrets" && (
           <div data-config-section="environment-variables" className={cn(!cards && "border-b border-border")}>
@@ -1446,19 +1438,10 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
 
   return (
     <ConfigSections order={props.sectionOrder} className={cn("relative", cards && "space-y-6")}>
-      {/* ---- Floating Save button (edit mode, when dirty) ---- */}
-      {isDirty && !props.hideInlineSave && (
-        <div className="sticky top-0 z-10 flex items-center justify-end px-4 py-2 bg-background/90 backdrop-blur-sm border-b border-primary/20">
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">Unsaved changes</span>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={!isCreate && props.isSaving}
-            >
-              {!isCreate && props.isSaving ? "Saving..." : "Save"}
-            </Button>
-          </div>
+      {/* ---- Autosave status (edit mode; quiet, null when idle) ---- */}
+      {!isCreate && (
+        <div className="flex justify-end">
+          <SaveStatus status={autosave.status} errorMessage={autosave.errorMessage} onRetry={autosave.retry} />
         </div>
       )}
 
@@ -1659,7 +1642,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                               ? DEFAULT_CURSOR_LOCAL_MODEL
                             : dot ? ""
                             : t === "paperclip_runner"
-                              ? resolvePaperclipRunnerTransitionModel(adapterType, config.model)
+                              ? resolveClayonRunnerTransitionModel(adapterType, config.model)
                               : "",
                         effort: "",
                         modelReasoningEffort: "",
@@ -1674,7 +1657,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                             ? { provider: "openai_dot", lifecycleMode: "per_turn", allowUnmeteredProvider: false, dotAttachmentAccess: false, dotWorkspaceAccess: false }
                           : t === "paperclip_runner"
                             ? {
-                                ...paperclipRunnerTransitionConfig(adapterType, eff("adapterConfig", "model", config.model)),
+                                ...clayonRunnerTransitionConfig(adapterType, eff("adapterConfig", "model", config.model)),
                               }
                           : {}),
                       },
@@ -2158,7 +2141,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
               <div className="mt-3 flex items-start gap-2 rounded-md border border-border bg-background/60 px-3 py-2 text-xs text-foreground">
                 <Bug className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>
-                  Raw tracing is on for future runs. Paperclip keeps at most 64 MiB per run and automatically deletes it after 24 hours.
+                  Raw tracing is on for future runs. Clayon keeps at most 64 MiB per run and automatically deletes it after 24 hours.
                 </span>
               </div>
             ) : null}
@@ -2296,7 +2279,7 @@ export type AdapterLoginDescriptor = {
 // correctly, and the first thing to rot would have been the timeout and
 // cleanup paths, which are the ones nobody exercises by hand.
 export type AdapterLoginPanelProps = AdapterLoginDescriptor & {
-  aiConnection?: import("@paperclipai/shared").AiConnectionLoginIntent;
+  aiConnection?: import("@clayon/shared").AiConnectionLoginIntent;
   onStored?: (storedSessionId: string) => void;
   onApplyStored?: () => void;
   // Applies the non-secret Codex account-binding claim from an authenticated

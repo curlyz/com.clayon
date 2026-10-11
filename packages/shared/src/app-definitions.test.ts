@@ -410,7 +410,7 @@ describe("AppDefinition catalog", () => {
       "installation_repositories",
     );
     expect(channel("github-code-review-bot")?.guidanceMd).toContain(
-      "Generate the webhook secret in Paperclip",
+      "Generate the webhook secret in Clayon",
     );
     expect(channel("github-code-review-bot")?.guidanceMd).toContain("SSL-verified");
     expect(channel("microsoft-teams")?.guidanceMd).toContain(
@@ -434,7 +434,7 @@ describe("AppDefinition catalog", () => {
       "One team install covers its standard channels",
     );
     expect(channel("telegram")?.guidanceMd).toContain(
-      "public Paperclip webhook endpoint",
+      "public Clayon webhook endpoint",
     );
     expect(channel("slack")?.guidanceMd).toContain("reactions");
     expect(channel("slack")?.guidanceMd).toContain("direct messages");
@@ -797,7 +797,7 @@ describe("AppDefinition catalog", () => {
       getRecommendedConnectionMethod(
         gmail.methods.filter((candidate) =>
           [
-            "paperclip-read",
+            "clayon-read",
             "customer-read-oauth",
             "customer-draft-oauth",
           ].includes(candidate.key),
@@ -810,7 +810,7 @@ describe("AppDefinition catalog", () => {
           (candidate) => candidate.capabilityProfile?.key === "draft",
         ),
       )?.key,
-    ).toBe("paperclip-draft");
+    ).toBe("clayon-draft");
     expect(
       getRecommendedConnectionMethod(
         gmail.methods.filter(
@@ -841,7 +841,7 @@ describe("AppDefinition catalog", () => {
         "https://developers.google.com/workspace/preview",
       );
       expect(prerequisite?.description, slug).toContain(
-        "does not enable unrelated Paperclip customers",
+        "does not enable unrelated Clayon customers",
       );
       expect(prerequisite?.steps?.join(" "), slug).toContain(
         "final project-registration email",
@@ -1028,14 +1028,14 @@ describe("AppDefinition catalog", () => {
     });
     expect(
       resolveConnectionMethodServerUrl(ucp!, {
-        storeDomain: "paperclip-demo.myshopify.com",
+        storeDomain: "clayon-demo.myshopify.com",
       }),
-    ).toBe("https://paperclip-demo.myshopify.com/api/ucp/mcp");
+    ).toBe("https://clayon-demo.myshopify.com/api/ucp/mcp");
     expect(
       resolveConnectionMethodServerUrl(compatibility!, {
-        storeDomain: "paperclip-demo.myshopify.com",
+        storeDomain: "clayon-demo.myshopify.com",
       }),
-    ).toBe("https://paperclip-demo.myshopify.com/api/mcp");
+    ).toBe("https://clayon-demo.myshopify.com/api/mcp");
     expect(resolveConnectionMethodServerUrl(ucp!, {})).toBeNull();
     expect(shopify?.setupPrerequisite).toMatchObject({
       title: "Launch the storefront before connecting",

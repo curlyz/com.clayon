@@ -5,7 +5,7 @@ import type {
   RoutineDetail as RoutineDetailType,
   RoutineEnvConfig,
   RoutineVariable,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import type { MarkdownEditorRef, MentionOption } from "../MarkdownEditor";
 import type { InlineEntityOption } from "../InlineEntitySelector";
 import type { RoutineHistoryDirtyFieldDescriptor } from "../RoutineHistoryTab";
@@ -15,6 +15,7 @@ import type {
   RotateRoutineTriggerResponse,
 } from "../../api/routines";
 import type { agentsApi } from "../../api/agents";
+import type { AutosaveController } from "../../hooks/useAutosave";
 import type { projectsApi } from "../../api/projects";
 import type { secretsApi } from "../../api/secrets";
 
@@ -106,8 +107,8 @@ export type RoutineDetailContextValue = {
   isSectionDirty: (section: RoutineSectionKey) => boolean;
   discardSection: (section: RoutineSectionKey) => void;
 
-  // save
-  saveRoutine: UseMutationResult<unknown, unknown, void, unknown>;
+  // save (autosave — one controller for the whole routine draft)
+  autosave: AutosaveController;
   saveConflict: boolean;
   reloadLatest: () => void;
 

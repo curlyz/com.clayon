@@ -1,8 +1,8 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
-import type { Db } from "@paperclipai/db";
-import { heartbeatRunEvents } from "@paperclipai/db";
-import type { HarnessRuntimeRequestKind } from "../../vendor/paperclip-runner/index.js";
+import type { Db } from "@clayon/db";
+import { heartbeatRunEvents } from "@clayon/db";
+import type { HarnessRuntimeRequestKind } from "../../vendor/clayon-runner/index.js";
 
 const TERMINAL_RUNTIME_REQUEST_EVENTS = [
   "runtime_request.resolved",

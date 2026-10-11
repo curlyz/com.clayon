@@ -2,7 +2,7 @@ import { readTaskQuestionContext } from "../issue-question-context.js";
 import { isConversation } from "../agent-conversations.js";
 import { and, desc, eq, isNull } from "drizzle-orm";
 
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents,
   documentRevisions,
@@ -11,20 +11,20 @@ import {
   issueComments,
   issueDocuments,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
-  PaperclipSemanticDispatcher,
-  type PaperclipJsonValue,
-  type PaperclipSemanticActionBinding,
-  type PaperclipSemanticActionId,
-  type PaperclipSemanticAuthorizationRecord,
-  type PaperclipSemanticRunContext,
-  type PaperclipSemanticToolCall,
-  type PaperclipSemanticToolDefinition,
-  type PaperclipSemanticToolResult,
-} from "../../vendor/paperclip-runner/index.js";
+  ClayonSemanticDispatcher,
+  type ClayonJsonValue,
+  type ClayonSemanticActionBinding,
+  type ClayonSemanticActionId,
+  type ClayonSemanticAuthorizationRecord,
+  type ClayonSemanticRunContext,
+  type ClayonSemanticToolCall,
+  type ClayonSemanticToolDefinition,
+  type ClayonSemanticToolResult,
+} from "../../vendor/clayon-runner/index.js";
 
-export interface PaperclipRunnerSemanticBinding {
+export interface ClayonRunnerSemanticBinding {
   readonly companyId: string;
   readonly issueId: string;
   readonly runId: string;
@@ -37,7 +37,7 @@ const READ_OPERATION_IDS = [
   "list_documents",
   "read_document",
   "list_document_revisions",
-] as const satisfies readonly PaperclipSemanticActionId[];
+] as const satisfies readonly ClayonSemanticActionId[];
 
 type BoundContext = {
   readonly run: typeof heartbeatRuns.$inferSelect;
@@ -58,8 +58,8 @@ function requiredString(value: unknown): string {
   return value;
 }
 
-function jsonValue(value: unknown): PaperclipJsonValue {
-  return JSON.parse(JSON.stringify(value)) as PaperclipJsonValue;
+function jsonValue(value: unknown): ClayonJsonValue {
+  return JSON.parse(JSON.stringify(value)) as ClayonJsonValue;
 }
 
 function activeAgentStatus(status: string): "active" | "inactive" {
@@ -73,15 +73,15 @@ function activeAgentStatus(status: string): "active" | "inactive" {
  * This first server slice binds only same-task read operations. A catalog
  * entry remains undiscoverable until a later PR adds its guarded binding.
  */
-export class PaperclipRunnerSemanticAuthority {
+export class ClayonRunnerSemanticAuthority {
   readonly #db: Db;
-  readonly #binding: PaperclipRunnerSemanticBinding;
-  readonly #dispatcher: PaperclipSemanticDispatcher;
+  readonly #binding: ClayonRunnerSemanticBinding;
+  readonly #dispatcher: ClayonSemanticDispatcher;
 
-  constructor(db: Db, binding: PaperclipRunnerSemanticBinding) {
+  constructor(db: Db, binding: ClayonRunnerSemanticBinding) {
     this.#db = db;
     this.#binding = structuredClone(binding);
-    this.#dispatcher = new PaperclipSemanticDispatcher({
+    this.#dispatcher = new ClayonSemanticDispatcher({
       contextProvider: (runId) => this.#context(runId),
       bindings: READ_OPERATION_IDS.map((operationId) =>
         this.#readBinding(operationId),
@@ -90,24 +90,24 @@ export class PaperclipRunnerSemanticAuthority {
   }
 
   listAlwaysAvailableTools(): Promise<
-    readonly PaperclipSemanticToolDefinition[]
+    readonly ClayonSemanticToolDefinition[]
   > {
     return this.#dispatcher.listAlwaysAvailableTools(this.#binding.runId);
   }
 
   dispatch(
-    call: Omit<PaperclipSemanticToolCall, "runId">,
-  ): Promise<PaperclipSemanticToolResult> {
+    call: Omit<ClayonSemanticToolCall, "runId">,
+  ): Promise<ClayonSemanticToolResult> {
     return this.#dispatcher.dispatch({ ...call, runId: this.#binding.runId });
   }
 
-  authorizationRecords(): readonly PaperclipSemanticAuthorizationRecord[] {
+  authorizationRecords(): readonly ClayonSemanticAuthorizationRecord[] {
     return this.#dispatcher.authorizationRecords();
   }
 
   #readBinding(
     operationId: (typeof READ_OPERATION_IDS)[number],
-  ): PaperclipSemanticActionBinding {
+  ): ClayonSemanticActionBinding {
     return {
       operationId,
       execute: async (invocation) => {
@@ -281,7 +281,7 @@ export class PaperclipRunnerSemanticAuthority {
     };
   }
 
-  async #context(requestedRunId: string): Promise<PaperclipSemanticRunContext> {
+  async #context(requestedRunId: string): Promise<ClayonSemanticRunContext> {
     if (requestedRunId !== this.#binding.runId) {
       throw new Error("paperclip_runner_semantic_run_mismatch");
     }
@@ -304,7 +304,7 @@ export class PaperclipRunnerSemanticAuthority {
         executionRunId: context.issue.executionRunId,
         status: context.issue.status,
         workMode: context.issue
-          .workMode as PaperclipSemanticRunContext["activeTask"]["workMode"],
+          .workMode as ClayonSemanticRunContext["activeTask"]["workMode"],
       },
       delegatedClaims: [],
     };

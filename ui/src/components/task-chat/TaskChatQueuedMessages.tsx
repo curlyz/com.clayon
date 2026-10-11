@@ -27,7 +27,7 @@ import {
 import type {
   IssueQueuedCommentEntry,
   IssueQueuedCommentQueue,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { cn } from "@/lib/utils";
 import { TaskChatComposerBar } from "./TaskChatComposerBar";
 import {

@@ -109,18 +109,18 @@ import {
   deriveTaskKey,
   type WakeupOptions,
   mergeCoalescedContextSnapshot,
-  PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY,
-  PAPERCLIP_HARNESS_CHECKOUT_KEY,
+  CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY,
+  CLAYON_HARNESS_CHECKOUT_KEY,
   attestReviewedExternalChatRun,
   resolveAcceptedPlanWakeRoutingDecision,
   clearInteractionContinuationWakeContext,
-  buildPaperclipWakePayload,
-  PAPERCLIP_WAKE_PAYLOAD_KEY,
+  buildClayonWakePayload,
+  CLAYON_WAKE_PAYLOAD_KEY,
   resolveRunScopedMentionedSkillKeys,
   resolveExecutionRunAdapterConfig,
   applyRunScopedMentionedSkillKeys,
   MANAGED_GITHUB_TOKEN_KEYS,
-  configuredPaperclipApiBaseUrl,
+  configuredClayonApiBaseUrl,
   createHeartbeatRunPreparation,
 } from "./heartbeat/run-preparation.js";
 export {
@@ -129,12 +129,12 @@ export {
   extractMentionedSkillIdsFromSources,
   applyRunScopedMentionedSkillKeys,
   revokeHeartbeatRunGatewayTokens,
-  buildPaperclipRuntimeMcpServers,
+  buildClayonRuntimeMcpServers,
   createManagedMcpRunConfig,
   mergeCoalescedContextSnapshot,
   resolveExternalChatWakeProvider,
   attestReviewedExternalChatRun,
-  buildPaperclipWakePayload,
+  buildClayonWakePayload,
 } from "./heartbeat/run-preparation.js";
 import {
   resolveNativeRecoveryExecutionWorkspaceBinding,
@@ -145,7 +145,7 @@ import {
   readConfigFingerprintFromSessionParams,
   readConfiguredModelFromAdapterConfig,
   resolveTaskSessionConfigFreshness,
-  stripPaperclipSessionMetadataFromSessionParams,
+  stripClayonSessionMetadataFromSessionParams,
   resolveRuntimeSessionParamsForWorkspace,
   buildRunWorkspaceHints,
   buildReferencedProjectRunObservability,
@@ -209,7 +209,7 @@ export {
   isTaskSessionCredentialCompatible,
   shouldResetTaskSessionForModelChange,
   stripConfiguredModelFromSessionParams,
-  stripPaperclipSessionMetadataFromSessionParams,
+  stripClayonSessionMetadataFromSessionParams,
   resolveTaskSessionConfigFreshness,
 } from "./heartbeat/workspaces.js";
 import {
@@ -221,8 +221,8 @@ export {
   boundHeartbeatRunEventPayloadForStorage,
   compactRunLogChunk,
 } from "./heartbeat/run-log.js";
-import { buildPaperclipTaskMarkdown } from "./heartbeat/task-markdown.js";
-export { buildPaperclipTaskMarkdown } from "./heartbeat/task-markdown.js";
+import { buildClayonTaskMarkdown } from "./heartbeat/task-markdown.js";
+export { buildClayonTaskMarkdown } from "./heartbeat/task-markdown.js";
 
 import { decisionModelService } from "./decision-models.js";
 import { TASK_QUESTION_GUIDANCE } from "./issue-question-context.js";
@@ -241,7 +241,7 @@ import {
 } from "./chat-completion-delivery.js";
 import { AgentDirectoryReuseInvalidatedError, isAgentDirectoryCopy } from "./agent-directory-working-copies.js";
 
-import type { PaperclipTurnContext } from "@paperclipai/adapter-utils/server-utils";
+import type { ClayonTurnContext } from "@clayon/adapter-utils/server-utils";
 
 import {
   NativeWorkspaceFinalizationBusyError,
@@ -260,7 +260,7 @@ import {
   prepareConversationTurn,
   settleConversationTurn,
 } from "./agent-conversations.js";
-import { withAdapterExecutionPhase } from "@paperclipai/adapter-utils/execution-phase";
+import { withAdapterExecutionPhase } from "@clayon/adapter-utils/execution-phase";
 import { getConversationConfirmationContext } from "./conversation-confirmation-context.js";
 import {
   recordNativeLocalProcessStop,
@@ -281,7 +281,7 @@ import {
   isAiConnectionBusy,
   AI_AUTH_ENV_KEYS,
 } from "./ai-connection-runtime.js";
-import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema, type AiConnectionRouterSelection } from "@paperclipai/shared";
+import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema, type AiConnectionRouterSelection } from "@clayon/shared";
 import { aiConnectionRouterService, AiConnectionPoolExhausted, applyAiConnectionRouterTaskSettings } from "./ai-connection-router.js";
 import { aiConnectionSessionCompatibilityInputs, managedAiSessionIdentityCompatible } from "./ai-connection-session.js";
 import {
@@ -302,7 +302,7 @@ import { executionFailureRetryCount } from "./execution-recovery-attempt.js";
 import { buildHeartbeatRunStatusLiveEventPayload } from "./heartbeat-run-status-payload.js";
 export { buildHeartbeatRunStatusLiveEventPayload } from "./heartbeat-run-status-payload.js";
 import { buildExecutionContinuation, StaleExecutionContinuationError } from "./execution-continuation.js";
-import { renderPaperclipWakePrompt } from "@paperclipai/adapter-utils/server-utils";
+import { renderClayonWakePrompt } from "@clayon/adapter-utils/server-utils";
 
 import {
   initializeRunIdentity,
@@ -314,8 +314,8 @@ import { prepareHeartbeatGitHubLaunchers } from "./heartbeat-github-launchers.js
 import {
   cleanupGitHubOperationLaunchers,
   prepareGitHubExecutionEnvironment,
-  startAdapterExecutionTargetPaperclipBridge,
-} from "@paperclipai/adapter-utils/execution-target";
+  startAdapterExecutionTargetClayonBridge,
+} from "@clayon/adapter-utils/execution-target";
 import { agentInstructionWorkingCopyService, collectStoppedInstructionCopyWithRetries, instructionWorkingCopyGuidance } from "./agent-instruction-working-copies.js";
 
 import fs from "node:fs/promises";
@@ -336,12 +336,12 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   CHAT_PROVIDERS,
   ISSUE_DISPOSITION_REPAIR_RETRY_REASON,
   isEnvironmentDriverSupportedForAdapter,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   agents,
   agentConfigRevisions,
@@ -354,7 +354,7 @@ import {
   nativeRunFinalizations,
   projects,
   projectWorkspaces,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { HttpError, notFound } from "../errors.js";
 
 import { logger } from "../middleware/logger.js";
@@ -393,7 +393,7 @@ import {
   parseNativeExecutionInput,
   type NativeExecutionInput,
   type NativeSessionBackend,
-} from "../vendor/paperclip-runner/index.js";
+} from "../vendor/clayon-runner/index.js";
 import { createNativeSessionHandoffLoader } from "./native-runtime/native-session-handoff.js";
 
 import { getRunLogStore, type RunLogHandle } from "./run-log-store.js";
@@ -426,7 +426,7 @@ import {
   nativeChatWorkspaceMatches,
 } from "./native-runtime/native-chat-workspace.js";
 import { shouldUseIsolatedTaskDirectory } from "./isolated-task-directory.js";
-import { trackAgentFirstHeartbeat } from "@paperclipai/shared/telemetry";
+import { trackAgentFirstHeartbeat } from "@clayon/shared/telemetry";
 import { getTelemetryClient } from "../telemetry.js";
 import {
   emitAgentTaskRun,
@@ -566,8 +566,8 @@ import {
 import { createRunSecretRedactionRegistry } from "./run-secret-redaction.js";
 
 import {
-  readPaperclipSkillSyncPreference,
-} from "@paperclipai/adapter-utils/server-utils";
+  readClayonSkillSyncPreference,
+} from "@clayon/adapter-utils/server-utils";
 
 import { environmentService } from "./environments.js";
 import { parseExecutionPolicyBootstrapEnv } from "./execution-policy-bootstrap.js";
@@ -598,7 +598,7 @@ import { computeTaskDrain, applyTaskDrain, startTaskDrain, stopTaskDrain, readTa
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 
 const ACCEPTED_PLAN_CONVERSION_SKILL_KEY =
-  "paperclipai/paperclip/paperclip-converting-plans-to-tasks";
+  "paperclipai/paperclip/clayon-converting-plans-to-tasks";
 
 const execFile = promisify(execFileCallback);
 const UNSUCCESSFUL_HEARTBEAT_RUN_TERMINAL_STATUSES = [
@@ -745,7 +745,7 @@ function parseIssueAssigneeAdapterOverrides(
 export function formatRuntimeWorkspaceWarningLog(warning: string) {
   return {
     stream: "stdout" as const,
-    chunk: `[paperclip] ${warning}\n`,
+    chunk: `[clayon] ${warning}\n`,
   };
 }
 
@@ -928,14 +928,14 @@ export function resolveHeartbeatSchedulingSuppression(
     "worktree_instance" | "database_restore_in_progress" | "task_drain" | null;
 } {
   if (
-    isTruthyRuntimeEnvValue(env.PAPERCLIP_IN_WORKTREE) &&
+    isTruthyRuntimeEnvValue(env.CLAYON_IN_WORKTREE) &&
     !overrides.allowWorktreeRunExecution
   ) {
     return { suppressed: true, reason: "worktree_instance" };
   }
   if (
-    isTruthyRuntimeEnvValue(env.PAPERCLIP_DATABASE_RESTORE_IN_PROGRESS) ||
-    isTruthyRuntimeEnvValue(env.PAPERCLIP_RESTORE_IN_PROGRESS)
+    isTruthyRuntimeEnvValue(env.CLAYON_DATABASE_RESTORE_IN_PROGRESS) ||
+    isTruthyRuntimeEnvValue(env.CLAYON_RESTORE_IN_PROGRESS)
   ) {
     return { suppressed: true, reason: "database_restore_in_progress" };
   }
@@ -991,7 +991,7 @@ export function heartbeatService(
   });
   const runtimeEnv = options.runtimeEnv ?? process.env;
   const inWorktreeRuntime = isTruthyRuntimeEnvValue(
-    runtimeEnv.PAPERCLIP_IN_WORKTREE,
+    runtimeEnv.CLAYON_IN_WORKTREE,
   );
   // Preview worktree instances suppress the run engine by default. Users can lift
   // that per-worktree via the `enableWorktreeRunExecution` experimental setting
@@ -1021,7 +1021,7 @@ export function heartbeatService(
     try {
       const activation = resolveWorktreeRunExecutionActivation(
         await instanceSettings.getExperimental(),
-        runtimeEnv.PAPERCLIP_INSTANCE_ID?.trim() || null,
+        runtimeEnv.CLAYON_INSTANCE_ID?.trim() || null,
       );
       const cutoff = activation.armed ? new Date(activation.cutoff) : null;
       cachedWorktreeRunExecutionOverride = {
@@ -1879,7 +1879,7 @@ export function heartbeatService(
         await dispatchNativeSessionResumptions({
           db,
           runnerInstanceId:
-            runtimeEnv.PAPERCLIP_INSTANCE_ID?.trim() || "paperclip-heartbeat",
+            runtimeEnv.CLAYON_INSTANCE_ID?.trim() || "clayon-heartbeat",
           runIds: [runId],
           dispatch: (claim) => {
             const execution = executeRun(claim.runId, {
@@ -2196,7 +2196,7 @@ export function heartbeatService(
       const isFailedChatRunRetry = await authorizeFailedChatRetryExecution();
       // Never adopt a chat-execution attestation supplied in a wake payload.
       // Reviewed chat turns rebuild it from the current durable owner below.
-      delete context[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY];
+      delete context[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY];
       delete context[EXTERNAL_CHAT_QUESTION_RESPONSE_KEY];
       const providerTraceRequested =
         parseObject(context.debug).providerTrace === "raw";
@@ -2271,7 +2271,7 @@ export function heartbeatService(
             [...resolvedInteractionCheckoutExpectedStatuses()],
             run.id,
           );
-          context[PAPERCLIP_HARNESS_CHECKOUT_KEY] = true;
+          context[CLAYON_HARNESS_CHECKOUT_KEY] = true;
         } catch (error) {
           if (!isCheckoutConflictError(error)) throw error;
           const staleness = await runDispatch.cancelStaleQueuedRun({
@@ -2308,10 +2308,10 @@ export function heartbeatService(
             ["todo", "backlog", "blocked"],
             run.id,
           );
-          context[PAPERCLIP_HARNESS_CHECKOUT_KEY] = true;
+          context[CLAYON_HARNESS_CHECKOUT_KEY] = true;
         } catch (error) {
           if (!isCheckoutConflictError(error)) throw error;
-          context[PAPERCLIP_HARNESS_CHECKOUT_KEY] = false;
+          context[CLAYON_HARNESS_CHECKOUT_KEY] = false;
         }
         issueContext = await getIssueExecutionContext(agent.companyId, issueId);
       }
@@ -2341,7 +2341,7 @@ export function heartbeatService(
         });
         if (!attested)
           throw new Error("reviewed_chat_execution_binding_not_authorized");
-        context[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] = true;
+        context[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] = true;
       }
       const wakeCommentId = deriveCommentId(context, null);
       const wakeCommentContext =
@@ -2611,7 +2611,7 @@ export function heartbeatService(
             await db.update(heartbeatRuns).set({ contextSnapshot: sql`coalesce(${heartbeatRuns.contextSnapshot}, '{}'::jsonb) || ${JSON.stringify({ aiRouterTaskKey: routerTaskKey })}::jsonb` }).where(and(eq(heartbeatRuns.id, run.id), eq(heartbeatRuns.companyId, agent.companyId)));
           }
           context.aiRouterTaskKey = routerTaskKey;
-          const savedIdentity = taskSession?.sessionParamsJson?.paperclipAiCredentialIdentity;
+          const savedIdentity = taskSession?.sessionParamsJson?.clayonAiCredentialIdentity;
           const selection = await aiConnectionRouterService(db, options.pluginWorkerManager).resolve({
             companyId: agent.companyId, poolId: requestedAiBinding.connectionId, agentId: agent.id,
             userId: responsibleUserId, adapterType: agent.adapterType, taskKey: String(context.aiRouterTaskKey),
@@ -2662,7 +2662,7 @@ export function heartbeatService(
         delete context.resumeSessionParams;
         delete context.resumeSessionDisplayId;
         delete context.executionContinuation;
-        delete context.paperclipContinuationSummary;
+        delete context.clayonContinuationSummary;
       }
       const taskSessionDecodedParams = normalizeSessionParams(
         sessionCodec.deserialize(taskSession?.sessionParamsJson ?? null),
@@ -2730,7 +2730,7 @@ export function heartbeatService(
         ? await issuesSvc.getAncestors(issueRef.id)
         : [];
       if (continuationSummary) {
-        context.paperclipContinuationSummary = {
+        context.clayonContinuationSummary = {
           key: safeContinuationSummary!.key,
           title: safeContinuationSummary!.title,
           body: safeContinuationSummary!.body,
@@ -2738,20 +2738,20 @@ export function heartbeatService(
           updatedAt: safeContinuationSummary!.updatedAt.toISOString(),
         };
       } else {
-        delete context.paperclipContinuationSummary;
+        delete context.clayonContinuationSummary;
       }
       const pinnedSkillTestContext =
         issueRef?.workMode === "skill_test"
           ? await getPinnedSkillTestContext(agent.companyId, issueRef.id)
           : null;
       if (pinnedSkillTestContext) {
-        context.paperclipSkillTest = {
+        context.clayonSkillTest = {
           ...pinnedSkillTestContext,
           directive:
             "Use this pinned file inventory as the exact skill revision under test, regardless of synced runtime skills.",
         };
       } else {
-        delete context.paperclipSkillTest;
+        delete context.clayonSkillTest;
       }
       const executionContinuation =
         issueRef && !isConversation(issueContext) && issueContext?.assigneeAgentId === agent.id
@@ -2768,7 +2768,7 @@ export function heartbeatService(
             })
           : null;
       context.executionContinuation = executionContinuation;
-      const paperclipWakePayload = await buildPaperclipWakePayload({
+      const clayonWakePayload = await buildClayonWakePayload({
         db,
         companyId: agent.companyId,
         agentId: agent.id,
@@ -2793,12 +2793,12 @@ export function heartbeatService(
           experimentalInstanceSettings.enableSimplifiedEnglishInteractions ===
           true,
       });
-      if (paperclipWakePayload) {
-        context[PAPERCLIP_WAKE_PAYLOAD_KEY] = paperclipWakePayload;
+      if (clayonWakePayload) {
+        context[CLAYON_WAKE_PAYLOAD_KEY] = clayonWakePayload;
       } else {
-        delete context[PAPERCLIP_WAKE_PAYLOAD_KEY];
+        delete context[CLAYON_WAKE_PAYLOAD_KEY];
       }
-      const safeWakeComments = (paperclipWakePayload?.comments ?? []).flatMap(
+      const safeWakeComments = (clayonWakePayload?.comments ?? []).flatMap(
         (comment) =>
           typeof comment.id === "string" && typeof comment.body === "string"
             ? [
@@ -2845,7 +2845,7 @@ export function heartbeatService(
       const liveVoiceGuidance = issueContext?.chatAssignedAgentId === agent.id && issueContext.chatProvider === "speko"
         ? await liveVoiceExecutionGuidance(db, { companyId: agent.companyId, issueId: issueContext.id, agentId: agent.id })
         : null;
-      context.paperclipTaskCommunicationGuidance =
+      context.clayonTaskCommunicationGuidance =
         issueContext?.chatAssignedAgentId === agent.id
           ? issueContext.chatCommunicationGuidance
           : null;
@@ -2867,8 +2867,8 @@ export function heartbeatService(
         ancestors: issueAncestors,
         wakeComment: safeWakeCommentContext,
         wakeComments: safeWakeComments,
-        attachmentOmissions: paperclipWakePayload?.attachmentOmissions,
-        externalChatProvider: paperclipWakePayload?.externalChatProvider,
+        attachmentOmissions: clayonWakePayload?.attachmentOmissions,
+        externalChatProvider: clayonWakePayload?.externalChatProvider,
         slackCommand: issueContext?.chatAssignedAgentId === agent.id
           ? issueContext.chatSlackCommand
           : null,
@@ -2877,10 +2877,10 @@ export function heartbeatService(
           kind: readNonEmptyString(context.interactionKind),
           status: readNonEmptyString(context.interactionStatus),
         },
-        planReview: paperclipWakePayload?.planReviewContext?.interaction
+        planReview: clayonWakePayload?.planReviewContext?.interaction
           ? {
-              status: paperclipWakePayload.planReviewContext.interaction.status,
-              reason: paperclipWakePayload.planReviewContext.interaction.result?.reason,
+              status: clayonWakePayload.planReviewContext.interaction.status,
+              reason: clayonWakePayload.planReviewContext.interaction.result?.reason,
             }
           : null,
         acceptedPlanContinuation:
@@ -2916,25 +2916,25 @@ export function heartbeatService(
       // Unlike the frozen initial communication preferences, live-call context
       // must also reach resumed turns. Rebuild it from server records each wake.
       const liveVoiceTaskPrefix = liveVoiceGuidance ? `${liveVoiceGuidance}\n\n` : "";
-      let taskMarkdown = liveVoiceTaskPrefix + buildPaperclipTaskMarkdown({ ...taskMarkdownInput, taskPlan }) + chatCompletionInstruction(context);
-      let taskMarkdownAssignment = liveVoiceTaskPrefix + buildPaperclipTaskMarkdown({
+      let taskMarkdown = liveVoiceTaskPrefix + buildClayonTaskMarkdown({ ...taskMarkdownInput, taskPlan }) + chatCompletionInstruction(context);
+      let taskMarkdownAssignment = liveVoiceTaskPrefix + buildClayonTaskMarkdown({
         ...taskMarkdownInput,
         taskPlan,
         includeWakeComments: false,
       }) + chatCompletionInstruction(context);
-      const taskMarkdownCompact = liveVoiceTaskPrefix + buildPaperclipTaskMarkdown({
+      const taskMarkdownCompact = liveVoiceTaskPrefix + buildClayonTaskMarkdown({
         ...taskMarkdownInput,
         taskPlan,
         includeDescription: false,
       }) + chatCompletionInstruction(context);
-      const taskMarkdownAssignmentCompact = liveVoiceTaskPrefix + buildPaperclipTaskMarkdown({
+      const taskMarkdownAssignmentCompact = liveVoiceTaskPrefix + buildClayonTaskMarkdown({
         ...taskMarkdownInput,
         taskPlan,
         includeDescription: false,
         includeWakeComments: false,
       }) + chatCompletionInstruction(context);
       if (issueRef) {
-        context.paperclipIssue = {
+        context.clayonIssue = {
           id: issueRef.id,
           identifier: issueRef.identifier,
           title: issueRef.title,
@@ -2942,66 +2942,66 @@ export function heartbeatService(
           workMode: issueRef.workMode,
         };
       } else {
-        delete context.paperclipIssue;
+        delete context.clayonIssue;
       }
       if (wakeCommentContext) {
-        context.paperclipWakeComment = safeWakeCommentContext;
+        context.clayonWakeComment = safeWakeCommentContext;
       } else {
-        delete context.paperclipWakeComment;
+        delete context.clayonWakeComment;
       }
       if (taskMarkdown) {
-        context.paperclipTaskMarkdown = taskMarkdown;
+        context.clayonTaskMarkdown = taskMarkdown;
       } else {
-        delete context.paperclipTaskMarkdown;
+        delete context.clayonTaskMarkdown;
       }
       if (taskMarkdownAssignment) {
-        context.paperclipTaskMarkdownAssignment = taskMarkdownAssignment;
+        context.clayonTaskMarkdownAssignment = taskMarkdownAssignment;
       } else {
-        delete context.paperclipTaskMarkdownAssignment;
+        delete context.clayonTaskMarkdownAssignment;
       }
       if (taskMarkdownCompact && taskMarkdownCompact !== taskMarkdown) {
-        context.paperclipTaskMarkdownCompact = taskMarkdownCompact;
+        context.clayonTaskMarkdownCompact = taskMarkdownCompact;
       } else {
-        delete context.paperclipTaskMarkdownCompact;
+        delete context.clayonTaskMarkdownCompact;
       }
       if (taskMarkdownAssignmentCompact && taskMarkdownAssignmentCompact !== taskMarkdownAssignment) {
-        context.paperclipTaskMarkdownAssignmentCompact = taskMarkdownAssignmentCompact;
+        context.clayonTaskMarkdownAssignmentCompact = taskMarkdownAssignmentCompact;
       } else {
-        delete context.paperclipTaskMarkdownAssignmentCompact;
+        delete context.clayonTaskMarkdownAssignmentCompact;
       }
       if (issueRef) {
         const redactedWakeContext = await createRunSecretRedactionRegistry(
           db,
         ).redactForIssue(agent.companyId, issueRef.id, {
-          paperclipIssue: context.paperclipIssue,
-          paperclipWakeComment: context.paperclipWakeComment,
-          paperclipTaskCommunicationGuidance: context.paperclipTaskCommunicationGuidance,
-          paperclipTaskMarkdown: context.paperclipTaskMarkdown,
-          paperclipTaskMarkdownCompact: context.paperclipTaskMarkdownCompact,
-          paperclipTaskMarkdownAssignment: context.paperclipTaskMarkdownAssignment,
-          paperclipTaskMarkdownAssignmentCompact: context.paperclipTaskMarkdownAssignmentCompact,
+          clayonIssue: context.clayonIssue,
+          clayonWakeComment: context.clayonWakeComment,
+          clayonTaskCommunicationGuidance: context.clayonTaskCommunicationGuidance,
+          clayonTaskMarkdown: context.clayonTaskMarkdown,
+          clayonTaskMarkdownCompact: context.clayonTaskMarkdownCompact,
+          clayonTaskMarkdownAssignment: context.clayonTaskMarkdownAssignment,
+          clayonTaskMarkdownAssignmentCompact: context.clayonTaskMarkdownAssignmentCompact,
         });
-        context.paperclipIssue = redactedWakeContext.paperclipIssue;
-        context.paperclipTaskCommunicationGuidance = redactedWakeContext.paperclipTaskCommunicationGuidance;
-        if (redactedWakeContext.paperclipWakeComment) {
-          context.paperclipWakeComment =
-            redactedWakeContext.paperclipWakeComment;
+        context.clayonIssue = redactedWakeContext.clayonIssue;
+        context.clayonTaskCommunicationGuidance = redactedWakeContext.clayonTaskCommunicationGuidance;
+        if (redactedWakeContext.clayonWakeComment) {
+          context.clayonWakeComment =
+            redactedWakeContext.clayonWakeComment;
         }
-        if (redactedWakeContext.paperclipTaskMarkdown) {
-          context.paperclipTaskMarkdown =
-            redactedWakeContext.paperclipTaskMarkdown;
+        if (redactedWakeContext.clayonTaskMarkdown) {
+          context.clayonTaskMarkdown =
+            redactedWakeContext.clayonTaskMarkdown;
         }
-        if (redactedWakeContext.paperclipTaskMarkdownCompact) {
-          context.paperclipTaskMarkdownCompact =
-            redactedWakeContext.paperclipTaskMarkdownCompact;
+        if (redactedWakeContext.clayonTaskMarkdownCompact) {
+          context.clayonTaskMarkdownCompact =
+            redactedWakeContext.clayonTaskMarkdownCompact;
         }
-        if (redactedWakeContext.paperclipTaskMarkdownAssignment) {
-          context.paperclipTaskMarkdownAssignment =
-            redactedWakeContext.paperclipTaskMarkdownAssignment;
+        if (redactedWakeContext.clayonTaskMarkdownAssignment) {
+          context.clayonTaskMarkdownAssignment =
+            redactedWakeContext.clayonTaskMarkdownAssignment;
         }
-        if (redactedWakeContext.paperclipTaskMarkdownAssignmentCompact) {
-          context.paperclipTaskMarkdownAssignmentCompact =
-            redactedWakeContext.paperclipTaskMarkdownAssignmentCompact;
+        if (redactedWakeContext.clayonTaskMarkdownAssignmentCompact) {
+          context.clayonTaskMarkdownAssignmentCompact =
+            redactedWakeContext.clayonTaskMarkdownAssignmentCompact;
         }
       }
       if (issueRef) {
@@ -3011,8 +3011,8 @@ export function heartbeatService(
                 .update(value.trim().replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ""))
                 .digest("hex")
             : null;
-        const redactedIssue = parseObject(context.paperclipIssue);
-        context.paperclipTurnContext = {
+        const redactedIssue = parseObject(context.clayonIssue);
+        context.clayonTurnContext = {
           version: 1,
           assignment: {
             owner: "task_markdown",
@@ -3028,9 +3028,9 @@ export function heartbeatService(
               revision: digest(comment.body),
             })),
           },
-        } satisfies PaperclipTurnContext;
+        } satisfies ClayonTurnContext;
       } else {
-        delete context.paperclipTurnContext;
+        delete context.clayonTurnContext;
       }
       // A native run's execution input is immutable once persisted. Recovery must therefore
       // restore the workspace bound to that input rather than consulting the issue's current
@@ -3136,10 +3136,10 @@ export function heartbeatService(
             bootstrap = parseExecutionPolicyBootstrapEnv(process.env);
             if (!bootstrap) {
               bootstrapSkipReason =
-                'PAPERCLIP_EXECUTION_MODE bootstrap env is not kubernetes-forced (absent or "any")';
+                'CLAYON_EXECUTION_MODE bootstrap env is not kubernetes-forced (absent or "any")';
             }
           } catch (err) {
-            bootstrapSkipReason = `PAPERCLIP_EXECUTION_MODE bootstrap env failed to parse: ${
+            bootstrapSkipReason = `CLAYON_EXECUTION_MODE bootstrap env failed to parse: ${
               err instanceof Error ? err.message : String(err)
             }`;
           }
@@ -3166,7 +3166,7 @@ export function heartbeatService(
           throw new Error(
             "Instance execution policy requires the Kubernetes sandbox provider " +
               "(executionMode=kubernetes) but no managed Kubernetes environment is " +
-              "configured for this company. Configure one (PAPERCLIP_K8S_* env on the " +
+              "configured for this company. Configure one (CLAYON_K8S_* env on the " +
               "cloud instance) before running agents; refusing to fall back to local execution.",
           );
         }
@@ -3286,22 +3286,22 @@ export function heartbeatService(
               ? `${existing}\n${concurrentWorkspaceNote}`
               : concurrentWorkspaceNote;
           };
-          context.paperclipTaskMarkdown = appendConcurrentWorkspaceNote(
-            context.paperclipTaskMarkdown,
+          context.clayonTaskMarkdown = appendConcurrentWorkspaceNote(
+            context.clayonTaskMarkdown,
           );
-          context.paperclipTaskMarkdownAssignment = appendConcurrentWorkspaceNote(
-            context.paperclipTaskMarkdownAssignment,
+          context.clayonTaskMarkdownAssignment = appendConcurrentWorkspaceNote(
+            context.clayonTaskMarkdownAssignment,
           );
-          if (typeof context.paperclipTaskMarkdownCompact === "string") {
-            context.paperclipTaskMarkdownCompact =
+          if (typeof context.clayonTaskMarkdownCompact === "string") {
+            context.clayonTaskMarkdownCompact =
               appendConcurrentWorkspaceNote(
-                context.paperclipTaskMarkdownCompact,
+                context.clayonTaskMarkdownCompact,
               );
           }
-          if (typeof context.paperclipTaskMarkdownAssignmentCompact === "string") {
-            context.paperclipTaskMarkdownAssignmentCompact =
+          if (typeof context.clayonTaskMarkdownAssignmentCompact === "string") {
+            context.clayonTaskMarkdownAssignmentCompact =
               appendConcurrentWorkspaceNote(
-                context.paperclipTaskMarkdownAssignmentCompact,
+                context.clayonTaskMarkdownAssignmentCompact,
               );
           }
           logger.info(
@@ -3450,17 +3450,17 @@ export function heartbeatService(
         await db.update(heartbeatRuns).set({ contextSnapshot: sql`coalesce(${heartbeatRuns.contextSnapshot}, '{}'::jsonb) || ${JSON.stringify({ aiConnection: context.aiConnection, ...(context.aiRouterTaskKey ? { aiRouterTaskKey: context.aiRouterTaskKey } : {}), ...(context.aiRouterSelection ? { aiRouterSelection: context.aiRouterSelection } : {}) })}::jsonb` }).where(eq(heartbeatRuns.id, run.id));
       }
       if (secretManifest.length > 0) {
-        context.paperclipSecrets = {
+        context.clayonSecrets = {
           manifest: secretManifest,
         };
       } else {
-        delete context.paperclipSecrets;
+        delete context.clayonSecrets;
       }
       const effectiveResolvedConfig = applyRunScopedMentionedSkillKeys(
         resolvedConfig,
         runScopedSkillKeys,
       );
-      const runtimeSkillPreference = readPaperclipSkillSyncPreference(
+      const runtimeSkillPreference = readClayonSkillSyncPreference(
         effectiveResolvedConfig,
       );
       const nativeRunnerPreparationSpans: NativeRunHistoricalSpan[] = [];
@@ -3499,10 +3499,10 @@ export function heartbeatService(
       const connectorAssignments = await resolveConnectorAssignments(db, { companyId: agent.companyId, agentId: agent.id, runId: run.id, issueId: typeof context.issueId === "string" ? context.issueId : undefined });
       const connectorSkillConfig = await applyConnectorSkills(effectiveResolvedConfig, runtimeSkillEntries, connectorAssignments);
       // Both CLI adapters and native context materialization use the same resolved set.
-      runtimeSkillEntries.splice(0, runtimeSkillEntries.length, ...connectorSkillConfig.paperclipRuntimeSkills);
+      runtimeSkillEntries.splice(0, runtimeSkillEntries.length, ...connectorSkillConfig.clayonRuntimeSkills);
       const connectorDelivery = await prepareConnectorSkillDelivery(connectorSkillConfig, agent.adapterType);
       // Always replace this runtime-only field; caller wake data cannot supply skills.
-      context.paperclipWake = { ...parseObject(context.paperclipWake), connectorSkillInstructions: connectorDelivery.instructions };
+      context.clayonWake = { ...parseObject(context.clayonWake), connectorSkillInstructions: connectorDelivery.instructions };
       let runtimeConfig = await prepareConnectionInstructionDelivery({
         resolve: () => resolveAssignedConnectionInstructionsForRun(db, { companyId: agent.companyId, agentId: agent.id, runId: run.id }),
         context, config: connectorDelivery.config, native: agent.adapterType === "paperclip_runner",
@@ -3511,7 +3511,7 @@ export function heartbeatService(
         ? await agentIdentityService(db).ensureAgentIdentity(agent.companyId, agent.id)
         : undefined;
       identityRedactor = createAgentIdentityRedactor(agentIdentity?.privateKeyPem);
-      if (agentIdentity) secretKeys.add("PAPERCLIP_AGENT_PRIVATE_KEY");
+      if (agentIdentity) secretKeys.add("CLAYON_AGENT_PRIVATE_KEY");
       const resolvedFailureSecrets = readFailureReportSecrets();
       readFailureReportSecrets = () => [
         ...resolvedFailureSecrets,
@@ -3600,7 +3600,7 @@ export function heartbeatService(
           agentConfigRevision: sessionConfigMetadataInput.agentConfigRevision,
           issueOverrides: issueAssigneeOverrides, originalIssueOverrides: originalAiIssueOverrides,
           binding: aiBinding, router: requestedAiBinding?.mode === "router",
-          storedIdentity: taskSession.sessionParamsJson?.paperclipAiCredentialIdentity,
+          storedIdentity: taskSession.sessionParamsJson?.clayonAiCredentialIdentity,
           sessionIdentity: managedAiRuntime.sessionIdentity, credentialIdentity: managedAiRuntime.identity, revisions,
         });
         compatibleConfigMetadata = await Promise.all(candidates.map(candidate => buildEffectiveRunSessionConfigMetadata({ ...sessionConfigMetadataInput, ...candidate })));
@@ -3643,7 +3643,7 @@ export function heartbeatService(
           : null) ??
         normalizeResumeParamsForAdapter(
           agent.adapterType,
-          stripPaperclipSessionMetadataFromSessionParams(
+          stripClayonSessionMetadataFromSessionParams(
             sessionCodec.deserialize(
               taskSessionForRun?.sessionParamsJson ?? null,
             ),
@@ -3653,7 +3653,7 @@ export function heartbeatService(
       // dispatch. Built-ins also load lazily if their resume attempt fails.
       if (agent.adapterType !== "paperclip_runner" && !previousSessionParams && getFreshSessionHandoff) {
         const handoff = await getFreshSessionHandoff();
-        if (handoff) context.paperclipFreshSessionHandoffMarkdown = handoff;
+        if (handoff) context.clayonFreshSessionHandoffMarkdown = handoff;
       }
       const {
         resolvedWorkspace,
@@ -3902,7 +3902,7 @@ export function heartbeatService(
               ...scratchEnv.env,
             },
           };
-          context.paperclipScratch = {
+          context.clayonScratch = {
             type: "heartbeat_run",
             dir: runScratch.dir,
             cleanupPolicy: "terminal_run",
@@ -3911,7 +3911,7 @@ export function heartbeatService(
           };
         } catch (scratchPrepareError) {
           runScratch = null;
-          delete context.paperclipScratch;
+          delete context.clayonScratch;
           logger.warn(
             {
               err: scratchPrepareError,
@@ -3923,7 +3923,7 @@ export function heartbeatService(
           );
         }
       } else {
-        delete context.paperclipScratch;
+        delete context.clayonScratch;
       }
       const gitExecutionEnv = await prepareGitHubExecutionEnvironment({
         target: executionTarget,
@@ -3938,7 +3938,7 @@ export function heartbeatService(
         // whether GitHub is configured or a credential can be acquired.
         networkAccess:
           trustPreset.kind === "standard" &&
-          process.env.PAPERCLIP_RUNNER_NETWORK_ACCESS !== "disabled",
+          process.env.CLAYON_RUNNER_NETWORK_ACCESS !== "disabled",
       });
       runtimeConfig = { ...runtimeConfig, env: gitExecutionEnv };
       for (const key of MANAGED_GITHUB_TOKEN_KEYS) secretKeys.add(key);
@@ -3952,7 +3952,7 @@ export function heartbeatService(
           target: executionTarget,
           cwd: executionWorkspace.cwd,
           env: gitExecutionEnv,
-          brokerUrl: configuredPaperclipApiBaseUrl() ?? "",
+          brokerUrl: configuredClayonApiBaseUrl() ?? "",
           createBrokerToken: () => createRuntimeToolsToken({
             agentId: agent.id,
             companyId: agent.companyId,
@@ -3963,9 +3963,9 @@ export function heartbeatService(
         });
         githubLauncherLocation = githubLaunchers.cleanupLocation;
         runtimeConfig = { ...runtimeConfig, env: githubLaunchers.env };
-        secretKeys.add("PAPERCLIP_GITHUB_BROKER_TOKEN");
+        secretKeys.add("CLAYON_GITHUB_BROKER_TOKEN");
       }
-      context.paperclipEnvironment = {
+      context.clayonEnvironment = {
         id: selectedEnvironment.id,
         name: selectedEnvironment.name,
         driver: selectedEnvironment.driver,
@@ -4029,7 +4029,7 @@ export function heartbeatService(
             ]
           : []),
       ];
-      context.paperclipWorkspace = {
+      context.clayonWorkspace = {
         cwd: executionWorkspace.cwd,
         source: executionWorkspace.source,
         mode: effectiveExecutionWorkspaceMode,
@@ -4047,7 +4047,7 @@ export function heartbeatService(
           return home;
         })(),
       };
-      context.paperclipWorkspaces = buildRunWorkspaceHints(resolvedWorkspace);
+      context.clayonWorkspaces = buildRunWorkspaceHints(resolvedWorkspace);
       // Emit exactly one requested-vs-synced observability line for the referenced-project set. A run
       // with no referenced project stays silent, so this adds no noise to the anchor-only default. The
       // per-drop human warning already rides `runtimeWorkspaceWarnings`; this line carries the counts
@@ -4075,9 +4075,9 @@ export function heartbeatService(
       // a one-time "stay on this branch" hint on non-resumed sessions.
       if (executionWorkspace.branchName) {
         const wakePayloadForWorkspace = parseObject(
-          context[PAPERCLIP_WAKE_PAYLOAD_KEY],
+          context[CLAYON_WAKE_PAYLOAD_KEY],
         );
-        context[PAPERCLIP_WAKE_PAYLOAD_KEY] = {
+        context[CLAYON_WAKE_PAYLOAD_KEY] = {
           ...wakePayloadForWorkspace,
           executionWorkspace: { branchName: executionWorkspace.branchName },
         };
@@ -4098,9 +4098,9 @@ export function heartbeatService(
         runtimeServiceCount: runtimeServiceIntents.length,
       });
       if (runtimeServiceIntents.length > 0) {
-        context.paperclipRuntimeServiceIntents = runtimeServiceIntents;
+        context.clayonRuntimeServiceIntents = runtimeServiceIntents;
       } else {
-        delete context.paperclipRuntimeServiceIntents;
+        delete context.clayonRuntimeServiceIntents;
       }
       if (
         executionWorkspace.projectId &&
@@ -4141,7 +4141,7 @@ export function heartbeatService(
         readNonEmptyString(runtimeSessionParams?.sessionId) ??
         runtimeSessionFallback;
       let runtimeSessionParamsForAdapter = normalizeSessionParams(
-        stripPaperclipSessionMetadataFromSessionParams(runtimeSessionParams),
+        stripClayonSessionMetadataFromSessionParams(runtimeSessionParams),
       );
 
       const sessionCompaction = await evaluateSessionCompaction({
@@ -4151,10 +4151,10 @@ export function heartbeatService(
         continuationSummaryBody: continuationSummary?.body ?? null,
       });
       if (sessionCompaction.rotate) {
-        context.paperclipSessionHandoffMarkdown =
+        context.clayonSessionHandoffMarkdown =
           sessionCompaction.handoffMarkdown;
-        context.paperclipSessionRotationReason = sessionCompaction.reason;
-        context.paperclipPreviousSessionId =
+        context.clayonSessionRotationReason = sessionCompaction.reason;
+        context.clayonPreviousSessionId =
           previousSessionDisplayId ?? runtimeSessionIdForAdapter;
         runtimeSessionIdForAdapter = null;
         runtimeSessionParamsForAdapter = null;
@@ -4165,13 +4165,13 @@ export function heartbeatService(
           );
         }
       } else {
-        delete context.paperclipSessionHandoffMarkdown;
-        delete context.paperclipSessionRotationReason;
-        delete context.paperclipPreviousSessionId;
+        delete context.clayonSessionHandoffMarkdown;
+        delete context.clayonSessionRotationReason;
+        delete context.clayonPreviousSessionId;
       }
 
       const taskSessionCredentialCompatible = !managedAiRuntime || managedAiSessionIdentityCompatible(
-        taskSession?.sessionParamsJson?.paperclipAiCredentialIdentity,
+        taskSession?.sessionParamsJson?.clayonAiCredentialIdentity,
         managedAiRuntime.sessionIdentity,
         managedAiRuntime.identity,
       );
@@ -4456,7 +4456,7 @@ export function heartbeatService(
         if (runScopedMentionedSkillKeys.length > 0) {
           await onLog(
             "stdout",
-            `[paperclip] Enabled run-scoped skills from issue mentions: ${runScopedMentionedSkillKeys.join(", ")}\n`,
+            `[clayon] Enabled run-scoped skills from issue mentions: ${runScopedMentionedSkillKeys.join(", ")}\n`,
           );
         }
         for (const warning of runtimeWorkspaceWarnings) {
@@ -4507,8 +4507,8 @@ export function heartbeatService(
           recorder: workspaceOperationRecorder,
         });
         if (runtimeServices.length > 0) {
-          context.paperclipRuntimeServices = runtimeServices;
-          context.paperclipRuntimePrimaryUrl =
+          context.clayonRuntimeServices = runtimeServices;
+          context.clayonRuntimePrimaryUrl =
             runtimeServices.find((service) => readNonEmptyString(service.url))
               ?.url ?? null;
           await db
@@ -4536,7 +4536,7 @@ export function heartbeatService(
           } catch (err) {
             await onLog(
               "stderr",
-              `[paperclip] Failed to post workspace-ready comment: ${err instanceof Error ? err.message : String(err)}\n`,
+              `[clayon] Failed to post workspace-ready comment: ${err instanceof Error ? err.message : String(err)}\n`,
             );
           }
         }
@@ -4680,7 +4680,7 @@ export function heartbeatService(
               message: "Persistent instruction editing is unavailable. Use an authenticated user with instruction edit access and a managed instruction bundle.",
               payload: { state: "unavailable", code: "INSTRUCTION_COPY_UNAVAILABLE" } });
             const guidance = "No editable agent instruction working copy is registered for this turn. Use authenticated agent file tools for persistent edits; do not edit a private copy named in an earlier turn or claim its changes will persist.";
-            for (const key of ["paperclipTaskMarkdown", "paperclipTaskMarkdownCompact"]) {
+            for (const key of ["clayonTaskMarkdown", "clayonTaskMarkdownCompact"]) {
               context[key] = [readNonEmptyString(context[key]), guidance].filter(Boolean).join("\n\n");
             }
           }
@@ -4696,15 +4696,15 @@ export function heartbeatService(
             }
             runtimeConfig = { ...runtimeConfig, instructionsFilePath: path.join(instructionCopy.localRoot, instructionCopy.entryFile) };
             if (isAgentDirectoryCopy(instructionCopy)) {
-              const workspace = parseObject(context.paperclipWorkspace);
-              context.paperclipWorkspace = { ...workspace, agentHome: instructionCopy.executionRoot,
+              const workspace = parseObject(context.clayonWorkspace);
+              context.clayonWorkspace = { ...workspace, agentHome: instructionCopy.executionRoot,
                 // Keep the pre-existing permission root stable for ACP session
                 // identity. The per-run copy is already under the company root.
                 agentHomeForPermissions: workspace.agentHome,
               };
             }
             const guidance = instructionWorkingCopyGuidance(instructionCopy);
-            for (const key of ["paperclipTaskMarkdown", "paperclipTaskMarkdownCompact"]) {
+            for (const key of ["clayonTaskMarkdown", "clayonTaskMarkdownCompact"]) {
               context[key] = [readNonEmptyString(context[key]), guidance].filter(Boolean).join("\n\n");
             }
           }
@@ -4720,7 +4720,7 @@ export function heartbeatService(
             executionContinuation,
             safeWakeComments,
             safeWakeCommentContext,
-            paperclipWakePayload,
+            clayonWakePayload,
             acceptedPlanContinuationWake,
           },
           session: {
@@ -4926,8 +4926,8 @@ export function heartbeatService(
             ...runtimeServices,
             ...adapterManagedRuntimeServices,
           ];
-          context.paperclipRuntimeServices = combinedRuntimeServices;
-          context.paperclipRuntimePrimaryUrl =
+          context.clayonRuntimeServices = combinedRuntimeServices;
+          context.clayonRuntimePrimaryUrl =
             combinedRuntimeServices.find((service) =>
               readNonEmptyString(service.url),
             )?.url ?? null;
@@ -4951,7 +4951,7 @@ export function heartbeatService(
             } catch (err) {
               await onLog(
                 "stderr",
-                `[paperclip] Failed to post adapter-managed runtime comment: ${err instanceof Error ? err.message : String(err)}\n`,
+                `[clayon] Failed to post adapter-managed runtime comment: ${err instanceof Error ? err.message : String(err)}\n`,
               );
             }
           }

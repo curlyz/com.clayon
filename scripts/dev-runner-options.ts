@@ -1,9 +1,9 @@
 import path from "node:path";
 import {
-  DEFAULT_PAPERCLIP_INSTANCE_ID,
+  DEFAULT_CLAYON_INSTANCE_ID,
   expandHomePrefix,
-  resolvePaperclipConfigPathForInstance,
-  resolvePaperclipInstanceId,
+  resolveClayonConfigPathForInstance,
+  resolveClayonInstanceId,
 } from "../packages/shared/src/home-paths.ts";
 
 export interface AppliedDevRunnerOptions {
@@ -52,22 +52,22 @@ export function applyDevRunnerOptions(
   }
 
   const dataDir = path.resolve(cwd, expandHomePrefix(dataDirRaw));
-  const hasExplicitConfig = Boolean(env.PAPERCLIP_CONFIG?.trim());
-  const hasExplicitContext = Boolean(env.PAPERCLIP_CONTEXT?.trim());
+  const hasExplicitConfig = Boolean(env.CLAYON_CONFIG?.trim());
+  const hasExplicitContext = Boolean(env.CLAYON_CONTEXT?.trim());
 
-  env.PAPERCLIP_HOME = dataDir;
+  env.CLAYON_HOME = dataDir;
   if (!hasExplicitConfig) {
-    const instanceId = resolvePaperclipInstanceId(
-      env.PAPERCLIP_INSTANCE_ID ?? DEFAULT_PAPERCLIP_INSTANCE_ID,
+    const instanceId = resolveClayonInstanceId(
+      env.CLAYON_INSTANCE_ID ?? DEFAULT_CLAYON_INSTANCE_ID,
     );
-    env.PAPERCLIP_INSTANCE_ID = instanceId;
-    env.PAPERCLIP_CONFIG = resolvePaperclipConfigPathForInstance({
+    env.CLAYON_INSTANCE_ID = instanceId;
+    env.CLAYON_CONFIG = resolveClayonConfigPathForInstance({
       homeDir: dataDir,
       instanceId,
     });
   }
   if (!hasExplicitContext) {
-    env.PAPERCLIP_CONTEXT = path.resolve(dataDir, "context.json");
+    env.CLAYON_CONTEXT = path.resolve(dataDir, "context.json");
   }
 
   return { forwardedArgs, dataDir };

@@ -31,7 +31,7 @@ import {
   toolGatewaySessions,
   toolInvocations,
   toolPolicies,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type { PluginToolDispatcher } from "../services/plugin-tool-dispatcher.js";
 import type { VercelConnectClient } from "../services/vercel-connect.js";
 import { initializeRunIdentity, reserveSteeredIdentity, reconcileSteeredIdentity } from "../services/run-identity.js";
@@ -174,7 +174,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-tool-gateway-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-tool-gateway-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -407,7 +407,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
     expect(wakeup.mock.calls[0][1].payload.toolAction).toMatchObject({ executionStatus: "executed", resultSummary: expect.stringContaining("bodyLength"), instructions: expect.stringContaining("Do not call it again") });
     expect((await db.select().from(toolActionDeliveries))[0].deliveredAt).not.toBeNull();
     expect((await db.select().from(toolActionRequests))[0].decidedByUserId).toBe("reviewer");
-    const message = wakeup.mock.calls[0][1].payload.paperclipAgentMessage;
+    const message = wakeup.mock.calls[0][1].payload.clayonAgentMessage;
     expect(message.text).toContain("Do not call it again");
     expect(message.text).not.toContain("bodyLength");
     expect(message.untrustedToolResults).toMatchObject([{ actionRequestId: request.id, resultSummary: expect.stringContaining("bodyLength") }]);
@@ -490,7 +490,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
     expect(payload.toolActions.length).toBeLessThanOrEqual(8);
     expect(payload.interactionIds.length).toBe(payload.toolActions.length);
     expect(payload.toolActionOutcomeCount).toBe(12);
-    expect(payload.paperclipAgentMessage.text).toContain(payload.toolActionResultsUrl);
+    expect(payload.clayonAgentMessage.text).toContain(payload.toolActionResultsUrl);
     expect((await db.select().from(toolActionDeliveries)).every(row => row.deliveredAt)).toBe(true);
     // The reference retains all outcomes and their full notes, not just snippets.
     expect((await db.select().from(issueThreadInteractions)).every(row => JSON.stringify(row.result).length > 12_000)).toBe(true);
@@ -939,7 +939,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
   });
 
   it("does not leave unsigned action requests pending when signing is unavailable", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_ACTION_SIGNING_SECRET", "");
     const { company, agent, run } = await createRunFixture(db);
     await db.insert(toolPolicies).values({
       companyId: company.id,
@@ -1502,7 +1502,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
       externalCredential: {
         provider: "vercel_connect",
         connectorId: "scl_posthog",
-        connectorUid: "posthog-paperclip",
+        connectorUid: "posthog-clayon",
         service: "posthog",
         connectorType: "api-key",
         principalMode: "app",
@@ -1528,7 +1528,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
       token: options?.forceRefresh ? "fresh-provider-bearer" : "stale-provider-bearer",
       tokenId: options?.forceRefresh ? "stk_fresh" : "stk_stale",
       expiresAt: Date.now() + 60_000,
-      connector: { id: "scl_posthog", uid: "posthog-paperclip", type: "api-key" },
+      connector: { id: "scl_posthog", uid: "posthog-clayon", type: "api-key" },
     }));
     const evict = vi.fn<VercelConnectClient["evict"]>();
     const vercelConnectClient: VercelConnectClient = {

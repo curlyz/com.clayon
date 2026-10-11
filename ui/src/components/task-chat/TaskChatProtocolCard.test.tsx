@@ -12,7 +12,7 @@ import type {
   TaskChatProviderActivityFamily,
   TaskChatRuntimeRequestDecision,
 } from "./task-chat-model";
-import type { HeartbeatRunEvent, IssueWorkProduct } from "@paperclipai/shared";
+import type { HeartbeatRunEvent, IssueWorkProduct } from "@clayon/shared";
 import { nativeRunEventsToTranscript } from "../transcript/native-run-events";
 import { transcriptToTaskChatItems } from "./transcript-adapter";
 import { IssueGalleryContext } from "@/context/IssueGalleryContext";
@@ -160,7 +160,7 @@ describe("TaskChatProtocolCard", () => {
   it("shows pending artifacts with a dashed Pending chip", () => {
     const product = workProduct({
       type: "artifact",
-      provider: "paperclip",
+      provider: "clayon",
       url: "/api/attachments/attachment-1/content",
       status: "pending",
       title: "demo.png",
@@ -331,7 +331,7 @@ describe("TaskChatProtocolCard", () => {
   it("shows an unhealthy active runtime as unhealthy", () => {
     const product = workProduct({
       type: "runtime_service",
-      provider: "paperclip",
+      provider: "clayon",
       status: "active",
       healthStatus: "unhealthy",
       title: "Storybook",
@@ -355,7 +355,7 @@ describe("TaskChatProtocolCard", () => {
   it("does not show running for an active runtime with unknown health", () => {
     const product = workProduct({
       type: "runtime_service",
-      provider: "paperclip",
+      provider: "clayon",
       status: "active",
       healthStatus: "unknown",
       title: "Storybook",
@@ -379,7 +379,7 @@ describe("TaskChatProtocolCard", () => {
   it("shows an unhealthy runtime with a non-standard open status as unhealthy", () => {
     const product = workProduct({
       type: "runtime_service",
-      provider: "paperclip",
+      provider: "clayon",
       status: "open",
       healthStatus: "unhealthy",
       title: "Storybook",
@@ -403,7 +403,7 @@ describe("TaskChatProtocolCard", () => {
   it("shows a closed runtime as stopped even when its last health check failed", () => {
     const product = workProduct({
       type: "runtime_service",
-      provider: "paperclip",
+      provider: "clayon",
       status: "closed",
       healthStatus: "unhealthy",
       title: "Storybook",
@@ -695,7 +695,7 @@ describe("TaskChatProtocolCard", () => {
     expect(context?.textContent).toContain("https://provider.invalid/track.png");
     expect(context?.querySelector("img, video, audio, iframe, object, embed, image, link")).toBeNull();
     expect(context?.querySelector('.language-mermaid')?.textContent).toContain('https://provider.invalid/diagram.png');
-    expect(context?.querySelector('.paperclip-mermaid')).toBeNull();
+    expect(context?.querySelector('.clayon-mermaid')).toBeNull();
   });
 
   it("submits the canonical response from a v2 harness question set", async () => {

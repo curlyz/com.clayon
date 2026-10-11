@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readPaperclipSkillSyncPreference, writePaperclipSkillSyncPreference } from "@paperclipai/adapter-utils/server-utils";
+import { readClayonSkillSyncPreference, writeClayonSkillSyncPreference } from "@clayon/adapter-utils/server-utils";
 import { and, desc, eq, ne } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { activityLog, agents, builtInManagedResources, companies, issueThreadInteractions, issues, routines, routineTriggers } from "@paperclipai/db";
-import { syncRoutineVariablesWithTemplate } from "@paperclipai/shared";
-import type { Agent, Approval, CompanySkill, PermissionKey, Routine, RoutineTrigger, RoutineVariable } from "@paperclipai/shared";
+import type { Db } from "@clayon/db";
+import { activityLog, agents, builtInManagedResources, companies, issueThreadInteractions, issues, routines, routineTriggers } from "@clayon/db";
+import { syncRoutineVariablesWithTemplate } from "@clayon/shared";
+import type { Agent, Approval, CompanySkill, PermissionKey, Routine, RoutineTrigger, RoutineVariable } from "@clayon/shared";
 import { conflict, HttpError, notFound, unprocessable } from "../errors.js";
 import { logActivity } from "./activity-log.js";
 import { adoptAgentFiles, agentFilePath, fileHash, readAgentFile, snapshotAgentFiles } from "./agent-file-store.js";
@@ -158,9 +158,9 @@ const SOURCE_BUILT_INS_DIR = path.resolve(moduleDir, "../../src/built-ins/agents
 const FALLBACK_REFLECTION_COACH_INSTRUCTIONS = [
   "# Reflection Coach",
   "",
-  "You are Paperclip's built-in Reflection Coach.",
+  "You are Clayon's built-in Reflection Coach.",
   "Review recent agent execution records, identify evidence-backed improvement patterns, and propose the smallest durable instruction, skill, or tool-description change.",
-  "Do not apply changes in the same run. Present a reviewable diff and wait for the required Paperclip issue-thread approval before any follow-up applies it.",
+  "Do not apply changes in the same run. Present a reviewable diff and wait for the required Clayon issue-thread approval before any follow-up applies it.",
   "",
 ].join("\n");
 
@@ -175,7 +175,7 @@ const FALLBACK_REFLECTION_COACH_SKILL = [
   "---",
   "name: reflection-coach",
   "description: Reflect on another agent's recent execution record and propose the smallest review-gated improvement.",
-  "key: paperclipai/bundled/paperclip-operations/reflection-coach",
+  "key: clayon/bundled/clayon-operations/reflection-coach",
   "---",
   "",
   "# Reflection Coach",
@@ -185,9 +185,9 @@ const FALLBACK_REFLECTION_COACH_SKILL = [
 ].join("\n");
 
 const FALLBACK_SUMMARIZER_INSTRUCTIONS = [
-  "You are Summarizer, a built-in reporting agent at Paperclip.",
+  "You are Summarizer, a built-in reporting agent at Clayon.",
   "",
-  "Turn the current state of a Paperclip scope (project, workspaces overview, project workspace, or execution workspace) into a short, honest, human-readable Markdown summary and write it back to that scope's summary slot as a new revision. Use the `summarize-status` skill as your operating procedure.",
+  "Turn the current state of a Clayon scope (project, workspaces overview, project workspace, or execution workspace) into a short, honest, human-readable Markdown summary and write it back to that scope's summary slot as a new revision. Use the `summarize-status` skill as your operating procedure.",
   "",
   "Read-and-report only: never change issues, workspaces, or code. Cite issue identifiers, never fabricate status, keep every read company-scoped, and run on the low-cost model profile lane by default.",
   "",
@@ -203,13 +203,13 @@ const FALLBACK_SUMMARIZER_ROUTINE = [
 const FALLBACK_SUMMARIZER_SKILL = [
   "---",
   "name: summarize-status",
-  "description: Write a short, colloquial summary for a Paperclip summary slot: open with the 1–3 specific, concrete actions the reader needs to take right now to unblock the work, then a brief plain-language status, streaming progress as it works.",
-  "key: paperclipai/bundled/paperclip-operations/summarize-status",
+  "description: Write a short, colloquial summary for a Clayon summary slot: open with the 1–3 specific, concrete actions the reader needs to take right now to unblock the work, then a brief plain-language status, streaming progress as it works.",
+  "key: clayon/bundled/clayon-operations/summarize-status",
   "---",
   "",
   "# Summarize status",
   "",
-  "Turn a Paperclip scope's current state into a short, colloquial Markdown summary and write it back to the scope's summary slot. Open with the 1–3 specific, concrete, actionable items the reader should do right now to unblock the work — each saying what to do and why it's the thing holding up progress, with an inline link — then a brief plain-prose status of where things stand, written for a reader who has not memorized issue ids or threads. Read whatever issues you need to understand the state, then focus on what's most important; never a task list or a dump of issue links. If genuinely nothing needs the reader, say so plainly in one line and name the next thing worth watching. Post the first `STATUS:` line immediately from the first task in context, keep streaming `STATUS:` lines while working, and emit the final Markdown between the summary-draft sentinels before the slot write. Read-and-report only; never fabricate status.",
+  "Turn a Clayon scope's current state into a short, colloquial Markdown summary and write it back to the scope's summary slot. Open with the 1–3 specific, concrete, actionable items the reader should do right now to unblock the work — each saying what to do and why it's the thing holding up progress, with an inline link — then a brief plain-prose status of where things stand, written for a reader who has not memorized issue ids or threads. Read whatever issues you need to understand the state, then focus on what's most important; never a task list or a dump of issue links. If genuinely nothing needs the reader, say so plainly in one line and name the next thing worth watching. Post the first `STATUS:` line immediately from the first task in context, keep streaming `STATUS:` lines while working, and emit the final Markdown between the summary-draft sentinels before the slot write. Read-and-report only; never fabricate status.",
   "",
 ].join("\n");
 
@@ -241,7 +241,7 @@ export function readBuiltInTextWithFallback(
         if (!warnedBuiltInTextReadErrors.has(warningKey)) {
           warnedBuiltInTextReadErrors.add(warningKey);
           console.warn(
-            "[paperclip] Built-in agent asset " + label + " read error on " + candidatePath + ": " + codeLabel,
+            "[clayon] Built-in agent asset " + label + " read error on " + candidatePath + ": " + codeLabel,
           );
         }
       }
@@ -252,7 +252,7 @@ export function readBuiltInTextWithFallback(
   if (!warnedBuiltInTextFallbacks.has(label)) {
     warnedBuiltInTextFallbacks.add(label);
     console.warn(
-      `[paperclip] Built-in agent asset ${label} was not readable; using bundled fallback text. `
+      `[clayon] Built-in agent asset ${label} was not readable; using bundled fallback text. `
       + `Checked: ${attemptedPaths.join(", ")}`,
     );
   }
@@ -267,7 +267,7 @@ function readBuiltInText(relativePath: string, fallbackText: string) {
   );
 }
 
-const skillsCatalogRoot = resolvePackageRoot("@paperclipai/skills-catalog");
+const skillsCatalogRoot = resolvePackageRoot("@clayon/skills-catalog");
 const REFLECTION_COACH_INSTRUCTIONS = readBuiltInText("reflection-coach/AGENTS.md", FALLBACK_REFLECTION_COACH_INSTRUCTIONS);
 const REFLECTION_COACH_ROUTINE = readBuiltInText(
   "reflection-coach/routines/recent-agent-reflection.md",
@@ -278,10 +278,10 @@ const REFLECTION_COACH_SKILL = readBuiltInTextWithFallback(
   [
     path.resolve(
       moduleDir,
-      "../../../packages/skills-catalog/catalog/bundled/paperclip-operations/reflection-coach/SKILL.md",
+      "../../../packages/skills-catalog/catalog/bundled/clayon-operations/reflection-coach/SKILL.md",
     ),
     ...(skillsCatalogRoot
-      ? [path.join(skillsCatalogRoot, "catalog/bundled/paperclip-operations/reflection-coach/SKILL.md")]
+      ? [path.join(skillsCatalogRoot, "catalog/bundled/clayon-operations/reflection-coach/SKILL.md")]
       : []),
   ],
   FALLBACK_REFLECTION_COACH_SKILL,
@@ -297,10 +297,10 @@ const SUMMARIZER_SKILL = readBuiltInTextWithFallback(
   [
     path.resolve(
       moduleDir,
-      "../../../packages/skills-catalog/catalog/bundled/paperclip-operations/summarize-status/SKILL.md",
+      "../../../packages/skills-catalog/catalog/bundled/clayon-operations/summarize-status/SKILL.md",
     ),
     ...(skillsCatalogRoot
-      ? [path.join(skillsCatalogRoot, "catalog/bundled/paperclip-operations/summarize-status/SKILL.md")]
+      ? [path.join(skillsCatalogRoot, "catalog/bundled/clayon-operations/summarize-status/SKILL.md")]
       : []),
   ],
   FALLBACK_SUMMARIZER_SKILL,
@@ -313,7 +313,7 @@ const DEFINITIONS = validateBuiltInAgentDefinitions([
     featureKeys: ["briefs"],
     shortPurpose: "Prepares concise operational briefs for the board and agent company.",
     defaultInstructions:
-      "You are Paperclip's built-in Briefs agent. Produce concise, sourced operational briefs that help the board understand current company work, risks, and next actions.",
+      "You are Clayon's built-in Briefs agent. Produce concise, sourced operational briefs that help the board understand current company work, risks, and next actions.",
     defaultRole: "general",
     allowedAdapterTypes: ["codex_local", "claude_local", "gemini_local", "opencode_local", "process"],
     defaultBudgetMonthlyCents: 0,
@@ -324,7 +324,7 @@ const DEFINITIONS = validateBuiltInAgentDefinitions([
     featureKeys: ["learning"],
     shortPurpose: "Maintains reusable company learning from completed work and recurring patterns.",
     defaultInstructions:
-      "You are Paperclip's built-in Learning agent. Extract durable lessons from completed work, preserve useful patterns, and keep learning artifacts grounded in source context.",
+      "You are Clayon's built-in Learning agent. Extract durable lessons from completed work, preserve useful patterns, and keep learning artifacts grounded in source context.",
     defaultRole: "general",
     allowedAdapterTypes: ["codex_local", "claude_local", "gemini_local", "opencode_local", "process"],
     defaultBudgetMonthlyCents: 0,
@@ -364,7 +364,7 @@ const DEFINITIONS = validateBuiltInAgentDefinitions([
         skillKey: "reflection-coach",
         displayName: "Reflection Coach",
         slug: "reflection-coach",
-        canonicalKey: "paperclipai/bundled/paperclip-operations/reflection-coach",
+        canonicalKey: "clayon/bundled/clayon-operations/reflection-coach",
         files: {
           "reflection-coach/SKILL.md": REFLECTION_COACH_SKILL,
         },
@@ -436,7 +436,7 @@ const DEFINITIONS = validateBuiltInAgentDefinitions([
         skillKey: "summarize-status",
         displayName: "Summarize status",
         slug: "summarize-status",
-        canonicalKey: "paperclipai/bundled/paperclip-operations/summarize-status",
+        canonicalKey: "clayon/bundled/clayon-operations/summarize-status",
         files: {
           "summarize-status/SKILL.md": SUMMARIZER_SKILL,
         },
@@ -1189,12 +1189,12 @@ export function builtInAgentService(db: Db) {
   }
 
   async function syncBundledSkillToAgent(agent: Agent, skill: CompanySkill) {
-    const desired = readPaperclipSkillSyncPreference(agent.adapterConfig as Record<string, unknown>).desiredSkillEntries;
+    const desired = readClayonSkillSyncPreference(agent.adapterConfig as Record<string, unknown>).desiredSkillEntries;
     const nextDesired = [
       ...desired.filter((entry) => entry.key !== skill.key),
       { key: skill.key, versionId: skill.currentVersionId ?? null },
     ];
-    const adapterConfig = writePaperclipSkillSyncPreference(agent.adapterConfig as Record<string, unknown>, nextDesired);
+    const adapterConfig = writeClayonSkillSyncPreference(agent.adapterConfig as Record<string, unknown>, nextDesired);
     const updated = await agentSvc.update(agent.id, { adapterConfig }, {
       allowBuiltInAgentMetadata: true,
       recordRevision: { source: "built-in-bundle:skill-sync" },

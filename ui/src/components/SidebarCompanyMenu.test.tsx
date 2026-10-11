@@ -128,7 +128,7 @@ const CLOUD_HEALTH = {
   status: "ok" as const,
   cloud: {
     managed: true as const,
-    managedBy: "paperclip-cloud" as const,
+    managedBy: "clayon-cloud" as const,
     stackSlug: "acme-labs",
     cloudBaseUrl: "https://cloud.example.test",
   },
@@ -266,8 +266,11 @@ describe("SidebarCompanyMenu", () => {
 
     const trigger = container.querySelector('button[aria-label="Open Acme Labs organization switcher"]');
     expect(trigger).not.toBeNull();
-    expect(trigger?.classList).toContain("px-4");
-    expect(trigger?.classList).toContain("has-[>svg]:px-4");
+    // Leaf rows pad themselves with px-3 (operator directive 2026-10-11), so
+    // the trigger keeps a zero inset inside the px-3 header band to align the
+    // avatar with the nav icons.
+    expect(trigger?.classList).toContain("px-0");
+    expect(trigger?.classList).toContain("has-[>svg]:px-0");
     expect(trigger?.classList).toContain("hover:bg-sidebar-accent");
     expect(trigger?.classList).toContain("hover:text-sidebar-accent-foreground");
     expect(trigger?.classList).toContain("dark:hover:bg-sidebar-accent");
@@ -372,8 +375,8 @@ describe("SidebarCompanyMenu", () => {
 
   it("hides the production-shell invite shortcut when the operator hides the invites surface", async () => {
     // The production shell (streamlined UI disabled) must honor
-    // PAPERCLIP_HIDDEN_SETTINGS like the streamlined menu — this is the knob
-    // Paperclip Cloud uses to drop the shortcut on its managed stacks.
+    // CLAYON_HIDDEN_SETTINGS like the streamlined menu — this is the knob
+    // Clayon Cloud uses to drop the shortcut on its managed stacks.
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     queryClient.setQueryData(queryKeys.health, { status: "ok", hiddenSettings: ["company.invites"] });
     const root = createRoot(container);
@@ -604,7 +607,7 @@ describe("SidebarCompanyMenu", () => {
     });
   });
 
-  describe("in Paperclip Cloud", () => {
+  describe("in Clayon Cloud", () => {
     it("closes the menu and enters the Cloud logout flow without local sign-out", async () => {
       const { root } = renderMenu({ cloud: true });
       await flushReact();

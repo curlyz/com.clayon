@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, readdirSync, readlinkSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 
 export interface NativeHarnessBackupStamp {
   schema: "paperclip.native-harness-backup-stamp.v2";
@@ -16,11 +16,11 @@ export interface NativeHarnessBackupStamp {
 
 function stateBase(): string {
   return resolve(
-    process.env.PAPERCLIP_RUNNER_STATE_DIR ??
+    process.env.CLAYON_RUNNER_STATE_DIR ??
       resolve(
-        resolvePaperclipInstanceRoot(),
+        resolveClayonInstanceRoot(),
         "runtime",
-        "paperclip-runner",
+        "clayon-runner",
         "durable-sessions",
       ),
   );

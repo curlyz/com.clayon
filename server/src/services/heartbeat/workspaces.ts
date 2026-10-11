@@ -1,11 +1,11 @@
-import { readConnectionFailure, type GitConnectionFailure } from "@paperclipai/adapter-utils/connection-failure";
+import { readConnectionFailure, type GitConnectionFailure } from "@clayon/adapter-utils/connection-failure";
 import { classifyGitCloneFailure, GitConnectionFailureError, readGitConnectionFailure } from "../git-connection-failure.js";
 import { managedAiSessionFingerprintConfig } from "../ai-connection-runtime.js";
 import {
   PROJECT_REPOSITORIES_DIR,
   readGitWorkspaceSnapshot,
   disposeGitWorkspaceSnapshot,
-} from "@paperclipai/adapter-utils/git-workspace-sync";
+} from "@clayon/adapter-utils/git-workspace-sync";
 import {
   isWorkspaceGitScanError,
   WorkspaceGitScanError,
@@ -14,7 +14,7 @@ import {
   captureDirectorySnapshot,
   disposeDirectorySnapshot,
   mergeDirectoryWithBaseline,
-} from "@paperclipai/adapter-utils/workspace-restore-merge";
+} from "@clayon/adapter-utils/workspace-restore-merge";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { execFile as execFileCallback } from "node:child_process";
@@ -28,18 +28,18 @@ import {
   asc,
   eq,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   type ExecutionWorkspace,
   type ExecutionWorkspaceConfig,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   agents,
   heartbeatRuns,
   issues,
   projects,
   projectWorkspaces,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { logger } from "../../middleware/logger.js";
 import {
   createGitRemoteAuthProvider,
@@ -54,7 +54,7 @@ import {
 import {
   resolveDefaultAgentWorkspaceDir,
   resolveManagedProjectWorkspaceDir,
-  resolvePaperclipInstanceRoot,
+  resolveClayonInstanceRoot,
 } from "../../home-paths.js";
 import {
   formatManagedGitWorktreeBranchInspection,
@@ -102,7 +102,7 @@ const MANAGED_WORKSPACE_GIT_CLONE_TIMEOUT_MS = 10 * 60 * 1000;
 export const WORKSPACE_VALIDATION_FAILURE_CODE = "workspace_validation_failed";
 
 const GITHUB_PR_WORKFLOW_SKILL_KEY =
-  "paperclipai/bundled/software-development/github-pr-workflow";
+  "clayon/bundled/software-development/github-pr-workflow";
 
 const GITHUB_PR_WORKFLOW_SKILL_SLUG = "github-pr-workflow";
 
@@ -557,7 +557,7 @@ async function materializeManagedProjectWorkspace(
         [...(auth?.configArgs ?? []), "clone", "--no-hardlinks", "--", input.localSource ?? input.repoUrl, cloneTmpDir],
         {
           env: {
-            // Spread order matters: the sanitizer strips PAPERCLIP_*, which would remove the
+            // Spread order matters: the sanitizer strips CLAYON_*, which would remove the
             // credential-helper token env if it came first. GIT_TERMINAL_PROMPT=0 fails a
             // credential-less private clone immediately instead of hanging on a prompt until
             // the clone timeout.
@@ -580,7 +580,7 @@ async function materializeManagedProjectWorkspace(
       if (!snapshot) throw new Error("Configured repository folder is not a Git checkout");
       let baseline;
       try {
-        baseline = await captureDirectorySnapshot(cloneTmpDir, { exclude: [".git", ".paperclip-runtime", PROJECT_REPOSITORIES_DIR], ignoredPaths: snapshot.ignoredPaths, diskBacked: true });
+        baseline = await captureDirectorySnapshot(cloneTmpDir, { exclude: [".git", ".clayon-runtime", PROJECT_REPOSITORIES_DIR], ignoredPaths: snapshot.ignoredPaths, diskBacked: true });
         await mergeDirectoryWithBaseline({ baseline, sourceDir: input.localSource, targetDir: cloneTmpDir });
       } finally {
         if (baseline) await disposeDirectorySnapshot(baseline);
@@ -676,7 +676,7 @@ export async function prepareProjectRepositoryWorkspaces(input: {
   const active = new Set(results.map((repo) => path.basename(repo.cwd)));
   for (const entry of await fs.readdir(root)) {
     if (active.has(entry) || entry.includes(".clone-")) continue;
-    const retained = path.join(input.cwd, ".paperclip-runtime", "detached-repositories", randomUUID());
+    const retained = path.join(input.cwd, ".clayon-runtime", "detached-repositories", randomUUID());
     await fs.mkdir(path.dirname(retained), { recursive: true });
     await fs.rename(path.join(root, entry), retained);
   }
@@ -1526,7 +1526,7 @@ export function buildAnchorFallbackWorkspaceNotes(input: {
 
 /**
  * Build the plural workspace list that a run exposes to the agent through the
- * `PAPERCLIP_WORKSPACES_JSON` environment variable. The list joins the anchor
+ * `CLAYON_WORKSPACES_JSON` environment variable. The list joins the anchor
  * project's alternative workspace rows with the read-only referenced (mentioned)
  * project workspaces, so every execution target receives the referenced project
  * paths through the same channel the run already uses for the anchor project.
@@ -1582,7 +1582,7 @@ export function prioritizeProjectWorkspaceCandidatesForRun<
  * the anchor project's workspace exactly as before — the referenced set is inert.
  */
 export const MULTI_PROJECT_WORKSPACE_SYNC_ENV =
-  "PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC";
+  "CLAYON_MULTI_PROJECT_WORKSPACE_SYNC";
 
 /**
  * True when an environment value explicitly turns a flag off. An unset value is
@@ -1635,7 +1635,7 @@ export function isRemoteExecutionEnvironmentDriver(
  * runs no referenced-project authorization or staging and reverts to the remote drop path.
  */
 export const MULTI_PROJECT_WORKSPACE_SYNC_REMOTE_ENV =
-  "PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC_REMOTE";
+  "CLAYON_MULTI_PROJECT_WORKSPACE_SYNC_REMOTE";
 
 export function isMultiProjectWorkspaceSyncRemoteEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -2201,21 +2201,21 @@ export function resolveRuntimeSessionParamsForWorkspace(input: {
   };
 }
 
-const SESSION_AI_CREDENTIAL_IDENTITY_KEY = "paperclipAiCredentialIdentity";
+const SESSION_AI_CREDENTIAL_IDENTITY_KEY = "clayonAiCredentialIdentity";
 
-const SESSION_CONFIGURED_MODEL_KEY = "__paperclipConfiguredModel";
+const SESSION_CONFIGURED_MODEL_KEY = "__clayonConfiguredModel";
 
-const SESSION_CONFIG_FINGERPRINT_KEY = "__paperclipConfigFingerprint";
+const SESSION_CONFIG_FINGERPRINT_KEY = "__clayonConfigFingerprint";
 
 const SESSION_CONFIG_FINGERPRINT_VERSION_KEY =
-  "__paperclipConfigFingerprintVersion";
+  "__clayonConfigFingerprintVersion";
 
-const SESSION_CONFIG_CATEGORIES_KEY = "__paperclipConfigCategories";
+const SESSION_CONFIG_CATEGORIES_KEY = "__clayonConfigCategories";
 
 const SESSION_CONFIG_CATEGORY_FINGERPRINTS_KEY =
-  "__paperclipConfigCategoryFingerprints";
+  "__clayonConfigCategoryFingerprints";
 
-const PAPERCLIP_SESSION_METADATA_KEYS = new Set([
+const CLAYON_SESSION_METADATA_KEYS = new Set([
   SESSION_AI_CREDENTIAL_IDENTITY_KEY,
   SESSION_CONFIGURED_MODEL_KEY,
   SESSION_CONFIG_FINGERPRINT_KEY,
@@ -2718,7 +2718,7 @@ export function buildWorkspaceConfigFreshnessOperation(
       previousWorkspaceId: input.previousWorkspaceId,
       activeWorkspaceId: input.activeWorkspaceId,
     },
-    system: `[paperclip] ${workspaceConfigFreshnessActionLabel(input.decision.action)} after config freshness check${categorySummary}: ${reasonSummary}\n`,
+    system: `[clayon] ${workspaceConfigFreshnessActionLabel(input.decision.action)} after config freshness check${categorySummary}: ${reasonSummary}\n`,
   };
 }
 
@@ -3234,7 +3234,7 @@ export function readConfiguredModelFromAdapterConfig(
   return readNonEmptyString(adapterConfig?.model);
 }
 
-export function attachPaperclipSessionMetadataToSessionParams(
+export function attachClayonSessionMetadataToSessionParams(
   sessionParams: Record<string, unknown> | null | undefined,
   configuredModel: string | null,
   configMetadata?: EffectiveRunSessionConfigMetadata | null,
@@ -3278,12 +3278,12 @@ export function stripConfiguredModelFromSessionParams(
   return next;
 }
 
-export function stripPaperclipSessionMetadataFromSessionParams(
+export function stripClayonSessionMetadataFromSessionParams(
   sessionParams: Record<string, unknown> | null | undefined,
 ) {
   if (!sessionParams) return null;
   const next = { ...sessionParams };
-  for (const key of PAPERCLIP_SESSION_METADATA_KEYS) {
+  for (const key of CLAYON_SESSION_METADATA_KEYS) {
     delete next[key];
   }
   return next;
@@ -3415,7 +3415,7 @@ export function createHeartbeatWorkspaceResolver(db: Db) {
       workspace,
       boundProjectWorkspace,
       candidateBaseCwds,
-      managedSourceRoot: resolvePaperclipInstanceRoot(),
+      managedSourceRoot: resolveClayonInstanceRoot(),
       materializeOriginalRepository: workspace.repoUrl ? async () => {
         const original = await ensureManagedProjectWorkspace({
           companyId: agent.companyId,

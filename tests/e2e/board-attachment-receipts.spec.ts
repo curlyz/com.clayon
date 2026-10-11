@@ -30,7 +30,7 @@ async function setup(page: Page, request: APIRequestContext, classic: boolean) {
   // Announcements can appear after navigation or reload and cover the classic
   // composer's attachment button. Dismiss through the same UI as a Board user.
   await page.addLocatorHandler(
-    page.getByRole("complementary", { name: "Paperclip announcements", exact: true })
+    page.getByRole("complementary", { name: "Clayon announcements", exact: true })
       .getByRole("button", { name: "Dismiss announcement", exact: true }),
     async (dismiss) => { await dismiss.click(); },
   );
@@ -63,7 +63,7 @@ async function setup(page: Page, request: APIRequestContext, classic: boolean) {
   ).toBeVisible();
   const composer = classic
     ? page.getByTestId("issue-chat-composer")
-    : page.locator(".paperclip-task-chat-composer");
+    : page.locator(".clayon-task-chat-composer");
   const editor = composer.getByRole("textbox", {
     name: "editable markdown",
     exact: true,
@@ -144,7 +144,7 @@ for (const classic of [false, true]) {
     );
     const receipts = [];
     for (const file of files) receipts.push(await upload(page, fixture, file));
-    const draftKey = `paperclip:issue-comment-draft:${fixture.issue.id}`;
+    const draftKey = `clayon:issue-comment-draft:${fixture.issue.id}`;
     await expect
       .poll(() =>
         page.evaluate(

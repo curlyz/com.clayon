@@ -94,8 +94,8 @@ describe("workProductService", () => {
 
     expect(resolve).toHaveBeenCalledWith("company-1", {
       host: "github.com",
-      owner: "paperclipai",
-      repo: "paperclip",
+      owner: "clayon",
+      repo: "clayon",
       number: 42,
     });
     expect(refreshed?.metadata).toMatchObject({
@@ -142,8 +142,8 @@ describe("workProductService", () => {
     })).resolves.toEqual({ additions: 13, deletions: 2, changedFiles: 3 });
     expect(resolveCommitDetails).toHaveBeenCalledWith("company-1", {
       host: "github.com",
-      owner: "paperclipai",
-      repo: "paperclip",
+      owner: "clayon",
+      repo: "clayon",
       sha: "9c12ae7b41e5",
     });
   });

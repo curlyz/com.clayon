@@ -19,8 +19,8 @@ const mockNavigate = vi.hoisted(() => vi.fn());
 const mockSetSelectedCompanyId = vi.hoisted(() => vi.fn());
 const mockSetSidebarOpen = vi.hoisted(() => vi.fn());
 const mockCompanyState = vi.hoisted(() => ({
-  companies: [{ id: "company-1", issuePrefix: "PAP", name: "Paperclip" }],
-  selectedCompany: { id: "company-1", issuePrefix: "PAP", name: "Paperclip" },
+  companies: [{ id: "company-1", issuePrefix: "PAP", name: "Clayon" }],
+  selectedCompany: { id: "company-1", issuePrefix: "PAP", name: "Clayon" },
   selectedCompanyId: "company-1",
 }));
 const mockPluginSlots = vi.hoisted(() => ({
@@ -71,44 +71,6 @@ vi.mock("./Sidebar", () => ({
   ),
 }));
 
-vi.mock("./CompanySettingsSidebar", () => ({
-  CompanySettingsSidebar: () => <div>Company settings sidebar</div>,
-}));
-
-vi.mock("./AppsSidebar", () => ({
-  AppsSidebar: () => <div>Apps sidebar</div>,
-}));
-
-vi.mock("./AgentContextualSidebar", () => ({
-  AgentContextualSidebar: ({ agentRef }: { agentRef: string }) => (
-    <div>Agent sidebar {agentRef}</div>
-  ),
-}));
-
-vi.mock("./RoutineContextualSidebar", () => ({
-  RoutineContextualSidebar: ({ routineId }: { routineId: string }) => (
-    <div>Routine sidebar {routineId}</div>
-  ),
-}));
-
-vi.mock("./SkillsContextualSidebar", () => ({
-  SkillsContextualSidebar: () => <div>Skills sidebar</div>,
-}));
-
-vi.mock("./AppConnectionSidebar", () => ({
-  AppDetailSidebar: (
-    props:
-      | { kind: "connection"; connectionId: string }
-      | { kind: "application"; applicationId: string },
-  ) => (
-    <div>
-      {props.kind === "connection"
-        ? `App detail sidebar connection ${props.connectionId}`
-        : `App detail sidebar application ${props.applicationId}`}
-    </div>
-  ),
-}));
-
 vi.mock("./BreadcrumbBar", () => ({
   BreadcrumbBar: () => <div>Breadcrumbs</div>,
 }));
@@ -155,8 +117,17 @@ vi.mock("./AnnouncementWell", () => ({
   AnnouncementWell: () => <div data-announcement-well />,
 }));
 
-vi.mock("./MobileBottomNav", () => ({
-  MobileBottomNav: () => null,
+vi.mock("./dock/Dock", () => ({
+  Dock: () => null,
+}));
+
+// The shell tests below cover the sidebar layout; the dock layout has its
+// own surface. Pinned via the store mock so the persisted default ("dock")
+// doesn't flip these mid-run.
+const mockNavLayout = vi.hoisted(() => ({ value: "sidebar" as "dock" | "sidebar" }));
+vi.mock("../stores/navLayoutStore", () => ({
+  useNavLayout: () => mockNavLayout.value,
+  setNavLayout: vi.fn(),
 }));
 
 vi.mock("./WorktreeBanner", () => ({
@@ -303,12 +274,12 @@ describe("Layout", () => {
     document.body.appendChild(container);
     currentPathname = "/PAP/dashboard";
     mockCompanyState.companies = [
-      { id: "company-1", issuePrefix: "PAP", name: "Paperclip" },
+      { id: "company-1", issuePrefix: "PAP", name: "Clayon" },
     ];
     mockCompanyState.selectedCompany = {
       id: "company-1",
       issuePrefix: "PAP",
-      name: "Paperclip",
+      name: "Clayon",
     };
     mockCompanyState.selectedCompanyId = "company-1";
     mockHealthApi.get.mockResolvedValue({
@@ -331,6 +302,7 @@ describe("Layout", () => {
     mockSidebarState.peeking = false;
     mockSetPeeking.mockClear();
     mockSetForceCollapsed.mockClear();
+    mockNavLayout.value = "sidebar";
   });
 
   afterEach(() => {
@@ -394,24 +366,12 @@ describe("Layout", () => {
     expect(
       container.querySelector(".streamlined-task-detail-surface"),
     ).not.toBeNull();
-    expect(
-      container.querySelector("#main-content")?.classList.contains("pt-0"),
-    ).toBe(true);
-    expect(
-      container.querySelector("#main-content")?.classList.contains("md:pt-0"),
-    ).toBe(true);
-    expect(
-      container.querySelector("#main-content")?.classList.contains("p-4"),
-    ).toBe(true);
-    expect(
-      container.querySelector("#main-content")?.classList.contains("md:p-6"),
-    ).toBe(true);
-    expect(
-      container.querySelector("#main-content")?.classList.contains("pr-0"),
-    ).toBe(false);
-    expect(
-      container.querySelector("#main-content")?.classList.contains("md:pr-0"),
-    ).toBe(false);
+    const mainClasses = container.querySelector("#main-content")?.classList;
+    // Full-bleed bands (operator directive, 2026-10-11): the page shell
+    // carries no container padding; only the dock clearance remains.
+    expect(mainClasses?.contains("p-4")).toBe(false);
+    expect(mainClasses?.contains("md:p-6")).toBe(false);
+    expect(mainClasses?.contains("max-lg:pb-(--sz-dock-clearance)")).toBe(true);
 
     await act(async () => {
       root.unmount();
@@ -522,7 +482,7 @@ describe("Layout", () => {
     });
   });
 
-  it("replaces the app sidebar with settings navigation on Streamlined settings routes", async () => {
+  it("keeps the global sidebar on Streamlined settings routes (sub-nav is page tabs)", async () => {
     currentPathname = "/PAP/company/settings/access";
     mockPluginSlots.slots = [
       {
@@ -563,21 +523,18 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Company settings sidebar");
-    expect(container.textContent).not.toContain("Main company nav");
-    const secondaryRail = container.querySelector("[data-secondary-sidebar]");
-    expect(secondaryRail).not.toBeNull();
-    expect(secondaryRail?.classList.contains("w-60")).toBe(false);
-    expect(container.textContent).not.toContain("Company rail");
-    expect(container.textContent).not.toContain("Instance sidebar");
+    // Settings no longer mounts a contextual sidebar, and the peer column is
+    // gone entirely (redesign ADDENDUM 2): no plugin routeSidebar renders
+    // beside the global nav either.
     expect(container.textContent).not.toContain("Plugin route sidebar");
+    expect(container.textContent).not.toContain("Company settings sidebar");
 
     await act(async () => {
       root.unmount();
     });
   });
 
-  it("keeps the global sidebar beside legacy settings navigation when Streamlined UI is off", async () => {
+  it("keeps the global sidebar on legacy settings routes when Streamlined UI is off", async () => {
     currentPathname = "/PAP/company/settings/access";
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({
       enableApps: true,
@@ -599,8 +556,7 @@ describe("Layout", () => {
     await flushReact();
 
     expect(container.textContent).toContain("Main company nav");
-    expect(container.textContent).toContain("Company settings sidebar");
-    expect(mockSetForceCollapsed).toHaveBeenCalledWith(true);
+    expect(container.textContent).not.toContain("Company settings sidebar");
 
     await act(async () => {
       root.unmount();
@@ -648,7 +604,7 @@ describe("Layout", () => {
     });
   });
 
-  it("replaces the company nav on instance settings routes", async () => {
+  it("keeps the company nav on instance settings routes", async () => {
     currentPathname = "/PAP/company/settings/instance/general";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -665,9 +621,8 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Company settings sidebar");
-    expect(container.textContent).not.toContain("Main company nav");
-    expect(container.textContent).not.toContain("Company rail");
+    expect(container.textContent).toContain("Main company nav");
+    expect(container.textContent).not.toContain("Company settings sidebar");
     expect(container.textContent).not.toContain("Plugin route sidebar");
 
     await act(async () => {
@@ -676,7 +631,7 @@ describe("Layout", () => {
   });
 
   it.each(["/PAP/company/export", "/PAP/company/import"])(
-    "replaces the company nav with the shared settings sidebar on %s",
+    "keeps the company nav on %s",
     async (pathname) => {
       currentPathname = pathname;
       const root = createRoot(container);
@@ -694,8 +649,8 @@ describe("Layout", () => {
       await flushReact();
       await flushReact();
 
-      expect(container.textContent).toContain("Company settings sidebar");
-      expect(container.textContent).not.toContain("Main company nav");
+      expect(container.textContent).toContain("Main company nav");
+      expect(container.textContent).not.toContain("Company settings sidebar");
 
       await act(async () => {
         root.unmount();
@@ -703,7 +658,7 @@ describe("Layout", () => {
     },
   );
 
-  it("keeps the company nav beside Apps navigation on legacy tools routes", async () => {
+  it("keeps the company nav on legacy tools routes", async () => {
     currentPathname = "/PAP/tools/runtime";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -720,8 +675,8 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Apps sidebar");
     expect(container.textContent).toContain("Main company nav");
+    expect(container.textContent).not.toContain("Apps sidebar");
     expect(container.textContent).not.toContain("Company settings sidebar");
 
     await act(async () => {
@@ -729,7 +684,7 @@ describe("Layout", () => {
     });
   });
 
-  it("mounts the Apps secondary sidebar regardless of the retired experimental flag", async () => {
+  it("drops the Apps secondary sidebar regardless of the retired experimental flag", async () => {
     currentPathname = "/PAP/apps";
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({
       enableApps: false,
@@ -749,18 +704,16 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Apps sidebar");
     expect(container.textContent).toContain("Main company nav");
-    const secondaryRail = container.querySelector("[data-secondary-sidebar]");
-    expect(secondaryRail?.classList.contains("w-60")).toBe(true);
-    expect(secondaryRail?.classList.contains("shrink-0")).toBe(true);
+    expect(container.textContent).not.toContain("Apps sidebar");
+    expect(container.querySelector("[data-secondary-sidebar]")).toBeNull();
 
     await act(async () => {
       root.unmount();
     });
   });
 
-  it("keeps the Apps sidebar on the M8 advanced-setup tabs", async () => {
+  it("keeps the global sidebar on the M8 advanced-setup tabs", async () => {
     currentPathname = "/PAP/apps/advanced/paste-config";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -777,7 +730,7 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Apps sidebar");
+    expect(container.textContent).not.toContain("Apps sidebar");
     expect(container.textContent).toContain("Main company nav");
 
     await act(async () => {
@@ -785,7 +738,7 @@ describe("Layout", () => {
     });
   });
 
-  it("keeps the Apps sidebar on legacy developer tabs behind the Advanced door", async () => {
+  it("keeps the global sidebar on legacy developer tabs behind the Advanced door", async () => {
     currentPathname = "/PAP/apps/advanced/runtime";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -802,7 +755,7 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Apps sidebar");
+    expect(container.textContent).not.toContain("Apps sidebar");
     expect(container.textContent).toContain("Main company nav");
 
     await act(async () => {
@@ -810,10 +763,10 @@ describe("Layout", () => {
     });
   });
 
-  // Reserved Apps subroutes are not connection ids. They must keep the
-  // top-level Apps sidebar, never mount a detail sidebar for a phantom app.
+  // Reserved Apps subroutes are not connection ids. They keep the global
+  // sidebar and never mount a detail sidebar for a phantom app.
   it.each(["browse", "connections", "vercel-connect", "review", "chat"])(
-    "keeps the Apps sidebar on the %s surface",
+    "keeps the global sidebar on the %s surface",
     async (route) => {
       currentPathname = `/PAP/apps/${route}`;
       const root = createRoot(container);
@@ -831,7 +784,7 @@ describe("Layout", () => {
       await flushReact();
       await flushReact();
 
-      expect(container.textContent).toContain("Apps sidebar");
+      expect(container.textContent).not.toContain("Apps sidebar");
       expect(container.textContent).toContain("Main company nav");
       expect(container.textContent).not.toContain("App detail sidebar");
 
@@ -841,7 +794,7 @@ describe("Layout", () => {
     },
   );
 
-  it("keeps the Apps sidebar on the gateways list and detail routes", async () => {
+  it("keeps the global sidebar on the gateways list and detail routes", async () => {
     for (const pathname of [
       "/PAP/apps/gateways",
       "/PAP/apps/gateways/gw-1/overview",
@@ -862,7 +815,7 @@ describe("Layout", () => {
       await flushReact();
       await flushReact();
 
-      expect(container.textContent).toContain("Apps sidebar");
+      expect(container.textContent).not.toContain("Apps sidebar");
       expect(container.textContent).toContain("Main company nav");
       expect(container.textContent).not.toContain("App detail sidebar");
 
@@ -872,7 +825,7 @@ describe("Layout", () => {
     }
   });
 
-  it("uses the app connection sidebar on app detail routes", async () => {
+  it("keeps the global sidebar on app connection detail routes", async () => {
     currentPathname = "/PAP/apps/conn-1/permissions";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -889,10 +842,8 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain(
-      "App detail sidebar connection conn-1",
-    );
     expect(container.textContent).toContain("Main company nav");
+    expect(container.textContent).not.toContain("App detail sidebar");
     expect(container.textContent).not.toContain("Apps sidebar");
 
     await act(async () => {
@@ -900,7 +851,7 @@ describe("Layout", () => {
     });
   });
 
-  it("uses the app detail sidebar on not-connected app routes", async () => {
+  it("keeps the global sidebar on not-connected app routes", async () => {
     currentPathname = "/PAP/apps/app/app-1/permissions";
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -917,131 +868,9 @@ describe("Layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain(
-      "App detail sidebar application app-1",
-    );
     expect(container.textContent).toContain("Main company nav");
+    expect(container.textContent).not.toContain("App detail sidebar");
     expect(container.textContent).not.toContain("Apps sidebar");
-
-    await act(async () => {
-      root.unmount();
-    });
-  });
-
-  it("keeps global navigation beside Skills, Agent, and Routine details", async () => {
-    async function renderAt(pathname: string) {
-      currentPathname = pathname;
-      const root = createRoot(container);
-      const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
-      });
-
-      await act(async () => {
-        root.render(
-          <QueryClientProvider client={queryClient}>
-            <Layout />
-          </QueryClientProvider>,
-        );
-      });
-      await flushReact();
-      await flushReact();
-      return root;
-    }
-
-    for (const [pathname, sidebarText] of [
-      ["/PAP/skills/studio", "Skills sidebar"],
-      ["/PAP/agents/briefing-analyst/skills", "Agent sidebar briefing-analyst"],
-      [
-        "/PAP/agents/briefing-analyst/runs/run-1",
-        "Agent sidebar briefing-analyst",
-      ],
-      ["/PAP/routines/routine-1/overview", "Routine sidebar routine-1"],
-    ] as const) {
-      const root = await renderAt(pathname);
-      expect(container.textContent).toContain(sidebarText);
-      expect(container.textContent).toContain("Main company nav");
-      const secondaryRail = container.querySelector("[data-secondary-sidebar]");
-      expect(secondaryRail?.classList.contains("w-60")).toBe(true);
-      expect(secondaryRail?.classList.contains("bg-background")).toBe(true);
-      const breadcrumb = Array.from(container.querySelectorAll("div")).find(
-        (element) => element.textContent === "Breadcrumbs",
-      );
-      expect(breadcrumb).toBeDefined();
-      expect(
-        breadcrumb && secondaryRail
-          ? breadcrumb.compareDocumentPosition(secondaryRail) &
-              Node.DOCUMENT_POSITION_FOLLOWING
-          : 0,
-      ).not.toBe(0);
-      await act(async () => {
-        root.unmount();
-      });
-      container.innerHTML = "";
-    }
-  });
-
-  it("keeps global navigation with agent configuration navigation in the legacy shell", async () => {
-    mockInstanceSettingsApi.getExperimental.mockResolvedValue({
-      enableApps: true,
-      enableStreamlinedUi: false,
-    });
-
-    for (const pathname of [
-      "/PAP/agents/briefing-analyst/skills",
-      "/PAP/routines/routine-1/overview",
-    ]) {
-      currentPathname = pathname;
-      const root = createRoot(container);
-      const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
-      });
-
-      await act(async () => {
-        root.render(
-          <QueryClientProvider client={queryClient}>
-            <Layout />
-          </QueryClientProvider>,
-        );
-      });
-      await flushReact();
-      await flushReact();
-
-      expect(container.textContent).toContain("Main company nav");
-      if (pathname.includes("/agents/")) expect(container.textContent).toContain("Agent sidebar");
-      else expect(container.textContent).not.toContain("Agent sidebar");
-      expect(container.textContent).not.toContain("Routine sidebar");
-
-      await act(async () => {
-        root.unmount();
-      });
-      container.innerHTML = "";
-    }
-  });
-
-  it("keeps the global rail beside Skills navigation in the legacy shell", async () => {
-    currentPathname = "/PAP/skills/studio";
-    mockInstanceSettingsApi.getExperimental.mockResolvedValue({
-      enableApps: true,
-      enableStreamlinedUi: false,
-    });
-    const root = createRoot(container);
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-
-    await act(async () => {
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <Layout />
-        </QueryClientProvider>,
-      );
-    });
-    await flushReact();
-    await flushReact();
-
-    expect(container.textContent).toContain("Main company nav");
-    expect(container.textContent).toContain("Skills sidebar");
-    expect(mockSetForceCollapsed).toHaveBeenCalledWith(true);
 
     await act(async () => {
       root.unmount();
@@ -1079,190 +908,6 @@ describe("Layout", () => {
       });
       container.innerHTML = "";
     }
-  });
-
-  it("renders a route-scoped plugin sidebar for a matching plugin page route", async () => {
-    currentPathname = "/PAP/wiki";
-    mockPluginSlots.slots = [
-      {
-        type: "page",
-        id: "wiki-page",
-        displayName: "Wiki Page",
-        exportName: "WikiPage",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-      {
-        type: "routeSidebar",
-        id: "wiki-route-sidebar",
-        displayName: "Wiki Sidebar",
-        exportName: "WikiSidebar",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-    ];
-    const root = createRoot(container);
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-
-    await act(async () => {
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <Layout />
-        </QueryClientProvider>,
-      );
-    });
-    await flushReact();
-    await flushReact();
-
-    expect(container.textContent).toContain(
-      "Plugin route sidebar: Wiki Sidebar",
-    );
-    expect(
-      container.querySelector("[data-plugin-slot-class='min-h-0 flex-1']"),
-    ).not.toBeNull();
-    expect(container.textContent).not.toContain("Main company nav");
-    expect(container.textContent).not.toContain("Company settings sidebar");
-    expect(container.textContent).not.toContain("Instance sidebar");
-
-    await act(async () => {
-      root.unmount();
-    });
-  });
-
-  it("keeps the route-scoped plugin sidebar on nested plugin page routes", async () => {
-    currentPathname = "/PAP/wiki/page/templates";
-    mockPluginSlots.slots = [
-      {
-        type: "page",
-        id: "wiki-page",
-        displayName: "Wiki Page",
-        exportName: "WikiPage",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-      {
-        type: "routeSidebar",
-        id: "wiki-route-sidebar",
-        displayName: "Wiki Sidebar",
-        exportName: "WikiSidebar",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-    ];
-    const root = createRoot(container);
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-
-    await act(async () => {
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <Layout />
-        </QueryClientProvider>,
-      );
-    });
-    await flushReact();
-    await flushReact();
-
-    expect(mockUsePluginSlots).toHaveBeenCalledWith(
-      expect.objectContaining({
-        companyId: "company-1",
-        enabled: true,
-      }),
-    );
-    expect(container.textContent).toContain(
-      "Plugin route sidebar: Wiki Sidebar",
-    );
-    expect(container.textContent).not.toContain("Main company nav");
-
-    await act(async () => {
-      root.unmount();
-    });
-  });
-
-  it("uses the route company context for plugin route sidebars on the first render", async () => {
-    currentPathname = "/ALT/wiki";
-    mockCompanyState.companies = [
-      { id: "company-1", issuePrefix: "PAP", name: "Paperclip" },
-      { id: "company-2", issuePrefix: "ALT", name: "Alternate" },
-    ];
-    mockCompanyState.selectedCompany = {
-      id: "company-1",
-      issuePrefix: "PAP",
-      name: "Paperclip",
-    };
-    mockCompanyState.selectedCompanyId = "company-1";
-    mockPluginSlots.slots = [
-      {
-        type: "page",
-        id: "wiki-page",
-        displayName: "Wiki Page",
-        exportName: "WikiPage",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-      {
-        type: "routeSidebar",
-        id: "wiki-route-sidebar",
-        displayName: "Wiki Sidebar",
-        exportName: "WikiSidebar",
-        routePath: "wiki",
-        pluginId: "plugin-1",
-        pluginKey: "wiki-plugin",
-        pluginDisplayName: "Wiki Plugin",
-        pluginVersion: "1.0.0",
-      },
-    ];
-    const root = createRoot(container);
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-
-    await act(async () => {
-      root.render(
-        <QueryClientProvider client={queryClient}>
-          <Layout />
-        </QueryClientProvider>,
-      );
-    });
-    await flushReact();
-    await flushReact();
-
-    expect(mockUsePluginSlots).toHaveBeenCalledWith(
-      expect.objectContaining({
-        companyId: "company-2",
-        enabled: true,
-      }),
-    );
-    expect(mockPluginSlotContexts).toContainEqual({
-      companyId: "company-2",
-      companyPrefix: "ALT",
-    });
-    expect(mockPluginSlotContexts).not.toContainEqual({
-      companyId: "company-1",
-      companyPrefix: "PAP",
-    });
-
-    await act(async () => {
-      root.unmount();
-    });
   });
 
   it("keeps the normal company sidebar when a plugin page route is ambiguous", async () => {

@@ -34,6 +34,9 @@ vi.mock("@/lib/router", () => ({
       {children}
     </a>
   ),
+  // Sidebar reads the location for the nested sub-nav section matches
+  // (redesign ADDENDUM 2/3); parked on a route with no section surface.
+  useLocation: () => ({ pathname: "/PAP/dashboard", search: "", hash: "", state: null }),
 }));
 
 vi.mock("../context/DialogContext", () => ({
@@ -48,7 +51,7 @@ vi.mock("../context/DialogContext", () => ({
 vi.mock("../context/CompanyContext", () => ({
   useCompany: () => ({
     selectedCompanyId: "company-1",
-    selectedCompany: { id: "company-1", issuePrefix: "PAP", name: "Paperclip" },
+    selectedCompany: { id: "company-1", issuePrefix: "PAP", name: "Clayon" },
   }),
 }));
 

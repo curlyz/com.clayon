@@ -7,7 +7,7 @@ import {
   isCrossOriginAuthRequest,
 } from "../auth/better-auth.js";
 
-const ALLOWED = "https://app.paperclip.curly.ng";
+const ALLOWED = "https://app.clayon.curly.ng";
 const UNKNOWN = "https://evil.example.com";
 
 function buildApp(allowedOrigins: string[]) {
@@ -50,7 +50,7 @@ describe("cross-origin API CORS middleware", () => {
       .options("/api/issues")
       .set("Origin", ALLOWED)
       .set("Access-Control-Request-Method", "POST")
-      .set("Access-Control-Request-Headers", "content-type, x-paperclip-token");
+      .set("Access-Control-Request-Headers", "content-type, x-clayon-token");
     expect(res.status).toBe(204);
     expect(res.headers["access-control-allow-origin"]).toBe(ALLOWED);
     expect(res.headers["access-control-allow-credentials"]).toBe("true");
@@ -58,7 +58,7 @@ describe("cross-origin API CORS middleware", () => {
     expect(allowHeaders).toContain("Content-Type");
     expect(allowHeaders).toContain("Authorization");
     expect(allowHeaders).toContain("If-None-Match");
-    expect(allowHeaders).toContain("X-Paperclip-*");
+    expect(allowHeaders).toContain("X-Clayon-*");
     expect(res.headers["access-control-allow-methods"]).toContain("POST");
     expect(res.headers["access-control-max-age"]).toBe("86400");
   });

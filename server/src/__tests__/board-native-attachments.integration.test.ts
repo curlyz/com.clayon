@@ -22,12 +22,12 @@ import {
   issueAttachments,
   issueComments,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { createLocalDiskStorageProvider } from "../storage/local-disk-provider.js";
 import { createStorageService } from "../storage/service.js";
 import {
-  buildPaperclipWakePayload,
+  buildClayonWakePayload,
   mergeCoalescedContextSnapshot,
 } from "../services/heartbeat.js";
 import { stageNativeRunnerWakeAttachments } from "../services/native-runtime/native-runner-file-handoff.js";
@@ -199,14 +199,14 @@ describe("Board upload receipt to native wake staging", () => {
         {},
         emitted![1].contextSnapshot!,
       );
-      const paperclipWake = await buildPaperclipWakePayload({
+      const clayonWake = await buildClayonWakePayload({
         db,
         companyId,
         agentId: issue!.assigneeAgentId,
         runId,
         contextSnapshot,
       });
-      expect(paperclipWake?.comments[0]?.attachments).toEqual([
+      expect(clayonWake?.comments[0]?.attachments).toEqual([
         expect.objectContaining({ id: attachment.id, byteSize: bytes.length }),
       ]);
       await db.insert(heartbeatRuns).values({
@@ -218,7 +218,7 @@ describe("Board upload receipt to native wake staging", () => {
         nativeIssueId: issueId,
         invocationSource: "assignment",
         triggerDetail: "system",
-        contextSnapshot: { ...contextSnapshot, paperclipWake },
+        contextSnapshot: { ...contextSnapshot, clayonWake },
       });
       await db
         .update(issues)
@@ -271,7 +271,7 @@ describe("Board upload receipt to native wake staging", () => {
       .where(eq(issueAttachments.id, attachment.id));
     expect(retained!.issueCommentId).toBeNull();
     await vi.waitFor(() => expect(wakeup).toHaveBeenCalled());
-    const wake = await buildPaperclipWakePayload({
+    const wake = await buildClayonWakePayload({
       db,
       companyId,
       agentId,

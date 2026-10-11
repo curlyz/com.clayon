@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
-import { heartbeatRunEvents, type Db } from "@paperclipai/db";
-import type { PrpEvent } from "../../vendor/paperclip-runner/index.js";
+import { heartbeatRunEvents, type Db } from "@clayon/db";
+import type { PrpEvent } from "../../vendor/clayon-runner/index.js";
 import { nativeProviderLifecycle, type LifecycleRecord } from "./provider-lifecycle.js";
 
 const record = (value: unknown): Record<string, any> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};

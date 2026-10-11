@@ -2,8 +2,7 @@ import { useState, type CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { ChevronLeft, Ellipsis } from "lucide-react";
-import type { IssueAttachment, IssueWorkMode, RunnerGoalCapability } from "@paperclipai/shared";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
+import type { IssueAttachment, IssueWorkMode, RunnerGoalCapability } from "@clayon/shared";
 import { TaskChatComposer } from "@/components/task-chat/TaskChatComposer";
 import { TaskChatComposerDock } from "@/components/task-chat/TaskChatComposerDock";
 import { composerAgentAppearance, composerAgents } from "../prototypes/composer-model-picker/fixtures";
@@ -89,7 +88,10 @@ function ComposerAddStory({ initialMode, goalAvailable, mobile, mobileContext, f
         <TaskChatComposerDock mobile streamlined={!fullBleedMobileContext}>{composer}</TaskChatComposerDock>
       </div>
     </main>
-    <MobileBottomNav visible />
+    {/* Stand-in for the bottom dock (the real Dock needs the app's
+        providers); reserves the same bottom chrome so the composer's
+        nav-offset clearance stays honest. */}
+    <div className="h-16 shrink-0 bg-muted" aria-hidden="true" />
   </div>;
 
   return <div className="flex min-h-screen flex-col bg-background p-4 text-foreground sm:p-8">

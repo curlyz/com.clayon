@@ -11,25 +11,25 @@ import {
   issueRecoveryActions,
   issues,
   nativeRunFinalizations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type {
   ControlPlanePort,
   NativeExecutionInputV1,
   PrpEvent,
-} from "@paperclipai/paperclip-runner";
+} from "@clayon/clayon-runner";
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 
 const provider = vi.hoisted(() => ({ execute: vi.fn() }));
-vi.mock("../../vendor/paperclip-runner/index.js", async (importOriginal) => ({
+vi.mock("../../vendor/clayon-runner/index.js", async (importOriginal) => ({
   ...(await importOriginal<
-    typeof import("../../vendor/paperclip-runner/index.js")
+    typeof import("../../vendor/clayon-runner/index.js")
   >()),
   executeNativeSession: provider.execute,
 }));
 
-import { executePaperclipNativeSession } from "./native-session-executor.js";
+import { executeClayonNativeSession } from "./native-session-executor.js";
 import { buildNativeCompletionContract } from "./completion-contracts.js";
-import { PaperclipControlPlanePort } from "./paperclip-control-plane-port.js";
+import { ClayonControlPlanePort } from "./clayon-control-plane-port.js";
 import { prepareNativeHeartbeatRun } from "./prepare-native-run.js";
 
 describe("native provider capacity failure persistence", () => {
@@ -203,7 +203,7 @@ describe("native provider capacity failure persistence", () => {
       if (replayed) {
         // Model a controller crash after the event commit but before its
         // observational callback or failure coordinator could run.
-        const priorPort = new PaperclipControlPlanePort(db, {
+        const priorPort = new ClayonControlPlanePort(db, {
           companyId,
           issueId,
           runId,
@@ -234,7 +234,7 @@ describe("native provider capacity failure persistence", () => {
           },
         );
       await expect(
-        executePaperclipNativeSession({
+        executeClayonNativeSession({
           db,
           execution,
           runnerInstanceId: native.runnerInstanceId,

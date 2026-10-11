@@ -16,22 +16,22 @@ let tempHome: string;
 let originalHome: string | undefined;
 
 beforeAll(async () => {
-  originalHome = process.env.PAPERCLIP_HOME;
-  tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-managed-clone-"));
-  process.env.PAPERCLIP_HOME = tempHome;
+  originalHome = process.env.CLAYON_HOME;
+  tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-managed-clone-"));
+  process.env.CLAYON_HOME = tempHome;
 });
 
 afterAll(async () => {
-  if (originalHome === undefined) delete process.env.PAPERCLIP_HOME;
-  else process.env.PAPERCLIP_HOME = originalHome;
+  if (originalHome === undefined) delete process.env.CLAYON_HOME;
+  else process.env.CLAYON_HOME = originalHome;
   await fs.rm(tempHome, { recursive: true, force: true });
 });
 
 async function createLocalSourceRepo() {
-  const sourceRepo = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-clone-source-"));
+  const sourceRepo = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-clone-source-"));
   await execFile("git", ["init"], { cwd: sourceRepo });
-  await execFile("git", ["config", "user.email", "paperclip@example.com"], { cwd: sourceRepo });
-  await execFile("git", ["config", "user.name", "Paperclip Test"], { cwd: sourceRepo });
+  await execFile("git", ["config", "user.email", "clayon@example.com"], { cwd: sourceRepo });
+  await execFile("git", ["config", "user.name", "Clayon Test"], { cwd: sourceRepo });
   await fs.writeFile(path.join(sourceRepo, "README.md"), "hello\n", "utf8");
   await execFile("git", ["add", "README.md"], { cwd: sourceRepo });
   await execFile("git", ["commit", "-m", "init"], { cwd: sourceRepo });
@@ -45,7 +45,7 @@ describe("ensureManagedProjectWorkspace clone credentials", () => {
     [null, "fatal: Authentication failed for 'https://example.test/team/repo.git/'\nfatal: bad config line 1 in file /tmp/config"],
     [null, "fatal: corrupt loose object"],
   ] as const)("preserves only proven outbound clone classification through the actionable wrapper: %s", async (reason, stderr) => {
-    const bin = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-fake-clone-"));
+    const bin = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-fake-clone-"));
     await fs.writeFile(path.join(bin, "git"), `#!/bin/sh
 printf '%s\\n' "$FIXTURE_CLONE_STDERR" >&2
 exit 128
@@ -87,7 +87,7 @@ exit 128
   });
 
   it("does not transfer clone classification to a later local checkout failure", async () => {
-    const bin = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-fake-checkout-"));
+    const bin = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-fake-checkout-"));
     const previousPath = process.env.PATH;
     await fs.writeFile(path.join(bin, "git"), `#!/bin/sh
 if [ "$1" = clone ]; then
@@ -130,7 +130,7 @@ exit 128
       const additional = await prepareProjectRepositoryWorkspaces(input);
       expect(additional).toHaveLength(1);
       expect(additional[0]!.workspaceId).toBe("second");
-      expect(path.relative(anchor.cwd, additional[0]!.cwd)).toMatch(/^\.paperclip-repositories\//);
+      expect(path.relative(anchor.cwd, additional[0]!.cwd)).toMatch(/^\.clayon-repositories\//);
       expect((await execFile("git", ["branch", "--show-current"], { cwd: additional[0]!.cwd })).stdout.trim()).toBe("project-branch");
       expect(resolveGitAuth).toHaveBeenCalledWith(second);
       await fs.writeFile(path.join(additional[0]!.cwd, "README.md"), "work in progress");
@@ -252,7 +252,7 @@ exit 128
     // The failure here is a missing local path, not an auth rejection — the error must not
     // claim the credential "was rejected". Attribution for genuinely auth-shaped failures is
     // covered by the describeGitAuthFailure unit tests in git-credentials.test.ts.
-    const missingRepo = path.join(os.tmpdir(), "paperclip-definitely-missing", "repo.git");
+    const missingRepo = path.join(os.tmpdir(), "clayon-definitely-missing", "repo.git");
     const resolveGitAuth = vi.fn(async () => ({
       configArgs: [],
       env: { [GIT_CREDENTIAL_TOKEN_ENV_KEY]: "token", GIT_TERMINAL_PROMPT: "0" },
@@ -303,7 +303,7 @@ exit 128
   it("does not mention credentials when an unauthenticated clone fails for non-auth reasons", async () => {
     // The Settings → Secrets hint is reserved for auth-shaped failures (covered in
     // git-credentials.test.ts); a plain missing-repo failure must not suggest credentials.
-    const missingRepo = path.join(os.tmpdir(), "paperclip-definitely-missing", "repo.git");
+    const missingRepo = path.join(os.tmpdir(), "clayon-definitely-missing", "repo.git");
     const error = await ensureManagedProjectWorkspace({
       companyId: "company-noauthfail",
       projectId: "project-1",
@@ -317,7 +317,7 @@ exit 128
   });
 
   it("leaves neither the target nor temp directories behind when the clone fails", async () => {
-    const missingRepo = path.join(os.tmpdir(), "paperclip-definitely-missing", "repo.git");
+    const missingRepo = path.join(os.tmpdir(), "clayon-definitely-missing", "repo.git");
     const companyId = "company-cleanup";
     const projectId = "project-1";
     await expect(ensureManagedProjectWorkspace({
@@ -355,7 +355,7 @@ exit 128
 
   it("keeps the credential env alive through the sanitizer spread order", () => {
     // The clone env is `{ ...sanitize(process.env), GIT_TERMINAL_PROMPT, ...auth.env }`. The
-    // sanitizer strips every PAPERCLIP_* key, so the token env must be spread after it.
+    // sanitizer strips every CLAYON_* key, so the token env must be spread after it.
     const invocation = buildGitAuthInvocation({
       token: "tok",
       source: "company_secret",

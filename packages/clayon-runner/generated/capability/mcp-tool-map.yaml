@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "rows": [
+    {
+      "id": "mcp:clayonMe",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonMe",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L290:clayonme",
+      "primaryDisposition": "control_plane_owned",
+      "semanticOperation": "injected_actor_context",
+      "expectedMockState": "runtime_decision_record"
+    },
+    {
+      "id": "mcp:clayonInboxLite",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonInboxLite",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L296:clayoninboxlite",
+      "primaryDisposition": "control_plane_owned",
+      "semanticOperation": "runner_work_selection",
+      "expectedMockState": "runtime_decision_record"
+    },
+    {
+      "id": "mcp:clayonListAgents",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListAgents",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L302:clayonlistagents",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "list_agents",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListSkills",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListSkills",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L308:clayonlistskills",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "list_company_skills",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetAgent",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetAgent",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L314:clayongetagent",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_agent",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListIssues",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListIssues",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L323:clayonlistissues",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "search_tasks",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetIssue",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetIssue",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L338:clayongetissue",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "get_task_context",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetHeartbeatContext",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetHeartbeatContext",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L344:clayongetheartbeatcontext",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "get_task_context",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListComments",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListComments",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L353:clayonlistcomments",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "get_task_history",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetComment",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetComment",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L366:clayongetcomment",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "get_task_history",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListIssueApprovals",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListIssueApprovals",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L373:clayonlistissueapprovals",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "get_task_context",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListDocuments",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListDocuments",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L379:clayonlistdocuments",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "list_documents",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetDocument",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetDocument",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L385:clayongetdocument",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "read_document",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListDocumentRevisions",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListDocumentRevisions",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L392:clayonlistdocumentrevisions",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "list_document_revisions",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListProjects",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListProjects",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L402:clayonlistprojects",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "list_projects",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetProject",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetProject",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L408:clayongetproject",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_project",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetIssueWorkspaceRuntime",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetIssueWorkspaceRuntime",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L417:clayongetissueworkspaceruntime",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_workspace_runtime",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonControlIssueWorkspaceServices",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonControlIssueWorkspaceServices",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L423:clayoncontrolissueworkspaceservices",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "control_workspace_service",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonWaitForIssueWorkspaceService",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonWaitForIssueWorkspaceService",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L440:clayonwaitforissueworkspaceservice",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "wait_for_workspace_service",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListGoals",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListGoals",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L466:clayonlistgoals",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "list_goals",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetGoal",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetGoal",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L472:clayongetgoal",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_goal",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListApprovals",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListApprovals",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L478:clayonlistapprovals",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "list_approvals",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonCreateApproval",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonCreateApproval",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L487:clayoncreateapproval",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "request_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetApproval",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetApproval",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L496:clayongetapproval",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonGetApprovalIssues",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonGetApprovalIssues",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L502:clayongetapprovalissues",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_approval_context",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonListApprovalComments",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonListApprovalComments",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L508:clayonlistapprovalcomments",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "get_approval_context",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonCreateIssue",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonCreateIssue",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L514:clayoncreateissue",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "create_task",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonUpdateIssue",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonUpdateIssue",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L521:clayonupdateissue",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "semantic_task_disposition",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonCheckoutIssue",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonCheckoutIssue",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L528:clayoncheckoutissue",
+      "primaryDisposition": "control_plane_owned",
+      "semanticOperation": "atomic_checkout",
+      "expectedMockState": "runtime_decision_record"
+    },
+    {
+      "id": "mcp:clayonReleaseIssue",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonReleaseIssue",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L540:clayonreleaseissue",
+      "primaryDisposition": "control_plane_owned",
+      "semanticOperation": "runtime_release",
+      "expectedMockState": "runtime_decision_record"
+    },
+    {
+      "id": "mcp:clayonAddComment",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonAddComment",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L546:clayonaddcomment",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "report_progress",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonSuggestTasks",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonSuggestTasks",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L553:clayonsuggesttasks",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "request_human_input",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonAskUserQuestions",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonAskUserQuestions",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L565:clayonaskuserquestions",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "request_human_input",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonRequestConfirmation",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonRequestConfirmation",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L577:clayonrequestconfirmation",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "request_human_input",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonRequestCheckboxConfirmation",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonRequestCheckboxConfirmation",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L589:clayonrequestcheckboxconfirmation",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "request_human_input",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonUpsertIssueDocument",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonUpsertIssueDocument",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L601:clayonupsertissuedocument",
+      "primaryDisposition": "always_agent_tool",
+      "semanticOperation": "write_document",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonRestoreIssueDocumentRevision",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonRestoreIssueDocumentRevision",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L612:clayonrestoreissuedocumentrevision",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "restore_document_revision",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonLinkIssueApproval",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonLinkIssueApproval",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L627:clayonlinkissueapproval",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "link_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonUnlinkIssueApproval",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonUnlinkIssueApproval",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L636:clayonunlinkissueapproval",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "unlink_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonApprovalDecision",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonApprovalDecision",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L646:clayonapprovaldecision",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "decide_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonAddApprovalComment",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonAddApprovalComment",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L668:clayonaddapprovalcomment",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "comment_on_approval",
+      "expectedMockState": "operation_result"
+    },
+    {
+      "id": "mcp:clayonApiRequest",
+      "kind": "legacy_mcp_tool",
+      "name": "clayonApiRequest",
+      "sourceAnchor": "packages/mcp-server/src/tools.ts#L677:clayonapirequest",
+      "primaryDisposition": "optional_agent_tool",
+      "semanticOperation": "test_only_api_escape_hatch",
+      "expectedMockState": "operation_result"
+    }
+  ]
+}

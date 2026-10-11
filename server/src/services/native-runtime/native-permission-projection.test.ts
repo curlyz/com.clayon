@@ -1,5 +1,5 @@
-import type { Db } from "@paperclipai/db";
-import type { PrpEvent } from "../../vendor/paperclip-runner/index.js";
+import type { Db } from "@clayon/db";
+import type { PrpEvent } from "../../vendor/clayon-runner/index.js";
 import { describe, expect, it, vi } from "vitest";
 import { projectNativeRuntimeRequest } from "./native-question-bridge.js";
 

@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { DEFAULT_CODEX_LOCAL_MODEL } from "../../packages/adapters/codex-local/src/index.js";
 import { ACPX_QUALIFICATION_MODELS } from "../acpx-qualification-models.js";
-import { QUALIFIED_OPENCODE_MODEL } from "../../packages/paperclip-runner/src/drivers/opencode/opencode-server-driver.js";
+import { QUALIFIED_OPENCODE_MODEL } from "../../packages/clayon-runner/src/drivers/opencode/opencode-server-driver.js";
 import { BUILTIN_ADAPTER_TYPES } from "../../server/src/adapters/builtin-adapter-types.js";
 
 import { findSensitiveValue } from "./redaction.js";
@@ -101,7 +101,7 @@ export const directAcceptanceProfiles: readonly RunnerAcceptanceProfile[] = [
 export const nativeAcceptanceProfiles: readonly RunnerAcceptanceProfile[] = [
   nativeProfile({
     id: "runner-codex",
-    label: "Paperclip Runner Codex",
+    label: "Clayon Runner Codex",
     provider: "codex",
     model: DEFAULT_CODEX_LOCAL_MODEL,
     adapterConfig: {
@@ -112,7 +112,7 @@ export const nativeAcceptanceProfiles: readonly RunnerAcceptanceProfile[] = [
   }),
   nativeProfile({
     id: "runner-opencode",
-    label: "Paperclip Runner OpenCode",
+    label: "Clayon Runner OpenCode",
     provider: "opencode",
     model: QUALIFIED_OPENCODE_MODEL,
     adapterConfig: {
@@ -124,7 +124,7 @@ export const nativeAcceptanceProfiles: readonly RunnerAcceptanceProfile[] = [
   }),
   nativeProfile({
     id: "runner-acpx-claude",
-    label: "Paperclip Runner ACPX Claude",
+    label: "Clayon Runner ACPX Claude",
     provider: "acpx",
     model: ACPX_QUALIFICATION_MODELS.claude,
     adapterConfig: {
@@ -137,7 +137,7 @@ export const nativeAcceptanceProfiles: readonly RunnerAcceptanceProfile[] = [
   }),
   nativeProfile({
     id: "runner-acpx-codex",
-    label: "Paperclip Runner ACPX Codex",
+    label: "Clayon Runner ACPX Codex",
     provider: "acpx",
     model: ACPX_QUALIFICATION_MODELS.codex,
     adapterConfig: {

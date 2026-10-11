@@ -1,9 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { heartbeatRuns, type Db } from "@paperclipai/db";
+import { heartbeatRuns, type Db } from "@clayon/db";
 import {
   isResponsibleUserDenialCode,
   type ResponsibleUserDenialCode,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { logger } from "../middleware/logger.js";
 import { publishLiveEvent } from "./live-events.js";
 

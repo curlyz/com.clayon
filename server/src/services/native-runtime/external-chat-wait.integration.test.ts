@@ -38,15 +38,15 @@ import {
   toolConnections,
   chatVoiceSessions, chatVoiceReplies, chatVoiceToolCalls,
   workspaceOperations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type {
   PrpStructuredRunResult,
   PrpTerminalState,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import { finalizeNativeRun } from "./native-run-finalizer.js";
-import { PaperclipControlPlanePort } from "./paperclip-control-plane-port.js";
+import { ClayonControlPlanePort } from "./clayon-control-plane-port.js";
 import {
   authorizeNativeChatReviewPresentation,
   hasMaterializedNativeReviewResponse,
@@ -62,21 +62,21 @@ import {
   isExternalChatWaitAuthorizationContention,
   resolveExternalChatResponseWaitAuthorization,
 } from "./chat-attachment-reuse.js";
-import { attestReviewedExternalChatRun, buildPaperclipWakePayload } from "../heartbeat.js";
+import { attestReviewedExternalChatRun, buildClayonWakePayload } from "../heartbeat.js";
 import { voiceCredentialFingerprint } from "../voice/voice-session-store.js";
 import { nativeSha256 } from "./canonical.js";
 import { questionResponseDeliveryValues } from "../question-response-delivery.js";
 import { resolveExternalChatQuestionResponse } from "./external-chat-question-response.js";
 import { materializeExternalChatQuestionResponseInput } from "./external-chat-question-response-input.js";
 import * as nativeInteractionBridge from "./native-interaction-bridge.js";
-import { defaultGitHubReviewPolicy, type AskUserQuestionsInteraction } from "@paperclipai/shared";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { defaultGitHubReviewPolicy, type AskUserQuestionsInteraction } from "@clayon/shared";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 import { createLocalDiskStorageProvider } from "../../storage/local-disk-provider.js";
 import { createStorageService } from "../../storage/service.js";
 import { subscribeAllCompanyLiveEvents } from "../live-events.js";
 
 describe("native external-chat response wait", () => {
-  const externalTestDatabaseUrl = process.env.PAPERCLIP_TEST_DATABASE_URL;
+  const externalTestDatabaseUrl = process.env.CLAYON_TEST_DATABASE_URL;
   let temporary: Awaited<
     ReturnType<typeof startEmbeddedPostgresTestDatabase>
   > | null = null;
@@ -229,10 +229,10 @@ describe("native external-chat response wait", () => {
       endpointId,
       type: provider === "github" ? "repository" : "direct_message",
       providerResourceId:
-        provider === "github" ? "paperclip/test-repository" : "telegram-user",
+        provider === "github" ? "clayon/test-repository" : "telegram-user",
       label:
         provider === "github"
-          ? "Paperclip test repository"
+          ? "Clayon test repository"
           : "Telegram direct message",
       availability: "available",
       enabled: true,
@@ -262,7 +262,7 @@ describe("native external-chat response wait", () => {
       companyId,
       endpointId,
       principalId,
-      paperclipUserId: userId,
+      clayonUserId: userId,
       status: "linked",
     });
     await db.insert(companyMemberships).values({
@@ -308,11 +308,11 @@ describe("native external-chat response wait", () => {
       .set({
         contextSnapshot: {
           source: `chat:${provider}`,
-          paperclipHarnessCheckedOut: true,
+          clayonHarnessCheckedOut: true,
           issueId,
           wakeCommentId: commentId,
           wakeCommentIds: [commentId],
-          paperclipWake: {
+          clayonWake: {
             reason: "External chat message received",
             externalChatProvider: provider,
             checkedOutByHarness: true,
@@ -323,7 +323,7 @@ describe("native external-chat response wait", () => {
       })
       .where(eq(heartbeatRuns.id, runId));
 
-    const port = new PaperclipControlPlanePort(db, {
+    const port = new ClayonControlPlanePort(db, {
       companyId,
       issueId,
       runId,
@@ -730,9 +730,9 @@ describe("native external-chat response wait", () => {
       })
       .where(eq(chatDeliveries.id, fixture.deliveryId));
     const interactionSvc = issueThreadInteractionService(db);
-    const previousPublicUrl = process.env.PAPERCLIP_PUBLIC_URL;
-    process.env.PAPERCLIP_PUBLIC_URL = withLink
-      ? "https://board.paperclip.example"
+    const previousPublicUrl = process.env.CLAYON_PUBLIC_URL;
+    process.env.CLAYON_PUBLIC_URL = withLink
+      ? "https://board.clayon.example"
       : "http://127.0.0.1:3103";
     let interaction: Awaited<ReturnType<typeof interactionSvc.create>>;
     try {
@@ -763,8 +763,8 @@ describe("native external-chat response wait", () => {
       );
     } finally {
       if (previousPublicUrl === undefined)
-        delete process.env.PAPERCLIP_PUBLIC_URL;
-      else process.env.PAPERCLIP_PUBLIC_URL = previousPublicUrl;
+        delete process.env.CLAYON_PUBLIC_URL;
+      else process.env.CLAYON_PUBLIC_URL = previousPublicUrl;
     }
     const publicationKey = `interaction:${interaction.id}:${fixture.endpointId}`;
     const [publication] = await db
@@ -870,7 +870,7 @@ describe("native external-chat response wait", () => {
         ),
       ).not.toBeNull();
       await attestAnswer(fixture);
-      expect(fixture.context.paperclipWake).toMatchObject({
+      expect(fixture.context.clayonWake).toMatchObject({
         externalChatProvider: "github",
       });
       await db
@@ -1061,7 +1061,7 @@ describe("native external-chat response wait", () => {
         }),
       ).toBe(false);
       expect(
-        fixture.context.paperclipExternalChatQuestionResponse,
+        fixture.context.clayonExternalChatQuestionResponse,
       ).toBeUndefined();
       await expect(
         db
@@ -1172,8 +1172,8 @@ describe("native external-chat response wait", () => {
       const context = source!.contextSnapshot as Record<string, unknown>;
       await db.update(heartbeatRuns).set({
         runtimeMode: "legacy", nativeIssueId: null,
-        contextSnapshot: { ...context, paperclipWake: {
-          ...(context.paperclipWake as Record<string, unknown>),
+        contextSnapshot: { ...context, clayonWake: {
+          ...(context.clayonWake as Record<string, unknown>),
           issue: { id: condition === "wrong_task" ? randomUUID() : fixture.issueId },
         } },
       }).where(eq(heartbeatRuns.id, fixture.sourceRunId));
@@ -1185,9 +1185,9 @@ describe("native external-chat response wait", () => {
       }
       expect(await attestReviewedExternalChatRun({ db, ...fixture, contextSnapshot: fixture.context })).toBe(condition === "valid");
       if (condition === "valid") {
-        expect(fixture.context.paperclipExternalChatQuestionResponse).toMatchObject({ interactionId: fixture.interactionId });
+        expect(fixture.context.clayonExternalChatQuestionResponse).toMatchObject({ interactionId: fixture.interactionId });
       } else {
-        expect(fixture.context.paperclipExternalChatQuestionResponse).toBeUndefined();
+        expect(fixture.context.clayonExternalChatQuestionResponse).toBeUndefined();
       }
     },
   );
@@ -1204,7 +1204,7 @@ describe("native external-chat response wait", () => {
         contextSnapshot: fixture.context,
       }),
     ).toBe(true);
-    expect(fixture.context.paperclipExternalChatQuestionResponse).toMatchObject(
+    expect(fixture.context.clayonExternalChatQuestionResponse).toMatchObject(
       {
         schema: "paperclip.external_chat_question_response.v1",
         interactionId: fixture.interactionId,
@@ -1212,8 +1212,8 @@ describe("native external-chat response wait", () => {
         responseDeliveryId: fixture.responseDeliveryId,
       },
     );
-    fixture.context.paperclipExternalChatExecutionBound = true;
-    fixture.context.paperclipWake = await buildPaperclipWakePayload({
+    fixture.context.clayonExternalChatExecutionBound = true;
+    fixture.context.clayonWake = await buildClayonWakePayload({
       db,
       companyId: fixture.companyId,
       agentId: fixture.agentId,
@@ -1251,7 +1251,7 @@ describe("native external-chat response wait", () => {
       const body = Buffer.from("Cobalt\n");
       const filename = "answer.txt";
       await writeFile(path.join(workspaceRoot, filename), body);
-      const runner = new PaperclipRunnerToolAuthority(db, {
+      const runner = new ClayonRunnerToolAuthority(db, {
         ...fixture,
         workspaceRoot,
         storage,
@@ -1445,7 +1445,7 @@ describe("native external-chat response wait", () => {
         contextSnapshot: fixture.context,
       }),
     ).resolves.toBe(true);
-    expect(fixture.context.paperclipExternalChatQuestionResponse).toMatchObject({
+    expect(fixture.context.clayonExternalChatQuestionResponse).toMatchObject({
       schema: "paperclip.external_chat_question_response.v1",
       interactionId: fixture.interactionId,
       responseDeliveryId: fixture.responseDeliveryId,
@@ -1559,7 +1559,7 @@ describe("native external-chat response wait", () => {
         }),
       ).resolves.toBe(false);
       expect(fixture.context).not.toHaveProperty(
-        "paperclipExternalChatQuestionResponse",
+        "clayonExternalChatQuestionResponse",
       );
     },
   );
@@ -1580,7 +1580,7 @@ describe("native external-chat response wait", () => {
         async ({ fixture, invoke }) => {
           // Answer text is intentionally ephemeral. A prompt-shape predicate on
           // the durable wake is not the authority for this file delivery mode.
-          expect(fixture.context.paperclipWake).not.toHaveProperty(
+          expect(fixture.context.clayonWake).not.toHaveProperty(
             "questionResponse",
           );
           const first = await invoke();
@@ -1656,7 +1656,7 @@ describe("native external-chat response wait", () => {
             .where(eq(issueAttachments.issueId, fixture.issueId));
           const context = structuredClone(fixture.context);
           (
-            context.paperclipExternalChatQuestionResponse as Record<
+            context.clayonExternalChatQuestionResponse as Record<
               string,
               unknown
             >
@@ -1704,7 +1704,7 @@ describe("native external-chat response wait", () => {
           if (mutation === "forged_marker") {
             const context = structuredClone(fixture.context);
             const marker =
-              context.paperclipExternalChatQuestionResponse as Record<
+              context.clayonExternalChatQuestionResponse as Record<
                 string,
                 unknown
               >;
@@ -1814,7 +1814,7 @@ describe("native external-chat response wait", () => {
         );
       // Neither a caller timestamp nor an untrusted marker field is the source.
       fixture.context.answeredAtMs = 1;
-      fixture.context.paperclipExternalChatQuestionResponse = {
+      fixture.context.clayonExternalChatQuestionResponse = {
         answeredAtMs: 2,
       };
       const onQuestionResponseAttested = vi.fn();
@@ -1832,7 +1832,7 @@ describe("native external-chat response wait", () => {
       expect(fixture.context.sourceCommentId).toBe(fixture.commentId);
       expect(fixture.context.wakeCommentIds).toEqual([fixture.commentId]);
       expect(
-        fixture.context.paperclipExternalChatQuestionResponse,
+        fixture.context.clayonExternalChatQuestionResponse,
       ).not.toHaveProperty("answeredAtMs");
       const [comment] = await db
         .select()
@@ -2091,7 +2091,7 @@ describe("native external-chat response wait", () => {
       const parent = parents[0]!;
       if (kind === "missing_parent_marker") {
         const context = { ...parent.context };
-        delete context.paperclipExternalChatQuestionResponse;
+        delete context.clayonExternalChatQuestionResponse;
         await db
           .update(heartbeatRuns)
           .set({ contextSnapshot: context })
@@ -2207,7 +2207,7 @@ describe("native external-chat response wait", () => {
         }),
       ).toBe(false);
       expect(
-        fixture.context.paperclipExternalChatQuestionResponse,
+        fixture.context.clayonExternalChatQuestionResponse,
       ).toBeUndefined();
     },
   );
@@ -2321,7 +2321,7 @@ describe("native external-chat response wait", () => {
             companyId: fixture.companyId,
             endpointId: fixture.endpointId,
             principalId,
-            paperclipUserId: "second-user",
+            clayonUserId: "second-user",
             status: "linked",
           });
         await db
@@ -2433,7 +2433,7 @@ describe("native external-chat response wait", () => {
         }),
       ).toBe(false);
       expect(
-        fixture.context.paperclipExternalChatQuestionResponse,
+        fixture.context.clayonExternalChatQuestionResponse,
       ).toBeUndefined();
       expect(
         await db
@@ -2693,7 +2693,7 @@ describe("native external-chat response wait", () => {
       .update(issues)
       .set({ executionRunId: runId })
       .where(eq(issues.id, fixture.issueId));
-    const port = new PaperclipControlPlanePort(db, {
+    const port = new ClayonControlPlanePort(db, {
       companyId: fixture.companyId,
       issueId: fixture.issueId,
       agentId: fixture.agentId,
@@ -3422,7 +3422,7 @@ describe("native external-chat response wait", () => {
       .update(issues)
       .set({ executionRunId: runId })
       .where(eq(issues.id, fixture.issueId));
-    const port = new PaperclipControlPlanePort(db, {
+    const port = new ClayonControlPlanePort(db, {
       companyId: fixture.companyId,
       issueId: fixture.issueId,
       agentId: fixture.agentId,
@@ -3813,10 +3813,10 @@ describe("native external-chat response wait", () => {
       .where(eq(heartbeatRuns.id, fixture.runId));
     const context = {
       ...run!.contextSnapshot,
-      paperclipRuntimeServices: [
+      clayonRuntimeServices: [
         { name: "preview", url: "http://127.0.0.1:9000" },
       ],
-      paperclipRuntimePrimaryUrl: "http://127.0.0.1:9000",
+      clayonRuntimePrimaryUrl: "http://127.0.0.1:9000",
     };
     await db
       .update(heartbeatRuns)

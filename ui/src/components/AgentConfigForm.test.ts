@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { Environment } from "@paperclipai/shared";
+import type { Environment } from "@clayon/shared";
 import {
-  resolvePaperclipRunnerTransitionModel,
+  resolveClayonRunnerTransitionModel,
   supportsAdapterModelRefresh,
 } from "./AgentConfigForm";
 import { resolveForcedKubernetesEnvironment } from "../lib/forced-kubernetes-environment";
@@ -20,17 +20,17 @@ describe("supportsAdapterModelRefresh", () => {
   });
 });
 
-describe("resolvePaperclipRunnerTransitionModel", () => {
+describe("resolveClayonRunnerTransitionModel", () => {
   it("preserves Claude custom model IDs", () => {
-    expect(resolvePaperclipRunnerTransitionModel("claude_local", "custom-claude-model")).toBe("custom-claude-model");
+    expect(resolveClayonRunnerTransitionModel("claude_local", "custom-claude-model")).toBe("custom-claude-model");
   });
   it("preserves an explicit model from codex_local", () => {
-    expect(resolvePaperclipRunnerTransitionModel("codex_local", "gpt-5.5"))
+    expect(resolveClayonRunnerTransitionModel("codex_local", "gpt-5.5"))
       .toBe("gpt-5.5");
   });
 
   it("uses the current Codex default when the source model is blank", () => {
-    expect(resolvePaperclipRunnerTransitionModel("codex_local", ""))
+    expect(resolveClayonRunnerTransitionModel("codex_local", ""))
       .toBe("gpt-5.6-sol");
   });
 });

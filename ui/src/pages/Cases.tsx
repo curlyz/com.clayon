@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { PageHeaderBand } from "@/components/PageHeaderBand";
 import { CaseCopyableToken } from "@/components/CaseIdentifierKey";
 import { hasBlockingShortcutDialog, isKeyboardShortcutTextInputTarget } from "@/lib/keyboardShortcuts";
 import { cn, relativeTime } from "@/lib/utils";
@@ -85,7 +86,7 @@ const defaultCaseViewState: CaseViewState = {
 };
 
 function getCaseViewStorageKey(companyId: string | null | undefined): string | null {
-  return companyId ? `paperclip:cases:${companyId}:view` : null;
+  return companyId ? `clayon:cases:${companyId}:view` : null;
 }
 
 function normalizeCaseColumns(value: unknown): CaseColumn[] {
@@ -727,7 +728,7 @@ function CasesEmptyHero() {
 {slug, target_audience, publish_url} and key <release>/<slug>."`}
         </pre>
         <p className="text-xs text-muted-foreground">
-          See the paperclip skill → <code className="font-mono">references/cases.md</code> for the API.
+          See the clayon skill → <code className="font-mono">references/cases.md</code> for the API.
         </p>
       </div>
       <p className="text-xs text-muted-foreground">
@@ -1187,18 +1188,13 @@ export function Cases() {
   const hasActiveFilters = activeFilters.length > 0;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">Cases</h1>
-          <Badge variant="secondary">Experimental</Badge>
-        </div>
-      </div>
-
-      {noCasesAtAll ? (
-        <CasesEmptyHero />
-      ) : (
-        <>
+    <div className="flex flex-col">
+      <PageHeaderBand
+        title="Cases"
+        actions={<Badge variant="secondary">Experimental</Badge>}
+      >
+        {!noCasesAtAll ? (
+          <>
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="relative w-48 sm:w-64 md:w-80">
               <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -1337,7 +1333,14 @@ export function Cases() {
           </div>
 
           <FilterBar filters={activeFilters} onRemove={removeFilter} onClear={clearFilters} />
+          </>
+        ) : null}
+      </PageHeaderBand>
 
+      {noCasesAtAll ? (
+        <CasesEmptyHero />
+      ) : (
+        <>
           {filtered.length === 0 ? (
             <EmptyState icon={SearchX} message="No cases match these filters." action="Clear filters" onAction={clearFilters} />
           ) : (

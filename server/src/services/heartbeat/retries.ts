@@ -28,14 +28,14 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents,
   agentWakeupRequests,
   executionWorkspaces,
   heartbeatRuns,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   HttpError,
   notFound,
@@ -397,7 +397,7 @@ export function createHeartbeatRetries(db: Db, dependencies: HeartbeatRetryDepen
   ) {
     if (parseObject(agent.adapterConfig).provider === "openai_dot"
         || parseObject(parseObject(parseObject(run.runnerProfileJson).nativeExecutionInput).provider).kind === "openai_dot") {
-      return { outcome: "not_scheduled" as const, reason: "Dot external execution must be reconciled before a new assignment; Paperclip cannot confirm its external stop.", issueId: readNonEmptyString(run.contextSnapshot?.issueId) };
+      return { outcome: "not_scheduled" as const, reason: "Dot external execution must be reconciled before a new assignment; Clayon cannot confirm its external stop.", issueId: readNonEmptyString(run.contextSnapshot?.issueId) };
     }
     if (run.errorCode === "provider_tool_definition_invalid") {
       return { outcome: "not_scheduled" as const,
@@ -1780,8 +1780,8 @@ export function createHeartbeatRetries(db: Db, dependencies: HeartbeatRetryDepen
       return {
         outcome: "waiting" as const,
         message: parseObject(currentRun.resultJson?.executionWait).cause === "execution_owner_active"
-          ? "Waiting for execution cleanup. Paperclip will retry automatically once cleanup finishes."
-          : "The retry remains scheduled. Paperclip will check again at the scheduled time.",
+          ? "Waiting for execution cleanup. Clayon will retry automatically once cleanup finishes."
+          : "The retry remains scheduled. Clayon will check again at the scheduled time.",
         scheduledRetry,
       };
     }

@@ -49,7 +49,7 @@ import {
   toolStdioCommandTemplates,
   userSecretDefinitions,
   userSecretDeclarations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   APP_DEFINITIONS,
@@ -60,7 +60,7 @@ import {
   getAvailableConnectionMethod,
   getConnectableAppDefinition,
   type GoogleWorkspaceConnectorProfileId,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -90,7 +90,7 @@ import { errorHandler } from "../middleware/index.js";
 import * as sentry from "../sentry.js";
 import { HttpError } from "../errors.js";
 import type { VercelConnectClient } from "../services/vercel-connect.js";
-import { invalidatePaperclipCloudConnectorCapabilities, type PaperclipCloudConnector } from "../services/paperclip-cloud-connector.js";
+import { invalidateClayonCloudConnectorCapabilities, type ClayonCloudConnector } from "../services/clayon-cloud-connector.js";
 
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported
@@ -128,7 +128,7 @@ function fakeGoogleWorkspaceConnector(
   companyId: string,
   userId: string,
   profile: GoogleWorkspaceConnectorProfileId = "gmail.draft",
-): PaperclipCloudConnector {
+): ClayonCloudConnector {
   const profileDefinition = GOOGLE_WORKSPACE_CONNECTOR_PROFILES[profile];
   const tokenPrefix = profile.split(".")[0]!;
   const credentials = {
@@ -160,14 +160,14 @@ function fakeGoogleWorkspaceConnector(
 function fakeGmailConnector(
   companyId: string,
   userId: string,
-): PaperclipCloudConnector {
+): ClayonCloudConnector {
   return fakeGoogleWorkspaceConnector(companyId, userId);
 }
 
 function fakeGitHubConnector(
   companyId: string,
   subject: string,
-): PaperclipCloudConnector {
+): ClayonCloudConnector {
   const credentials = {
     v: 1 as const,
     accessToken: "ghu_non_expiring_access_token",
@@ -182,7 +182,7 @@ function fakeGitHubConnector(
     environment: "development" as const,
     provider: "github" as const,
     profile: "github.code" as const,
-    appSlug: "paperclip-development",
+    appSlug: "clayon-development",
   };
   return {
     getCapabilities: vi.fn(async () => ["github.code" as const]),
@@ -380,7 +380,7 @@ function createRouteApp(
   deployment?: {
     deploymentMode?: "local_trusted" | "authenticated";
     deploymentExposure?: "private" | "public";
-    paperclipCloudConnector?: PaperclipCloudConnector | null;
+    clayonCloudConnector?: ClayonCloudConnector | null;
   },
   useProtocolFixtureTransport = true,
 ) {
@@ -617,8 +617,8 @@ async function createBrokerConnection(
     .insert(toolApplications)
     .values({
       companyId,
-      applicationKey: "paperclip-pages",
-      name: `Paperclip Pages ${randomUUID()}`,
+      applicationKey: "clayon-pages",
+      name: `Clayon Pages ${randomUUID()}`,
       type: "mcp_http",
       status: "active",
     })
@@ -824,14 +824,14 @@ describeEmbeddedPostgres("tool access service", () => {
 
   beforeAll(async () => {
     const externalDatabaseUrl =
-      process.env.PAPERCLIP_TOOL_ACCESS_TEST_DATABASE_URL?.trim();
+      process.env.CLAYON_TOOL_ACCESS_TEST_DATABASE_URL?.trim();
     if (externalDatabaseUrl) {
       db = createDb(externalDatabaseUrl);
       await instanceSettingsService(db).updateExperimental({ enableMemoryConnectors: true });
       return;
     }
     tempDb = await startEmbeddedPostgresTestDatabase(
-      "paperclip-tool-access-service-",
+      "clayon-tool-access-service-",
     );
     db = createDb(tempDb.connectionString);
     await instanceSettingsService(db).updateExperimental({ enableMemoryConnectors: true });
@@ -938,7 +938,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .post(
         `/api/agents/me/connections/${encodeURIComponent(connection.uid)}/token`,
       )
-      .set("X-Paperclip-Run-Id", run.id)
+      .set("X-Clayon-Run-Id", run.id)
       .send({ scope: "pages:publish:ns/dotta", requestedTtlSeconds: 5000 });
 
     expect(res.status).toBe(200);
@@ -975,7 +975,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .post(
         `/api/agents/me/connections/${encodeURIComponent(connection.uid)}/token`,
       )
-      .set("X-Paperclip-Run-Id", run.id)
+      .set("X-Clayon-Run-Id", run.id)
       .send({ scope: "pages:publish:ns/dotta" });
     expect(revoked.status).toBe(403);
     expect(revoked.body.error).toContain("no longer authorized");
@@ -1132,7 +1132,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .post(
         `/api/agents/me/connections/${encodeURIComponent(connection.uid)}/token`,
       )
-      .set("X-Paperclip-Run-Id", run.id)
+      .set("X-Clayon-Run-Id", run.id)
       .send({ scope: "pages:publish:ns/dotta" });
 
     expect(res.status).toBe(403);
@@ -1175,7 +1175,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .post(
         `/api/agents/me/connections/${encodeURIComponent(connection.uid)}/token`,
       )
-      .set("X-Paperclip-Run-Id", run.id)
+      .set("X-Clayon-Run-Id", run.id)
       .send({ scope: "pages:publish:ns/dotta" });
 
     expect(res.status).toBe(409);
@@ -1228,7 +1228,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
   it("allows an explicitly allowlisted internal token broker through the guarded fetch", async () => {
     vi.stubEnv(
-      "PAPERCLIP_TOKEN_BROKER_ALLOWED_HOSTS",
+      "CLAYON_TOKEN_BROKER_ALLOWED_HOSTS",
       "broker.example, 127.0.0.1",
     );
     const company = await createCompany(db);
@@ -2103,7 +2103,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     const res = await request(app)
       .post(`/api/agents/me/connections/${connection.id}/token`)
-      .set("X-Paperclip-Run-Id", run.id)
+      .set("X-Clayon-Run-Id", run.id)
       .send({ scope: "pages:publish:ns/dotta" });
 
     expect(res.status).toBe(403);
@@ -2392,7 +2392,7 @@ describeEmbeddedPostgres("tool access service", () => {
     fetchMock.mockResolvedValueOnce(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             {
@@ -2469,7 +2469,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const { agentInstructions: _settings, ...retained } = input;
     const resumed = await service.connectGalleryApp(company.id, { ...retained, resumeConnectionId: initial.connectionId }, actor);
     expect(resumed.connection.agentInstructions).toEqual(settings);
-    const started = await service.startOAuth(company.id, resumed.connectionId, { redirectUri: "https://paperclip.example.test/api/tools/oauth/callback", actor });
+    const started = await service.startOAuth(company.id, resumed.connectionId, { redirectUri: "https://clayon.example.test/api/tools/oauth/callback", actor });
     expect(started.authorizationUrl).toBeTruthy();
     expect((await service.getConnection(initial.connectionId)).agentInstructions).toEqual(settings);
     await db.update(toolConnections).set({ status: "active", enabled: true }).where(eq(toolConnections.id, initial.connectionId));
@@ -2498,7 +2498,7 @@ describeEmbeddedPostgres("tool access service", () => {
       ...connection.config,
       oauth: { ...(connection.config.oauth as Record<string, unknown>), scopes: [...scopes, ...removed] },
     } }).where(eq(toolConnections.id, connection.id));
-    const input = { redirectUri: "https://paperclip.example.test/api/tools/oauth/callback", actor };
+    const input = { redirectUri: "https://clayon.example.test/api/tools/oauth/callback", actor };
     const started = await service.startOAuth(company.id, connection.id, input);
     expect(new URL(started.authorizationUrl).searchParams.get("scope")?.split(" ")).toEqual(scopes);
     for (const removedScope of removed) {
@@ -2524,13 +2524,13 @@ describeEmbeddedPostgres("tool access service", () => {
         },
       });
       const connected = await service.connectGalleryApp(company.id, { galleryKey: slug, connectionMethodKey: "mcp-oauth", grantKind: "user", ...(slug === "supabase" ? { configValues: { projectRef: "abcdefghijklmnopqrst" } } : {}) }, actor);
-      const started = await service.startOAuth(company.id, connected.connectionId, { redirectUri: "https://paperclip.example.test/api/tools/oauth/callback", actor });
+      const started = await service.startOAuth(company.id, connected.connectionId, { redirectUri: "https://clayon.example.test/api/tools/oauth/callback", actor });
       const review = JSON.parse(await fs.readFile(new URL("../../../doc/connections/tool-method-permission-reviews.json", import.meta.url), "utf8"))
         .methods.find((entry: { app: string; method: string }) => entry.app === slug && entry.method === "mcp-oauth");
       expect(new URL(started.authorizationUrl).searchParams.get("scope")?.split(" ")).toEqual(review.requestedScopes);
       expect(new URL(started.authorizationUrl).searchParams.get("scope")).not.toContain("unrelated:admin");
       await expect(service.startOAuth(company.id, connected.connectionId, {
-        redirectUri: "https://paperclip.example.test/api/tools/oauth/callback", actor, scopes: ["unrelated:admin"],
+        redirectUri: "https://clayon.example.test/api/tools/oauth/callback", actor, scopes: ["unrelated:admin"],
       })).rejects.toMatchObject({ details: { code: "oauth_scope_widening_rejected" } });
     },
   );
@@ -2654,7 +2654,7 @@ describeEmbeddedPostgres("tool access service", () => {
         }
         return mcpSseResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               {
@@ -2706,7 +2706,7 @@ describeEmbeddedPostgres("tool access service", () => {
       { sourceTemplateKey: "anthropic", connectionMethodKey: "api-key" },
       {
         sourceTemplateKey: "unsupported-rest-fixture",
-        templateId: "paperclip.echo-calculator-time",
+        templateId: "clayon.echo-calculator-time",
       },
     ].flatMap((config) =>
       (["checkHealth", "refreshCatalog"] as const).map((operation) => ({ config, operation })),
@@ -2782,7 +2782,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const connection = await service.createConnection(company.id, {
       name: "Local echo fixture",
       transport: "local_stdio",
-      config: { templateId: "paperclip.echo-calculator-time" },
+      config: { templateId: "clayon.echo-calculator-time" },
       enabled: true,
       status: "active",
     });
@@ -2794,7 +2794,7 @@ describeEmbeddedPostgres("tool access service", () => {
       connectionId: connection.id,
       runtimeKind: "local_stdio",
       status: "stopped",
-      commandTemplateKey: "paperclip.echo-calculator-time",
+      commandTemplateKey: "clayon.echo-calculator-time",
     });
     expect(refresh.catalog.map((entry) => entry.toolName).sort()).toEqual([
       "add",
@@ -2805,7 +2805,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(runtimeSlots).toEqual([
       expect.objectContaining({
         connectionId: connection.id,
-        providerRef: "template:paperclip.echo-calculator-time",
+        providerRef: "template:clayon.echo-calculator-time",
         healthStatus: "ok",
       }),
     ]);
@@ -2882,7 +2882,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(listed.body.templates).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          templateId: "paperclip.echo-calculator-time",
+          templateId: "clayon.echo-calculator-time",
           source: "built_in",
         }),
         expect.objectContaining({
@@ -3284,7 +3284,7 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("implicitly allowlists the configured Pages API host for internal token brokers", async () => {
-    vi.stubEnv("PAPERCLIP_PAGES_API_URL", "http://127.0.0.1:8787");
+    vi.stubEnv("CLAYON_PAGES_API_URL", "http://127.0.0.1:8787");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db, {
       deploymentMode: "authenticated",
@@ -3622,7 +3622,7 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("cancels an ask-first test request when approval signing is unavailable", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_ACTION_SIGNING_SECRET", "");
     const company = await createCompany(db);
     const userId = `tool-tester-${randomUUID()}`;
     await grantBoardUser(db, company.id, userId, ["tools:use"]);
@@ -3652,7 +3652,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     expect(res.body).toMatchObject({
       reasonCode: "signing_secret_unconfigured",
-      error: expect.stringContaining("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET"),
+      error: expect.stringContaining("CLAYON_TOOL_ACTION_SIGNING_SECRET"),
     });
     const [actionRequest] = await db
       .select()
@@ -4964,7 +4964,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(install.created).toBe(true);
     expect(secondInstall.created).toBe(false);
     expect(install.application).toMatchObject({
-      applicationKey: "paperclip.examples.safe-read-only-todo-kv",
+      applicationKey: "clayon.examples.safe-read-only-todo-kv",
       type: "mcp_stdio",
       status: "active",
     });
@@ -4973,11 +4973,11 @@ describeEmbeddedPostgres("tool access service", () => {
       status: "active",
       enabled: true,
       config: expect.objectContaining({
-        templateId: "paperclip.synthetic-todo-kv",
+        templateId: "clayon.synthetic-todo-kv",
       }),
     });
     expect(install.profile).toMatchObject({
-      profileKey: "paperclip.examples.safe-read-only-todo-kv.profile",
+      profileKey: "clayon.examples.safe-read-only-todo-kv.profile",
       defaultAction: "deny",
       status: "active",
     });
@@ -5177,7 +5177,7 @@ describeEmbeddedPostgres("tool access service", () => {
   it("serves the app gallery manifest through the board route", async () => {
     const company = await createCompany(db);
     const app = createRouteApp(db, undefined, undefined, {
-      paperclipCloudConnector: null,
+      clayonCloudConnector: null,
     });
 
     const res = await request(app).get(
@@ -5318,7 +5318,7 @@ describeEmbeddedPostgres("tool access service", () => {
     fetchMock.mockResolvedValueOnce(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             { name: "get_organization_details", annotations: { readOnlyHint: true } },
@@ -5377,7 +5377,7 @@ describeEmbeddedPostgres("tool access service", () => {
     reconnectFetchMock.mockResolvedValueOnce(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             { name: "get_organization_details", annotations: { readOnlyHint: true } },
@@ -5410,7 +5410,7 @@ describeEmbeddedPostgres("tool access service", () => {
       userId,
       "gmail.read",
     );
-    const nonPilotConnector: PaperclipCloudConnector = {
+    const nonPilotConnector: ClayonCloudConnector = {
       ...pilotConnector,
       getCapabilities: vi.fn(async () => []),
     };
@@ -5420,7 +5420,7 @@ describeEmbeddedPostgres("tool access service", () => {
         db,
         boardSessionActor(company.id, "owner", userId),
         undefined,
-        { paperclipCloudConnector: nonPilotConnector },
+        { clayonCloudConnector: nonPilotConnector },
       ),
     ).get(`/api/companies/${company.id}/tools/gallery`);
     expect(nonPilot.status).toBe(200);
@@ -5443,7 +5443,7 @@ describeEmbeddedPostgres("tool access service", () => {
         db,
         boardSessionActor(company.id, "owner", userId),
         undefined,
-        { paperclipCloudConnector: pilotConnector },
+        { clayonCloudConnector: pilotConnector },
       ),
     ).get(`/api/companies/${company.id}/tools/gallery`);
     expect(pilot.status).toBe(200);
@@ -5454,7 +5454,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(
       pilotGmail.methods.map((method: { key: string }) => method.key),
     ).toEqual([
-      "paperclip-read",
+      "clayon-read",
       "customer-read-oauth",
       "customer-draft-oauth",
     ]);
@@ -5701,7 +5701,7 @@ describeEmbeddedPostgres("tool access service", () => {
         expect(headers.Authorization).toBe("Bearer imported-token");
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               {
@@ -5850,7 +5850,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .mockImplementation(async () =>
         mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: { tools },
         }),
       );
@@ -5988,9 +5988,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("validates a reviewed Vercel connector and stores no provider bearer or vault secret", async () => {
-    vi.stubEnv("PAPERCLIP_VERCEL_CONNECT_ENABLED", "true");
+    vi.stubEnv("CLAYON_VERCEL_CONNECT_ENABLED", "true");
     vi.stubEnv(
-      "PAPERCLIP_VERCEL_CONNECT_ACCESS_TOKEN",
+      "CLAYON_VERCEL_CONNECT_ACCESS_TOKEN",
       "vercel-bootstrap-authority",
     );
     const company = await createCompany(db);
@@ -6000,7 +6000,7 @@ describeEmbeddedPostgres("tool access service", () => {
       expiresAt: Date.now() + 60_000,
       connector: {
         id: "scl_posthog",
-        uid: "posthog-paperclip",
+        uid: "posthog-clayon",
         type: "api-key",
       },
       tenantId: "project-12345",
@@ -6011,8 +6011,8 @@ describeEmbeddedPostgres("tool access service", () => {
     const vercelConnectClient: VercelConnectClient = {
       getConnectorMetadata: vi.fn(async () => ({
         id: "scl_posthog",
-        uid: "posthog-paperclip",
-        name: "Paperclip PostHog",
+        uid: "posthog-clayon",
+        name: "Clayon PostHog",
         type: "api-key",
         service: "mcp.posthog.com/mcp",
         createdAt: Date.now(),
@@ -6033,7 +6033,7 @@ describeEmbeddedPostgres("tool access service", () => {
         );
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "query_insight", annotations: { readOnlyHint: true } },
@@ -6049,7 +6049,7 @@ describeEmbeddedPostgres("tool access service", () => {
         galleryKey: "posthog",
         connectionMethodKey: "mcp-api-key",
         credentialSource: "vercel_connect",
-        vercelConnect: { connector: "posthog-paperclip" },
+        vercelConnect: { connector: "posthog-clayon" },
         configValues: { projectId: "12345", mode: "tools" },
         grantKind: "organization",
       },
@@ -6075,7 +6075,7 @@ describeEmbeddedPostgres("tool access service", () => {
       externalCredential: {
         provider: "vercel_connect",
         connectorId: "scl_posthog",
-        connectorUid: "posthog-paperclip",
+        connectorUid: "posthog-clayon",
         service: "mcp.posthog.com/mcp",
         principalMode: "app",
       },
@@ -6103,7 +6103,7 @@ describeEmbeddedPostgres("tool access service", () => {
           galleryKey: "posthog",
           connectionMethodKey: "mcp-api-key",
           credentialSource: "vercel_connect",
-          vercelConnect: { connector: "posthog-paperclip" },
+          vercelConnect: { connector: "posthog-clayon" },
           configValues: { projectId: "67890", mode: "tools" },
         },
         { actorType: "user", actorId: "other-board" },
@@ -6131,9 +6131,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("rejects an attached Vercel connector for the wrong reviewed service", async () => {
-    vi.stubEnv("PAPERCLIP_VERCEL_CONNECT_ENABLED", "true");
+    vi.stubEnv("CLAYON_VERCEL_CONNECT_ENABLED", "true");
     vi.stubEnv(
-      "PAPERCLIP_VERCEL_CONNECT_ACCESS_TOKEN",
+      "CLAYON_VERCEL_CONNECT_ACCESS_TOKEN",
       "vercel-bootstrap-authority",
     );
     const company = await createCompany(db);
@@ -6141,7 +6141,7 @@ describeEmbeddedPostgres("tool access service", () => {
       vercelConnectClient: {
         getConnectorMetadata: vi.fn(async () => ({
           id: "scl_linear",
-          uid: "linear-paperclip",
+          uid: "linear-clayon",
           name: "Linear",
           type: "api-key",
           service: "linear",
@@ -6163,7 +6163,7 @@ describeEmbeddedPostgres("tool access service", () => {
           galleryKey: "posthog",
           connectionMethodKey: "mcp-api-key",
           credentialSource: "vercel_connect",
-          vercelConnect: { connector: "linear-paperclip" },
+          vercelConnect: { connector: "linear-clayon" },
           configValues: { projectId: "12345", mode: "tools" },
         },
         { actorType: "user", actorId: "board" },
@@ -6175,9 +6175,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("binds the Vercel OAuth callback to one company, actor, session, and one-time state", async () => {
-    vi.stubEnv("PAPERCLIP_VERCEL_CONNECT_ENABLED", "true");
+    vi.stubEnv("CLAYON_VERCEL_CONNECT_ENABLED", "true");
     vi.stubEnv(
-      "PAPERCLIP_VERCEL_CONNECT_ACCESS_TOKEN",
+      "CLAYON_VERCEL_CONNECT_ACCESS_TOKEN",
       "vercel-bootstrap-authority",
     );
     const company = await createCompany(db);
@@ -6186,7 +6186,7 @@ describeEmbeddedPostgres("tool access service", () => {
       token: "notion-provider-bearer",
       tokenId: "stk_notion",
       expiresAt: Date.now() + 60_000,
-      connector: { id: "scl_notion", uid: "notion-paperclip", type: "oauth" },
+      connector: { id: "scl_notion", uid: "notion-clayon", type: "oauth" },
       tenantId: "notion-workspace",
     }));
     const startAuthorization = vi.fn<VercelConnectClient["startAuthorization"]>(
@@ -6202,8 +6202,8 @@ describeEmbeddedPostgres("tool access service", () => {
       vercelConnectClient: {
         getConnectorMetadata: vi.fn(async () => ({
           id: "scl_notion",
-          uid: "notion-paperclip",
-          name: "Paperclip Notion",
+          uid: "notion-clayon",
+          name: "Clayon Notion",
           type: "oauth",
           service: "notion",
           createdAt: Date.now(),
@@ -6218,7 +6218,7 @@ describeEmbeddedPostgres("tool access service", () => {
       remoteHttpRequest: async () =>
         mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "search_pages", annotations: { readOnlyHint: true } },
@@ -6231,7 +6231,7 @@ describeEmbeddedPostgres("tool access service", () => {
       {
         galleryKey: "notion",
         credentialSource: "vercel_connect",
-        vercelConnect: { connector: "notion-paperclip" },
+        vercelConnect: { connector: "notion-clayon" },
         grantKind: "user",
       },
       { actorType: "user", actorId: "board-user", sessionId: "board-session" },
@@ -6258,7 +6258,7 @@ describeEmbeddedPostgres("tool access service", () => {
     );
     expect(startAuthorization).toHaveBeenCalledWith(
       expect.objectContaining({
-        connector: "notion-paperclip",
+        connector: "notion-clayon",
         subject: expect.objectContaining({ type: "user" }),
         resources: ["https://mcp.notion.com/mcp"],
       }),
@@ -6717,7 +6717,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(reconnected.connection.config.headerPolicy).toEqual({ metadata: { forward: [] } });
   });
 
-  it("forwards Paperclip context headers by default for a Telem.AI connection", async () => {
+  it("forwards Clayon context headers by default for a Telem.AI connection", async () => {
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     mockToolsList([{ name: "telem_search" }]);
@@ -7151,7 +7151,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .patch(`/api/tool-connections/${companyAConnection.connectionId}`)
       .send({
         config: {
-          templateId: "paperclip.google-sheets",
+          templateId: "clayon.google-sheets",
           sourceTemplateKey: "google-sheets",
           allowedSpreadsheetIds: ["company-b-sheet"],
           env: { GOOGLE_SHEETS_ALLOWED_SPREADSHEET_IDS: "company-b-sheet" },
@@ -7364,7 +7364,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     const updated = await service.updateConnection(second.connectionId, {
       config: {
-        templateId: "paperclip.google-sheets",
+        templateId: "clayon.google-sheets",
         sourceTemplateKey: "google-sheets",
         allowedSpreadsheetIds: [
           "same-company-sheet",
@@ -7395,7 +7395,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
   it.each(GOOGLE_WORKSPACE_CONNECTOR_PROFILE_IDS.flatMap((profile) => [
     ["local_trusted", "private", "http://127.0.0.1:3102"] as const,
-    ["authenticated", "public", "https://tenant.paperclip.app"] as const,
+    ["authenticated", "public", "https://tenant.clayon.app"] as const,
   ].map(([deploymentMode, deploymentExposure, origin]) => ({ profile, deploymentMode, deploymentExposure, origin }))))(
     "connects advertised Workspace $profile without mutating definitions in $deploymentMode",
     async ({ profile, deploymentMode, deploymentExposure, origin }) => {
@@ -7408,7 +7408,7 @@ describeEmbeddedPostgres("tool access service", () => {
       const definitionBefore = JSON.stringify(getConnectableAppDefinition(slug));
       const app = createRouteApp(db,
         deploymentMode === "authenticated" ? boardSessionActor(company.id, "owner", userId) : undefined,
-        undefined, { deploymentMode, deploymentExposure, paperclipCloudConnector: connector });
+        undefined, { deploymentMode, deploymentExposure, clayonCloudConnector: connector });
       const gallery = await request(app).get(`/api/companies/${company.id}/tools/gallery`);
       const workspaceApp = gallery.body.apps.find((entry: { slug: string }) => entry.slug === slug);
       expect(workspaceApp.methods.map((method: { key: string }) => method.key)).toContain(methodKey);
@@ -7417,7 +7417,7 @@ describeEmbeddedPostgres("tool access service", () => {
       });
       expect(connected.status).toBe(201);
       expect(connected.body.connection).toMatchObject({ credentialPolicy: "per_user", ownership: "platform_shared" });
-      const service = createTestToolAccessService(db, { paperclipCloudConnector: connector });
+      const service = createTestToolAccessService(db, { clayonCloudConnector: connector });
       const actor = { actorType: "user" as const, actorId: userId };
       const started = await service.startOAuth(company.id, connected.body.connectionId, {
         redirectUri: `${origin}/api/tools/oauth/cloud-connector/callback`, actor,
@@ -7427,7 +7427,7 @@ describeEmbeddedPostgres("tool access service", () => {
         returnUri: `${origin}/api/tools/oauth/cloud-connector/callback`,
       }));
       mockToolsList([]);
-      const completed = await service.completePaperclipCloudConnectorCallback({
+      const completed = await service.completeClayonCloudConnectorCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!, claimId: `${profile}-claim`, actor,
       });
       expect(completed.connection).toMatchObject({ status: "active", credentialPolicy: "per_user" });
@@ -7442,28 +7442,28 @@ describeEmbeddedPostgres("tool access service", () => {
     await grantBoardUser(db, company.id, userId, [], "owner");
     const signing = generateKeyPairSync("ed25519");
     const sealing = generateKeyPairSync("x25519");
-    vi.stubEnv("PAPERCLIP_AUTH_PUBLIC_BASE_URL", "https://tenant.paperclip.app");
-    vi.stubEnv("PAPERCLIP_CLOUD_CONNECTOR_BASE_URL", "https://my.paperclip.app");
-    vi.stubEnv("PAPERCLIP_CLOUD_CONNECTOR_ENVIRONMENT", "production");
-    vi.stubEnv("PAPERCLIP_CLOUD_CONNECTOR_INSTANCE_ID", "inst-cloud-workspace-regression");
-    vi.stubEnv("PAPERCLIP_CLOUD_CONNECTOR_SIGN_PRIVATE_KEY", signing.privateKey.export({ type: "pkcs8", format: "pem" }).toString());
-    vi.stubEnv("PAPERCLIP_CLOUD_CONNECTOR_SEAL_PRIVATE_KEY", sealing.privateKey.export({ type: "pkcs8", format: "pem" }).toString());
-    invalidatePaperclipCloudConnectorCapabilities();
+    vi.stubEnv("CLAYON_AUTH_PUBLIC_BASE_URL", "https://tenant.clayon.app");
+    vi.stubEnv("CLAYON_CLOUD_CONNECTOR_BASE_URL", "https://my.clayon.app");
+    vi.stubEnv("CLAYON_CLOUD_CONNECTOR_ENVIRONMENT", "production");
+    vi.stubEnv("CLAYON_CLOUD_CONNECTOR_INSTANCE_ID", "inst-cloud-workspace-regression");
+    vi.stubEnv("CLAYON_CLOUD_CONNECTOR_SIGN_PRIVATE_KEY", signing.privateKey.export({ type: "pkcs8", format: "pem" }).toString());
+    vi.stubEnv("CLAYON_CLOUD_CONNECTOR_SEAL_PRIVATE_KEY", sealing.privateKey.export({ type: "pkcs8", format: "pem" }).toString());
+    invalidateClayonCloudConnectorCapabilities();
     const cloudRequest = vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       const signed = JSON.parse(String(init?.body)).request as string;
       const claims = JSON.parse(Buffer.from(signed.split(".")[1]!, "base64url").toString());
       expect(claims).toMatchObject({ iss: "inst-cloud-workspace-regression", env: "production" });
-      if (String(url) === "https://my.paperclip.app/v1/connector/instance-status") {
+      if (String(url) === "https://my.clayon.app/v1/connector/instance-status") {
         expect(claims.op).toBe("status");
         return Response.json({ active: true, status: "active", profiles: [profile] });
       }
-      expect(String(url)).toBe("https://my.paperclip.app/v1/connector/sessions");
+      expect(String(url)).toBe("https://my.clayon.app/v1/connector/sessions");
       expect(claims).toMatchObject({
         op: "session", prf: profile, cid: company.id, sub: userId,
-        ruri: "https://tenant.paperclip.app/api/tools/oauth/cloud-connector/callback",
+        ruri: "https://tenant.clayon.app/api/tools/oauth/cloud-connector/callback",
       });
       return Response.json({
-        confirmationUrl: "https://my.paperclip.app/connections/confirm?id=test-workspace-session",
+        confirmationUrl: "https://my.clayon.app/connections/confirm?id=test-workspace-session",
         expiresAt: new Date(Date.now() + 600_000).toISOString(),
       });
     });
@@ -7478,11 +7478,11 @@ describeEmbeddedPostgres("tool access service", () => {
         galleryKey: slug, connectionMethodKey: methodKey, grantKind: "user", name: `Cloud ${slug}`,
       });
       expect(result.status, JSON.stringify(result.body)).toBe(201);
-      expect(result.body.auth.startUrl).toBe("https://my.paperclip.app/connections/confirm?id=test-workspace-session");
+      expect(result.body.auth.startUrl).toBe("https://my.clayon.app/connections/confirm?id=test-workspace-session");
       expect(result.body.connection).toMatchObject({ credentialPolicy: "per_user", ownership: "platform_shared" });
       expect(cloudRequest).toHaveBeenCalled();
     } finally {
-      invalidatePaperclipCloudConnectorCapabilities();
+      invalidateClayonCloudConnectorCapabilities();
     }
   });
 
@@ -7496,7 +7496,7 @@ describeEmbeddedPostgres("tool access service", () => {
     connector.getCapabilities = vi.fn(async (): Promise<GoogleWorkspaceConnectorProfileId[]> =>
       advertiseOther ? [profile === "gmail.read" ? "drive.read" : "gmail.read"] : [],
     );
-    const app = createRouteApp(db, undefined, undefined, { paperclipCloudConnector: connector });
+    const app = createRouteApp(db, undefined, undefined, { clayonCloudConnector: connector });
     const response = await request(app).post(`/api/companies/${company.id}/tools/apps/connect`).send({
       galleryKey: slug, connectionMethodKey: methodKey, name: `Unavailable ${slug}`,
     });
@@ -7514,7 +7514,7 @@ describeEmbeddedPostgres("tool access service", () => {
     });
     const connector = fakeGmailConnector(company.id, userId);
     const service = createTestToolAccessService(callbackDb, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     let deadline: ReturnType<typeof setTimeout> | null = null;
@@ -7526,7 +7526,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "gmail",
-          connectionMethodKey: "paperclip-draft",
+          connectionMethodKey: "clayon-draft",
           grantKind: "user",
           name: "Gmail single-pool callback",
         },
@@ -7537,7 +7537,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -7546,7 +7546,7 @@ describeEmbeddedPostgres("tool access service", () => {
       )!;
 
       const completed = await Promise.race([
-        service.completePaperclipCloudConnectorCallback({
+        service.completeClayonCloudConnectorCallback({
           state,
           claimId: "gmail-claim",
           actor,
@@ -7660,7 +7660,7 @@ describeEmbeddedPostgres("tool access service", () => {
       const agent = await createAgent(db, company.id);
       const connector = fakeGitHubConnector(company.id, `agent:${agent.id}`);
       const service = createTestToolAccessService(db, {
-        paperclipCloudConnector: connector,
+        clayonCloudConnector: connector,
       });
       const actor = { actorType: "user" as const, actorId: userId };
       const githubDefinition = getConnectableAppDefinition("github")!;
@@ -7687,7 +7687,7 @@ describeEmbeddedPostgres("tool access service", () => {
                 id: 101,
                 repository_selection: "selected",
                 html_url: "https://github.com/settings/installations/101",
-                account: { login: "paperclipai" },
+                account: { login: "clayon" },
               },
             ],
           });
@@ -7702,7 +7702,7 @@ describeEmbeddedPostgres("tool access service", () => {
             total_count: 3,
             repositories: [1, 2, 3].map((id) => ({
               id,
-              full_name: `paperclipai/repo-${id}`,
+              full_name: `clayon/repo-${id}`,
               description: "do-not-store",
             })),
           });
@@ -7710,7 +7710,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === GITHUB_CONNECTOR_PROFILES["github.code"].serverUrl) {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 {
@@ -7742,7 +7742,7 @@ describeEmbeddedPostgres("tool access service", () => {
           connected.connectionId,
           {
             redirectUri:
-              "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+              "https://clayon.example/api/tools/oauth/cloud-connector/callback",
             actor,
             subjectAgentId: agent.id,
           },
@@ -7760,7 +7760,7 @@ describeEmbeddedPostgres("tool access service", () => {
             ),
           );
         await expect(
-          service.completePaperclipCloudConnectorCallback({
+          service.completeClayonCloudConnectorCallback({
             state,
             claimId: "github-agent-claim",
             actor,
@@ -7774,7 +7774,7 @@ describeEmbeddedPostgres("tool access service", () => {
           scope: null,
           grantedByUserId: "owner",
         });
-        const completed = await service.completePaperclipCloudConnectorCallback(
+        const completed = await service.completeClayonCloudConnectorCallback(
           {
             state,
             claimId: "github-agent-claim",
@@ -7815,9 +7815,9 @@ describeEmbeddedPostgres("tool access service", () => {
               repositorySelection: "selected",
               installationIds: ["101"],
               installationUrl:
-                "https://github.com/apps/paperclip-development/installations/new",
+                "https://github.com/apps/clayon-development/installations/new",
               managementUrl: "https://github.com/settings/installations/101",
-              appSlug: "paperclip-development",
+              appSlug: "clayon-development",
             },
           },
         });
@@ -7931,7 +7931,7 @@ describeEmbeddedPostgres("tool access service", () => {
       subject: input.subject,
     }));
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const githubDefinition = getConnectableAppDefinition("github")!;
@@ -7953,7 +7953,7 @@ describeEmbeddedPostgres("tool access service", () => {
               id: 101,
               repository_selection: "selected",
               html_url: "https://github.com/settings/installations/101",
-              account: { login: "paperclipai" },
+              account: { login: "clayon" },
             },
           ],
         });
@@ -7965,13 +7965,13 @@ describeEmbeddedPostgres("tool access service", () => {
       ) {
         return mcpHttpResponse({
           total_count: 1,
-          repositories: [{ id: 1, full_name: "paperclipai/repo-1" }],
+          repositories: [{ id: 1, full_name: "clayon/repo-1" }],
         });
       }
       if (href === GITHUB_CONNECTOR_PROFILES["github.code"].serverUrl) {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "get_pull_request", annotations: { readOnlyHint: true } },
@@ -7999,12 +7999,12 @@ describeEmbeddedPostgres("tool access service", () => {
         dedicated.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
           subjectAgentId: agent.id,
         },
       );
-      await service.completePaperclipCloudConnectorCallback({
+      await service.completeClayonCloudConnectorCallback({
         state: new URL(dedicatedStart.authorizationUrl).searchParams.get(
           "state",
         )!,
@@ -8038,11 +8038,11 @@ describeEmbeddedPostgres("tool access service", () => {
         personal.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
-      const completed = await service.completePaperclipCloudConnectorCallback({
+      const completed = await service.completeClayonCloudConnectorCallback({
         state: new URL(personalStart.authorizationUrl).searchParams.get(
           "state",
         )!,
@@ -8095,7 +8095,7 @@ describeEmbeddedPostgres("tool access service", () => {
       },
     }));
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const driveDefinition = getConnectableAppDefinition("google-drive")!;
@@ -8114,7 +8114,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-read",
+          connectionMethodKey: "clayon-read",
           grantKind: "user",
           name: "Drive managed read",
         },
@@ -8125,7 +8125,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -8140,7 +8140,7 @@ describeEmbeddedPostgres("tool access service", () => {
         db,
         boardSessionActor(company.id, "owner", userId),
         undefined,
-        { paperclipCloudConnector: connector },
+        { clayonCloudConnector: connector },
       );
 
       const callback = await request(app)
@@ -8307,7 +8307,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const profile = "drive.read" as const;
     const connector = fakeGoogleWorkspaceConnector(company.id, userId, profile);
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const driveDefinition = getConnectableAppDefinition("google-drive")!;
@@ -8325,7 +8325,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-read",
+          connectionMethodKey: "clayon-read",
           grantKind: "organization",
           name: "Shared Drive managed read",
         },
@@ -8340,11 +8340,11 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
-      const completed = await service.completePaperclipCloudConnectorCallback({
+      const completed = await service.completeClayonCloudConnectorCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!,
         claimId: "shared-drive-claim",
         actor,
@@ -8440,7 +8440,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const profile = "drive.write" as const;
     const connector = fakeGoogleWorkspaceConnector(company.id, userId, profile);
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const driveDefinition = getConnectableAppDefinition("google-drive")!;
@@ -8460,7 +8460,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-write",
+          connectionMethodKey: "clayon-write",
           grantKind: "user",
           name: "Drive managed write",
         },
@@ -8471,7 +8471,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -8482,7 +8482,7 @@ describeEmbeddedPostgres("tool access service", () => {
         db,
         boardSessionActor(company.id, "owner", userId),
         undefined,
-        { paperclipCloudConnector: connector },
+        { clayonCloudConnector: connector },
       );
 
       const callback = await request(app)
@@ -8594,7 +8594,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -8679,7 +8679,7 @@ describeEmbeddedPostgres("tool access service", () => {
       "drive.write",
     );
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const driveDefinition = getConnectableAppDefinition("google-drive")!;
@@ -8699,7 +8699,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-write",
+          connectionMethodKey: "clayon-write",
           grantKind: "user",
           name: "Drive managed finalize failure",
         },
@@ -8710,7 +8710,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -8729,7 +8729,7 @@ describeEmbeddedPostgres("tool access service", () => {
         }) as typeof db.transaction);
 
       await expect(
-        service.completePaperclipCloudConnectorCallback({
+        service.completeClayonCloudConnectorCallback({
           state,
           claimId: "drive-finalize-failure-claim",
           actor,
@@ -8783,11 +8783,11 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
-      const completed = await service.completePaperclipCloudConnectorCallback({
+      const completed = await service.completeClayonCloudConnectorCallback({
         state: new URL(retry.authorizationUrl).searchParams.get("state")!,
         claimId: "drive-finalize-retry-claim",
         actor,
@@ -8919,7 +8919,7 @@ describeEmbeddedPostgres("tool access service", () => {
       "drive.write",
     );
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const driveDefinition = getConnectableAppDefinition("google-drive")!;
@@ -8939,7 +8939,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-write",
+          connectionMethodKey: "clayon-write",
           grantKind: "user",
           name: "Drive managed revival",
         },
@@ -8950,11 +8950,11 @@ describeEmbeddedPostgres("tool access service", () => {
         first.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
-      await service.completePaperclipCloudConnectorCallback({
+      await service.completeClayonCloudConnectorCallback({
         state: new URL(firstStart.authorizationUrl).searchParams.get("state")!,
         claimId: "drive-revival-first-claim",
         actor,
@@ -8982,7 +8982,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "google-drive",
-          connectionMethodKey: "paperclip-write",
+          connectionMethodKey: "clayon-write",
           grantKind: "user",
           name: "Drive managed revival",
         },
@@ -9005,11 +9005,11 @@ describeEmbeddedPostgres("tool access service", () => {
         revived.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
-      const completed = await service.completePaperclipCloudConnectorCallback({
+      const completed = await service.completeClayonCloudConnectorCallback({
         state: new URL(revivedStart.authorizationUrl).searchParams.get(
           "state",
         )!,
@@ -9092,7 +9092,7 @@ describeEmbeddedPostgres("tool access service", () => {
       new Error("temporary claim failure"),
     );
     const service = createTestToolAccessService(db, {
-      paperclipCloudConnector: connector,
+      clayonCloudConnector: connector,
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const gmailDefinition = getConnectableAppDefinition("gmail")!;
@@ -9108,7 +9108,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "gmail",
-          connectionMethodKey: "paperclip-draft",
+          connectionMethodKey: "clayon-draft",
           grantKind: "user",
           name: "Gmail retryable callback",
         },
@@ -9119,7 +9119,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -9128,7 +9128,7 @@ describeEmbeddedPostgres("tool access service", () => {
       )!;
 
       await expect(
-        service.completePaperclipCloudConnectorCallback({
+        service.completeClayonCloudConnectorCallback({
           state,
           claimId: "gmail-retry-claim",
           actor,
@@ -9141,7 +9141,7 @@ describeEmbeddedPostgres("tool access service", () => {
       });
 
       await expect(
-        service.completePaperclipCloudConnectorCallback({
+        service.completeClayonCloudConnectorCallback({
           state,
           claimId: "gmail-retry-claim",
           actor,
@@ -9172,7 +9172,7 @@ describeEmbeddedPostgres("tool access service", () => {
     });
     const removalDb = createDb(tempDb!.connectionString, { maxConnections: 1 });
     const service = createTestToolAccessService(callbackDb, {
-      paperclipCloudConnector: fakeGmailConnector(company.id, userId),
+      clayonCloudConnector: fakeGmailConnector(company.id, userId),
     });
     const actor = { actorType: "user" as const, actorId: userId };
     const gmailDefinition = getConnectableAppDefinition("gmail")!;
@@ -9197,7 +9197,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         {
           galleryKey: "gmail",
-          connectionMethodKey: "paperclip-draft",
+          connectionMethodKey: "clayon-draft",
           grantKind: "user",
           name: "Gmail concurrent revocation callback",
         },
@@ -9208,7 +9208,7 @@ describeEmbeddedPostgres("tool access service", () => {
         connected.connectionId,
         {
           redirectUri:
-            "https://paperclip.example/api/tools/oauth/cloud-connector/callback",
+            "https://clayon.example/api/tools/oauth/cloud-connector/callback",
           actor,
         },
       );
@@ -9255,7 +9255,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
       await membershipIsLocked;
       const completion = service
-        .completePaperclipCloudConnectorCallback({
+        .completeClayonCloudConnectorCallback({
           state,
           claimId: "gmail-claim",
           actor,
@@ -9304,9 +9304,9 @@ describeEmbeddedPostgres("tool access service", () => {
   }, 15_000);
 
   it("synchronizes shared OAuth credentials to the organization grant used by gateway calls", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -9329,7 +9329,7 @@ describeEmbeddedPostgres("tool access service", () => {
       company.id,
       connected.connectionId,
       {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
       },
     );
@@ -9398,7 +9398,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!,
       code: "shared-authorization-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
     });
 
@@ -9460,9 +9460,9 @@ describeEmbeddedPostgres("tool access service", () => {
       tokenScope: string | null,
       requestedScopes?: string[],
     ) {
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
       vi.stubEnv(
-        "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+        "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
         "slack-client-secret",
       );
       const company = await createCompany(db);
@@ -9481,7 +9481,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         connected.connectionId,
         {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
           ...(requestedScopes ? { scopes: requestedScopes } : {}),
         },
@@ -9505,7 +9505,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: { tools: [] },
           });
         }
@@ -9514,7 +9514,7 @@ describeEmbeddedPostgres("tool access service", () => {
       await service.completeOAuthCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!,
         code: "shared-authorization-code",
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
       });
       const [connection] = await db
@@ -9573,7 +9573,7 @@ describeEmbeddedPostgres("tool access service", () => {
     // The limit of this fix, asserted so nobody reads `unrequestedScopes: []` as "no extra
     // scopes were granted". This is exactly the Enterpret shape from PAP-18538: the token
     // response omitted `scope` while the token really carried `mcp:write`, and only RFC 7662
-    // introspection revealed it. Paperclip does not introspect, so the extra scope is
+    // introspection revealed it. Clayon does not introspect, so the extra scope is
     // *unknown*, not absent. `requested_fallback` is the marker that says so; an operator who
     // needs certainty has to check at the provider.
     it("cannot see an over-grant that the provider hides by omitting scope", async () => {
@@ -9583,7 +9583,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
       expect(recordedOAuth).toMatchObject({
         scope: null,
-        // Not "provider": the scope list below is Paperclip's own request, so it carries no
+        // Not "provider": the scope list below is Clayon's own request, so it carries no
         // assurance about what the token can actually do.
         scopeSource: "requested_fallback",
         // Empty because nothing was asserted to compare against — NOT because the provider
@@ -9594,9 +9594,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("creates and resolves an agent-initiated user authorization grant card", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -9615,7 +9615,7 @@ describeEmbeddedPostgres("tool access service", () => {
       company.id,
       connected.connectionId,
       {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "workspace-owner" },
       },
     );
@@ -9645,7 +9645,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.slack.com/mcp") {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: { tools: [] },
         });
       }
@@ -9654,7 +9654,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: workspaceState,
       code: "workspace-authorization-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "workspace-owner" },
     });
     const [workspaceConnection] = await db
@@ -9672,7 +9672,7 @@ describeEmbeddedPostgres("tool access service", () => {
       runId: run.id,
       subjectUserId: "user-for-run",
       scopes: ["channels:read"],
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
     });
     const authorizationUrl = new URL(started.authorizationUrl);
     expect(authorizationUrl.searchParams.get("scope")).toBe("channels:read");
@@ -9697,7 +9697,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: state.state,
       code: "user-authorization-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "user-for-run" },
     });
 
@@ -9788,7 +9788,7 @@ describeEmbeddedPostgres("tool access service", () => {
         runId: run.id,
         subjectUserId: "user-for-run",
         scopes: ["channels:read"],
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
       }),
     ).rejects.toMatchObject({ status: 403 });
     await db
@@ -9807,7 +9807,7 @@ describeEmbeddedPostgres("tool access service", () => {
       runId: run.id,
       subjectUserId: "user-for-run",
       scopes: ["channels:read"],
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
     });
     await db
       .update(companyMemberships)
@@ -9822,7 +9822,7 @@ describeEmbeddedPostgres("tool access service", () => {
       service.completeOAuthCallback({
         state: new URL(retry.authorizationUrl).searchParams.get("state")!,
         code: "user-authorization-code",
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "user-for-run" },
       }),
     ).rejects.toMatchObject({ status: 403 });
@@ -9856,7 +9856,7 @@ describeEmbeddedPostgres("tool access service", () => {
       runId: run.id,
       subjectUserId: "user-for-run",
       scopes: ["channels:read"],
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
     });
     await db
       .update(companyMemberships)
@@ -9873,7 +9873,7 @@ describeEmbeddedPostgres("tool access service", () => {
           "state",
         )!,
         code: "user-authorization-code",
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "user-for-run" },
       }),
     ).rejects.toMatchObject({ status: 403 });
@@ -9895,9 +9895,9 @@ describeEmbeddedPostgres("tool access service", () => {
   it.each(["page", "task"] as const)(
     "activates and discovers actions for a fresh personal OAuth callback from %s without widening task access",
     async (host) => {
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
       vi.stubEnv(
-        "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+        "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
         "slack-client-secret",
       );
       const company = await createCompany(db);
@@ -9945,7 +9945,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         connected.connectionId,
         {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
           subjectUserId: userId,
           interactionId: interaction?.id,
@@ -9979,7 +9979,7 @@ describeEmbeddedPostgres("tool access service", () => {
           );
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 {
@@ -9997,7 +9997,7 @@ describeEmbeddedPostgres("tool access service", () => {
       const completed = await service.completeOAuthCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!,
         code: "personal-code",
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
       });
 
@@ -10187,7 +10187,7 @@ describeEmbeddedPostgres("tool access service", () => {
       }
       await expect(
         service.startOAuth(company.id, connected.connectionId, {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: {
             actorType: "user",
             actorId: `different-user-${randomUUID()}`,
@@ -10220,7 +10220,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         connected.connectionId,
         {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
           interactionId: interaction?.id,
         },
@@ -10235,7 +10235,7 @@ describeEmbeddedPostgres("tool access service", () => {
         service.completeOAuthCallback({
           state: new URL(reconnect.authorizationUrl).searchParams.get("state")!,
           code: "personal-reconnect-code",
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
         }),
       ).resolves.toMatchObject({
@@ -10278,9 +10278,9 @@ describeEmbeddedPostgres("tool access service", () => {
   );
 
   it("promotes a personal OAuth identity only after Everyone in the company is chosen", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -10300,7 +10300,7 @@ describeEmbeddedPostgres("tool access service", () => {
       company.id,
       connected.connectionId,
       {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
         subjectUserId: userId,
       },
@@ -10319,7 +10319,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.slack.com/mcp") {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "search_messages", annotations: { readOnlyHint: true } },
@@ -10332,7 +10332,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!,
       code: "share-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
     });
     const [beforeGrant] = await db
@@ -10427,9 +10427,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("refreshes an expired personal OAuth grant during health checks without moving its tokens onto the connection", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -10449,7 +10449,7 @@ describeEmbeddedPostgres("tool access service", () => {
       company.id,
       connected.connectionId,
       {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
         subjectUserId: userId,
       },
@@ -10481,7 +10481,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 {
@@ -10497,7 +10497,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!,
       code: "personal-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
     });
     const [grant] = await db
@@ -10567,9 +10567,9 @@ describeEmbeddedPostgres("tool access service", () => {
   // provider's response is judged against. A provider that widens at refresh must not be able
   // to do it quietly.
   it("flags a scope the provider widens at refresh time", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -10589,7 +10589,7 @@ describeEmbeddedPostgres("tool access service", () => {
       company.id,
       connected.connectionId,
       {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
         subjectUserId: userId,
         scopes: ["channels:read"],
@@ -10621,7 +10621,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.slack.com/mcp") {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: { tools: [] },
         });
       }
@@ -10630,7 +10630,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!,
       code: "personal-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
     });
     const [grant] = await db
@@ -10681,11 +10681,11 @@ describeEmbeddedPostgres("tool access service", () => {
   // response against the wider list and an asserted extra scope stops looking unrequested.
   it("keeps the narrowed request as the refresh baseline for a generic MCP connection", async () => {
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_NARROW_EXAMPLE_TEST_CLIENT_ID",
+      "CLAYON_TOOL_OAUTH_NARROW_EXAMPLE_TEST_CLIENT_ID",
       "narrow-client-id",
     );
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_NARROW_EXAMPLE_TEST_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_NARROW_EXAMPLE_TEST_CLIENT_SECRET",
       "narrow-client-secret",
     );
     const company = await createCompany(db);
@@ -10715,7 +10715,7 @@ describeEmbeddedPostgres("tool access service", () => {
         }
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: { tools: [] },
         });
       }
@@ -10728,7 +10728,7 @@ describeEmbeddedPostgres("tool access service", () => {
           json: async () => ({
             authorization_endpoint: "https://narrow.example.test/oauth/authorize",
             token_endpoint: "https://narrow.example.test/oauth/token",
-            // Discovery advertises both; Paperclip will ask for only one.
+            // Discovery advertises both; Clayon will ask for only one.
             scopes_supported: ["tools.read", "tools.write"],
           }),
         } as Response;
@@ -10759,7 +10759,7 @@ describeEmbeddedPostgres("tool access service", () => {
       status: "active",
     });
     const started = await service.startOAuth(company.id, connection.id, {
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
       scopes: ["tools.read"],
     });
@@ -10769,7 +10769,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!,
       code: "narrow-code",
-      redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+      redirectUri: "https://clayon.example/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: userId },
     });
 
@@ -10809,9 +10809,9 @@ describeEmbeddedPostgres("tool access service", () => {
   // scope list is whichever callback ran last, so it is the wrong refresh baseline for at
   // least one of them — the baseline has to live on the grant.
   it("gives each personal grant its own refresh scope baseline", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -10843,7 +10843,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.slack.com/mcp") {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: { tools: [] },
         });
       }
@@ -10854,7 +10854,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         connected.connectionId,
         {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
           subjectUserId: userId,
           scopes,
@@ -10864,7 +10864,7 @@ describeEmbeddedPostgres("tool access service", () => {
       await service.completeOAuthCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!,
         code: `code-${randomUUID()}`,
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
       });
       const [grant] = await db
@@ -10934,9 +10934,9 @@ describeEmbeddedPostgres("tool access service", () => {
   // shape the grants API and the Permissions UI read from.
   describe("over-grant provenance on an organization grant", () => {
     async function connectSharedSlack(authorizationScope: string | null) {
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
       vi.stubEnv(
-        "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+        "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
         "slack-client-secret",
       );
       const company = await createCompany(db);
@@ -10952,7 +10952,7 @@ describeEmbeddedPostgres("tool access service", () => {
         company.id,
         connected.connectionId,
         {
-          redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+          redirectUri: "https://clayon.example/api/tools/oauth/callback",
           actor: { actorType: "user", actorId: userId },
           scopes: ["channels:read"],
         },
@@ -10978,7 +10978,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: { tools: [] },
           });
         }
@@ -10987,7 +10987,7 @@ describeEmbeddedPostgres("tool access service", () => {
       await service.completeOAuthCallback({
         state: new URL(started.authorizationUrl).searchParams.get("state")!,
         code: "shared-authorization-code",
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: userId },
       });
       const readGrant = async () => {
@@ -11097,11 +11097,11 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("uses Airtable DCR when both DCR and CIMD are advertised", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const restoreMethod = optIntoAirtableDcrRegistration();
     try {
       const company = await createCompany(db);
@@ -11116,7 +11116,7 @@ describeEmbeddedPostgres("tool access service", () => {
       const connected = await service.connectGalleryApp(company.id, {
         galleryKey: "airtable", connectionMethodKey: "mcp-oauth", name: "Airtable DCR",
       });
-      const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+      const redirectUri = "https://clayon.example/api/tools/oauth/callback";
       vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
         const href = String(url);
         if (href === "https://mcp.airtable.com/.well-known/oauth-protected-resource/mcp") {
@@ -11171,11 +11171,11 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("rebinds an Airtable CIMD client through DCR when the curated method opts in", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db, {
       oauthClientMetadataLookup: async () => [{ address: "93.184.216.34", family: 4 }],
@@ -11183,7 +11183,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const connected = await service.connectGalleryApp(company.id, {
       galleryKey: "airtable", connectionMethodKey: "mcp-oauth", name: "Airtable migration",
     });
-    const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+    const redirectUri = "https://clayon.example/api/tools/oauth/callback";
     let registrations = 0;
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
       const href = String(url);
@@ -11243,11 +11243,11 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("does not fall back to Airtable CIMD when DCR is required but unavailable", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_AIRTABLE_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const restoreMethod = optIntoAirtableDcrRegistration();
     try {
       const company = await createCompany(db);
@@ -11283,7 +11283,7 @@ describeEmbeddedPostgres("tool access service", () => {
       });
 
       await expect(service.startOAuth(company.id, connected.connectionId, {
-        redirectUri: "https://paperclip.example/api/tools/oauth/callback",
+        redirectUri: "https://clayon.example/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "board" },
       })).rejects.toMatchObject({ details: { code: "oauth_dcr_not_supported" } });
       expect(metadataLookups).toBe(0);
@@ -11295,11 +11295,11 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("registers Linear against its MCP authorization server instead of the pinned console endpoints", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_LINEAR_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_LINEAR_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_LINEAR_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_LINEAR_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const userId = `linear-owner-${randomUUID()}`;
     await grantBoardUser(db, company.id, userId, [], "owner");
@@ -11331,7 +11331,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.linear.app/register") {
         return mcpHttpResponse({
           client_id: "linear-registered-client",
-          redirect_uris: ["https://paperclip.example/api/tools/oauth/callback"],
+          redirect_uris: ["https://clayon.example/api/tools/oauth/callback"],
           grant_types: ["authorization_code", "refresh_token"],
           response_types: ["code"],
           token_endpoint_auth_method: "none",
@@ -11387,7 +11387,7 @@ describeEmbeddedPostgres("tool access service", () => {
     });
 
     expect(registrationBody).toMatchObject({
-      client_name: "Paperclip localhost-3105",
+      client_name: "Clayon localhost-3105",
       redirect_uris: [redirectUri],
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
@@ -11399,11 +11399,11 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("returns a pre-scoped personal Notion callback directly to Permissions", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const userId = `notion-owner-${randomUUID()}`;
     await grantBoardUser(db, company.id, userId, [], "owner");
@@ -11438,7 +11438,7 @@ describeEmbeddedPostgres("tool access service", () => {
         return mcpHttpResponse({
           client_id: "notion-choice-client",
           client_secret: "notion-choice-secret",
-          redirect_uris: ["https://paperclip.example/api/tools/oauth/callback"],
+          redirect_uris: ["https://clayon.example/api/tools/oauth/callback"],
           grant_types: ["authorization_code", "refresh_token"],
           response_types: ["code"],
           token_endpoint_auth_method: "none",
@@ -11463,7 +11463,7 @@ describeEmbeddedPostgres("tool access service", () => {
         );
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "notion-search", annotations: { readOnlyHint: true } },
@@ -11483,7 +11483,7 @@ describeEmbeddedPostgres("tool access service", () => {
     );
     expect(state).toBeTruthy();
 
-    // The provider's redirect is a cross-site navigation: Paperclip commits a
+    // The provider's redirect is a cross-site navigation: Clayon commits a
     // page at once (Railway's consent page otherwise replaces itself after ~2s)
     // and leaves the state unconsumed for the same-origin repeat.
     const interstitialRes = await request(app)
@@ -11537,7 +11537,7 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("returns a declined curated OAuth draft to its exact resumable setup route", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "https://paperclip.example");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "https://clayon.example");
     const company = await createCompany(db);
     const userId = `notion-resume-${randomUUID()}`;
     await grantBoardUser(db, company.id, userId, [], "owner");
@@ -11570,7 +11570,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.notion.com/register") {
         return mcpHttpResponse({
           client_id: "notion-resume-client",
-          redirect_uris: ["https://paperclip.example/api/tools/oauth/callback"],
+          redirect_uris: ["https://clayon.example/api/tools/oauth/callback"],
           grant_types: ["authorization_code", "refresh_token"],
           response_types: ["code"],
           token_endpoint_auth_method: "none",
@@ -11600,7 +11600,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(callbackRes.status).toBe(303);
     const location = new URL(
       callbackRes.headers.location,
-      "https://paperclip.example",
+      "https://clayon.example",
     );
     expect(location.pathname).toBe(`/${company.issuePrefix}/apps/connect`);
     expect(location.searchParams.get("source")).toBe("notion");
@@ -11614,20 +11614,20 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it.each([
-    "https://paperclip-public.example",
+    "https://clayon-public.example",
     "http://127.0.0.1:3200",
     "http://localhost:3200",
   ])(
     "starts and completes OAuth with the same redirect URI at %s",
     async (origin) => {
       const callbackOrigin = origin.replace("http://127.0.0.1:", "http://localhost:");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
       vi.stubEnv(
-        "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+        "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
         "slack-client-secret",
       );
       vi.stubEnv(
-        "PAPERCLIP_PUBLIC_URL",
+        "CLAYON_PUBLIC_URL",
         origin.startsWith("https:") ? origin : "",
       );
       const company = await createCompany(db);
@@ -11705,7 +11705,7 @@ describeEmbeddedPostgres("tool access service", () => {
             );
             return mcpHttpResponse({
               jsonrpc: "2.0",
-              id: "paperclip-catalog-refresh",
+              id: "clayon-catalog-refresh",
               result: {
                 tools: [
                   {
@@ -11795,10 +11795,10 @@ describeEmbeddedPostgres("tool access service", () => {
   );
 
   it("normalizes a direct numeric loopback origin for OAuth when no public URL is configured", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -11818,10 +11818,10 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("does not derive an OAuth callback origin from a non-loopback request host", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -11829,7 +11829,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     const connectRes = await request(app)
       .post(`/api/companies/${company.id}/tools/apps/connect`)
-      .set("Host", "paperclip.example.test")
+      .set("Host", "clayon.example.test")
       .set("X-Forwarded-Host", "127.0.0.1:3200")
       .send({
         galleryKey: "slack",
@@ -11840,15 +11840,15 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(connectRes.body).toMatchObject({
       code: "oauth_redirect_origin_unsupported",
       error:
-        "This Paperclip needs a browser-reachable HTTPS address (or loopback HTTP) before browser sign-in can start.",
+        "This Clayon needs a browser-reachable HTTPS address (or loopback HTTP) before browser sign-in can start.",
     });
   });
 
   it("uses an authenticated same-origin HTTPS browser request without public URL config", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -11864,21 +11864,21 @@ describeEmbeddedPostgres("tool access service", () => {
 
     const connectRes = await request(app)
       .post(`/api/companies/${company.id}/tools/apps/connect`)
-      .set("Host", "paperclip.tail123.ts.net")
-      .set("Origin", "https://paperclip.tail123.ts.net")
+      .set("Host", "clayon.tail123.ts.net")
+      .set("Origin", "https://clayon.tail123.ts.net")
       .send({ galleryKey: "slack", name: "Tailscale Slack workspace" });
 
     expect(connectRes.status).toBe(201);
     expect(
       new URL(connectRes.body.auth.startUrl).searchParams.get("redirect_uri"),
-    ).toBe("https://paperclip.tail123.ts.net/api/tools/oauth/callback");
+    ).toBe("https://clayon.tail123.ts.net/api/tools/oauth/callback");
   });
 
   it("rejects a browser HTTPS origin that does not match the routed request host", async () => {
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -11894,7 +11894,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     const connectRes = await request(app)
       .post(`/api/companies/${company.id}/tools/apps/connect`)
-      .set("Host", "paperclip.tail123.ts.net")
+      .set("Host", "clayon.tail123.ts.net")
       .set("Origin", "https://evil.example")
       .send({ galleryKey: "slack", name: "Mismatched Slack workspace" });
 
@@ -11905,8 +11905,8 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("requires non-viewer board access to start OAuth for active app connections", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "http://paperclip.test");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "http://clayon.test");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connect = await service.connectGalleryApp(
@@ -11960,8 +11960,8 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("lets the retained personal identity owner reconnect without manager configuration access", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "http://paperclip.test");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "http://clayon.test");
     const company = await createCompany(db);
     const userId = `personal-oauth-member-${randomUUID()}`;
     const service = createTestToolAccessService(db);
@@ -12079,12 +12079,12 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("binds OAuth callback completion to the initiating board session", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "http://paperclip.test");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "http://clayon.test");
     const company = await createCompany(db);
     await grantBoardUser(db, company.id, "oauth-operator", [
       "tools:manage_connections",
@@ -12208,7 +12208,7 @@ describeEmbeddedPostgres("tool access service", () => {
         );
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "search_messages", annotations: { readOnlyHint: true } },
@@ -12227,10 +12227,10 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("discovers Notion MCP OAuth metadata, registers one public client, and reuses it", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connected = await service.connectGalleryApp(company.id, {
@@ -12238,7 +12238,7 @@ describeEmbeddedPostgres("tool access service", () => {
       name: "Notion DCR",
     });
     const redirectUri =
-      "https://paperclip-dev.tail29c1aa.ts.net/api/tools/oauth/callback";
+      "https://clayon-dev.tail29c1aa.ts.net/api/tools/oauth/callback";
     const registrationBodies: Array<Record<string, unknown>> = [];
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
@@ -12305,12 +12305,12 @@ describeEmbeddedPostgres("tool access service", () => {
     ).toBe("notion-dcr-client");
     expect(registrationBodies).toEqual([
       {
-        client_name: "Paperclip paperclip-dev-tail29c1aa-ts-net",
+        client_name: "Clayon clayon-dev-tail29c1aa-ts-net",
         redirect_uris: [redirectUri],
         grant_types: ["authorization_code", "refresh_token"],
         response_types: ["code"],
         token_endpoint_auth_method: "none",
-        // PAP-17087: Paperclip's callback is a server-side HTTPS endpoint, so
+        // PAP-17087: Clayon's callback is a server-side HTTPS endpoint, so
         // registration must declare a `web` client rather than let the
         // authorization server apply native-client redirect rules.
         application_type: "web",
@@ -12407,10 +12407,10 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("supports confidential DCR clients without exposing their registration secret", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SUPABASE_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SUPABASE_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SUPABASE_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SUPABASE_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     await grantBoardUser(db, company.id, "board", ["tools:manage_connections"]);
     const service = createTestToolAccessService(db);
@@ -12424,7 +12424,7 @@ describeEmbeddedPostgres("tool access service", () => {
         features: "database",
       },
     });
-    const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+    const redirectUri = "https://clayon.example/api/tools/oauth/callback";
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockImplementation(async (url, init) => {
@@ -12500,7 +12500,7 @@ describeEmbeddedPostgres("tool access service", () => {
           );
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 { name: "list_tables", annotations: { readOnlyHint: true } },
@@ -12565,10 +12565,10 @@ describeEmbeddedPostgres("tool access service", () => {
 
   it.each(["default", "none", "agent", "company"] as const)(
     "negotiates JSON OAuth tokens and preserves MCP agent reach (%s)", async (reach) => {
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_MIRO_CLIENT_ID", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_MIRO_CLIENT_SECRET", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_MIRO_CLIENT_ID", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_MIRO_CLIENT_SECRET", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
       const company = await createCompany(db);
       await grantBoardUser(db, company.id, "board", ["tools:manage_connections"]);
       const service = createTestToolAccessService(db);
@@ -12586,7 +12586,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (reach !== "default") {
         await service.putConnectionInstalls(connected.connectionId, { installs });
       }
-      const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+      const redirectUri = "https://clayon.example/api/tools/oauth/callback";
       vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
         const href = String(url);
         if (
@@ -12656,7 +12656,7 @@ describeEmbeddedPostgres("tool access service", () => {
           );
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [{ name: "whoami", annotations: { readOnlyHint: true } }],
             },
@@ -12706,10 +12706,10 @@ describeEmbeddedPostgres("tool access service", () => {
   );
 
   it("accepts provider-added DCR grants without adopting them", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_HUGGING_FACE_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_HUGGING_FACE_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_HUGGING_FACE_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_HUGGING_FACE_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connected = await service.connectGalleryApp(company.id, {
@@ -12717,7 +12717,7 @@ describeEmbeddedPostgres("tool access service", () => {
       connectionMethodKey: "mcp-oauth",
       name: "Hugging Face DCR",
     });
-    const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+    const redirectUri = "https://clayon.example/api/tools/oauth/callback";
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       const href = String(url);
       if (
@@ -12804,10 +12804,10 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("does not request refresh-token registration from a provider that explicitly omits it", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CODA_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CODA_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CODA_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CODA_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connected = await service.connectGalleryApp(company.id, {
@@ -12815,7 +12815,7 @@ describeEmbeddedPostgres("tool access service", () => {
       connectionMethodKey: "mcp-oauth",
       name: "Coda DCR",
     });
-    const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+    const redirectUri = "https://clayon.example/api/tools/oauth/callback";
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       const href = String(url);
       if (
@@ -12869,10 +12869,10 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("normalizes a public DCR client's zero secret expiry when no secret was issued", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_MIXPANEL_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_MIXPANEL_CLIENT_SECRET", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_MIXPANEL_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_MIXPANEL_CLIENT_SECRET", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connected = await service.connectGalleryApp(company.id, {
@@ -12880,7 +12880,7 @@ describeEmbeddedPostgres("tool access service", () => {
       connectionMethodKey: "mcp-oauth",
       name: "Mixpanel public DCR",
     });
-    const redirectUri = "https://paperclip.example/api/tools/oauth/callback";
+    const redirectUri = "https://clayon.example/api/tools/oauth/callback";
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
       const href = String(url);
       if (
@@ -13096,7 +13096,7 @@ describeEmbeddedPostgres("tool access service", () => {
       instanceId: "test-instance", environment: "staging" as const,
       provider: "asana" as const, profile: "asana.mcp" as const,
     };
-    const connector: PaperclipCloudConnector = {
+    const connector: ClayonCloudConnector = {
       getCapabilities: vi.fn(async () => ["asana.mcp"]),
       startAuthorization: vi.fn(async ({ returnState }) => ({
         authorizationUrl: `https://app.asana.com/-/oauth_authorize?state=${encodeURIComponent(returnState)}`,
@@ -13105,7 +13105,7 @@ describeEmbeddedPostgres("tool access service", () => {
       claim: vi.fn(async () => credentials), refresh: vi.fn(async () => credentials),
       revoke: vi.fn(async () => undefined),
     };
-    const service = createTestToolAccessService(db, { paperclipCloudConnector: connector });
+    const service = createTestToolAccessService(db, { clayonCloudConnector: connector });
     const custom = await service.connectGalleryApp(company.id, {
       galleryKey: "asana", connectionMethodKey: "mcp-own-oauth", name: "Asana", grantKind: "user",
       oauthClient: { clientId: "asana-client", clientSecret: "asana-secret" },
@@ -13126,7 +13126,7 @@ describeEmbeddedPostgres("tool access service", () => {
       redirectUri: "https://tenant.example/api/tools/oauth/cloud-connector/callback", actor,
     });
     mockToolsList([{ name: "get_me", annotations: { readOnlyHint: true } }]);
-    const completed = await service.completePaperclipCloudConnectorCallback({
+    const completed = await service.completeClayonCloudConnectorCallback({
       state: new URL(started.authorizationUrl).searchParams.get("state")!, claimId: "asana-claim", actor,
     });
     expect(completed.connection).toMatchObject({ status: "active", enabled: true });
@@ -13302,7 +13302,7 @@ describeEmbeddedPostgres("tool access service", () => {
       method: "GET", headers: { "X-Api-Key": key }, redirect: "manual",
     }));
     const [connection] = await db.select().from(toolConnections).where(eq(toolConnections.id, connected.connectionId));
-    expect(connection.config).toMatchObject({ templateId: "paperclip.cognee-cloud" });
+    expect(connection.config).toMatchObject({ templateId: "clayon.cognee-cloud" });
     expect(connection.credentialSecretRefs.map(ref => ref.configPath).sort()).toEqual(["env.COGNEE_API_KEY", "env.COGNEE_BASE_URL"]);
     expect(JSON.stringify(connected)).not.toContain(key);
     expect(JSON.stringify(connection)).not.toContain(key);
@@ -13416,10 +13416,10 @@ describeEmbeddedPostgres("tool access service", () => {
   ])(
     "rejects DCR responses that return %s",
     async (_label, registrationResponse, field) => {
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_ID", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
-      vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_SECRET", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_ID", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_SECRET", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
+      vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_SECRET", "");
       const company = await createCompany(db);
       const service = createTestToolAccessService(db);
       const connected = await service.connectGalleryApp(company.id, {
@@ -13427,7 +13427,7 @@ describeEmbeddedPostgres("tool access service", () => {
         name: `Notion invalid DCR ${field}`,
       });
       const redirectUri =
-        "https://paperclip-dev.tail29c1aa.ts.net/api/tools/oauth/callback";
+        "https://clayon-dev.tail29c1aa.ts.net/api/tools/oauth/callback";
       vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
         const href = String(url);
         if (
@@ -13489,8 +13489,8 @@ describeEmbeddedPostgres("tool access service", () => {
   );
 
   it("fails fast when Notion DCR is attempted from a non-loopback HTTP origin", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_NOTION_CLIENT_ID", "");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_NOTION_CLIENT_ID", "");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_CLIENT_ID", "");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connected = await service.connectGalleryApp(company.id, {
@@ -13501,7 +13501,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     await expect(
       service.startOAuth(company.id, connected.connectionId, {
-        redirectUri: "http://paperclip-dev:3100/api/tools/oauth/callback",
+        redirectUri: "http://clayon-dev:3100/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "board" },
       }),
     ).rejects.toMatchObject({
@@ -13517,9 +13517,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("leases rotating OAuth refresh tokens across service instances before concurrent remote app calls", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -13532,7 +13532,7 @@ describeEmbeddedPostgres("tool access service", () => {
       name: "Slack refresh",
     });
     const start = await service.startOAuth(company.id, connect.connectionId, {
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const state = new URL(start.authorizationUrl).searchParams.get("state")!;
@@ -13571,7 +13571,7 @@ describeEmbeddedPostgres("tool access service", () => {
       if (href === "https://mcp.slack.com/mcp") {
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "search_messages", annotations: { readOnlyHint: true } },
@@ -13585,7 +13585,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state,
       code: "oauth-code",
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const [connected] = await db
@@ -13665,9 +13665,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("treats invalid_grant as terminal without replaying a rotated refresh token", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -13678,7 +13678,7 @@ describeEmbeddedPostgres("tool access service", () => {
       name: "Slack invalid grant",
     });
     const start = await service.startOAuth(company.id, connect.connectionId, {
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const state = new URL(start.authorizationUrl).searchParams.get("state")!;
@@ -13698,7 +13698,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: { tools: [] },
           });
         }
@@ -13707,7 +13707,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state,
       code: "oauth-code",
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const [connected] = await db
@@ -13788,9 +13788,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("does not disable a connection when invalid_grant used a superseded refresh-token version", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -13801,7 +13801,7 @@ describeEmbeddedPostgres("tool access service", () => {
       name: "Slack stale invalid grant",
     });
     const start = await service.startOAuth(company.id, connect.connectionId, {
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const state = new URL(start.authorizationUrl).searchParams.get("state")!;
@@ -13821,7 +13821,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: { tools: [] },
           });
         }
@@ -13830,7 +13830,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state,
       code: "oauth-code",
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const [connected] = await db
@@ -13891,9 +13891,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("fails closed instead of replaying a refresh token after an abandoned lease", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -13952,8 +13952,8 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("uses OAuth client credentials for shared machine-to-machine MCP connections", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_M2M_CLIENT_ID", "m2m-client-id");
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_M2M_CLIENT_SECRET", "m2m-client-secret");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_M2M_CLIENT_ID", "m2m-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_M2M_CLIENT_SECRET", "m2m-client-secret");
     const company = await createCompany(db);
     const service = createTestToolAccessService(db);
     const connection = await service.createConnection(company.id, {
@@ -13998,7 +13998,7 @@ describeEmbeddedPostgres("tool access service", () => {
           );
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 { name: "machine_read", annotations: { readOnlyHint: true } },
@@ -14036,9 +14036,9 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it.each(["catalog", "catalog/refresh", "health-check"])("returns reconnect instructions on %s for expired OAuth without a refresh token", async (path) => {
-    vi.stubEnv("PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
+    vi.stubEnv("CLAYON_TOOL_OAUTH_SLACK_CLIENT_ID", "slack-client-id");
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_SLACK_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_SLACK_CLIENT_SECRET",
       "slack-client-secret",
     );
     const company = await createCompany(db);
@@ -14049,7 +14049,7 @@ describeEmbeddedPostgres("tool access service", () => {
       name: "Slack no refresh",
     });
     const start = await service.startOAuth(company.id, connect.connectionId, {
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const state = new URL(start.authorizationUrl).searchParams.get("state")!;
@@ -14071,7 +14071,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (href === "https://mcp.slack.com/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 {
@@ -14088,7 +14088,7 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state,
       code: "oauth-code",
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
     const [connected] = await db
@@ -14298,7 +14298,7 @@ describeEmbeddedPostgres("tool access service", () => {
   });
 
   it("cancels invalid-signature pending action requests but keeps unsigned in-flight ones out of the review queue without cancelling them", async () => {
-    vi.stubEnv("PAPERCLIP_TOOL_ACTION_SIGNING_SECRET", "current-secret");
+    vi.stubEnv("CLAYON_TOOL_ACTION_SIGNING_SECRET", "current-secret");
     const company = await createCompany(db);
     const [application] = await db
       .insert(toolApplications)
@@ -15813,7 +15813,7 @@ describeEmbeddedPostgres("tool access service", () => {
     ["mixed transport", () => { throw new TypeError("fetch failed", { cause: { errors: [{ code: "ECONNREFUSED" }, { code: "ERR_INTERNAL_ASSERTION" }] } }); }, true],
     ["forged classification", () => { throw new HttpError(502, "Remote app returned HTTP 503", { status: 503, connectionFailure: { schemaVersion: 1, provider: "mcp_http", operation: "discover_tools", reason: "remote_unavailable" } }); }, true],
     ["malformed response", () => new Response("not JSON"), true],
-    ["invalid catalog", () => new Response(JSON.stringify({ jsonrpc: "2.0", id: "paperclip-catalog-refresh", result: {} })), true],
+    ["invalid catalog", () => new Response(JSON.stringify({ jsonrpc: "2.0", id: "clayon-catalog-refresh", result: {} })), true],
   ] as const)(
     "preserves MCP diagnostics and reports only unclassified failure: %s",
     async (_name, reply, reportable) => {
@@ -15926,14 +15926,14 @@ describeEmbeddedPostgres("tool access service", () => {
 
   it("discovers OAuth for pasted MCP links and completes sign-in without a gallery entry", async () => {
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_GENERIC_EXAMPLE_TEST_CLIENT_ID",
+      "CLAYON_TOOL_OAUTH_GENERIC_EXAMPLE_TEST_CLIENT_ID",
       "generic-client-id",
     );
     vi.stubEnv(
-      "PAPERCLIP_TOOL_OAUTH_GENERIC_EXAMPLE_TEST_CLIENT_SECRET",
+      "CLAYON_TOOL_OAUTH_GENERIC_EXAMPLE_TEST_CLIENT_SECRET",
       "generic-client-secret",
     );
-    vi.stubEnv("PAPERCLIP_PUBLIC_URL", "http://paperclip.test");
+    vi.stubEnv("CLAYON_PUBLIC_URL", "http://clayon.test");
     const company = await createCompany(db);
     await grantBoardUser(db, company.id, "board-user", [
       "tools:manage_connections",
@@ -16044,7 +16044,7 @@ describeEmbeddedPostgres("tool access service", () => {
         );
         return mcpHttpResponse({
           jsonrpc: "2.0",
-          id: "paperclip-catalog-refresh",
+          id: "clayon-catalog-refresh",
           result: {
             tools: [
               { name: "read_generic", annotations: { readOnlyHint: true } },
@@ -16138,7 +16138,7 @@ describeEmbeddedPostgres("tool access service", () => {
 
     await expect(
       service.startOAuth(company.id, connection!.id, {
-        redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+        redirectUri: "http://clayon.test/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "board" },
       }),
     ).rejects.toMatchObject({
@@ -16167,7 +16167,7 @@ describeEmbeddedPostgres("tool access service", () => {
       service.completeOAuthCallback({
         state: "legacy-smoke-state",
         code: "smoke-code",
-        redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+        redirectUri: "http://clayon.test/api/tools/oauth/callback",
         actor: { actorType: "user", actorId: "board" },
       }),
     ).rejects.toMatchObject({
@@ -16195,7 +16195,7 @@ describeEmbeddedPostgres("tool access service", () => {
       .insert(toolApplications)
       .values({
         companyId: company.id,
-        applicationKey: "paperclip.smoke-lab.http-fixture",
+        applicationKey: "clayon.smoke-lab.http-fixture",
         name: "Smoke Lab HTTP MCP fixture",
         type: "mcp_http",
         status: "active",
@@ -16228,16 +16228,16 @@ describeEmbeddedPostgres("tool access service", () => {
       .returning();
 
     const result = await service.startOAuth(company.id, connection!.id, {
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
 
     const authorizationUrl = new URL(result.authorizationUrl);
     expect(`${authorizationUrl.origin}${authorizationUrl.pathname}`).toBe(
-      `http://paperclip.test/api/companies/${company.id}/smoke-lab/oauth/authorize`,
+      `http://clayon.test/api/companies/${company.id}/smoke-lab/oauth/authorize`,
     );
     expect(authorizationUrl.searchParams.get("client_id")).toBe(
-      "paperclip-smoke-lab",
+      "clayon-smoke-lab",
     );
     expect(authorizationUrl.searchParams.get("scope")).toBe(
       "smoke:openid smoke:profile smoke:email",
@@ -16263,7 +16263,7 @@ describeEmbeddedPostgres("tool access service", () => {
         if (String(url) === "http://smoke-fixture.test/mcp") {
           return mcpHttpResponse({
             jsonrpc: "2.0",
-            id: "paperclip-catalog-refresh",
+            id: "clayon-catalog-refresh",
             result: {
               tools: [
                 { name: "todo.list", annotations: { readOnlyHint: true } },
@@ -16277,12 +16277,12 @@ describeEmbeddedPostgres("tool access service", () => {
     await service.completeOAuthCallback({
       state: state!,
       code: "smoke-code",
-      redirectUri: "http://paperclip.test/api/tools/oauth/callback",
+      redirectUri: "http://clayon.test/api/tools/oauth/callback",
       actor: { actorType: "user", actorId: "board" },
     });
 
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toContain(
-      `http://paperclip.test/api/companies/${company.id}/smoke-lab/oauth/token`,
+      `http://clayon.test/api/companies/${company.id}/smoke-lab/oauth/token`,
     );
     expect(fetchMock.mock.calls.map(([url]) => String(url))).toContain(
       "http://smoke-fixture.test/mcp",
@@ -16541,7 +16541,7 @@ describeEmbeddedPostgres("tool access service", () => {
     fetchMock.mockResolvedValueOnce(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             {
@@ -16746,7 +16746,7 @@ describeEmbeddedPostgres("tool access service", () => {
     fetchMock.mockResolvedValueOnce(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             { name: "list_zaps", annotations: { readOnlyHint: true } },
@@ -17298,7 +17298,7 @@ describeEmbeddedPostgres("tool access service", () => {
     fetchMock.mockResolvedValue(
       mcpHttpResponse({
         jsonrpc: "2.0",
-        id: "paperclip-catalog-refresh",
+        id: "clayon-catalog-refresh",
         result: {
           tools: [
             {
@@ -17577,7 +17577,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const connection = await service.createConnection(company.id, {
       name: "Restartable local fixture",
       transport: "local_stdio",
-      config: { templateId: "paperclip.echo-calculator-time" },
+      config: { templateId: "clayon.echo-calculator-time" },
       enabled: true,
       status: "active",
     });
@@ -17644,7 +17644,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const connection = await service.createConnection(company.id, {
       name: "Route local fixture",
       transport: "local_stdio",
-      config: { templateId: "paperclip.echo-calculator-time" },
+      config: { templateId: "clayon.echo-calculator-time" },
       enabled: true,
       status: "active",
     });
@@ -17694,7 +17694,7 @@ describeEmbeddedPostgres("tool access service", () => {
     const connection = await service.createConnection(company.id, {
       name: "Permissioned local fixture",
       transport: "local_stdio",
-      config: { templateId: "paperclip.echo-calculator-time" },
+      config: { templateId: "clayon.echo-calculator-time" },
       enabled: true,
       status: "active",
     });
@@ -18967,7 +18967,7 @@ describeEmbeddedPostgres("tool access service", () => {
         runtimeKind: "mcp_remote",
         status: "running",
         reuseKey: connection.id,
-        provider: "paperclip",
+        provider: "clayon",
         providerRef: "remote:https://fixture.example/mcp",
         healthStatus: "ok",
       })
@@ -19015,8 +19015,8 @@ describeEmbeddedPostgres("tool access service", () => {
         transport: "local_stdio",
         status: "active",
         enabled: true,
-        config: { templateId: "paperclip.echo-calculator-time" },
-        transportConfig: { templateId: "paperclip.echo-calculator-time" },
+        config: { templateId: "clayon.echo-calculator-time" },
+        transportConfig: { templateId: "clayon.echo-calculator-time" },
         healthStatus: "missing_secret",
         healthMessage: "A configured credential secret could not be resolved.",
       })
@@ -19026,15 +19026,15 @@ describeEmbeddedPostgres("tool access service", () => {
       companyId: company.id,
       applicationId: application.id,
       connectionId: connection.id,
-      slotKey: `${connection.id}:paperclip.echo-calculator-time`,
+      slotKey: `${connection.id}:clayon.echo-calculator-time`,
       ownerScopeType: "connection",
       ownerScopeId: connection.id,
       runtimeKind: "local_stdio",
       status: "running",
       reuseKey: connection.id,
-      provider: "paperclip",
+      provider: "clayon",
       providerRef: "local-stdio:test-host:slot",
-      commandTemplateKey: "paperclip.echo-calculator-time",
+      commandTemplateKey: "clayon.echo-calculator-time",
       healthStatus: "ok",
       startedAt: staleAt,
       lastUsedAt: staleAt,
@@ -19213,7 +19213,7 @@ describeEmbeddedPostgres("tool access service", () => {
       hostedService.createConnection(company.id, {
         name: "Hosted local stdio",
         transport: "local_stdio",
-        config: { templateId: "paperclip.echo-calculator-time" },
+        config: { templateId: "clayon.echo-calculator-time" },
         enabled: true,
         status: "active",
       }),
@@ -19231,7 +19231,7 @@ describeEmbeddedPostgres("tool access service", () => {
       trustedService.createConnection(company.id, {
         name: "Trusted hosted local stdio",
         transport: "local_stdio",
-        config: { templateId: "paperclip.echo-calculator-time" },
+        config: { templateId: "clayon.echo-calculator-time" },
         enabled: true,
         status: "active",
       }),
@@ -19267,7 +19267,7 @@ describeEmbeddedPostgres("tool access service", () => {
           transport: "mcp_remote",
           status: "draft",
           config: { url: "https://mcp.example/github" },
-          warnings: [expect.stringContaining("Paperclip secret")],
+          warnings: [expect.stringContaining("Clayon secret")],
         }),
         expect.objectContaining({
           name: "local",
@@ -19277,7 +19277,7 @@ describeEmbeddedPostgres("tool access service", () => {
             importedCommand: "npx",
             importedArgs: ["-y", "@example/local-mcp"],
           },
-          warnings: [expect.stringContaining("approved Paperclip template")],
+          warnings: [expect.stringContaining("approved Clayon template")],
         }),
       ]),
     );
@@ -20022,11 +20022,11 @@ describe("normalizeConnectionMethodConfig", () => {
   it("builds a concrete Shopify endpoint from the validated store domain", () => {
     expect(
       normalizeConnectionMethodConfig(shopifyMethod, {
-        storeDomain: "paperclip-demo.myshopify.com",
+        storeDomain: "clayon-demo.myshopify.com",
       }),
     ).toEqual({
-      values: { storeDomain: "paperclip-demo.myshopify.com" },
-      url: "https://paperclip-demo.myshopify.com/api/mcp",
+      values: { storeDomain: "clayon-demo.myshopify.com" },
+      url: "https://clayon-demo.myshopify.com/api/mcp",
     });
   });
 

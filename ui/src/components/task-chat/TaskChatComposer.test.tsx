@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildAgentMentionHref,
   buildSkillMentionHref,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { parseRunnerGoalCommand, TaskChatComposer } from "./TaskChatComposer";
 import { ComposerAddMenu } from "./ComposerAddMenu";
 import { QuestionForm } from "./QuestionForm";
@@ -831,7 +831,7 @@ describe("TaskChatComposer", () => {
       />,
     );
 
-    const composer = container.querySelector<HTMLElement>(".paperclip-task-chat-composer")!;
+    const composer = container.querySelector<HTMLElement>(".clayon-task-chat-composer")!;
     const mode = container.querySelector<HTMLElement>(
       '[data-testid="task-chat-composer-mode"]',
     )!;
@@ -858,7 +858,7 @@ describe("TaskChatComposer", () => {
     render(<TaskChatComposer onAdd={vi.fn()} workMode="standard" />);
 
     expect(container.querySelector("[data-testid='task-chat-composer-input']")?.parentElement?.classList).toContain(
-      "paperclip-task-chat-composer",
+      "clayon-task-chat-composer",
     );
   });
 
@@ -2187,7 +2187,7 @@ describe("TaskChatComposer", () => {
           ?.textContent,
       ).toContain("Which environment should receive this?");
       const card = container.querySelector('[data-testid="task-chat-composer-takeover"]')!;
-      const composer = container.querySelector('.paperclip-task-chat-composer')!;
+      const composer = container.querySelector('.clayon-task-chat-composer')!;
       expect(card.compareDocumentPosition(composer) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(container.querySelector('[data-testid="mdx-editor"]')).not.toBeNull();
       expect(container.querySelector<HTMLButtonElement>('[data-testid="task-chat-composer-send"]')).not.toBeNull();

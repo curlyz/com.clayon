@@ -3,8 +3,8 @@ import type { AgentAvatarRequest } from "./agent-avatars.js";
 import { removeSlackRegistration } from "./chat-slack-registration-cleanup.js";
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, inArray, like, sql } from "drizzle-orm";
-import { agents, chatEndpoints, chatSlackRegistrations, companies, toolConnections, toolOauthStates, type Db } from "@paperclipai/db";
-import { resolveAgentAppearance, buildSlackAppManifest, slackAppConfigurationSchema, slackRegistrationErrorMessage, type SlackRegistrationInput, type SlackRegistrationState, type SlackAvatarState, type SlackAccountState } from "@paperclipai/shared";
+import { agents, chatEndpoints, chatSlackRegistrations, companies, toolConnections, toolOauthStates, type Db } from "@clayon/db";
+import { resolveAgentAppearance, buildSlackAppManifest, slackAppConfigurationSchema, slackRegistrationErrorMessage, type SlackRegistrationInput, type SlackRegistrationState, type SlackAvatarState, type SlackAccountState } from "@clayon/shared";
 import { badRequest, conflict, forbidden, notFound, unprocessable } from "../errors.js";
 import { accessService } from "./access.js";
 import { logActivity } from "./activity-log.js";
@@ -75,7 +75,7 @@ export function slackChatRegistrationService(db: Db, options: {
     return row;
   }
   function assertOrigins(row: Registration, publicId: string) {
-    if (row.callbackUri !== callbackUri()) throw conflict("The Paperclip URL changed. Restore its configured address or update the Slack app and use manual setup.");
+    if (row.callbackUri !== callbackUri()) throw conflict("The Clayon URL changed. Restore its configured address or update the Slack app and use manual setup.");
     const expected = `${origin(options.webhookOrigin())}/api/chat-webhooks/${publicId}/slack`;
     if (object(object(row.manifest.settings).event_subscriptions).request_url !== expected)
       throw conflict("The Slack webhook address changed. Restore its configured address or update the Slack app and use manual setup.");
@@ -216,12 +216,12 @@ export function slackChatRegistrationService(db: Db, options: {
         await endpoint(endpointId, actor);
         await lease.assertOwned();
         // Cloud ingress requires a tenant session. Send the preset PNG bytes so
-        // Slack does not need to fetch an authenticated Paperclip URL.
+        // Slack does not need to fetch an authenticated Clayon URL.
         const render = options.renderAvatar ?? (avatarPool ??= createAgentAvatarPool()).render;
         const appearance = { ...resolveAgentAppearance(current.agentAppearance, current.endpoint.assignedAgentId) };
         delete appearance.customAvatarAssetId; // The preset renderer cannot read private uploaded assets.
         const png = await render({ appearance,
-          size: 512, scale: 1, pose: "rest", muted: false, background: "paperclip-dark" });
+          size: 512, scale: 1, pose: "rest", muted: false, background: "clayon-dark" });
         await endpoint(endpointId, actor);
         await lease.assertOwned();
         const upload = new FormData();
@@ -347,7 +347,7 @@ export function slackChatRegistrationService(db: Db, options: {
     const user = object((await api("users.info", { user: account.externalUserId }, token)).user);
     if (user.id !== account.externalUserId || user.team_id !== row.workspaceId || user.is_bot !== false || user.is_app_user === true || user.deleted !== false) throw providerFailure("slack_install_account_missing");
     await endpoint(row.endpointId, actor);
-    await options.linkInstaller(row.endpointId, user, { ...actor, userId: account.paperclipUserId }, lease);
+    await options.linkInstaller(row.endpointId, user, { ...actor, userId: account.clayonUserId }, lease);
     await saveAccount(row, { ...account, status: "linked" }, actor, lease);
     try { await audit(row, actor, "account_linked"); }
     catch { logger.warn({ endpointId: row.endpointId, appId: row.appId }, "Slack account activity could not be recorded"); }
@@ -371,8 +371,8 @@ export function slackChatRegistrationService(db: Db, options: {
       await lease.assertOwned();
       if (!await options.canWelcome(row.endpointId, account)) throw forbidden("Slack account access changed");
       const sent = await api("chat.postMessage", { channel: account.dmChannelId ?? account.externalUserId,
-        text: kind === "verification" ? "Your Slack connection is working! Now ask me a question about your Paperclip instance."
-          : `Hi, I’m ${current.agentName}. Your Slack account is connected to Paperclip.`,
+        text: kind === "verification" ? "Your Slack connection is working! Now ask me a question about your Clayon instance."
+          : `Hi, I’m ${current.agentName}. Your Slack account is connected to Clayon.`,
         unfurl_links: "false", unfurl_media: "false" }, await options.runtimeBotToken(row.endpointId));
       if (typeof sent.channel !== "string" || !/^D[A-Z0-9]+$/.test(sent.channel)) throw new Error("Incomplete message response");
       result = { ...account, [field]: "sent", dmChannelId: sent.channel };
@@ -394,7 +394,7 @@ export function slackChatRegistrationService(db: Db, options: {
       const [saved] = await db.select({ setup: chatEndpoints.setup, status: chatEndpoints.status }).from(chatEndpoints).where(eq(chatEndpoints.id, endpointId));
       const account = saved?.setup.slackAccount;
       if (!account || !["verifying", "active"].includes(saved.status)) return;
-      await sendSetupMessage(row, { userId: account.paperclipUserId, sessionId: null, bypassPermissionCheck: false }, lease, "verification");
+      await sendSetupMessage(row, { userId: account.clayonUserId, sessionId: null, bypassPermissionCheck: false }, lease, "verification");
     });
   }
   async function processPendingVerificationMessages(limit = 25) {
@@ -486,7 +486,7 @@ export function slackChatRegistrationService(db: Db, options: {
         // Reauthorization reuses the runtime signing secret after staging was cleaned.
         await saveSecrets(row, { botToken: result.access_token }, actor, lease,
           { status: "credentials_saved", workspaceId: teamId, botUserId: result.bot_user_id, errorCode: null },
-          { externalUserId: installerId, paperclipUserId: actor.userId, status: "pending", welcomeStatus: "pending" });
+          { externalUserId: installerId, clayonUserId: actor.userId, status: "pending", welcomeStatus: "pending" });
       } catch (failure) {
         const code = object(object(failure).details).code;
         const safeCode = typeof code === "string" && code.startsWith("slack_install_") ? code : "slack_install_failed";

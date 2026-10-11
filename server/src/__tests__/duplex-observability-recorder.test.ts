@@ -7,8 +7,8 @@ import {
   DUPLEX_SPAN_CHANNEL_OPEN,
   DUPLEX_SPAN_REQUEST,
   DUPLEX_TRANSPORT_EVENT,
-} from "@paperclipai/adapter-utils/duplex-observability";
-import { runWithRuntimeParent } from "@paperclipai/adapter-utils/acpx-engine/startup-timing";
+} from "@clayon/adapter-utils/duplex-observability";
+import { runWithRuntimeParent } from "@clayon/adapter-utils/acpx-engine/startup-timing";
 import {
   createHostDuplexObservabilityRecorder,
   foldDuplexCounterMetric,

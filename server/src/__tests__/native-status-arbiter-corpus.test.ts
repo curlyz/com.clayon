@@ -23,7 +23,7 @@ import {
   statusDecisions,
   workAssessments,
   workspaceOperations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type { NativeEvidenceAssessment } from "../services/native-runtime/evidence-classifier.js";
 import { classifyNativeEvidence } from "../services/native-runtime/evidence-classifier.js";
 import {
@@ -121,7 +121,7 @@ type FixtureObservation = PolicyObservation & {
 type DisabledLiveEntrypoint = "attention" | "cancellation" | "reconciliation" | "rollout";
 
 const corpusPath = fileURLToPath(new URL(
-  "../../../packages/paperclip-runner/spec/fixtures/status-authority-sdk.json",
+  "../../../packages/clayon-runner/spec/fixtures/status-authority-sdk.json",
   import.meta.url,
 ));
 
@@ -381,7 +381,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
   const outsideAgentId = randomUUID();
 
   beforeAll(async () => {
-    temporary = await startEmbeddedPostgresTestDatabase("paperclip-status-corpus-");
+    temporary = await startEmbeddedPostgresTestDatabase("clayon-status-corpus-");
     db = createDb(temporary.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Status corpus", issuePrefix: "PSC" });
     await db.insert(companies).values({ id: outsideCompanyId, name: "Outside corpus", issuePrefix: "OUT" });
@@ -517,7 +517,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
       companyId,
       issueId,
       type: "artifact",
-      provider: "paperclip",
+      provider: "clayon",
       title: `${fixture.id} evidence`,
       status: "ready_for_review",
       reviewState: completionState === "new_evidence_satisfies_contract" ? "none" : "approved",
@@ -2089,7 +2089,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
           ? `native-status-wake-dispatch:${randomUUID()}` : "native-status-committer",
         status: delivery.startsWith("current_") ? "claimed" : delivery,
         runId: delivery === "current_run" ? seeded.runId : null,
-        payload: { issueId: seeded.issueId, _paperclipWakeContext: {
+        payload: { issueId: seeded.issueId, _clayonWakeContext: {
           wakeReason: "issue_children_completed", nativeChildCompletionDecisionId: randomUUID(),
         } },
       });
@@ -2119,7 +2119,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
       await db.insert(agentWakeupRequests).values({
         companyId, agentId, source: "automation", triggerDetail: "system", reason: "issue_children_completed",
         requestedByActorType: "system", requestedByActorId: "native-status-committer", status: "queued",
-        payload: { issueId: seeded.issueId, _paperclipWakeContext: { nativeChildCompletionDecisionId: randomUUID() } },
+        payload: { issueId: seeded.issueId, _clayonWakeContext: { nativeChildCompletionDecisionId: randomUUID() } },
       });
       return pending;
     });
@@ -2153,7 +2153,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
     await db.insert(agentWakeupRequests).values({
       companyId, agentId, source: "automation", triggerDetail: "system", reason: "issue_children_completed",
       requestedByActorType: "system", requestedByActorId: "native-status-committer", status: delivery,
-      payload: { issueId: seeded.issueId, _paperclipWakeContext: { nativeChildCompletionDecisionId: randomUUID() } },
+      payload: { issueId: seeded.issueId, _clayonWakeContext: { nativeChildCompletionDecisionId: randomUUID() } },
     });
     const results = await reconcileNativeFinalizations(db, [seeded.runId]);
     expect(results).toEqual([expect.objectContaining({ reconciliationAction: delivery === "queued"
@@ -2195,7 +2195,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
   it("rejects wrong, missing, and duplicate criterion IDs before accepting completion", async () => {
     const seeded = await seedFixture({ ...corpus.fixtures[0]!, id: `criteria-feedback-${randomUUID()}` });
     const [stored] = await db.select().from(nativeRunResults).where(eq(nativeRunResults.id, seeded.resultId!));
-    const valid = stored!.resultJson.result as import("../vendor/paperclip-runner/index.js").PrpStructuredRunResult;
+    const valid = stored!.resultJson.result as import("../vendor/clayon-runner/index.js").PrpStructuredRunResult;
     for (const criteria of [[], [{ criterionId: "invented", status: "satisfied", evidenceRefs: [] }], [...valid.completionClaim.criteria, ...valid.completionClaim.criteria]]) {
       await expect(nativeCompletionFeedback(db, seeded.runId, { ...valid, completionClaim: { ...valid.completionClaim, criteria } } as never)).rejects.toThrow("exactly these criterion IDs");
     }

@@ -78,7 +78,7 @@ must retain stable provider dispatch identity so actual duplicate delivery is
 still deduplicated while distinct add/remove cycles remain auditable. No
 history row was fabricated or replayed to claim a pass.
 
-The follow-up adapter revision `paperclip-discord-v5` preserves the Gateway
+The follow-up adapter revision `clayon-discord-v5` preserves the Gateway
 session fingerprint, shard, event type, and sequence with the exact raw packet.
 Only a one-way session fingerprint is carried, never the resumable session ID.
 A packet-scoped WeakMap and a guarded, synchronous packet-handler wrapper keep
@@ -98,7 +98,7 @@ needed. Live repeated-cycle qualification still requires the restart below.
 
 In the same signed-in browser, added thumbs-up to the native file-reading reply
 at **18:39:26.594 UTC** and removed it at **18:40:13.685**. Telegram showed the
-reaction, but Paperclip recorded neither event. That provider message
+reaction, but Clayon recorded neither event. That provider message
 `417200359:43` belongs to completed DM generation **5**, conversation
 `3f13f43b-b9a7-44d9-9b8c-846ce77b0305`.
 

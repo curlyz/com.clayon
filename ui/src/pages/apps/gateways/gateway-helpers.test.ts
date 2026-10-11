@@ -5,7 +5,7 @@ import type {
   ToolMcpGatewayToken,
   ToolMcpGatewayWithTokens,
   ToolProfileWithDetails,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { describe, expect, it } from "vitest";
 import {
   activeTokenCount,
@@ -126,7 +126,7 @@ describe("gateway client snippets", () => {
     expect(formatHydratedSnippetConfig(
       {
         mcpServers: {
-          Paperclip: {
+          Clayon: {
             url: "/mcp/gateways/public-id",
             headers: { Authorization: "Bearer pcgw_..." },
           },
@@ -134,7 +134,7 @@ describe("gateway client snippets", () => {
       },
       {
         endpointPath: "/mcp/gateways/public-id",
-        endpoint: "https://paperclip.example/mcp/gateways/public-id",
+        endpoint: "https://clayon.example/mcp/gateways/public-id",
         token: "pcgw_full_secret",
       },
     )).toContain('"Authorization": "Bearer pcgw_full_secret"');

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, useNavigate, useParams, useSearchParams } from "@/lib/router";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, History, Pencil, Repeat, Sparkles, X } from "lucide-react";
-import { ApiError } from "../api/client";
+import { z } from "zod";
 import {
   routinesApi,
   type RoutineTriggerResponse,
@@ -41,11 +41,15 @@ import { RoutineOverview } from "../components/RoutineOverview";
 import { RoutineSectionHeading } from "../components/RoutineSectionHeading";
 import { RoutineSectionPicker, RoutineSubSidebar } from "../components/RoutineSubSidebar";
 import {
-  isRoutineDetailView,
   resolveRoutineDetailDestination,
+  routineDetailViewSchema,
   routineDetailHref,
-} from "../components/RoutineContextualSidebar";
-import { RoutineSaveBar } from "../components/RoutineSaveBar";
+} from "../lib/routine-navigation";
+import { SectionTabs } from "@/components/SectionTabs";
+import { SaveStatus } from "@/components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "../hooks/useAutosave";
+import { buildRoutineSectionTabs } from "../lib/section-tabs/routineSectionTabs";
+import { timeAgo } from "../lib/timeAgo";
 import {
   EDITABLE_SECTIONS,
   SECTION_FIELD_KEYS,
@@ -72,7 +76,7 @@ import type {
   RoutineDetail as RoutineDetailType,
   RoutineEnvConfig,
   RoutineVariable,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 
 export function buildRoutineProjectOptions(
   projects: ReadonlyArray<{ id: string; name: string; description?: string | null; archivedAt?: Date | string | null }>,
@@ -159,7 +163,7 @@ export function RoutineDetail() {
     ? sectionParam
     : null;
   const section: RoutineSectionKey = legacyOperateSection
-    ?? (isRoutineDetailView(sectionParam) ? sectionParam : "overview");
+    ?? (routineDetailViewSchema.safeParse(sectionParam).data ?? "overview");
 
   const navigateToSection = useCallback(
     (next: RoutineSectionKey, options?: { replace?: boolean }) => {
@@ -362,40 +366,44 @@ export function RoutineDetail() {
     [pushToast],
   );
 
-  const saveRoutine = useMutation({
-    mutationFn: () => {
-      const payload = buildRoutineMutationPayload(editDraft);
+  // Autosave (operator directive): the whole routine draft is one autosave
+  // unit — a change schedules a debounced save through the existing update
+  // endpoint; failures keep the draft and surface inline via SaveStatus.
+  const persistDraft = useCallback(
+    (next: RoutineEditDraft) => {
+      const payload = buildRoutineMutationPayload(next);
       const baseRevisionId = routine?.latestRevisionId ?? null;
       return routinesApi.update(routineId!, {
         ...payload,
         ...(baseRevisionId ? { baseRevisionId } : {}),
       });
     },
-    onSuccess: async () => {
-      setSaveConflict(false);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.routines.detail(routineId!) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.routines.activity(selectedCompanyId!, routineId!) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.routines.revisions(routineId!) }),
-      ]);
-    },
-    onError: (mutationError) => {
-      if (mutationError instanceof ApiError && mutationError.status === 409) {
-        setSaveConflict(true);
-        pushToast({
-          title: "Routine changed",
-          body: "Someone else updated this routine. Reload to see the latest revision.",
-          tone: "warn",
-        });
-        return;
+    [routine?.latestRevisionId, routineId],
+  );
+
+  const routineAutosave = useAutosave({
+    value: editDraft,
+    savedValue: routineDefaults ?? editDraft,
+    save: async (next) => {
+      try {
+        const data = await persistDraft(next);
+        setSaveConflict(false);
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.routines.detail(routineId!) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.routines.activity(selectedCompanyId!, routineId!) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.routines.revisions(routineId!) }),
+        ]);
+        return data;
+      } catch (saveError) {
+        const apiError = z.object({ status: z.number() }).safeParse(saveError);
+        if (apiError.success && apiError.data.status === 409) {
+          setSaveConflict(true);
+        }
+        throw saveError;
       }
-      pushToast({
-        title: "Failed to save routine",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not save the routine.",
-        tone: "error",
-      });
     },
+    isEqual: autosaveJsonEqual,
   });
 
   const runRoutine = useMutation({
@@ -427,7 +435,7 @@ export function RoutineDetail() {
     onError: (runError) => {
       pushToast({
         title: "Routine run failed",
-        body: runError instanceof Error ? runError.message : "Paperclip could not start the routine run.",
+        body: runError instanceof Error ? runError.message : "Clayon could not start the routine run.",
         tone: "error",
       });
     },
@@ -449,7 +457,7 @@ export function RoutineDetail() {
     onError: (statusError) => {
       pushToast({
         title: "Failed to update routine",
-        body: statusError instanceof Error ? statusError.message : "Paperclip could not update the routine.",
+        body: statusError instanceof Error ? statusError.message : "Clayon could not update the routine.",
         tone: "error",
       });
     },
@@ -488,7 +496,7 @@ export function RoutineDetail() {
     onError: (triggerError) => {
       pushToast({
         title: "Failed to add trigger",
-        body: triggerError instanceof Error ? triggerError.message : "Paperclip could not create the trigger.",
+        body: triggerError instanceof Error ? triggerError.message : "Clayon could not create the trigger.",
         tone: "error",
       });
     },
@@ -507,7 +515,7 @@ export function RoutineDetail() {
     onError: (triggerError) => {
       pushToast({
         title: "Failed to update trigger",
-        body: triggerError instanceof Error ? triggerError.message : "Paperclip could not update the trigger.",
+        body: triggerError instanceof Error ? triggerError.message : "Clayon could not update the trigger.",
         tone: "error",
       });
     },
@@ -526,7 +534,7 @@ export function RoutineDetail() {
     onError: (triggerError) => {
       pushToast({
         title: "Failed to delete trigger",
-        body: triggerError instanceof Error ? triggerError.message : "Paperclip could not delete the trigger.",
+        body: triggerError instanceof Error ? triggerError.message : "Clayon could not delete the trigger.",
         tone: "error",
       });
     },
@@ -547,7 +555,7 @@ export function RoutineDetail() {
     onError: (triggerError) => {
       pushToast({
         title: "Failed to rotate webhook secret",
-        body: triggerError instanceof Error ? triggerError.message : "Paperclip could not rotate the webhook secret.",
+        body: triggerError instanceof Error ? triggerError.message : "Clayon could not rotate the webhook secret.",
         tone: "error",
       });
     },
@@ -660,7 +668,8 @@ export function RoutineDetail() {
 
   const legacyTab = new URLSearchParams(window.location.search).get("tab");
   const validLegacySection = !streamlinedUiEnabled && (sectionParam === "runs" || sectionParam === "activity");
-  if (routineId && (legacyTab || !sectionParam || (!isRoutineDetailView(sectionParam) && !validLegacySection))) {
+  // No section param = the routine long page (one scroll, section bands).
+  if (routineId && (legacyTab || (sectionParam && !routineDetailViewSchema.safeParse(sectionParam).success && !validLegacySection))) {
     return (
       <Navigate
         to={resolveRoutineDetailDestination({ routineId, section: sectionParam, legacyTab })}
@@ -711,7 +720,7 @@ export function RoutineDetail() {
     sectionDirtyFields,
     isSectionDirty,
     discardSection,
-    saveRoutine,
+    autosave: routineAutosave,
     saveConflict,
     reloadLatest,
     automationEnabled,
@@ -769,6 +778,179 @@ export function RoutineDetail() {
   if (triggerSetup) return <RoutineDetailContext.Provider value={contextValue}><TriggersSection /></RoutineDetailContext.Provider>;
 
   const isEditableSection = EDITABLE_SECTIONS.includes(section);
+  // No section param = the routine long page (one scroll, section bands).
+  const longPage = !sectionParam;
+
+  // Compact action header shared by the long page and every section route.
+  const routineHeader = (
+    <header className="flex min-h-14 shrink-0 flex-wrap items-center gap-3 border-b border-border bg-background px-4 py-2 md:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {section === "overview" && overviewEditing ? (
+          <textarea
+            ref={titleInputRef}
+            data-autosize-title
+            className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-base font-semibold leading-7 outline-none placeholder:text-muted-foreground/50"
+            placeholder="Routine title"
+            rows={1}
+            value={editDraft.title}
+            onChange={(event) => {
+              setEditDraft((current) => ({ ...current, title: event.target.value }));
+              autoResizeTextarea(event.target);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.metaKey && !event.ctrlKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                descriptionEditorRef.current?.focus();
+              }
+            }}
+          />
+        ) : (
+          <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{routine.title}</h1>
+        )}
+        {routine.managedByPlugin ? (
+          <Badge variant="outline" className="hidden shrink-0 gap-1.5 text-xs text-muted-foreground sm:inline-flex">
+            <Sparkles className="h-3 w-3" />
+            {routine.managedByPlugin.pluginDisplayName}
+            <span className="font-mono text-(length:--text-nano)">{routine.managedByPlugin.resourceKey}</span>
+          </Badge>
+        ) : null}
+      </div>
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        {section === "history" ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(routineDetailHref(routine.id))}
+          >
+            Back to overview
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(routineDetailHref(routine.id, "history"))}
+          >
+            <History className="h-3.5 w-3.5" />
+            History
+          </Button>
+        )}
+        {section === "overview" ? (
+          overviewEditing ? (
+            <Button variant="outline" size="sm" onClick={() => setOverviewEditing(false)}>
+              <X className="h-3.5 w-3.5" />
+              Cancel editing
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setOverviewEditing(true)}>
+              <Pencil className="h-3.5 w-3.5" />
+              Edit routine
+            </Button>
+          )
+        ) : null}
+        <RunButton onClick={() => setRunVariablesOpen(true)} disabled={runRoutine.isPending} />
+        <SaveStatus
+          status={routineAutosave.status}
+          errorMessage={routineAutosave.errorMessage}
+          onRetry={routineAutosave.retry}
+        />
+        <div className="flex items-center gap-2">
+          <ToggleSwitch
+            size="default"
+            checked={automationEnabled}
+            onCheckedChange={contextValue.onToggleAutomation}
+            disabled={automationToggleDisabled}
+            aria-label={automationEnabled ? "Pause automatic triggers" : "Enable automatic triggers"}
+          />
+          <span className={`text-sm font-medium ${automationLabelClassName}`}>{automationLabel}</span>
+        </div>
+      </div>
+    </header>
+  );
+
+  if (longPage) {
+    // One immersive scroll: the sticky SectionTabs strip anchors on `#` + id,
+    // every section is a band — Overview in full, the rest compact previews
+    // with one "See more" into the dedicated route (ADDENDUM 3).
+    const stripSections = buildRoutineSectionTabs(routine.id).map(({ id, label, group }) => ({ id, label, group }));
+    return (
+      <RoutineDetailContext.Provider value={contextValue}>
+        <div className="flex h-full min-h-0 flex-col">
+          {routineHeader}
+          <main
+            id="routine-section"
+            role="main"
+            className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 overflow-y-auto pb-8 pt-1"
+          >
+            <SectionTabs sections={stripSections} ariaLabel="Routine sections" />
+            <section id="overview" aria-labelledby="routine-overview-title" className="mx-auto w-full max-w-5xl px-4 md:px-8">
+              <RoutineSectionHeading
+                title="Overview"
+                copyText={routineOverviewCopyText({
+                  editing: overviewEditing,
+                  draft: editDraft.description,
+                  saved: routine.description,
+                })}
+              />
+              {overviewEditing ? <OverviewSection /> : <RoutineOverview />}
+            </section>
+            <RoutinePreviewBand id="triggers" title="Triggers" count={routine.triggers.length} to={routineDetailHref(routine.id, "triggers")}>
+              {routine.triggers.slice(0, 3).map((trigger) => (
+                <RoutinePreviewRow
+                  key={trigger.id}
+                  primary={trigger.label ?? trigger.kind}
+                  secondary={`${trigger.kind}${trigger.nextRunAt ? ` · next ${new Date(trigger.nextRunAt).toLocaleString()}` : ""}`}
+                />
+              ))}
+            </RoutinePreviewBand>
+            <RoutinePreviewBand id="variables" title="Variables" count={routine.variables.length} to={routineDetailHref(routine.id, "variables")}>
+              {routine.variables.slice(0, 3).map((variable) => (
+                <RoutinePreviewRow key={variable.name} primary={variable.name} secondary={variable.type} />
+              ))}
+            </RoutinePreviewBand>
+            <RoutinePreviewBand id="secrets" title="Secrets" count={Object.keys(routine.env ?? {}).length} to={routineDetailHref(routine.id, "secrets")}>
+              {Object.keys(routine.env ?? {}).slice(0, 3).map((key) => (
+                <RoutinePreviewRow key={key} primary={key} />
+              ))}
+            </RoutinePreviewBand>
+            <RoutinePreviewBand id="delivery" title="Delivery" to={routineDetailHref(routine.id, "delivery")}>
+              <RoutinePreviewRow primary="Project" secondary={projectById.get(routine.projectId ?? "")?.name ?? "No project"} />
+              <RoutinePreviewRow primary="Default agent" secondary={agentById.get(routine.assigneeAgentId ?? "")?.name ?? "Not set"} />
+              <RoutinePreviewRow primary="Priority" secondary={routine.priority} />
+              <RoutinePreviewRow primary="Concurrency" secondary={routine.concurrencyPolicy.replaceAll("_", " ")} />
+            </RoutinePreviewBand>
+            <RoutinePreviewBand id="runs" title="Runs" count={routineRuns?.length ?? 0} to={routineDetailHref(routine.id, "runs")}>
+              {(routineRuns ?? []).slice(0, 3).map((run) => (
+                <RoutinePreviewRow
+                  key={run.id}
+                  primary={run.status.replaceAll("_", " ")}
+                  secondary={`${run.source} · ${timeAgo(run.triggeredAt)}`}
+                />
+              ))}
+            </RoutinePreviewBand>
+            <RoutinePreviewBand id="activity" title="Activity" count={activity?.length ?? 0} to={routineDetailHref(routine.id, "activity")}>
+              {(activity ?? []).slice(0, 3).map((event) => (
+                <RoutinePreviewRow key={event.id} primary={event.action} secondary={timeAgo(event.createdAt)} />
+              ))}
+            </RoutinePreviewBand>
+          </main>
+        </div>
+
+        <RoutineRunVariablesDialog
+          open={runVariablesOpen}
+          onOpenChange={setRunVariablesOpen}
+          companyId={routine.companyId}
+          routineName={routine.title}
+          agents={agents ?? []}
+          projects={projects ?? []}
+          defaultProjectId={routine.projectId}
+          defaultAssigneeAgentId={routine.assigneeAgentId}
+          variables={routine.variables ?? []}
+          isPending={runRoutine.isPending}
+          onSubmit={(data) => runRoutine.mutate(data)}
+        />
+      </RoutineDetailContext.Provider>
+    );
+  }
 
   return (
     <RoutineDetailContext.Provider value={contextValue}>
@@ -801,90 +983,7 @@ export function RoutineDetail() {
             isSectionDirty={isSectionDirty}
           />
         ) : null}
-        <header className="flex min-h-14 shrink-0 flex-wrap items-center gap-3 border-b border-border bg-background px-4 py-2 md:px-6">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {section === "overview" && overviewEditing ? (
-              <textarea
-                ref={titleInputRef}
-                data-autosize-title
-                className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-base font-semibold leading-7 outline-none placeholder:text-muted-foreground/50"
-                placeholder="Routine title"
-                rows={1}
-                value={editDraft.title}
-                onChange={(event) => {
-                  setEditDraft((current) => ({ ...current, title: event.target.value }));
-                  autoResizeTextarea(event.target);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.metaKey && !event.ctrlKey && !event.nativeEvent.isComposing) {
-                    event.preventDefault();
-                    descriptionEditorRef.current?.focus();
-                  }
-                }}
-              />
-            ) : (
-              <h1 className="min-w-0 flex-1 truncate text-xl font-bold">{routine.title}</h1>
-            )}
-            {routine.managedByPlugin ? (
-              <Badge variant="outline" className="hidden shrink-0 gap-1.5 text-xs text-muted-foreground sm:inline-flex">
-                <Sparkles className="h-3 w-3" />
-                {routine.managedByPlugin.pluginDisplayName}
-                <span className="font-mono text-(length:--text-nano)">{routine.managedByPlugin.resourceKey}</span>
-              </Badge>
-            ) : null}
-          </div>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            {section === "history" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(routineDetailHref(routine.id))}
-              >
-                Back to overview
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(routineDetailHref(routine.id, "history"))}
-              >
-                <History className="h-3.5 w-3.5" />
-                History
-              </Button>
-            )}
-            {section === "overview" ? (
-              overviewEditing ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    discardSection("overview");
-                    setOverviewEditing(false);
-                  }}
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Cancel editing
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" onClick={() => setOverviewEditing(true)}>
-                  <Pencil className="h-3.5 w-3.5" />
-                  Edit routine
-                </Button>
-              )
-            ) : null}
-            <RunButton onClick={() => setRunVariablesOpen(true)} disabled={runRoutine.isPending} />
-            <div className="flex items-center gap-2">
-              <ToggleSwitch
-                size="default"
-                checked={automationEnabled}
-                onCheckedChange={contextValue.onToggleAutomation}
-                disabled={automationToggleDisabled}
-                aria-label={automationEnabled ? "Pause automatic triggers" : "Enable automatic triggers"}
-              />
-              <span className={`text-sm font-medium ${automationLabelClassName}`}>{automationLabel}</span>
-            </div>
-          </div>
-        </header>
+        {routineHeader}
 
         <main
           id="routine-section"
@@ -920,19 +1019,6 @@ export function RoutineDetail() {
             {section === "runs" && <RunsSection />}
             {section === "activity" && <ActivitySection isLoading={activityLoading} error={activityError} />}
             {section === "history" && <HistorySection />}
-
-            {isEditableSection && (section !== "overview" || overviewEditing) ? (
-              <RoutineSaveBar
-                dirtyFields={sectionDirtyFields(section)}
-                isSaving={saveRoutine.isPending}
-                saveConflict={saveConflict}
-                onSave={() => {
-                  if (!saveRoutine.isPending && editDraft.title.trim()) saveRoutine.mutate();
-                }}
-                onDiscard={() => discardSection(section)}
-                onReload={reloadLatest}
-              />
-            ) : null}
           </section>
         </main>
         </div>
@@ -952,5 +1038,55 @@ export function RoutineDetail() {
         onSubmit={(data) => runRoutine.mutate(data)}
       />
     </RoutineDetailContext.Provider>
+  );
+}
+
+/**
+ * Section band on the routine long page (leaf-node): title + plain-text count
+ * + exactly one trailing "See more" link to the section's dedicated route; the
+ * preview rows below carry their own padding and hairlines — no fill, no card.
+ */
+function RoutinePreviewBand({
+  id,
+  title,
+  count,
+  to,
+  children,
+}: {
+  id: string;
+  title: string;
+  count?: number;
+  to: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} aria-labelledby={`${id}-band-title`} className="mx-auto w-full max-w-5xl border-t border-border">
+      <div className="flex items-center justify-between gap-3 px-4 pt-4 md:px-8">
+        <h2 id={`${id}-band-title`} className="text-lg font-semibold text-foreground">
+          {title}
+          {count !== undefined ? (
+            <span className="ml-1.5 text-sm font-normal text-muted-foreground">{count}</span>
+          ) : null}
+        </h2>
+        <Link to={to} className="shrink-0 text-sm text-muted-foreground transition-colors hover:text-foreground">
+          See more
+        </Link>
+      </div>
+      <div className="mt-3 flex flex-col pb-4">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+/** One leaf row inside a preview band. */
+function RoutinePreviewRow({ primary, secondary }: { primary: React.ReactNode; secondary?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-2.5 md:px-8">
+      <span className="min-w-0 truncate text-sm text-foreground">{primary}</span>
+      {secondary ? (
+        <span className="shrink-0 truncate text-xs text-muted-foreground">{secondary}</span>
+      ) : null}
+    </div>
   );
 }

@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { activityLog, agents, authUsers, companyMemberships, companies, createDb, heartbeatRuns, issues } from "@paperclipai/db";
-import { PROVIDER_QUOTA_MONITOR_SERVICE_NAME } from "@paperclipai/shared";
+import { activityLog, agents, authUsers, companyMemberships, companies, createDb, heartbeatRuns, issues } from "@clayon/db";
+import { PROVIDER_QUOTA_MONITOR_SERVICE_NAME } from "@clayon/shared";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 import { buildIssueMonitorTriggeredPatch, normalizeIssueExecutionPolicy } from "../issue-execution-policy.js";
 import { nativeCompletionFeedback } from "./native-completion-feedback.js";
-import type { PrpStructuredRunResult } from "../../vendor/paperclip-runner/index.js";
+import type { PrpStructuredRunResult } from "../../vendor/clayon-runner/index.js";
 
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
@@ -32,7 +32,7 @@ describeEmbeddedPostgres("native task monitors", () => {
     await db.insert(heartbeatRuns).values({ id: runId, companyId, agentId, nativeIssueId: issueId, runtimeMode: "native", status: "running", contextSnapshot: { issueId } });
     await db.update(issues).set({ executionRunId: runId }).where(eq(issues.id, issueId));
     const binding = { companyId, agentId, issueId, runId };
-    const authority = new PaperclipRunnerToolAuthority(db, binding);
+    const authority = new ClayonRunnerToolAuthority(db, binding);
     const monitor = { nextCheckAt: new Date(Date.now() + 60_000).toISOString(), notes: "Compare this task's run and session identities." };
     const call = (args: Record<string, unknown>) => authority.execute({ tool: "set_task_monitor", callId: randomUUID(), arguments: args });
     const read = async () => (await db.select().from(issues).where(eq(issues.id, issueId)))[0]!;
@@ -43,7 +43,7 @@ describeEmbeddedPostgres("native task monitors", () => {
     const value = await fixture();
     expect(value.authority.definitions().some(tool => tool.name === "set_task_monitor")).toBe(true);
     for (const workMode of ["planning", "ask"] as const) {
-      const authority = new PaperclipRunnerToolAuthority(db, { ...value.binding, workMode });
+      const authority = new ClayonRunnerToolAuthority(db, { ...value.binding, workMode });
       expect(authority.definitions().some(tool => tool.name === "set_task_monitor")).toBe(false);
       await db.update(issues).set({ workMode }).where(eq(issues.id, value.issueId));
       await expect(authority.execute({ tool: "set_task_monitor", callId: randomUUID(), arguments: { idempotencyKey: "forbidden", monitor: value.monitor } })).rejects.toThrow();
@@ -56,7 +56,7 @@ describeEmbeddedPostgres("native task monitors", () => {
       await db.update(agents).set({ adapterConfig: { provider } }).where(eq(agents.id, value.agentId));
       expect(value.authority.definitions().map(tool => tool.name)).toContain("set_task_monitor");
     }
-    const authority = new PaperclipRunnerToolAuthority(db, { ...value.binding,
+    const authority = new ClayonRunnerToolAuthority(db, { ...value.binding,
       nativeReview: { nativeReviewInteractionId: randomUUID(), nativeReviewDecisionId: randomUUID() } });
     expect(authority.definitions().map(tool => tool.name)).not.toContain("set_task_monitor");
     await expect(authority.execute({ tool: "set_task_monitor", callId: randomUUID(), arguments: { idempotencyKey: "review", monitor: value.monitor } })).rejects.toThrow("review run");
@@ -128,7 +128,7 @@ describeEmbeddedPostgres("native task monitors", () => {
     await db.insert(heartbeatRuns).values({ id: nextRunId, companyId: value.companyId, agentId: value.agentId,
       nativeIssueId: value.issueId, runtimeMode: "native", status: "running", contextSnapshot: { issueId: value.issueId } });
     await db.update(issues).set({ executionRunId: nextRunId }).where(eq(issues.id, value.issueId));
-    const authority = new PaperclipRunnerToolAuthority(db, { ...value.binding, runId: nextRunId });
+    const authority = new ClayonRunnerToolAuthority(db, { ...value.binding, runId: nextRunId });
     expect(await authority.execute({ tool: "set_task_monitor", callId: randomUUID(), arguments: original }))
       .toMatchObject({ replayed: true, monitor: { nextCheckAt: null, status: "cleared" } });
     expect((await value.read()).monitorNextCheckAt).toBeNull();

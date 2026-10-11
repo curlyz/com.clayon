@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import { CONNECTABLE_APP_DEFINITIONS, getAppStoreDefinition, type ToolApplication, type ToolConnection } from "@paperclipai/shared";
-import { AGGREGATOR_APP_CATALOG, aggregatorAppIdentity, type AggregatorAppCatalogEntry } from "@paperclipai/shared/aggregator-app-catalog";
+import { CONNECTABLE_APP_DEFINITIONS, getAppStoreDefinition, type ToolApplication, type ToolConnection } from "@clayon/shared";
+import { AGGREGATOR_APP_CATALOG, aggregatorAppIdentity, type AggregatorAppCatalogEntry } from "@clayon/shared/aggregator-app-catalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -72,9 +72,9 @@ function installed(row: Row) {
 
 /** Design review only: real public catalogs and shipped cards, with local example accounts. */
 export function ConnectorCatalogNavigation({
-  initialSource = "paperclip", initialQuery = "", initialPage = 1, pageSize = CATALOG_PAGE_SIZE,
+  initialSource = "clayon", initialQuery = "", initialPage = 1, pageSize = CATALOG_PAGE_SIZE,
 }: { initialSource?: Source; initialQuery?: string; initialPage?: number; pageSize?: number }) {
-  const expandsInitialSearch = Boolean(initialQuery.trim() && initialSource === "paperclip");
+  const expandsInitialSearch = Boolean(initialQuery.trim() && initialSource === "clayon");
   const [source, setSource] = useState<Source>(expandsInitialSearch ? "all" : initialSource);
   const [expandedSearch, setExpandedSearch] = useState(expandsInitialSearch);
   const [query, setQuery] = useState(initialQuery);
@@ -86,7 +86,7 @@ export function ConnectorCatalogNavigation({
   const native = nativeRows().filter(row => !provider || row.slug === source && installed(row) || row.upstreamApps?.some(app => app.provider === source && app.accounts.length > 0));
   // Saved apps stay visible above discovery, including apps managed through Composio.
   const aggregate = aggregatorCatalog
-    .filter(app => source === "paperclip" ? aggregatorAppIdentity(app.name) === "circleback"
+    .filter(app => source === "clayon" ? aggregatorAppIdentity(app.name) === "circleback"
       : !provider || app.routes.some(route => route.provider === source))
     .map(app => aggregatorRow(app, provider ? source : "all"));
   const term = query.trim().toLocaleLowerCase();
@@ -115,13 +115,13 @@ export function ConnectorCatalogNavigation({
   }
 
   function changeQuery(value: string) {
-    // A search from Paperclip includes aggregator apps; explicit filters stay scoped.
-    if (source === "paperclip" && !query.trim() && value.trim()) {
+    // A search from Clayon includes aggregator apps; explicit filters stay scoped.
+    if (source === "clayon" && !query.trim() && value.trim()) {
       setSource("all");
       setExpandedSearch(true);
     }
     if (expandedSearch && !value.trim()) {
-      setSource("paperclip");
+      setSource("clayon");
       setExpandedSearch(false);
     }
     setQuery(value);
@@ -156,7 +156,7 @@ export function ConnectorCatalogNavigation({
 
     {(available.length > 0 || connected.length === 0) ? <section ref={availableRef} aria-label="Available apps" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xs font-medium text-muted-foreground">{term ? "Search results" : source === "paperclip" ? "Built into Paperclip" : provider ? `${SOURCE_NAMES[source]} apps` : source === "installed" ? "Installed" : "Available apps"}</h2>
+        <h2 className="text-xs font-medium text-muted-foreground">{term ? "Search results" : source === "clayon" ? "Built into Clayon" : provider ? `${SOURCE_NAMES[source]} apps` : source === "installed" ? "Installed" : "Available apps"}</h2>
         <span className="text-xs text-muted-foreground" role="status">{available.length.toLocaleString("en-US")} {term ? available.length === 1 ? "result" : "results" : "apps"}</span>
       </div>
       {pageRows.length ? <div role="list" aria-label="Available connectors" className="flex flex-col gap-3">{pageRows.map(renderRow)}</div>

@@ -22,12 +22,12 @@ const sharedOpts = {
 const isProduction = process.env.NODE_ENV === "production";
 export const logger = isProduction
   ? pino({
-      level: process.env.PAPERCLIP_LOG_LEVEL?.trim() || "info",
+      level: process.env.CLAYON_LOG_LEVEL?.trim() || "info",
       redact: [...HTTP_LOG_REDACT_PATHS],
     })
   : pino(
       {
-        level: process.env.PAPERCLIP_LOG_LEVEL?.trim() || "debug",
+        level: process.env.CLAYON_LOG_LEVEL?.trim() || "debug",
         redact: [...HTTP_LOG_REDACT_PATHS],
       },
       pino.transport({
@@ -169,7 +169,7 @@ export function createHttpLogger(baseLogger: Logger) {
     customProps(req, res) {
       if (res.statusCode >= 400) {
         const ctx = (res as any).__errorContext;
-        if (/^\/mcp\/(?:oauth|paperclip)(?:\/|$)/.test(requestClassificationUrl(req) ?? "")) {
+        if (/^\/mcp\/(?:oauth|clayon)(?:\/|$)/.test(requestClassificationUrl(req) ?? "")) {
           return { reqBody: "[REDACTED]", ...(ctx ? { errorContext: { name: "Error" } } : {}) };
         }
         if (isPrivateWebhook(req) || isPrivateAgentCommentaryHttpRequest(requestClassificationUrl(req))) {

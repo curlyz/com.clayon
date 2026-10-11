@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import type { APIRequestContext } from "@playwright/test";
 import { reserveRunnerE2EServerPort } from "./ports.js";
-import { resolvePaperclipRunnerBinaryForHarness } from "./harness-env.js";
+import { resolveClayonRunnerBinaryForHarness } from "./harness-env.js";
 import { runnerE2ETypeScriptProcessArgs } from "./web-server-command.js";
 import { ConnectionBlock, ConnectionFailure, targetOrigin, type ConnectionConfig } from "./connection-config.js";
 import type { MatrixExecution } from "./types.js";
@@ -51,24 +51,24 @@ export async function startConnectionTarget(config: ConnectionConfig, executions
   const assertActive = () => { if (signal?.aborted) throw new ConnectionBlock("blocked_target", "test_interrupted"); };
   assertActive();
   if (config.target.mode === "attach") return { origin: targetOrigin(config.target.baseURL), stop: async () => {} };
-  const root = await mkdtemp(path.join(os.tmpdir(), "paperclip-connection-e2e-"));
+  const root = await mkdtemp(path.join(os.tmpdir(), "clayon-connection-e2e-"));
   let child: ChildProcess | undefined;
   const stop = async () => { if (child) await stopOwnedServer(child); await rm(root, { recursive: true, force: true }); };
   try {
     assertActive();
-    const home = path.join(root, "paperclip-home");
+    const home = path.join(root, "clayon-home");
     const instance = `connection-${randomBytes(6).toString("hex")}`;
     const port = await reserveRunnerE2EServerPort();
     await mkdir(home, { mode: 0o700 });
     // Only bootstrap essentials are inherited. Selected provider keys enter via UI.
     const env: NodeJS.ProcessEnv = Object.fromEntries(["PATH", "HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "LC_ALL", "NODE_EXTRA_CA_CERTS"].flatMap(key => process.env[key] ? [[key, process.env[key]!]] : []));
     Object.assign(env, {
-      PAPERCLIP_HOME: home, PAPERCLIP_INSTANCE_ID: instance, PAPERCLIP_CONFIG: path.join(home, "instances", instance, "config.json"),
-      PAPERCLIP_RUNNER_E2E_TEMP_ROOT: root, PAPERCLIP_RUNNER_E2E_PORT: String(port), PAPERCLIP_RUNNER_E2E_SERVER_LOG: path.join(root, "server.log"),
-      PAPERCLIP_RUNNER_BINARY: resolvePaperclipRunnerBinaryForHarness(executions, repositoryRoot),
-      PAPERCLIP_VITE_CACHE_DIR: path.join(root, "vite-cache"), PAPERCLIP_ANNOUNCEMENTS_ENABLED: "false",
-      PAPERCLIP_AGENT_JWT_SECRET: randomBytes(48).toString("hex"), PAPERCLIP_DECISION_SIGNING_SECRET: randomBytes(48).toString("hex"),
-      PAPERCLIP_TOOL_ACTION_SIGNING_SECRET: randomBytes(48).toString("hex"), BETTER_AUTH_SECRET: randomBytes(48).toString("hex"),
+      CLAYON_HOME: home, CLAYON_INSTANCE_ID: instance, CLAYON_CONFIG: path.join(home, "instances", instance, "config.json"),
+      CLAYON_RUNNER_E2E_TEMP_ROOT: root, CLAYON_RUNNER_E2E_PORT: String(port), CLAYON_RUNNER_E2E_SERVER_LOG: path.join(root, "server.log"),
+      CLAYON_RUNNER_BINARY: resolveClayonRunnerBinaryForHarness(executions, repositoryRoot),
+      CLAYON_VITE_CACHE_DIR: path.join(root, "vite-cache"), CLAYON_ANNOUNCEMENTS_ENABLED: "false",
+      CLAYON_AGENT_JWT_SECRET: randomBytes(48).toString("hex"), CLAYON_DECISION_SIGNING_SECRET: randomBytes(48).toString("hex"),
+      CLAYON_TOOL_ACTION_SIGNING_SECRET: randomBytes(48).toString("hex"), BETTER_AUTH_SECRET: randomBytes(48).toString("hex"),
     });
     assertActive();
     child = spawn(process.execPath, runnerE2ETypeScriptProcessArgs(repositoryRoot, path.join(repositoryRoot, "tests/runner-e2e/server.ts")), { cwd: repositoryRoot, env, detached: process.platform !== "win32", stdio: "ignore" });

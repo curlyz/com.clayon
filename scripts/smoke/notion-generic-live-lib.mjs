@@ -1,11 +1,11 @@
 const REQUIRED_ENVIRONMENT = [
-  "PAPERCLIP_E2E_BASE_URL",
-  "PAPERCLIP_E2E_EMAIL",
-  "PAPERCLIP_DEV_LOGIN_PASSWORD",
-  "PAPERCLIP_API_URL",
-  "PAPERCLIP_API_KEY",
-  "PAPERCLIP_RUN_ID",
-  "PAPERCLIP_TASK_ID",
+  "CLAYON_E2E_BASE_URL",
+  "CLAYON_E2E_EMAIL",
+  "CLAYON_DEV_LOGIN_PASSWORD",
+  "CLAYON_API_URL",
+  "CLAYON_API_KEY",
+  "CLAYON_RUN_ID",
+  "CLAYON_TASK_ID",
 ];
 
 // Agent secret APIs expose access.notion_generic_flow_test_account under this
@@ -119,21 +119,21 @@ export function preflightNotionGenericLive(environment = process.env) {
     throw new NotionGenericLivePreflightError("missing_environment", { missing });
   }
 
-  const base = explicitHttpsOrigin(requiredValue(environment, "PAPERCLIP_E2E_BASE_URL"), "unsafe_base_url");
-  const api = explicitHttpsOrigin(requiredValue(environment, "PAPERCLIP_API_URL"), "unsafe_api_url");
+  const base = explicitHttpsOrigin(requiredValue(environment, "CLAYON_E2E_BASE_URL"), "unsafe_base_url");
+  const api = explicitHttpsOrigin(requiredValue(environment, "CLAYON_API_URL"), "unsafe_api_url");
 
-  const email = requiredValue(environment, "PAPERCLIP_E2E_EMAIL");
+  const email = requiredValue(environment, "CLAYON_E2E_EMAIL");
   if (!email.includes("@")) throw new NotionGenericLivePreflightError("invalid_paperclip_email");
 
   return {
     baseUrl: base.origin,
     apiBaseUrl: `${api.origin}/api`,
     callbackUrl: `${base.origin}/api/tools/oauth/callback`,
-    paperclipEmail: email,
-    paperclipPassword: environment.PAPERCLIP_DEV_LOGIN_PASSWORD,
-    agentApiKey: environment.PAPERCLIP_API_KEY,
-    runId: environment.PAPERCLIP_RUN_ID,
-    taskId: environment.PAPERCLIP_TASK_ID,
+    clayonEmail: email,
+    clayonPassword: environment.CLAYON_DEV_LOGIN_PASSWORD,
+    agentApiKey: environment.CLAYON_API_KEY,
+    runId: environment.CLAYON_RUN_ID,
+    taskId: environment.CLAYON_TASK_ID,
     secretBindingKey: NOTION_SECRET_BINDING_KEY,
   };
 }

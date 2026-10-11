@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useSidebarNavExpanded } from "./SidebarNavItem";
 
 type SidebarSectionIcon = ComponentType<{ className?: string }>;
@@ -74,7 +75,7 @@ function SidebarSectionHeader({
   const hasMenu = Boolean(
     menu && ((menu.actions?.length ?? 0) > 0 || (menu.radioChoices?.length ?? 0) > 0),
   );
-  const labelClassName = "text-(length:--text-nano) font-medium uppercase tracking-widest font-mono text-muted-foreground/60";
+  const labelClassName = primarySidebarStyles.label;
   const headerControlVisibilityClassName = isMobile
     ? "opacity-100"
     : "opacity-0 group-hover/sidebar-section:opacity-100 group-focus-within/sidebar-section:opacity-100";
@@ -152,33 +153,35 @@ function SidebarSectionHeader({
   );
 
   return (
-    <div className="group/sidebar-section px-3 py-1.5 pointer-coarse:py-1">
-      <div className="relative flex min-h-6 min-w-0 items-center gap-1">
-        {collapsible ? (
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              data-slot="icon-button"
-              className="absolute -left-4 flex h-5 w-5 items-center justify-center rounded-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-              aria-label={collapsible.open ? `Collapse ${label}` : `Expand ${label}`}
-            >
-              <ChevronRight className={caretClassName} aria-hidden="true" />
-            </button>
-          </CollapsibleTrigger>
-        ) : null}
-        {headingControl}
-        {headerAction && HeaderActionIcon ? (
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            className={actionClassName}
-            aria-label={headerAction.ariaLabel}
-            onClick={headerAction.onClick}
+    // Leaf-node law: the section label is a leaf title row — the one element
+    // that pads, full-bleed across the sidebar. The collapse caret sits inline
+    // as the row's first child (no absolute offsets), and the trailing action
+    // is its last child.
+    <div className="group/sidebar-section flex min-h-6 min-w-0 items-center gap-1 px-3 py-1.5 pointer-coarse:py-1">
+      {collapsible ? (
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            data-slot="icon-button"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-label={collapsible.open ? `Collapse ${label}` : `Expand ${label}`}
           >
-            <HeaderActionIcon className="h-3.5 w-3.5" />
-          </Button>
-        ) : null}
-      </div>
+            <ChevronRight className={caretClassName} aria-hidden="true" />
+          </button>
+        </CollapsibleTrigger>
+      ) : null}
+      {headingControl}
+      {headerAction && HeaderActionIcon ? (
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className={actionClassName}
+          aria-label={headerAction.ariaLabel}
+          onClick={headerAction.onClick}
+        >
+          <HeaderActionIcon className="h-3.5 w-3.5" />
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -193,7 +196,7 @@ export function SidebarSection({
   const { collapsed, peeking } = useSidebar();
   const forceExpanded = useSidebarNavExpanded();
   const rail = collapsed && !peeking && !forceExpanded;
-  const content = <div className="flex flex-col gap-0.5 mt-0.5">{children}</div>;
+  const content = <div className="flex flex-col gap-0.5">{children}</div>;
 
   // Collapsed rail: the section header would only show a clipped sliver of its
   // label, so replace it with a thin divider. The label stays in the a11y tree,
@@ -225,8 +228,9 @@ export function SidebarSection({
         onOpenChange={collapsible.onOpenChange}
         // Sidebar column law: every group is a hairline-separated band; the
         // first band in a column carries no border (per-page review, operator
-        // directive 2026-10-10).
-        className="border-t border-border pt-2 first:border-t-0 first:pt-0"
+        // directive 2026-10-10). The band adds no padding of its own — the
+        // header row and item rows are the leaves that pad.
+        className={primarySidebarStyles.band}
       >
         <SidebarSectionHeader
           label={label}
@@ -240,7 +244,7 @@ export function SidebarSection({
   }
 
   return (
-    <div className="border-t border-border pt-2 first:border-t-0 first:pt-0">
+    <div className={primarySidebarStyles.band}>
       <SidebarSectionHeader label={label} menu={menu} headerAction={headerAction} />
       {content}
     </div>

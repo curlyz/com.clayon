@@ -1,13 +1,12 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { HeartbeatRun, RoutineRunSummary } from "@paperclipai/shared";
+import type { HeartbeatRun, RoutineRunSummary } from "@clayon/shared";
 import { Activity, CircleDotDashed } from "lucide-react";
 import { agentsApi } from "@/api/agents";
 import { heartbeatsApi } from "@/api/heartbeats";
 import { routinesApi } from "@/api/routines";
 import { EmptyState } from "@/components/EmptyState";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -81,9 +80,10 @@ function RoutineScopedRuns({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50">
-        <h2 className="px-4 py-3 text-lg font-semibold text-foreground">Routine runs</h2>
-        <Badge variant="secondary">{runs.length}</Badge>
+      <div className="flex items-center justify-between gap-3 border-t border-border">
+        <h2 className="px-4 py-3 text-lg font-semibold text-foreground">
+          Routine runs <span className="ml-1 text-sm font-normal text-muted-foreground">{runs.length}</span>
+        </h2>
       </div>
       <p className="max-w-2xl px-4 py-3 text-sm text-muted-foreground">
         Executions created by this routine, newest first.
@@ -202,16 +202,17 @@ export function AuditRuns({ companyId, routineId }: { companyId: string; routine
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50">
-        <h2 className="px-4 py-3 text-lg font-semibold text-foreground">Runs</h2>
-        <Badge variant="secondary">{visibleRuns.length}</Badge>
+      <div className="flex items-center justify-between gap-3 border-t border-border">
+        <h2 className="px-4 py-3 text-lg font-semibold text-foreground">
+          Runs <span className="ml-1 text-sm font-normal text-muted-foreground">{visibleRuns.length}</span>
+        </h2>
       </div>
       <p className="max-w-2xl px-4 py-3 text-sm text-muted-foreground">
         Recent agent executions across the organization. Open a run to inspect its transcript,
         output, and task context.
       </p>
 
-      <div className="flex flex-wrap items-end gap-3 border-t border-border bg-muted/50">
+      <div className="flex flex-wrap items-end gap-3 border-t border-border">
         <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
           <span className="px-3 pt-3">Agent</span>
           <Select value={agentId} onValueChange={(value) => updateFilter("agentId", value)}>

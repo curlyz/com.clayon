@@ -2,7 +2,7 @@ import type {
   ResourceMemberships,
   ResourceMembershipUpdateResult,
   UpdateResourceMembership,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { api } from "./client";
 
 export const resourceMembershipsApi = {

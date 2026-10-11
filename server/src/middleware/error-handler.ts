@@ -1,9 +1,9 @@
 import { AgentLifecycleConflict } from "../modules/agent-lifecycle/index.js";
 import type { Request, Response, NextFunction } from "express";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import { ZodError } from "zod";
 import { HttpError } from "../errors.js";
-import { trackErrorHandlerCrash } from "@paperclipai/shared/telemetry";
+import { trackErrorHandlerCrash } from "@clayon/shared/telemetry";
 import { getTelemetryClient } from "../telemetry.js";
 import { captureException } from "../sentry.js";
 import { COMPANY_IMPORT_API_PATH } from "../routes/company-import-paths.js";
@@ -93,9 +93,9 @@ function reportCrash(error: Error, reportToSentry = true): void {
   if (reportToSentry) captureException(error);
 }
 
-function getPaperclipDb(req: Request): Db | null {
-  const locals = req.app?.locals as { paperclipDb?: Db; db?: Db } | undefined;
-  return locals?.paperclipDb ?? locals?.db ?? null;
+function getClayonDb(req: Request): Db | null {
+  const locals = req.app?.locals as { clayonDb?: Db; db?: Db } | undefined;
+  return locals?.clayonDb ?? locals?.db ?? null;
 }
 
 function recordResponsibleUserDenialFromHttpError(
@@ -103,7 +103,7 @@ function recordResponsibleUserDenialFromHttpError(
   details: Record<string, unknown> | null,
 ) {
   if (req.actor?.type !== "agent") return;
-  const db = getPaperclipDb(req);
+  const db = getClayonDb(req);
   if (!db) return;
 
   void recordResponsibleUserDenialOnActiveRun(db, {

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 
 export const DAYTONA_IMAGE_CONTENT_SCHEMA =
-  "paperclip-daytona-runner-image-content/v5";
+  "clayon-daytona-runner-image-content/v5";
 export const DAYTONA_IMAGE_PLATFORM = "linux/amd64";
 export const DAYTONA_IMAGE_DOCKERFILE_PATH = "docker/daytona-runner/Dockerfile";
 
@@ -24,58 +24,58 @@ export const DAYTONA_IMAGE_INPUT_PATHS = [
   "pnpm-workspace.yaml",
   "scripts/link-plugin-dev-sdk.mjs",
   "tsconfig.base.json",
-  "packages/paperclip-eval-kernel/package.json",
-  "packages/paperclip-eval-kernel/src",
-  "packages/paperclip-eval-kernel/tsconfig.json",
-  "packages/paperclip-runner/scripts/provision-grok.mjs",
-  "packages/paperclip-runner/package.json",
-  "packages/paperclip-runner/cursor-distributions.json",
-  "packages/paperclip-runner/cursor-contract.json",
-  "packages/paperclip-runner/protocol",
-  "packages/paperclip-runner/runner/Cargo.lock",
-  "packages/paperclip-runner/runner/Cargo.toml",
-  "packages/paperclip-runner/runner/crates",
-  "packages/paperclip-runner/scripts/acpx-sidecar-contract.mjs",
-  "packages/paperclip-runner/scripts/build-provider-pack.mjs",
-  "packages/paperclip-runner/scripts/provider-pack-executable-shims.mjs",
-  "packages/paperclip-runner/scripts/build-node-startup-timeout.mjs",
-  "packages/paperclip-runner/scripts/candidate-provider-pack.mjs",
-  "packages/paperclip-runner/scripts/build-copilot-distribution.mjs",
-  "packages/paperclip-runner/scripts/materialize-copilot-binary.mjs",
-  "packages/paperclip-runner/scripts/materialize-cursor-distribution.mjs",
-  "packages/paperclip-runner/scripts/cursor-runtime-patch.mjs",
-  "packages/paperclip-runner/scripts/build-verified-provider-entrypoints.mjs",
-  "packages/paperclip-runner/scripts/generate-acpx-sidecar-contract.mjs",
-  "packages/paperclip-runner/scripts/generate-protocol-schema-module.mjs",
-  "packages/paperclip-runner/scripts/materialize-pi-distribution.mjs",
-  "packages/paperclip-runner/scripts/pi-distribution",
-  "packages/paperclip-runner/scripts/cursor-native-usage.mjs",
-  "packages/paperclip-runner/scripts/cursor-native-usage-source.json",
-  "packages/paperclip-runner/scripts/provision-cursor.mjs",
-  "packages/paperclip-runner/cursor-distributions.json",
-  "packages/paperclip-runner/cursor-contract.json",
+  "packages/clayon-eval-kernel/package.json",
+  "packages/clayon-eval-kernel/src",
+  "packages/clayon-eval-kernel/tsconfig.json",
+  "packages/clayon-runner/scripts/provision-grok.mjs",
+  "packages/clayon-runner/package.json",
+  "packages/clayon-runner/cursor-distributions.json",
+  "packages/clayon-runner/cursor-contract.json",
+  "packages/clayon-runner/protocol",
+  "packages/clayon-runner/runner/Cargo.lock",
+  "packages/clayon-runner/runner/Cargo.toml",
+  "packages/clayon-runner/runner/crates",
+  "packages/clayon-runner/scripts/acpx-sidecar-contract.mjs",
+  "packages/clayon-runner/scripts/build-provider-pack.mjs",
+  "packages/clayon-runner/scripts/provider-pack-executable-shims.mjs",
+  "packages/clayon-runner/scripts/build-node-startup-timeout.mjs",
+  "packages/clayon-runner/scripts/candidate-provider-pack.mjs",
+  "packages/clayon-runner/scripts/build-copilot-distribution.mjs",
+  "packages/clayon-runner/scripts/materialize-copilot-binary.mjs",
+  "packages/clayon-runner/scripts/materialize-cursor-distribution.mjs",
+  "packages/clayon-runner/scripts/cursor-runtime-patch.mjs",
+  "packages/clayon-runner/scripts/build-verified-provider-entrypoints.mjs",
+  "packages/clayon-runner/scripts/generate-acpx-sidecar-contract.mjs",
+  "packages/clayon-runner/scripts/generate-protocol-schema-module.mjs",
+  "packages/clayon-runner/scripts/materialize-pi-distribution.mjs",
+  "packages/clayon-runner/scripts/pi-distribution",
+  "packages/clayon-runner/scripts/cursor-native-usage.mjs",
+  "packages/clayon-runner/scripts/cursor-native-usage-source.json",
+  "packages/clayon-runner/scripts/provision-cursor.mjs",
+  "packages/clayon-runner/cursor-distributions.json",
+  "packages/clayon-runner/cursor-contract.json",
   // Pi runtime/extension/Node/closure pins are included by the src tree below.
-  "packages/paperclip-runner/src",
-  "packages/paperclip-runner/styles.css",
-  "packages/paperclip-runner/tsconfig.json",
-  "packages/paperclip-runner/tsconfig.surfaces.json",
+  "packages/clayon-runner/src",
+  "packages/clayon-runner/styles.css",
+  "packages/clayon-runner/tsconfig.json",
+  "packages/clayon-runner/tsconfig.surfaces.json",
 ] as const;
 
 const ignoredRunnerDevelopmentDirectoryPaths = new Set([
-  "packages/paperclip-runner/devtools",
-  "packages/paperclip-runner/docs",
-  "packages/paperclip-runner/examples",
-  "packages/paperclip-runner/test",
-  "packages/paperclip-runner/test-fixtures",
-  "packages/paperclip-runner/test-support",
+  "packages/clayon-runner/devtools",
+  "packages/clayon-runner/docs",
+  "packages/clayon-runner/examples",
+  "packages/clayon-runner/test",
+  "packages/clayon-runner/test-fixtures",
+  "packages/clayon-runner/test-support",
 ]);
 
 const runnerDocumentationFilePattern = /\.md$/;
 const runnerTestFilePattern = /\.(?:spec|test)\.(?:[cm]?[jt]sx?)$/;
 const runnerRustIntegrationTestPathPattern =
-  /^packages\/paperclip-runner\/runner\/crates\/[^/]+\/tests(?:\/|$)/;
+  /^packages\/clayon-runner\/runner\/crates\/[^/]+\/tests(?:\/|$)/;
 const runnerSmokeScriptPattern =
-  /^packages\/paperclip-runner\/scripts\/[^/]+-smoke\.mjs$/;
+  /^packages\/clayon-runner\/scripts\/[^/]+-smoke\.mjs$/;
 
 export interface DaytonaImageContentOptions {
   repositoryRoot?: string;
@@ -83,7 +83,7 @@ export interface DaytonaImageContentOptions {
   platform?: string;
   baseImages?: readonly string[];
   frontendDigest?: string;
-  /** Must match the Docker PAPERCLIP_RUNNER_CANDIDATE_PROVIDERS build argument. */
+  /** Must match the Docker CLAYON_RUNNER_CANDIDATE_PROVIDERS build argument. */
   candidateProviders?: readonly string[];
 }
 
@@ -109,7 +109,7 @@ function shouldIgnore(relativePath: string): boolean {
 }
 
 function shouldIgnoreRunnerDevelopmentInput(relativePath: string): boolean {
-  if (!relativePath.startsWith("packages/paperclip-runner/")) return false;
+  if (!relativePath.startsWith("packages/clayon-runner/")) return false;
   if (ignoredRunnerDevelopmentDirectoryPaths.has(relativePath)) return true;
   return (
     runnerDocumentationFilePattern.test(relativePath) ||

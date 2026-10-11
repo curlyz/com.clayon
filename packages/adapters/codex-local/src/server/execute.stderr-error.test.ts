@@ -6,7 +6,7 @@ const {
   ensureAdapterExecutionTargetCommandResolvable,
   ensureAdapterExecutionTargetRuntimeCommandInstalled,
   prepareCodexRuntimeConfig,
-  readPaperclipRuntimeSkillEntries,
+  readClayonRuntimeSkillEntries,
   resolveAdapterExecutionTargetCommandForLogs,
   runAdapterExecutionTargetProcess,
   tempCodexHome,
@@ -14,22 +14,22 @@ const {
   ensureAdapterExecutionTargetCommandResolvable: vi.fn(async () => undefined),
   ensureAdapterExecutionTargetRuntimeCommandInstalled: vi.fn(async () => undefined),
   prepareCodexRuntimeConfig: vi.fn(async () => ({ cleanup: vi.fn(async () => undefined), notes: [] })),
-  readPaperclipRuntimeSkillEntries: vi.fn(async () => []),
+  readClayonRuntimeSkillEntries: vi.fn(async () => []),
   resolveAdapterExecutionTargetCommandForLogs: vi.fn(async () => "codex"),
   runAdapterExecutionTargetProcess: vi.fn(),
-  tempCodexHome: "/tmp/paperclip-codex-stderr-error-test-home",
+  tempCodexHome: "/tmp/clayon-codex-stderr-error-test-home",
 }));
 
 vi.mock("./acp.js", () => ({
   createCodexAcpExecutor: () => vi.fn(),
   formatCodexAcpFallbackMessage: (reason: string) =>
-    `[paperclip] Codex ACP default unavailable; falling back to Codex CLI. ${reason} Set engine=acp to require ACP or engine=cli to silence this fallback.\n`,
+    `[clayon] Codex ACP default unavailable; falling back to Codex CLI. ${reason} Set engine=acp to require ACP or engine=cli to silence this fallback.\n`,
   resolveCodexExecutionEngineForRun: async () => ({ engine: "cli", explicit: true }),
 }));
 
-vi.mock("@paperclipai/adapter-utils/execution-target", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/adapter-utils/execution-target")>(
-    "@paperclipai/adapter-utils/execution-target",
+vi.mock("@clayon/adapter-utils/execution-target", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/adapter-utils/execution-target")>(
+    "@clayon/adapter-utils/execution-target",
   );
   return {
     ...actual,
@@ -40,13 +40,13 @@ vi.mock("@paperclipai/adapter-utils/execution-target", async () => {
   };
 });
 
-vi.mock("@paperclipai/adapter-utils/server-utils", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/adapter-utils/server-utils")>(
-    "@paperclipai/adapter-utils/server-utils",
+vi.mock("@clayon/adapter-utils/server-utils", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/adapter-utils/server-utils")>(
+    "@clayon/adapter-utils/server-utils",
   );
   return {
     ...actual,
-    readPaperclipRuntimeSkillEntries,
+    readClayonRuntimeSkillEntries,
   };
 });
 
@@ -136,10 +136,10 @@ describe("codex_local stderr fallback error derivation", () => {
     expect(result.errorMessage).not.toContain("YOLO mode");
   });
 
-  it("skips adapter-injected [paperclip] diagnostic lines when picking the fallback error", async () => {
+  it("skips adapter-injected [clayon] diagnostic lines when picking the fallback error", async () => {
     mockFailedProcess(
       [
-        "[paperclip] Codex ACP default unavailable; falling back to Codex CLI. Set engine=acp to require ACP or engine=cli to silence this fallback.",
+        "[clayon] Codex ACP default unavailable; falling back to Codex CLI. Set engine=acp to require ACP or engine=cli to silence this fallback.",
         YOLO_WARNING,
         "Error: stream disconnected before completion",
       ].join("\n"),
@@ -170,13 +170,13 @@ describe("codex_local stderr fallback error derivation", () => {
 describe("firstMeaningfulStderrLine", () => {
   it("returns the first line that is not a known benign warning", () => {
     expect(firstMeaningfulStderrLine(`${YOLO_WARNING}\nError: boom`)).toBe("Error: boom");
-    expect(firstMeaningfulStderrLine("[paperclip] Confining Codex with workspace scope.\nError: boom")).toBe(
+    expect(firstMeaningfulStderrLine("[clayon] Confining Codex with workspace scope.\nError: boom")).toBe(
       "Error: boom",
     );
   });
 
   it("keeps the first non-empty line when all lines are benign", () => {
-    expect(firstMeaningfulStderrLine(`${YOLO_WARNING}\n[paperclip] note\n`)).toBe(YOLO_WARNING);
+    expect(firstMeaningfulStderrLine(`${YOLO_WARNING}\n[clayon] note\n`)).toBe(YOLO_WARNING);
   });
 
   it("returns an empty string for blank input", () => {

@@ -42,7 +42,7 @@ import type {
   IssueThreadInteraction,
   AskUserQuestionsInteraction,
   AskUserQuestionsAnswer,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "@/lib/router";
 import {
   SearchableSelect,
@@ -51,6 +51,8 @@ import {
 } from "@/components/SearchableSelect";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "../context/CompanyContext";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave } from "@/hooks/useAutosave";
 import { useOptionalToastActions } from "../context/ToastContext";
 import { classifySkillDenial } from "@/lib/skill-policy-denial";
 import { agentsApi } from "@/api/agents";
@@ -131,7 +133,7 @@ import {
 import { FileTree, buildFileTree, type FileTreeNode } from "@/components/FileTree";
 import { MarkdownEditor } from "@/components/MarkdownEditor";
 import { FrontmatterPanel } from "@/components/FrontmatterPanel";
-import { joinFrontmatterBlock, splitFrontmatterBlock } from "@paperclipai/shared";
+import { joinFrontmatterBlock, splitFrontmatterBlock } from "@clayon/shared";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
@@ -477,7 +479,7 @@ function StudioNewSkillPanel({
       toast?.pushToast({
         tone: "success",
         title: skill.forkedFromSkillId ? "Skill fork created" : "Skill created",
-        body: `${skill.name} is now editable in the Paperclip workspace.`,
+        body: `${skill.name} is now editable in the Clayon workspace.`,
       });
       navigate(skillStudioRoute(skill.id));
     },
@@ -649,7 +651,7 @@ function StudioNewSkillPanel({
       <section className="space-y-3">
         <div>
           <h2 className="text-sm font-medium text-foreground">Sharing</h2>
-          <p className="text-xs text-muted-foreground">Choose who can discover this skill inside Paperclip.</p>
+          <p className="text-xs text-muted-foreground">Choose who can discover this skill inside Clayon.</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-3">
           {(["company", "private"] as const).map((scope) => (
@@ -1323,21 +1325,18 @@ function SkillPane({
     onDirtyChange(dirty);
   }, [dirty, onDirtyChange]);
 
-  const selectFile = useCallback((path: string) => {
-    if (path === selectedFile) return;
-    if (
-      dirty
-      && typeof window !== "undefined"
-      && !window.confirm("Discard unsaved edits and switch files?")
-    ) {
-      return;
-    }
-    setSelectedFile(path);
-  }, [dirty, selectedFile]);
+  // Read-only skills (bundled Clayon, remote GitHub, URL, skills.sh) reject
+  // file writes server-side; reflect that up-front instead of letting the user
+  // type into an editor whose autosave silently 422s (PAP-13001 Bug B).
+  const readOnly = skill.editable === false || fileQuery.data?.editable === false;
 
-  const saveMutation = useMutation({
-    mutationFn: () => companySkillsApi.updateFile(companyId, skillId, selectedFile, draft),
-    onSuccess: (updated) => {
+  // Autosave: a draft file persists on its own; read-only sources never save
+  // (the server would reject the write anyway).
+  const fileAutosave = useAutosave({
+    value: readOnly ? savedContent : draft,
+    savedValue: savedContent,
+    save: async (content) => {
+      const updated = await companySkillsApi.updateFile(companyId, skillId, selectedFile, content);
       setSavedContent(updated.content);
       queryClient.invalidateQueries({
         queryKey: queryKeys.companySkills.detail(companyId, skillId),
@@ -1349,8 +1348,14 @@ function SkillPane({
         queryKey: queryKeys.companySkills.versions(companyId, skillId),
       });
     },
-    onError: onError("Couldn't save file"),
   });
+
+  const selectFile = useCallback((path: string) => {
+    if (path === selectedFile) return;
+    // Autosave: flush pending edits before the editor swaps files.
+    fileAutosave.flush();
+    setSelectedFile(path);
+  }, [fileAutosave, selectedFile]);
 
   const createMutation = useMutation({
     mutationFn: ({ path, content }: { path: string; content: string }) =>
@@ -1393,11 +1398,6 @@ function SkillPane({
     },
     onError: onError("Couldn't delete file"),
   });
-
-  // Read-only skills (bundled Paperclip, remote GitHub, URL, skills.sh) reject
-  // file writes server-side; reflect that up-front instead of letting the user
-  // type into an editor whose Save silently 422s (PAP-13001 Bug B).
-  const readOnly = skill.editable === false || fileQuery.data?.editable === false;
 
   if (paths.length === 0) {
     return (
@@ -1454,12 +1454,6 @@ function SkillPane({
       }
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        {dirty && !readOnly ? (
-          <div className="flex items-start gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <span>Unsaved edits live only in this Studio session. Save to create the next version before running tests or switching files.</span>
-          </div>
-        ) : null}
         <div className="max-h-(--sz-11_75rem) overflow-auto border-b border-border p-1">
           <FileTree
             nodes={nodes}
@@ -1508,16 +1502,11 @@ function SkillPane({
             {readOnly ? (
               <Badge variant="secondary">Read-only</Badge>
             ) : (
-              <>
-                {dirty && <Badge variant="secondary">Unsaved</Badge>}
-                <Button
-                  size="sm"
-                  disabled={!dirty || saveMutation.isPending}
-                  onClick={() => saveMutation.mutate()}
-                >
-                  {saveMutation.isPending ? "Saving…" : "Save"}
-                </Button>
-              </>
+              <SaveStatus
+                status={fileAutosave.status}
+                errorMessage={fileAutosave.errorMessage}
+                onRetry={fileAutosave.retry}
+              />
             )}
           </div>
         </div>
@@ -1957,31 +1946,17 @@ function InputPane({
   );
   const selectedName = selectedInput?.name ?? null;
   const dirty = !adHocMode && savedInputDraftDirty(savedInputDraft, selectedInput);
-  const canSaveSelectedInput = Boolean(selectedInput && dirty && draft.trim());
 
-  const confirmDiscardDirtyInput = useCallback(() => {
-    if (!dirty) return true;
-    return (
-      typeof window === "undefined"
-      || window.confirm("Discard unsaved changes to this input?")
-    );
-  }, [dirty]);
-
-  const selectSavedInput = useCallback((id: string) => {
-    if (!adHocMode && id === selectedInputId) return;
-    if (!confirmDiscardDirtyInput()) return;
-    onSelectInput(id);
-  }, [adHocMode, confirmDiscardDirtyInput, onSelectInput, selectedInputId]);
-
-  const selectAdHocInput = useCallback(() => {
-    if (!adHocMode && !confirmDiscardDirtyInput()) return;
-    onSelectAdHoc();
-  }, [adHocMode, confirmDiscardDirtyInput, onSelectAdHoc]);
-
-  const updateMutation = useMutation({
-    mutationFn: (payload: { content: string }) =>
-      companySkillsApi.updateTestInput(companyId, skillId, selectedInput!.id, payload),
-    onSuccess: (updated) => {
+  // Autosave: an edited saved input persists on its own; an ad-hoc draft or an
+  // empty input is not saveable (matching the old disabled Save button).
+  const inputAutosave = useAutosave({
+    value: !adHocMode && selectedInput ? draft : "",
+    savedValue: !adHocMode && selectedInput ? selectedInput.content : "",
+    isEqual: (draftValue, savedValue) =>
+      adHocMode || !selectedInput || !draftValue || Object.is(draftValue, savedValue),
+    save: async (content) => {
+      if (!selectedInput || !adHocMode) return;
+      const updated = await companySkillsApi.updateTestInput(companyId, skillId, selectedInput.id, { content });
       setSavedInputDraft({
         inputId: updated.id,
         draft: updated.content,
@@ -1995,8 +1970,19 @@ function InputPane({
         queryKey: queryKeys.companySkills.testInputs(companyId, skillId),
       });
     },
-    onError: onError("Couldn't save input"),
   });
+
+  const selectSavedInput = useCallback((id: string) => {
+    if (!adHocMode && id === selectedInputId) return;
+    // Autosave: flush pending edits before the editor swaps inputs.
+    inputAutosave.flush();
+    onSelectInput(id);
+  }, [adHocMode, inputAutosave, onSelectInput, selectedInputId]);
+
+  const selectAdHocInput = useCallback(() => {
+    if (!adHocMode) inputAutosave.flush();
+    onSelectAdHoc();
+  }, [adHocMode, inputAutosave, onSelectAdHoc]);
   const deleteMutation = useMutation({
     mutationFn: (inputId: string) => companySkillsApi.deleteTestInput(companyId, skillId, inputId),
     onSuccess: (deleted) => {
@@ -2141,31 +2127,13 @@ function InputPane({
               <span className="truncate">
                 {selectedInput ? selectedInput.name : adHocMode ? "New input" : "No input selected"}
               </span>
-              {dirty ? <Badge variant="secondary">Unsaved</Badge> : null}
             </div>
-            {selectedInput && dirty ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={updateMutation.isPending}
-                  onClick={() => setSavedInputDraft({
-                    inputId: selectedInput.id,
-                    draft: selectedInput.content,
-                    baselineContent: selectedInput.content,
-                  })}
-                >
-                  Revert
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!canSaveSelectedInput || updateMutation.isPending}
-                  onClick={() => updateMutation.mutate({ content: draft })}
-                >
-                  {updateMutation.isPending ? "Saving..." : "Save changes"}
-                </Button>
-              </>
+            {selectedInput && !adHocMode ? (
+              <SaveStatus
+                status={inputAutosave.status}
+                errorMessage={inputAutosave.errorMessage}
+                onRetry={inputAutosave.retry}
+              />
             ) : null}
             <Button
               size="sm"
@@ -3307,7 +3275,7 @@ function RunDocumentsSection({ documents }: { documents: IssueDocument[] }) {
               </span>
               <span className="ml-auto shrink-0">{relativeTime(document.updatedAt)}</span>
             </div>
-            <MarkdownBody className="paperclip-edit-in-place-content text-sm leading-7" softBreaks={false}>
+            <MarkdownBody className="clayon-edit-in-place-content text-sm leading-7" softBreaks={false}>
               {document.body}
             </MarkdownBody>
           </article>

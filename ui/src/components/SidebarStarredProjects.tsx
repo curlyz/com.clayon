@@ -8,6 +8,7 @@ import { projectsApi } from "../api/projects";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { queryKeys } from "../lib/queryKeys";
 import { cn, projectRouteRef, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import {
   isStarred,
   starredResourceIds,
@@ -26,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { Project } from "@paperclipai/shared";
+import type { Project } from "@clayon/shared";
 
 // Sidebar star reveals with the row's own group, not the shared unnamed group.
 const STAR_ROW_REVEAL =
@@ -121,11 +122,14 @@ export function SidebarStarredProjects() {
               if (isMobile) setSidebarOpen(false);
             }}
             className={cn(
-              "flex min-w-0 flex-1 items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 pr-8 text-(length:--text-compact) font-medium transition-colors",
-              !rail && "pl-6",
+              // Leaf row, full-bleed (no mx, no pill); the active project is a
+              // flat bg-sidebar-accent band (operator directive 2026-10-11).
+              primarySidebarStyles.row,
+              "min-w-0 flex-1",
+              rail ? "justify-center px-0" : "pl-6 pr-8",
               isActive
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                ? primarySidebarStyles.rowActive
+                : primarySidebarStyles.rowMuted,
             )}
           >
             <ProjectTile color={project.color ?? null} icon={project.icon ?? null} size="xs" />

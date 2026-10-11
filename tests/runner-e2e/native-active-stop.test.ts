@@ -4,14 +4,14 @@ import { assertActiveStopRetirement, readActiveStopRemoteRetirement, type Active
 import { stopAtPendingPermission } from "./native-active-stop-flow.js";
 import { runnerMatrix, runnerSuites, suiteDefinitionHash } from "./catalog.js";
 import { selectRunnerExecutions, parseRunnerSelectors } from "./selectors.js";
-import { createCursorToolEvidence } from "../../packages/paperclip-runner/src/drivers/acpx/cursor-tool-evidence.js";
-import { createCopilotToolEvidence } from "../../packages/paperclip-runner/src/drivers/acpx/copilot-tool-evidence.js";
-import type { CanonicalProviderEvent } from "../../packages/paperclip-runner/src/provider-events.js";
+import { createCursorToolEvidence } from "../../packages/clayon-runner/src/drivers/acpx/cursor-tool-evidence.js";
+import { createCopilotToolEvidence } from "../../packages/clayon-runner/src/drivers/acpx/copilot-tool-evidence.js";
+import type { CanonicalProviderEvent } from "../../packages/clayon-runner/src/provider-events.js";
 
-import { CodexSessionState } from "../../packages/paperclip-runner/src/drivers/codex/codex-session-state.js";
-import { mapTerminalTurn } from "../../packages/paperclip-runner/src/drivers/codex/codex-session-terminal.js";
+import { CodexSessionState } from "../../packages/clayon-runner/src/drivers/codex/codex-session-state.js";
+import { mapTerminalTurn } from "../../packages/clayon-runner/src/drivers/codex/codex-session-terminal.js";
 
-const caller = readActiveStopCaller({ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "paperclip:local_implicit:local-board" } });
+const caller = readActiveStopCaller({ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "clayon:local_implicit:local-board" } });
 const cancellationRequestId = "11111111-2222-4333-8444-555555555555";
 type Row = Record<string, any>;
 function fixture(provider: ActiveStopProvider = "copilot") {
@@ -232,7 +232,7 @@ describe("definitely active native permission Stop", () => {
     expect(read().schema).toBe("paperclip.e2e.native-active-stop-settlement.v2");
   });
   it("admits only a fully attested remote bootstrap read completed before the pending operation", () => {
-    const f = fixture(), actionFile = `.paperclip-eval-action-${"a".repeat(36)}.txt`;
+    const f = fixture(), actionFile = `.clayon-eval-action-${"a".repeat(36)}.txt`;
     const readTargetSha256 = `sha256:${createHash("sha256").update(actionFile).digest("hex")}`;
     for (const row of f.events) { row.seq += 4; frame(row).sourceSeq += 4; frame(row).sourceEventId = `source:run:${row.seq}`; }
     f.events.unshift(f.notice(1, "tool", { toolCallId: "bootstrap", operation: "read", status: "pending", readTargetSha256 }),
@@ -315,10 +315,10 @@ describe("definitely active native permission Stop", () => {
     }
   });
   it.each([
-    [{ deploymentMode: "authenticated" }, { session: { userId: "local-board", id: "paperclip:local_implicit:local-board" } }],
-    [{ deploymentMode: "local_trusted" }, { session: { userId: null, id: "paperclip:local_implicit:local-board" } }],
-    [{ deploymentMode: "local_trusted" }, { session: { userId: "another", id: "paperclip:local_implicit:another" } }],
-    [{ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "paperclip:session:local-board" } }],
+    [{ deploymentMode: "authenticated" }, { session: { userId: "local-board", id: "clayon:local_implicit:local-board" } }],
+    [{ deploymentMode: "local_trusted" }, { session: { userId: null, id: "clayon:local_implicit:local-board" } }],
+    [{ deploymentMode: "local_trusted" }, { session: { userId: "another", id: "clayon:local_implicit:another" } }],
+    [{ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "clayon:session:local-board" } }],
   ])("rejects a non-fixture authentication context", (health, session) => expect(() => readActiveStopCaller(health, session)).toThrow());
   it("rejects a Stop dispatch not causally after the pending observation", () => {
     const { f, pending } = settled();

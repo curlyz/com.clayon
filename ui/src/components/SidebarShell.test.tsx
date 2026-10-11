@@ -104,7 +104,8 @@ describe("SidebarShell", () => {
     expect(separator?.className).toContain("group");
     expect(separator?.style.right).toBe("-4px");
     expect(separator?.style.width).toBe("8px");
-    expect(indicator?.className).toContain("w-0.5");
+    expect(indicator?.className).toContain("w-px");
+    expect(indicator?.className).toContain("bg-border");
     expect(indicator?.className).toContain("group-hover:bg-ring");
     expect(indicator?.className).toContain("group-focus-visible:bg-ring");
   });

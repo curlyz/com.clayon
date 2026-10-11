@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { onlyCopilotAttachedOperations, readCopilotSemanticCompletion } from "./copilot-semantic-evidence.js";
 import { readCopilotToolEvidence } from "./copilot-evidence.js";
-import { validatePrpStructuredRunResult } from "../../packages/paperclip-runner/src/protocol/replay-contract.js";
+import { validatePrpStructuredRunResult } from "../../packages/clayon-runner/src/protocol/replay-contract.js";
 import { runnerSuites, suiteDefinitionHash } from "./catalog.js";
 const hash = (v: string) => createHash("sha256").update(v).digest("hex");
 const canonical = (v: any): string => Array.isArray(v) ? `[${v.map(canonical).join(",")}]` : v !== null && typeof v === "object" ? `{${Object.keys(v).sort().map(k => `${JSON.stringify(k)}:${canonical(v[k])}`).join(",")}}` : JSON.stringify(v);
@@ -21,7 +21,7 @@ function notice(seq: number, toolCallId: string, status: string, fields: any = {
 }
 function fixture() {
   const rows = [notice(1, "command", "pending", { operation: "execute" }), notice(2, "finish-native", "pending"), row(3, "run.result.proposed", structuredClone(result), { itemId: "item-run" }),
-    row(4, "provider.notice.recorded", { schema: "paperclip.provider.notice.v1", category: "paperclip_semantic_tool_receipt_v2", scope: "turn", provenance: { method: "paperclip/semantic_tool_result", eventType: "semantic_result", sessionId: "native", turnId: "turn" }, details: Object.entries({ stage: "semantic_result", ...receipt }).map(([name, value]) => ({ name, value })) }),
+    row(4, "provider.notice.recorded", { schema: "paperclip.provider.notice.v1", category: "paperclip_semantic_tool_receipt_v2", scope: "turn", provenance: { method: "clayon/semantic_tool_result", eventType: "semantic_result", sessionId: "native", turnId: "turn" }, details: Object.entries({ stage: "semantic_result", ...receipt }).map(([name, value]) => ({ name, value })) }),
     notice(5, "finish-native", "completed", { semanticOperationId: receipt.operationId, semanticCallIdentitySha256: receipt.callIdentitySha256, semanticInputSha256: receipt.inputSha256, semanticNormalizedInputSha256: receipt.normalizedInputSha256, semanticResultSha256: receipt.resultSha256, semanticOutcome: receipt.outcome }),
     row(6, "turn.completed", {}), row(7, "run.result.accepted", { result: structuredClone(result) }, { sourceKind: "control_plane", sourceInstanceId: "source:control", sourceSeq: 1 })];
   const expected = { companyId: "company", runId: "run", turnId: "turn", nativeSessionId: "native", command: readCopilotToolEvidence(rows, "run")[0]!, summary: "EXACT-MARKER" };

@@ -12,7 +12,7 @@ import { getSecretProvider } from "../secrets/provider-registry.js";
 // https://learn.microsoft.com/en-us/microsoftteams/platform/bots/how-to/bots-filesv4
 // https://learn.microsoft.com/en-us/graph/api/driveitem-createuploadsession
 const SCHEMA = "paperclip.teams.file-consent.v1";
-const INSTALLED_HOOK = Symbol("paperclip.teams.file-consent.hook");
+const INSTALLED_HOOK = Symbol("clayon.teams.file-consent.hook");
 const MAX_RESPONSE_BYTES = 64 * 1024;
 const MAX_URL_LENGTH = 8192;
 const opaqueId = z
@@ -270,7 +270,7 @@ export function buildTeamsFileConsentCard(binding: TeamsFileConsentBinding) {
     contentType: "application/vnd.microsoft.teams.card.file.consent" as const,
     name: validated.filename,
     content: {
-      description: "Allow Paperclip to upload this file to your OneDrive.",
+      description: "Allow Clayon to upload this file to your OneDrive.",
       sizeInBytes: validated.byteSize,
       acceptContext: {
         schema: SCHEMA,
@@ -1131,7 +1131,7 @@ export function parseTeamsFileConsentCard(
       content: z
         .object({
           description: z.literal(
-            "Allow Paperclip to upload this file to your OneDrive.",
+            "Allow Clayon to upload this file to your OneDrive.",
           ),
           sizeInBytes: z
             .number()

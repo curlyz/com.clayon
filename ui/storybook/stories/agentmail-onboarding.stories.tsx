@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { EmailEndpointSetup } from "@/pages/apps/chat/EmailEndpointSetup";
-import { ChatSetupSidebar } from "@/components/chat/ChatSetupNavigation";
+import { SetupWizardSidebar } from "@/components/SetupWizard";
 import { ChatSetupSidebarProvider } from "@/context/ChatSetupSidebarContext";
 import { useCompany } from "@/context/CompanyContext";
 import { useLocation, useNavigate } from "@/lib/router";
-import { storybookAgents } from "../fixtures/paperclipData";
+import { storybookAgents } from "../fixtures/clayonData";
 
 const COMPANY = "company-storybook";
 const CONNECTION = "agentmail-storybook-account";
@@ -32,7 +32,7 @@ function AgentMailJourney({ savedConnection = true }: { savedConnection?: boolea
   if (!pathname.endsWith("/apps/chat/connect")) return <div className="p-6 text-sm">Setup complete.</div>;
   return <ChatSetupSidebarProvider>
     <div className="min-h-screen bg-background text-foreground md:flex">
-      <div className="hidden w-60 shrink-0 md:block"><ChatSetupSidebar /></div>
+      <div className="hidden w-60 shrink-0 md:block"><SetupWizardSidebar /></div>
       <main className="min-w-0 flex-1 py-6"><EmailEndpointSetup /></main>
     </div>
   </ChatSetupSidebarProvider>;
@@ -46,8 +46,8 @@ const meta = {
   args: { savedConnection: true },
   beforeEach(context) {
     const scenario = (context.parameters.agentmailScenario ?? {}) as Scenario;
-    sessionStorage.removeItem(`paperclip.agentmail-setup:${COMPANY}:${CONNECTION}:choose`);
-    sessionStorage.removeItem(`paperclip.agentmail-setup:${COMPANY}:new:choose`);
+    sessionStorage.removeItem(`clayon.agentmail-setup:${COMPANY}:${CONNECTION}:choose`);
+    sessionStorage.removeItem(`clayon.agentmail-setup:${COMPANY}:new:choose`);
     const fixtureAgents = agents.map(agent => ({ ...agent, permissions: scenario.missingBoundary ? { trustPreset: "low_trust_review" } : {} }));
     const original = window.fetch;
     window.fetch = async (input, init) => {
@@ -82,8 +82,8 @@ const meta = {
         const restricted = scenario.scopedKey && url.pathname.includes(CONNECTION);
         return Response.json({
           scope: { scope_type: restricted ? "inbox" : "organization" },
-          inboxes: restricted ? [{ inbox_id: "support@agentmail.to" }] : [{ inbox_id: "support@agentmail.to" }, { inbox_id: "help@paperclip.example" }],
-          domains: restricted || scenario.noCustomDomain ? [] : [{ domain_id: "custom-domain", domain: "paperclip.example", status: "VERIFIED" }],
+          inboxes: restricted ? [{ inbox_id: "support@agentmail.to" }] : [{ inbox_id: "support@agentmail.to" }, { inbox_id: "help@clayon.example" }],
+          domains: restricted || scenario.noCustomDomain ? [] : [{ domain_id: "custom-domain", domain: "clayon.example", status: "VERIFIED" }],
         });
       }
       if ([CONNECTION, OTHER_ACCOUNT].some(id => url.pathname.endsWith(`/email/connections/${id}/check-address`))) {
@@ -95,7 +95,7 @@ const meta = {
         if (method === "GET") return Response.json([]);
         if (body.username === "taken") return Response.json({ error: ADDRESS_TAKEN, code: "agentmail_address_taken",
           details: { field: "username", providerStatus: 403, operation: "create_inbox" } }, { status: 409 });
-        if (scenario.denySetup) return Response.json({ error: "AgentMail did not allow Paperclip to create the email address. Check your API key permissions and AgentMail account limits, then try again." }, { status: 422 });
+        if (scenario.denySetup) return Response.json({ error: "AgentMail did not allow Clayon to create the email address. Check your API key permissions and AgentMail account limits, then try again." }, { status: 422 });
         return Response.json({ id: body.idempotencyKey, connectionId: "storybook-inbox-connection", companyId: COMPANY,
           assignedAgentId: body.assignedAgentId, address: body.inboxId ?? `${body.username}@${body.domain}`, status: "active", receiveMode: body.receiveMode }, { status: 201 });
       }
@@ -140,7 +140,7 @@ export const InitialAddressTaken: Story = { name: "Initial name taken · Click a
   await chooseAddress(context);
   const canvas = within(context.canvasElement);
   await expect(await canvas.findByRole("alert")).toHaveTextContent(ADDRESS_TAKEN);
-  await expect(canvas.getByRole("button", { name: "ralph-agent@paperclip.example" })).toBeVisible();
+  await expect(canvas.getByRole("button", { name: "ralph-agent@clayon.example" })).toBeVisible();
 } };
 export const SharedDomain: Story = { name: "No custom domain · Shared AgentMail domain", parameters: { agentmailScenario: { noCustomDomain: true } }, play: chooseAddress };
 export const LookupUnavailable: Story = { name: "Address lookup temporarily unavailable", parameters: { agentmailScenario: { checkFailed: true } }, play: chooseAddress };
@@ -163,7 +163,7 @@ export const SwitchScopedAccount: Story = { name: "Inbox-only key · Switch to a
     const canvas = within(context.canvasElement);
     await userEvent.selectOptions(await canvas.findByLabelText("API key"), OTHER_ACCOUNT);
     await userEvent.click(canvas.getByRole("button", { name: "Continue" }));
-    await waitFor(() => expect(canvas.getByLabelText("Email domain")).toHaveValue("paperclip.example"));
+    await waitFor(() => expect(canvas.getByLabelText("Email domain")).toHaveValue("clayon.example"));
     await userEvent.clear(canvas.getByLabelText("Ralph’s email address"));
     await userEvent.type(canvas.getByLabelText("Ralph’s email address"), "ralph-mail");
     await expect(canvas.getByLabelText("Ralph’s email address")).toHaveValue("ralph-mail");
@@ -200,13 +200,13 @@ export const Mobile: Story = { name: "Mobile · Pick their email", globals: { vi
 export const TestedWalkthrough: Story = { name: "Verification · Correct a taken address and finish", play: async context => {
   await takenAddress(context);
   const canvas = within(context.canvasElement);
-  await userEvent.click(canvas.getByRole("button", { name: "taken-agent@paperclip.example" }));
+  await userEvent.click(canvas.getByRole("button", { name: "taken-agent@clayon.example" }));
   await expect(canvas.getByLabelText("Ralph’s email address")).toHaveValue("taken-agent");
   await expect(canvas.queryByRole("alert")).not.toBeInTheDocument();
   await waitFor(() => expect(canvas.getByRole("button", { name: "Create email address" })).toBeEnabled());
   await userEvent.click(canvas.getByRole("button", { name: "Create email address" }));
   await expect(await canvas.findByRole("heading", { name: "Your agent’s email is ready" })).toBeVisible();
-  await expect(canvas.getByText("taken-agent@paperclip.example", { exact: true })).toBeVisible();
+  await expect(canvas.getByText("taken-agent@clayon.example", { exact: true })).toBeVisible();
   await userEvent.click(canvas.getByRole("button", { name: "Done" }));
   await expect(await canvas.findByText("Setup complete.")).toBeVisible();
 } };

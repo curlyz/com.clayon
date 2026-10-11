@@ -3,15 +3,18 @@ import type { IncomingHttpHeaders } from "node:http";
 import { betterAuth, type Auth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNodeHandler } from "better-auth/node";
-import type { Db } from "@paperclipai/db";
+import { passkey } from "@better-auth/passkey";
+import type { Db } from "@clayon/db";
 import {
   authAccounts,
+  authPasskeys,
   authSessions,
   authUsers,
   authVerifications,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type { Config } from "../config.js";
-import { resolvePaperclipInstanceId } from "../home-paths.js";
+import { readClayonEnv } from "../env-compat.js";
+import { resolveClayonInstanceId } from "../home-paths.js";
 import {
   workspaceLoginHandoffPlugin,
   type WorkspaceHandoffExpectedIdentity,
@@ -49,12 +52,12 @@ type BetterAuthInstance = BetterAuthHandlerTarget & BetterAuthSessionResolver;
 const AUTH_COOKIE_PREFIX_FALLBACK = "default";
 const AUTH_COOKIE_PREFIX_INVALID_SEGMENTS_RE = /[^a-zA-Z0-9_-]+/g;
 
-export function deriveAuthCookiePrefix(instanceId = resolvePaperclipInstanceId()): string {
+export function deriveAuthCookiePrefix(instanceId = resolveClayonInstanceId()): string {
   const scopedInstanceId = instanceId
     .trim()
     .replace(AUTH_COOKIE_PREFIX_INVALID_SEGMENTS_RE, "-")
     .replace(/^-+|-+$/g, "") || AUTH_COOKIE_PREFIX_FALLBACK;
-  return `paperclip-${scopedInstanceId}`;
+  return `clayon-${scopedInstanceId}`;
 }
 
 export function buildBetterAuthAdvancedOptions(input: {
@@ -136,10 +139,52 @@ export function resolveGoogleSocialProvider(input: {
 /** Social provider ids /api/health advertises — provider names only, never a secret. */
 export function enabledAuthSocialProviders(env: NodeJS.ProcessEnv = process.env): string[] {
   return resolveGoogleSocialProvider({
-    clientId: env.PAPERCLIP_AUTH_GOOGLE_CLIENT_ID,
-    clientSecret: env.PAPERCLIP_AUTH_GOOGLE_CLIENT_SECRET,
+    clientId: readClayonEnv("CLAYON_AUTH_GOOGLE_CLIENT_ID", env),
+    clientSecret: readClayonEnv("CLAYON_AUTH_GOOGLE_CLIENT_SECRET", env),
     disableSignUp: false,
   }) ? ["google"] : [];
+}
+
+export interface AuthPasskeyRelyingParty {
+  rpName: string;
+  rpID: string;
+  origin: string;
+}
+
+/**
+ * WebAuthn relying-party identity, derived from the instance's public base
+ * URL (rpID = hostname, origin = scheme + host). Passkeys are bound to the
+ * rpID, so the plugin is only registered when a public URL is resolvable —
+ * a loopback-only instance has no stable domain to bind credentials to.
+ */
+export function resolveAuthPasskeyRelyingParty(input: {
+  publicBaseUrl: string | undefined;
+}): AuthPasskeyRelyingParty | null {
+  const candidate = input.publicBaseUrl?.trim();
+  if (!candidate) return null;
+  try {
+    const parsed = new URL(candidate);
+    if (!parsed.hostname) return null;
+    return { rpName: "Clayon", rpID: parsed.hostname, origin: parsed.origin };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether /api/health should advertise passkey sign-in. Env-only mirror of
+ * the public-URL resolution createBetterAuthInstance uses (CLAYON_PUBLIC_URL
+ * first, then the auth base URL family), so the sign-in page's gating agrees
+ * with the plugin registration on env-configured deployments.
+ */
+export function passkeySignEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  const publicBaseUrl =
+    readClayonEnv("CLAYON_PUBLIC_URL", env)?.trim() ||
+    readClayonEnv("CLAYON_AUTH_PUBLIC_BASE_URL", env)?.trim() ||
+    env.BETTER_AUTH_URL?.trim() ||
+    readClayonEnv("CLAYON_MANAGED_RUNTIME_PUBLIC_URL", env)?.trim() ||
+    undefined;
+  return resolveAuthPasskeyRelyingParty({ publicBaseUrl }) !== null;
 }
 
 export function shouldDisableSecureAuthCookies(input: {
@@ -287,13 +332,13 @@ export function resolveWorkspaceHandoffIdentity(
   const key = resolveWorkspaceHandoffLocalKey(env);
   if (!key) return null;
   const configuredOrigin =
-    normalizeWorkspaceHandoffOrigin(env.PAPERCLIP_PUBLIC_URL)
+    normalizeWorkspaceHandoffOrigin(env.CLAYON_PUBLIC_URL)
     ?? (config.authBaseUrlMode === "explicit"
       ? normalizeWorkspaceHandoffOrigin(config.authPublicBaseUrl)
       : null);
   return {
     key,
-    instanceId: resolvePaperclipInstanceId(),
+    instanceId: resolveClayonInstanceId(),
     executionWorkspaceId: resolveWorkspaceHandoffLocalWorkspaceId(env),
     companyId: resolveWorkspaceHandoffLocalCompanyId(env),
     origin: configuredOrigin,
@@ -302,13 +347,13 @@ export function resolveWorkspaceHandoffIdentity(
 
 export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins: string[]): BetterAuthInstance {
   const baseUrl = config.authBaseUrlMode === "explicit" ? config.authPublicBaseUrl : undefined;
-  const publicUrl = process.env.PAPERCLIP_PUBLIC_URL?.trim() || baseUrl;
-  const managedRuntimePublicUrl = process.env.PAPERCLIP_MANAGED_RUNTIME_PUBLIC_URL?.trim() || undefined;
-  const secret = process.env.BETTER_AUTH_SECRET ?? process.env.PAPERCLIP_AGENT_JWT_SECRET;
+  const publicUrl = process.env.CLAYON_PUBLIC_URL?.trim() || baseUrl;
+  const managedRuntimePublicUrl = process.env.CLAYON_MANAGED_RUNTIME_PUBLIC_URL?.trim() || undefined;
+  const secret = process.env.BETTER_AUTH_SECRET ?? process.env.CLAYON_AGENT_JWT_SECRET;
   if (!secret) {
     throw new Error(
-      "BETTER_AUTH_SECRET (or PAPERCLIP_AGENT_JWT_SECRET) must be set. " +
-      "For local development, set BETTER_AUTH_SECRET=paperclip-dev-secret in your .env file.",
+      "BETTER_AUTH_SECRET (or CLAYON_AGENT_JWT_SECRET) must be set. " +
+      "For local development, set BETTER_AUTH_SECRET=clayon-dev-secret in your .env file.",
     );
   }
   const disableSecureCookies = shouldDisableSecureAuthCookies({
@@ -319,10 +364,31 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     publicUrl,
   });
   const googleSocialProvider = resolveGoogleSocialProvider({
-    clientId: process.env.PAPERCLIP_AUTH_GOOGLE_CLIENT_ID,
-    clientSecret: process.env.PAPERCLIP_AUTH_GOOGLE_CLIENT_SECRET,
+    clientId: process.env.CLAYON_AUTH_GOOGLE_CLIENT_ID,
+    clientSecret: process.env.CLAYON_AUTH_GOOGLE_CLIENT_SECRET,
     disableSignUp: config.authDisableSignUp,
   });
+  const passkeyRelyingParty = resolveAuthPasskeyRelyingParty({ publicBaseUrl: publicUrl || baseUrl });
+  const authPlugins = [
+    ...(passkeyRelyingParty ? [passkey(passkeyRelyingParty)] : []),
+    ...(resolveWorkspaceHandoffIdentity(config)
+      ? [
+          workspaceLoginHandoffPlugin({
+            db,
+            // Re-resolved per exchange so a hot restart cannot keep validating
+            // against an origin the control plane has since republished.
+            resolveExpectedIdentity: () =>
+              resolveWorkspaceHandoffIdentity(config) ?? {
+                key: null,
+                instanceId: null,
+                executionWorkspaceId: null,
+                companyId: null,
+                origin: null,
+              },
+          }),
+        ]
+      : []),
+  ];
 
   const authConfig = {
     baseURL: baseUrl,
@@ -335,6 +401,7 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
         session: authSessions,
         account: authAccounts,
         verification: authVerifications,
+        passkey: authPasskeys,
       },
     }),
     emailAndPassword: {
@@ -348,31 +415,15 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     rateLimit: buildBetterAuthRateLimitOptions({
       deploymentMode: config.deploymentMode,
       deploymentExposure: config.deploymentExposure,
-      override: process.env.PAPERCLIP_AUTH_RATE_LIMIT_ENABLED,
+      override: process.env.CLAYON_AUTH_RATE_LIMIT_ENABLED,
     }),
     advanced: buildBetterAuthAdvancedOptions({ disableSecureCookies }),
-    // Registered only for a managed workspace instance: the plugin is what makes
+    // Passkey sign-in is registered only when the instance has a public base
+    // URL to derive the WebAuthn relying party from; the workspace handoff
+    // plugin only for a managed workspace instance (the plugin is what makes
     // `Open workspace` password-independent, and a control-plane instance that
-    // was never handed a workspace key must not expose the exchange at all.
-    ...(resolveWorkspaceHandoffIdentity(config)
-      ? {
-          plugins: [
-            workspaceLoginHandoffPlugin({
-              db,
-              // Re-resolved per exchange so a hot restart cannot keep validating
-              // against an origin the control plane has since republished.
-              resolveExpectedIdentity: () =>
-                resolveWorkspaceHandoffIdentity(config) ?? {
-                  key: null,
-                  instanceId: null,
-                  executionWorkspaceId: null,
-                  companyId: null,
-                  origin: null,
-                },
-            }),
-          ],
-        }
-      : {}),
+    // was never handed a workspace key must not expose the exchange at all).
+    ...(authPlugins.length > 0 ? { plugins: authPlugins } : {}),
   };
 
   if (!baseUrl) {

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>clayon — imhigh theme design draft</title>
+    <style>
+      @font-face { font-family: "MonoLisa Nerd Font"; src: local("MonoLisa Nerd Font"), url("../fonts/MonoLisaNerdFont-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "MonoLisa Nerd Font"; src: local("MonoLisa Nerd Font Bold"), url("../fonts/MonoLisaNerdFont-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      /* IM HIGH tokens: warm paper, charcoal ink, soft radii, one pink heart accent (from com.imhigh theme.css). */
+      :root {
+        --background: #faf9f6; --foreground: #26241f; --card: #f1efe9; --muted: #eceae2; --muted-foreground: #6b675e;
+        --border: rgba(38, 36, 31, 0.1); --primary: #141826; --heart: #e8668f; --heart-ink: #b02a5c; --ok: #3f8f64; --warn: #b07a1a; --bad: #c0455a;
+        --radius-control: 0.375rem; --radius-surface: 0.5rem; --radius-panel: 0.75rem;
+      }
+      * { box-sizing: border-box; }
+      html { font-family: "MonoLisa Nerd Font", "MonoLisa", monospace; font-size: 14px; line-height: 1.6; color: var(--foreground); background: var(--background); scroll-behavior: smooth; }
+      body { margin: 0; padding-bottom: 7rem; }
+      main { max-width: 960px; margin: 0 auto; border-inline: 1px solid var(--border); }
+      a { color: var(--heart-ink); text-decoration: none; }
+      h1, h2, p { margin: 0; }
+      .band { padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+      .band.head { background: var(--card); border-top: 0; display: flex; justify-content: space-between; }
+      .band.head h2 { font-size: 0.85rem; color: var(--muted-foreground); }
+      .dim { color: var(--muted-foreground); } .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+      .hero { position: relative; min-height: 24rem; display: flex; align-items: flex-end; background: var(--card) url("assets/imhigh-hero.webp") center / cover no-repeat; image-rendering: pixelated; }
+      .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--background), transparent 55%); }
+      .hero .copy { position: relative; z-index: 1; padding: 1.25rem; }
+      .hero h1 { font-size: 1.6rem; }
+      .cast { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border); background: #26241f; }
+      .cell { position: relative; aspect-ratio: 16 / 9; border: 0; background: transparent url("assets/imhigh-cast.webp") no-repeat; background-size: 400% 200%; image-rendering: pixelated; cursor: pointer; padding: 0; transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1); }
+      .cell:hover { transform: translateY(-5px) scale(1.06); }
+      .cell.pop { transform: translateY(-12px) scale(1.12); }
+      .cell .say { position: absolute; left: 50%; top: 0.25rem; transform: translateX(-50%); white-space: nowrap; background: var(--background); color: var(--foreground); border-radius: var(--radius-panel); padding: 0 0.6rem; font-size: 0.75rem; opacity: 0; pointer-events: none; }
+      .cell.pop .say { opacity: 1; }
+      .row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 1.25rem; border-top: 1px solid var(--border); }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 0.5rem 1.25rem; border-top: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted-foreground); font-weight: 400; background: var(--card); border-top: 0; }
+      .bar { height: 0.25rem; background: var(--muted); border-radius: 999px; } .bar i { display: block; height: 100%; background: var(--heart); border-radius: 999px; }
+      .tabs { display: flex; gap: 1.25rem; padding: 0.5rem 1.25rem; border-top: 1px solid var(--border); position: sticky; top: 0; background: var(--background); z-index: 5; overflow-x: auto; }
+      .tabs a { color: var(--muted-foreground); white-space: nowrap; } .tabs a:hover { color: var(--heart-ink); }
+      nav.dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0.75rem; z-index: 10; display: flex; gap: 0.25rem; padding: 0.25rem; background: var(--card); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 6px 24px rgba(38, 36, 31, 0.12); }
+      nav.dock a { width: 2.75rem; height: 2.75rem; border-radius: 50%; display: grid; place-items: center; color: var(--muted-foreground); font-size: 0.7rem; }
+      nav.dock a.on { color: var(--foreground); background: var(--muted); }
+      nav.dock a.act { background: var(--heart); color: var(--foreground); font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero"><div class="copy"><h1>clayon, unfiltered</h1><p class="dim">a calm room where your AI crew hangs out · 8 friends here</p></div></section>
+
+      <nav class="tabs"><a href="#friends">friends</a><a href="#pings">pings</a><a href="#love">love</a><a href="#diary">diary</a><a href="#rive">rive contract</a><a href="#decisions">decisions</a></nav>
+
+      <section id="friends">
+        <div class="band head"><h2>friends · say hi</h2><span class="dim">hover to wake, click to talk</span></div>
+        <div class="cast" id="cast"></div>
+      </section>
+
+      <section id="pings">
+        <div class="band head"><h2>pings</h2><a href="#pings">see all</a></div>
+        <div class="row"><span>untangle the billing knot</span><span class="ok">humming along</span></div>
+        <div class="row"><span>open the Google door</span><span class="warn">needs your nod</span></div>
+        <div class="row"><span>nightly tidy</span><span class="dim">02:00</span></div>
+      </section>
+
+      <section id="love">
+        <div class="band head"><h2>high love</h2></div>
+        <div class="row"><span>monthly budget</span><span>$400</span></div>
+        <div class="row"><span>spent</span><span>$244</span></div>
+        <div class="band"><div class="bar"><i style="width: 61%"></i></div></div>
+      </section>
+
+      <section id="diary">
+        <div class="band head"><h2>diary</h2><a href="#diary">see all</a></div>
+        <div class="row"><span class="dim">11:02</span><span>Bub finished step 4 of the billing knot</span></div>
+        <div class="row"><span class="dim">10:31</span><span class="bad">Mo drifted off mid-ping</span></div>
+      </section>
+
+      <section id="rive">
+        <div class="band head"><h2>rive contract (every character)</h2></div>
+        <table>
+          <thead><tr><th>part</th><th>value</th></tr></thead>
+          <tbody>
+            <tr><td>file</td><td>one <code>.riv</code> per character, named after its callsign</td></tr>
+            <tr><td>artboard</td><td>one square artboard, transparent background</td></tr>
+            <tr><td>state machine</td><td><code>main</code></td></tr>
+            <tr><td>inputs</td><td><code>hover</code> boolean · <code>press</code> trigger · <code>mood</code> number 0 idle, 1 working, 2 stalled, 3 happy</td></tr>
+            <tr><td>sound</td><td>soft low tones only, matching the imhigh sound rules; muted by default</td></tr>
+            <tr><td>runtime</td><td><code>@rive-app/react-canvas</code>, one canvas per visible character, paused when off screen</td></tr>
+          </tbody>
+        </table>
+        <div class="band"><p class="dim">The row above is a CSS and script stand-in. Real animation comes from files authored in the Rive editor.</p></div>
+      </section>
+
+      <section id="decisions">
+        <div class="band head"><h2>decisions for you</h2></div>
+        <table>
+          <thead><tr><th>#</th><th>decide</th><th>my pick</th><th>if yes</th><th>if no</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>light theme first, dark as the second theme</td><td>yes</td><td>matches imhigh's paper and charcoal pair</td><td>dark only</td></tr>
+            <tr><td>2</td><td>pink only for the primary action and love</td><td>yes</td><td>one colour per meaning</td><td>pastel per character</td></tr>
+            <tr><td>3</td><td>who animates the .riv files</td><td>you or a Rive artist</td><td>I ship the contract and loader</td><td>I use stand-ins only</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+    <nav class="dock"><a class="on" href="#friends">home</a><a href="#pings">pings</a><a class="act" href="#pings">new</a><a href="#love">love</a><a href="#diary">diary</a></nav>
+    <script>
+      const names = ["Bub", "Mo", "Fizz", "Nim", "Puff", "Tilly", "Oz", "Wren"];
+      const lines = ["on it", "zzz", "popped!", "hi hi", "cozy", "any news?", "hm", "done"];
+      const cast = document.getElementById("cast");
+      names.forEach((name, i) => {
+        const cell = document.createElement("button");
+        cell.className = "cell";
+        cell.style.backgroundPosition = ((i % 4) * 100) / 3 + "% " + Math.floor(i / 4) * 100 + "%";
+        cell.setAttribute("aria-label", name);
+        const say = document.createElement("span");
+        say.className = "say";
+        say.textContent = name + ": " + lines[i];
+        cell.appendChild(say);
+        cell.addEventListener("click", () => {
+          cell.classList.add("pop");
+          setTimeout(() => cell.classList.remove("pop"), 900);
+        });
+        cast.appendChild(cell);
+      });
+    </script>
+  </body>
+</html>

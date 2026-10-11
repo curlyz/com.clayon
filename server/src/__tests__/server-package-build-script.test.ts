@@ -9,7 +9,7 @@ const packageJsonPath = fileURLToPath(
   new URL("../../package.json", import.meta.url),
 );
 const runnerShimPath = fileURLToPath(
-  new URL("../vendor/paperclip-runner/index.ts", import.meta.url),
+  new URL("../vendor/clayon-runner/index.ts", import.meta.url),
 );
 const evidenceClassifierPath = fileURLToPath(
   new URL("../services/native-runtime/evidence-classifier.ts", import.meta.url),
@@ -52,30 +52,30 @@ describe("server package build script", () => {
     };
 
     expect(
-      packageJson.dependencies?.["@paperclipai/paperclip-runner"],
+      packageJson.dependencies?.["@clayon/clayon-runner"],
     ).toBeUndefined();
-    expect(packageJson.devDependencies?.["@paperclipai/paperclip-runner"]).toBe(
+    expect(packageJson.devDependencies?.["@clayon/clayon-runner"]).toBe(
       "workspace:*",
     );
     expect(packageJson.scripts?.["prepare:runner-vendor"]).toBe(
-      "pnpm --filter @paperclipai/paperclip-runner build",
+      "pnpm --filter @clayon/clayon-runner build",
     );
     expect(packageJson.scripts?.build).toContain(
-      "cp -Rf ../packages/paperclip-runner/dist/. dist/vendor/paperclip-runner/",
+      "cp -Rf ../packages/clayon-runner/dist/. dist/vendor/clayon-runner/",
     );
   });
 
   it("replaces an existing read-only image manifest with the build's copy step", () => {
     const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     const step = packageJson.scripts.build.split(" && ").find((command: string) =>
-      command.includes("../packages/paperclip-runner/dist/."));
+      command.includes("../packages/clayon-runner/dist/."));
     expect(step).toBeDefined();
     const [command, ...args] = step.split(" ");
     const root = mkdtempSync(path.join(tmpdir(), "runner-vendor-copy-"));
     try {
       const relative = "remote-provider-packs/linux-x64/provider-pack.json";
-      const source = path.join(root, "packages/paperclip-runner/dist", relative);
-      const destination = path.join(root, "server/dist/vendor/paperclip-runner", relative);
+      const source = path.join(root, "packages/clayon-runner/dist", relative);
+      const destination = path.join(root, "server/dist/vendor/clayon-runner", relative);
       mkdirSync(path.dirname(source), { recursive: true });
       mkdirSync(path.dirname(destination), { recursive: true });
       writeFileSync(source, "qualified image identity", { mode: 0o444 });
@@ -92,7 +92,7 @@ describe("server package build script", () => {
       scripts?: Record<string, string>;
     };
 
-    // See scripts/verify-runner-vendor-dependencies.mjs: packages/paperclip-runner
+    // See scripts/verify-runner-vendor-dependencies.mjs: packages/clayon-runner
     // is vendored with a raw copy of its compiled dist/, so every runtime
     // dependency it imports must also be a direct dependency of server. This
     // check derives that requirement from an esbuild scan of the vendored
@@ -106,7 +106,7 @@ describe("server package build script", () => {
   it("ships the pinned OpenCode dependency resolved by the vendored Runner", () => {
     const server = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     const runner = JSON.parse(readFileSync(new URL(
-      "../../../packages/paperclip-runner/package.json", import.meta.url,
+      "../../../packages/clayon-runner/package.json", import.meta.url,
     ), "utf8"));
     // createRequire resolution is dynamic and is not covered by the import scan.
     expect(server.dependencies["opencode-ai"]).toBe("1.18.34");
@@ -117,10 +117,10 @@ describe("server package build script", () => {
     const shim = readFileSync(runnerShimPath, "utf8");
 
     expect(shim).toContain(
-      '"../../../../packages/paperclip-runner/src/index.ts"',
+      '"../../../../packages/clayon-runner/src/index.ts"',
     );
     expect(shim).not.toContain(
-      'export * from "@paperclipai/paperclip-runner"',
+      'export * from "@clayon/clayon-runner"',
     );
   });
 
@@ -131,8 +131,8 @@ describe("server package build script", () => {
     ]) {
       const consumer = readFileSync(consumerPath, "utf8");
 
-      expect(consumer).toContain('vendor/paperclip-runner/index.js"');
-      expect(consumer).not.toContain('from "@paperclipai/paperclip-runner"');
+      expect(consumer).toContain('vendor/clayon-runner/index.js"');
+      expect(consumer).not.toContain('from "@clayon/clayon-runner"');
     }
   });
 });

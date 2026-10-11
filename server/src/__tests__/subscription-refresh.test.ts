@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import { refreshCompanySubscriptions, refreshSubscriptionConnection } from "../services/subscription-refresh.js";
 import type { SubscriptionConnection } from "../services/subscriptions.js";
 

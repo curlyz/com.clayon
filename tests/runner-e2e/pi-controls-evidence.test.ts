@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
-import { CodexHarnessSession } from "../../packages/paperclip-runner/src/drivers/codex/codex-harness-session.js";
+import { CodexHarnessSession } from "../../packages/clayon-runner/src/drivers/codex/codex-harness-session.js";
 import { assertSamePiPending, observePiControlPending, readPiStopSettlement, readPiSteeringAcknowledgement, readPiSteeringSettlement } from "./pi-controls-evidence.js";
 import { stopPiAtPendingPermission } from "./pi-controls-flow.js";
 import { piControlFixture, piControlCaller, piCancellationId } from "./pi-controls-test-fixture.js";
@@ -181,7 +181,7 @@ describe("Pi controls catalog admission", () => {
     expect(cells.map(c => `${c.environment.id}/${c.task.id}`).sort()).toEqual(["daytona/pending-permission-stop", "daytona/same-turn-steering", "local/pending-permission-stop", "local/same-turn-steering"]);
     expect(selectRunnerExecutions(parseRunnerSelectors(["--all"])).some(c => c.suite.id === "pi-controls")).toBe(false);
     expect(validateRunnerCatalog()).toHaveLength(722);
-    for (const cell of cells) expect(buildRunnerE2EProcessEnvironment({}, [cell]).PAPERCLIP_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
+    for (const cell of cells) expect(buildRunnerE2EProcessEnvironment({}, [cell]).CLAYON_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
     expect(() => assertRemoteNativeEvidencePrerequisites(cells, {})).toThrow();
   });
   it("pins the Pi 1 profile and versioned coverage while retaining active Stop identity", () => {

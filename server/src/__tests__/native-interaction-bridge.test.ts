@@ -15,7 +15,7 @@ import {
   statusDecisionEffects,
   statusDecisions,
   workAssessments,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { and, eq } from "drizzle-orm";
 import { startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import {
@@ -23,7 +23,7 @@ import {
   materializeNativeInteractionResponses,
   NativeInteractionBridgeError,
 } from "../services/native-runtime/native-interaction-bridge.js";
-import { PaperclipControlPlanePort } from "../services/native-runtime/paperclip-control-plane-port.js";
+import { ClayonControlPlanePort } from "../services/native-runtime/clayon-control-plane-port.js";
 import { finalizeNativeRun } from "../services/native-runtime/native-run-finalizer.js";
 
 describe("P6-19 native interaction bridge", () => {
@@ -42,7 +42,7 @@ describe("P6-19 native interaction bridge", () => {
   const itemVerdictsId = "78000000-0000-4000-8000-000000000014";
 
   beforeAll(async () => {
-    temporary = await startEmbeddedPostgresTestDatabase("paperclip-native-interaction-");
+    temporary = await startEmbeddedPostgresTestDatabase("clayon-native-interaction-");
     db = createDb(temporary.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Native interaction", issuePrefix: "NIB" });
     await db.insert(agents).values({
@@ -413,7 +413,7 @@ describe("P6-19 native interaction bridge", () => {
         completionContractSha256: contractSha,
         contextSnapshot: { issueId: scenario.issueId },
       });
-      const port = new PaperclipControlPlanePort(db, {
+      const port = new ClayonControlPlanePort(db, {
         companyId,
         issueId: scenario.issueId,
         runId: scenario.runId,
@@ -579,7 +579,7 @@ describe("P6-19 native interaction bridge", () => {
           issueId: interaction.issueId ?? localIssueId,
         })));
       }
-      const port = new PaperclipControlPlanePort(db, {
+      const port = new ClayonControlPlanePort(db, {
         companyId,
         issueId: localIssueId,
         runId: localRunId,

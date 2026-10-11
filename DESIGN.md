@@ -1,231 +1,162 @@
-# Paperclip Design Principles
+# Design: pixel lab
 
-**Status:** v0.3 — anchor document for design-language simplification. Governs structure, not brand. Brand values (color, type, iconography) are intentionally unspecified: they are being redesigned and will land as token values only. Nothing in `ui/` may hardcode them. Spacing/radius scales are likewise TBD pending the token audit (see Principle 3).
+**Status:** v1.0 draft, 2026-10-11. This replaces v0.3, which was the zero-visual-change simplification brief. It is a deliberate break: the product gets a new identity. The product name is still open; the working label is "the lab".
 
-Changes from v0.2: token layer location corrected to the repo's real source (`ui/src/index.css`); existing token tiers inventoried; snapshot-coverage scope bounded for Run 1; the issue→task copy rename moved out of the zero-visual-change run.
+Product behaviour rules (form footers, mobile navigation, task chat, feedback, motion tokens) moved untouched to [`doc/design/INTERACTION-RULES.md`](doc/design/INTERACTION-RULES.md). They stay in force. This file owns how the product looks and feels.
 
 ## What this document is for
 
-Agents and humans modifying `ui/` treat this file as the source of truth for design decisions. Storybook is the verification surface — it documents the system; it does not define it. If a change conflicts with this document, change this document first (with review) or change the code.
+Agents and humans changing `ui/` treat this file as the source of truth for visual design. If a change conflicts with it, change this file first or change the code. Storybook documents the system; it does not define it.
+
+## Locked decisions (operator, 2026-10-11)
+
+| # | decision | consequence |
+| :-- | :-- | :-- |
+| 1 | **Pixel art.** | Every character, scene and emblem is crisp pixel art. No smoothed or photographic imagery in chrome. |
+| 2 | **Rive, with pixel characters.** | Every character is a `.riv` file that reacts to the user. Pixel look, live behaviour. |
+| 3 | **Inspired by Project Hail Mary.** | A cramped, practical, warm science ship. Original designs only; nothing from the film is reproduced. |
+| 4 | **No pills, no rounded boxes.** | Every corner is square. Radius tokens are `0`. |
 
 ## Product stance
 
-Paperclip is an operational control plane: org charts, tasks, heartbeat runs, budgets, approvals, audit logs. The user is an operator scanning state and making decisions. Every screen should answer, in order: *what is happening, does it need me, what do I do about it.* Density in service of scanning beats whitespace in service of aesthetics — but density comes from information, never from chrome.
+Clayon is an operational control plane: org charts, tasks, heartbeat runs, budgets, approvals, audit logs. The operator scans state and decides. Every screen answers, in order: *what is happening, does it need me, what do I do about it.* Density comes from information, never from chrome. The theme is a skin on that stance, not a replacement for it.
 
-## The token layer (where visual values live)
+## The look: a warm, cramped science ship
 
-The single token source is **`ui/src/index.css`** (Tailwind v4; there is no tailwind config file — tokens are CSS custom properties consumed via `@theme`). Do NOT create a parallel token source such as `ui/src/tokens/` — that would produce two sources of truth. If index.css grows unwieldy, extracted values may live in a `tokens.css` **imported by index.css** so the pipeline still has one root.
+Taken from published production notes on the film (soft and hard materials mixed, a deliberately small cockpit, warm analog colour, instruments that are not perfectly symmetric). We borrow the feeling, not the designs.
 
-Tailwind v4 gotcha: `@theme inline` bakes literal values at build time. Any token that must be runtime-tunable (theme editor, dark mode overrides) must be defined in a NON-inline block.
+1. **Warm and analog.** Dark brown-black surfaces, cream paper, one amber accent, a burnt orange for warnings. No cold blue-black void.
+2. **Cramped on purpose.** Tight rows and small gaps. The hero is a small viewport, never a sprawling banner.
+3. **Soft beside hard.** Hard pixel panels sit next to paper-like notes. Notes appear in empty states and the hero, never behind working data.
+4. **Slightly uneven.** Dials, bars and tick marks may vary a little from a perfect grid, as real instruments do. Never in text or table alignment.
+5. **Handmade, not slick.** Characters read as physical puppets with a few frames of motion, not smooth vector animation.
+6. **Original only.** No characters, ships, logos, names or screen designs from the film. Our crew is invented.
 
-Existing tiers already in index.css (~80+ tokens) — extraction maps to these on **exact value match** before minting anything new:
+## Shape law: square
 
-1. **Semantic tier** — shadcn core set: `--background`, `--foreground`, `--card`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--sidebar-*`, `--chart-1..5` (OKLCH, light/dark overrides).
-2. **Brand tier** — agent gradients `--agent-1a/1b..10a/10b` (fixed hex) and status hues `--status-task-*` / `--status-agent-*` (WCAG-tuned; see inline comments).
-3. **Domain tier** — match-chip tokens `--chip-match-*`, annotation highlights `--paperclip-doc-annotation-highlight-*`, plus motion/typography tokens.
+- No pills, no rounded boxes, no circles. Every button, input, badge, dock, popover, dialog, tile and avatar has square corners.
+- Radius tokens (`--radius`, `--radius-*`) resolve to `0`. A component never sets its own radius.
+- The bottom dock is a square-cornered strip with a hard 2px border and an offset shadow, not a floating capsule.
+- Status badges are coloured text (as today), never a filled shape.
+- Avatars are square pixel tiles. Circular crops are not allowed.
 
-## Principles
+## Pixel law
 
-1. **One way to say each thing.** One component per job. One Button, one Card, one Badge, one Table, one EmptyState. Variants are props, not new components. Before creating a component, prove no existing one covers the job.
-2. **Tokens are the only source of visual values.** All color, spacing, radius, type size/weight, shadow, and motion values come from the token layer. No hex, no raw px, no ad-hoc Tailwind arbitrary values (`p-[13px]`) in components. If a needed value doesn't exist, add a token — don't inline it. Tailwind palette classes (`bg-red-500`, `text-zinc-400`, etc.) ARE hardcoded values in spirit: they name a literal color, not a semantic role. They are in-scope debt scheduled for a dedicated future run (Run 4, cluster-by-cluster mapping to semantic tokens per doc/design/DECISION-SHEET.md B2) and are not currently gated by check-token-gates. Exception (doc/design/DECISION-SHEET.md B1 user ruling): first-party intentional one-off decoration on demo/UX-lab surfaces stays inline and allowlisted rather than minted as singleton tokens.
-3. **Spacing routes through tokens; the scale comes later.** During simplification, extract every spacing and radius value verbatim into tokens — do not normalize, round, or invent a scale. The final scale is a design decision made by a human after reviewing the token audit. Structural rules apply now: vertical rhythm within a container uses one gap value, not per-element margins, and siblings never carry both margin and gap.
-4. **Hierarchy through structure, not decoration.** Prefer position, size, and weight over borders, backgrounds, and dividers. Every border, divider, and background fill must justify itself; when in doubt, remove it. A screen should survive the removal of one visual layer.
-5. **Status is systematic.** States like running / paused / blocked / awaiting-approval / over-budget map to a single semantic status token set used identically everywhere (badge, row, chart, log). An operator learns the vocabulary once.
-6. **Machine values look machine-made.** IDs, costs, token counts, timestamps, and log output use the monospace token and consistent formatting helpers. Never format these ad hoc per screen.
-7. **Words are part of the system.** One name per concept across the entire UI — the canonical term is *task* (never *issue* or *ticket* in copy, labels, or empty states). Buttons name the action ("Approve hire," not "Submit"). Errors say what happened and what to do. Empty states say what to do first. **Note:** enforcing the task rename is a visible change and is explicitly OUT of the zero-visual-change extraction run; it happens in its own follow-up run.
-8. **Agent-modifiable by design.** The system must be changeable via instructions: single token source, lint rules that enforce it, and this document kept current. A correct change should be expressible as "edit tokens + run checks," not "visit 40 files."
+- Pixel art is for imagery: characters, heroes, empty states, emblems. UI text keeps the readable mono face from the token layer; we do not set interface text in a pixel font.
+- Render with `image-rendering: pixelated`. Scale by whole numbers only (1x, 2x, 3x). Never smooth, blur or rotate pixel art.
+- Source art is stored at its native pixel size as `.webp` (lossless for sprites). Sheets are cut on a fixed grid, one cell per character.
+- Hard 2px borders and hard offset shadows (no blur) are the only depth devices.
+- The art is generated through `codex exec` on the terra model, converted to webp, and recorded in `docs/superpowers/imagegen/index.html`.
 
-## Form and wizard footers
+## Characters and Rive
 
-Keep **Save & exit** (or Cancel/Back) and the primary Continue/Connect/Finish
-action in one shared footer row, vertically centered. Put the subdued secondary
-action on the left and the primary action on the right. A step owns its whole
-footer: do not render Save & exit in a separate parent block below it. Check this
-alignment in every step and conditional state, not just the first screen.
+Every agent is a character. A character is one `.riv` file plus a still sprite.
 
-Completed Slack setup is a success view: show the full agent avatar, success message,
-and one centered Done action. Omit Save & exit after the connection has been
-confirmed. The shared footer rule applies to its unfinished setup steps.
+| part | rule |
+| :-- | :-- |
+| file | `ui/src/assets/characters/<callsign>.riv`, with `<callsign>.webp` as the still fallback |
+| artboard | one square artboard, transparent background, pixel-snapped |
+| state machine | named `main` |
+| data | data binding, not legacy state-machine inputs (Rive marks the "Input Change" listener action deprecated; read 2026-10-11, rive.app/docs/editor/state-machine/listeners). One view model per file with `mood` number (0 idle, 1 working, 2 stalled, 3 happy), `hover` boolean, `press` trigger |
+| pointer | Rive listeners (pointer enter, exit, down, click) on a hit-area shape handle hover and press inside the file; the app forwards no extra events |
+| mood source | derived from the agent's real status: running = 1, paused or blocked = 2, just completed = 3, otherwise 0 |
+| runtime | `useRive` with `autoBind: true` and the `main` state machine (react runtime docs, read 2026-10-11); renderer package chosen per rive.app "Choose a renderer"; the canvas parent has a fixed width and height; one canvas per visible character; pause when off screen; show the still sprite until the file loads or if it fails |
+| motion | steps only (a few frames), never eased. Honour `prefers-reduced-motion` by showing the still sprite |
+| sound | off by default. When on: soft, low tones only |
+| authoring | `.riv` files are authored in the Rive editor. Neither Codex nor this repo generates them |
 
-## Mobile navigation and text fields
+Until a character has its `.riv` file, it uses its still sprite with a CSS hover lift as a stand-in. A missing `.riv` never blocks a screen.
 
-The fixed bottom navigation uses an opaque surface so scrolling content cannot
-show through its labels. On touch devices, editable controls use at least the
-16px base typography token to prevent Safari's automatic focus zoom. Larger
-title sizes remain larger.
+Cast rules:
+- Original characters only, drawn as a crew: one human scientist and a set of invented alien engineers with clearly different silhouettes.
+- A character's colour is identity, not status. Status is shown by mood and by status text.
+- Words never cover a character. Speech and labels sit beside or below.
 
-The bottom navigation responds to accumulated scrolling, ignoring small
-reversals and Safari's edge bounce. It glides out and eases back in with shared
-motion tokens; the task composer follows the same motion. Keep page padding
-stable while the navigation moves, and honor reduced-motion preferences.
+## Crew overlay: the characters live on the screen (operator, 2026-10-11)
 
-Task conversations reveal their initial comments, interaction cards, plan, and
-relevant run history together after positioning the latest message. Keep the
-mobile loading surface at a stable viewport height while that history loads;
-concealed content must not stretch the document. Background refreshes keep an
-already revealed conversation and composer mounted and visible.
-Bound the initial wait to 15 seconds. If a request stalls, reveal the available
-conversation and composer with a notice that some history is still loading.
+"i want all the characters to be animated, and running around the screen, in the bottom, in top nav, on top of bottom dock."
 
-Only the viewer's own human comments sit on the right in blue bubbles. Agents
-and other humans sit on the left on the page surface, with their own name and
-avatar above the message. Human identity comes from the company directory;
-missing photos use the shared initials fallback. Match ownership by the stored
-author user ID and the authenticated viewer ID, never by display name or the bot
-that relayed a message from another channel.
+One fixed layer, mounted once at the app root, holds every character. It never takes part in layout.
 
-## Contextual feedback
+| rule | detail |
+| :-- | :-- |
+| layer | `position: fixed; inset: 0`, `pointer-events: none`, one `--z-crew` step above content and below dialogs. Only each sprite's own hit area takes pointer events |
+| ledges | characters walk only along defined ledges: the top edge of the bottom dock, the bottom edge of the viewport, and the lower edge of the page header band. A ledge is a horizontal line plus a range; characters never cross content |
+| movement | the app moves the sprite with `transform: translate` in whole pixels. Rive plays the walk, idle and reaction loops in place. Movement never lives inside the `.riv` file |
+| walk state | extra view model properties: `walking` boolean and `facing` number (-1 left, 1 right). `mood` still tells working, stalled and happy |
+| behaviour | a character wanders along its ledge, pauses, and reacts when it meets another. A running agent stays near the dock; a stalled agent sits and sleeps; a happy one hops. Mood comes from real agent status, so the crowd reflects the work |
+| interaction | hover wakes it, click or tap talks (a short line beside it), drag lets the operator pick it up and drop it on another ledge. A click on a character opens that agent |
+| never in the way | characters never cover a button, input, text or table row. If the operator's pointer or focus reaches a control a character stands on, it steps aside. The layer is hidden in dialogs and while typing in the composer |
+| budget | at most 8 live canvases on desktop and 3 on phones. Off-screen or hidden-tab characters pause. More agents than slots share slots, and the rest show on the Crew page |
+| reduced motion | with `prefers-reduced-motion`, characters stop wandering and stand still on the dock |
+| phone | only the dock-top and bottom ledges; no header ledge |
+| sound | off by default; soft, low tones only |
 
-Task chat shows execution errors and waits only while they remain relevant.
-Completing or cancelling a task hides its old execution notices. A newer attempt by
-the same agent or an explicit successor supersedes earlier run notices; an
-unresolved execution hold remains visible. Historical turns keep their responses,
-files, questions and inspectable activity without a Worked/Stopped status label.
-Run history retains the full diagnostic record. Session reset boundaries remain
-in the conversation. Time passing or a new human comment alone does not resolve
-an error. Stored notices need run or recovery provenance before they can be hidden;
-child-task relays and other unrelated system updates stay visible.
+Art needed beyond the character sheets: transparent per-character cut-outs, and for each character a walk loop, idle loop, working loop, stalled loop, happy loop, plus hover and press reactions. A character's frames share one pixel scale.
 
-Credential-sharing denials stay expanded as an error card in the task conversation.
-Name the agent and selected AI connection when known, and say which person lacks
-access. Use “you” only for that person’s own run. Link to the agent’s AI connection
-settings; retrying before changing the connection cannot repair a sharing denial.
-Show the connection name to the affected user so they can identify what blocked
-their task, and to viewers in the connection's human sharing audience. Other task
-readers see a generic credential label. Never show credential secrets or grant IDs.
-The same run-relevance rules hide the card after a newer attempt or terminal task.
+## The token layer
 
-Do not show a toast for task or run state already visible on the current screen.
-This includes descendant runs represented by the open subtree. Show local action
-results in place; keep failures actionable inline. Notifications for other work
-remain useful. Repeated delivery of the same run outcome must refresh cached state
-without repeating its toast, including after reconnecting. A terminal outcome
-delivered more than five minutes after the run finished is historical and should
-refresh state silently. Expected cancellation is neutral gray, not an error. The composer's Stop action stops the current response and leaves the composer available for a new message. Pause work is a separate explicit task or subtree action. A paused task replaces the composer with an amber takeover. It says “Task is
-paused.” and “Resume this task to send a message.” with a “Resume task” action.
-Subtrees use “Subtree is paused.” and “Resume subtree.” The takeover cannot be
-dismissed, retains drafts, and hides message inputs until the pause is released.
+The single token source is **`ui/src/index.css`** (Tailwind v4; tokens are CSS custom properties consumed via `@theme`). Do not create a parallel source such as `ui/src/tokens/`. Extracted values may live in a `tokens.css` imported by `index.css`.
 
-Confirmations whose source work is still syncing show “Preparing approval…” and
-disable acceptance until the server reports readiness. Refresh that state automatically;
-rejection and revision remain available. Live tool reviews keep their own approval flow.
+Tailwind v4: `@theme inline` bakes literals at build time. Any token that must change at runtime (theme editor, dark overrides, motion) is defined in a non-inline block.
 
-Pending questions, confirmations, and other task-thread inputs appear in a separate
-card directly above the ordinary composer. The composer stays available for new
-messages while the card is open. Questions use their compact history entry as the
-reminder; dismissing one clears the composer and stays effective after reload for
-that person and task. Other inputs keep a pending indicator that can reopen them;
-resolving or skipping the input removes that indicator.
+Palette roles (values authored in `ui/src/index.css`; component code never names a colour):
 
-## Leaf-node layout law (operator directive, 2026-10-10)
+| role | feel |
+| :-- | :-- |
+| surface ladder | void, hull, band: three steps of dark brown-black |
+| ink, dim | cream text, muted tan text |
+| line | the hairline, drawn 2px, used for every divider and outline |
+| accent | amber, the one primary action colour |
+| live | a cool cyan, reserved for live agent activity |
+| ok, warn, bad | moss green, burnt orange, brick red |
 
-The operator direction for every app under `~/usr`: "basically we take
-liquidgold as a gold standard to follow for every app." Paperclip adopts
-Liquid Gold's **leaf-node design method** (structure), keeping its own
-identity (dense control-plane temperament, palette, dark default). The
-three-zone layout (sidebar / content / properties) and its density stay;
-this law governs how surfaces are structured and decorated.
+One colour per meaning. Status maps to one token set used everywhere (badge, row, chart, log).
 
-1. **Leaf-only padding.** Padding lives on leaf content elements (rows,
-   cells, buttons, headers), never on grouping wrappers. A container that
-   only positions children gets `gap`, not padding. No double padding:
-   when a wrapper must pad, its direct children do not.
-2. **Sections are bands split by hairlines.** Sibling sections separate
-   with one hairline (`border-t border-border`), not with cards, boxes, or
-   whitespace blocks. Vertical rhythm within a band is one gap value.
-3. **No grouping cards.** A `Card` is not a layout device. Remove
-   Card/CardHeader/CardContent wrappers whose only job is grouping; the
-   content becomes the band. Cards remain only where the surface truly is
-   one object (a dialog, a popover, an entity detail block) — every
-   survivor is justified in a code comment.
-4. **Section headers are the title only.** No chrome around a section
-   header: text, count, and at most one trailing action. Header bands
-   (list headers, toolbar rows, table heads) sit one step darker than the
-   page (`bg-muted/50` or `bg-sidebar` tier), full-bleed across their
-   band.
-5. **One hairline token.** Every divider, separator, and outline is
-   `--border` (or a defined alias of it). No ad-hoc lighter/heavier border
-   colors.
-6. **One meaning per colour role**, CVA variants by meaning, and the
-   single `--z-*` scale — already law; the leaf-node run removes
-   violations it meets (raw Tailwind palette classes, ad-hoc z values).
-7. **Density comes from information, never chrome.** The operator scans
-   state; removing a box must not remove information. If a change would
-   delete information, stop and flag it instead.
+## Layout law (carried forward)
 
-Scope of the leaf-node run: `ui/src/pages/**` and `ui/src/components/**`
-visual structure. No API, prop, route, or behavior changes; no test
-assertion changes beyond class strings that no longer exist. The gate is
-`pnpm check:token-gates`, `pnpm --dir ui typecheck`, `pnpm build`, and a
-browser proof on changed surfaces.
+Clayon keeps Liquid Gold's leaf-node method. The pixel theme changes the skin, not the structure.
 
-## Per-page review criteria (operator directive, 2026-10-10)
+1. **Leaf-only padding.** Padding lives on leaf elements; containers get `gap`.
+2. **Sections are bands split by one hairline token** (`--border`, 2px here). No grouping cards.
+3. **Section headers are the title only**, plus a count and at most one trailing action. Header bands sit one step darker than the page.
+4. **One header band per page.** Long pages with hash sections, "see more" for a dedicated page.
+5. **Autosave everywhere.** No Save and Discard bars; status shows in place.
+6. **Dock-only phone navigation**, with compact popovers and the first screen filling the phone.
+7. **Tokens only.** No hex, raw px, arbitrary Tailwind brackets, or raw font-size in `ui/src/components/**` and `ui/src/pages/**`, outside the allowlist in `ui/src/index.css`. Combined classes use `cn()`.
+8. **Grids where collections can tile**, made of leaf items, never wrapper cards.
+9. **One z-scale** (`--z-*`).
 
-Every page is reviewed against three criteria, in this order:
+## Words
 
-1. **Proper grid support, like Liquid Gold.** A page that renders only a
-   list must justify the list; collections that can tile, tile —
-   responsive grids (`grid md:grid-cols-2 xl:grid-cols-4` shape) of leaf
-   items (entity tiles, metric tiles), never wrapper cards. Density
-   stays: a grid item is a leaf band, not a nested box.
-2. **Leaf-node design with a palette that feels fancy.** The leaf-node
-   law below governs structure; the token palette must read premium —
-   one confident accent role, tuned dark surface ladder, hairlines that
-   whisper. Token values are authored in the tweakcn/shadcn variable
-   structure in `ui/src/index.css`.
-3. **Full tweakcn + shadcn/ui utilization.** Hand-rolled markup that a
-   shadcn primitive already covers is debt: use Table, Tabs, Sheet,
-   Command, ScrollArea, etc. before writing custom chrome. Variants come
-   from CVA in the primitive, not per-page class soup.
+One name per concept. The canonical term in data screens is *task*, *agent*, *run*, *budget*, *approval*. Navigation labels may use the lab vocabulary:
 
-## Enforcement (what "compliant" means for the extraction run)
+| plain term | nav label |
+| :-- | :-- |
+| company | ship |
+| agents | crew |
+| tasks | experiments |
+| routines | protocols |
+| runs | lab notes |
+| budgets | rations |
+| approvals | sign-offs |
+| apps, connectors | airlocks |
+| audit | lab notebook |
 
-- **Zero visual change is proven, not promised:** Storybook visual snapshots are baselined before any refactor, and all snapshots match baseline after it. A change that alters rendered output must be intentional and human-approved.
-- **Baseline scope for Run 1:** the shared primitives in `ui/src/components/ui/` (each gets a story if missing — there are only ~24) plus the ~46 existing stories under `ui/storybook/stories/`. Do NOT attempt a story for every feature component (~277) in this run; full coverage is a later effort.
-- Mechanical rewrites (value extraction, renames) are done via committed codemod scripts in `scripts/`, not hand-edits — reviewable once, repeatable forever.
-- Token layer is the single source (`ui/src/index.css`, per above) consumed via CSS variables / Tailwind theme — never values copied into components.
-- Lint/grep gates pass: zero hardcoded hex values, zero arbitrary spacing values, zero raw font-size declarations in `ui/src/components/**` and `ui/src/pages/**` outside the token layer and a documented allowlist (third-party overrides, intentional opt-outs commented inline).
-- `pnpm build`, `pnpm typecheck`, and `pnpm build-storybook` pass.
-- AGENTS.md links here and states the token-only rule.
+Lab words appear in navigation labels, empty states and character lines only. Buttons name the action ("Approve hire", not "Submit"). Errors say what happened and what to do. Empty states say what to do first. No emoji in the interface.
 
-Aspirational (NOT gating this run): no duplicate components; every component has exactly one story covering its variants; all UI copy says "task".
+## Enforcement
 
-## Out of scope (do not do during simplification)
+- `pnpm check:token-gates` stays the gate for hex, raw px, arbitrary values and raw font-size.
+- Shape gate (not yet built): forbid `rounded-*` classes other than `rounded-none`, and any `border-radius` outside the token layer. Until it exists, review enforces the square law.
+- `pnpm --dir ui typecheck` and `pnpm build` pass.
+- Browser proof on every changed surface, at 390 wide and at 1280 wide.
+- `AGENTS.md` links here.
 
-No visual redesign, no new colors or typefaces, no layout restructuring, no new dependencies beyond snapshot tooling, no component consolidation/merges (audit + recommend only), no copy renames, no changes to server code or app logic. Simplification means fewer parts, same product.
+## Out of scope for this document
 
-## Prior art (read before auditing)
+Server code, data contracts and behaviour rules are untouched by this redesign. Package names, the Docker image name and upstream sync are not renamed here; the product name is a separate decision.
 
-See `doc/design/PRIOR-ART.md` — a previous audit pass (PAP-280/283/284, on the `PAP-282-playground` branch, NOT on master) found that of ~220 hardcoded drift sites, only 6 were exact-value-mappable to existing tokens; expect the verbatim extraction to mint many new tokens that the human scale-collapse step later merges. It also drafted usage rules (radius tiers, CTA tiers, named type styles) that are good candidates for the post-audit scale decision.
+## Draft references
 
-How-to guide for day-to-day UI changes: see `doc/design/CHANGING-THE-UI.md`.
-
-## Motion tokens (Task Chat Redesign)
-
-Mobile task panels fill the viewport within the safe area. Their top toolbar shows the current tab title, an open-tab count and selector, an add action, and an X to return to the feed. The selector lists tabs vertically with wrapping titles, an explicit current-tab check, and visible close controls. Each touch control uses the 44px size token. Desktop tabs keep their horizontal layout. Document links within the current task open through the router and retain the feed's reading position and query cache.
-
-The redesigned task thread (flag `enableTaskChatRedesign`) is the first surface to
-tokenize motion. Principles — reasoning only; values live in `ui/src/index.css`:
-
-- **One home, and it is `:root`, not `@theme inline`.** `@theme inline` bakes literals
-  at build time, so a value placed there cannot be moved at runtime. The dev tweak panel
-  tunes motion by writing CSS custom properties live, so every motion token must resolve
-  at runtime — hence `:root`.
-- **Two tiers.** Primitives (`--motion-duration-*`, `--motion-ease-*`) express the app's
-  baseline motion feel; state/component-scoped tokens (`--motion-<state>-*`) reference the
-  primitives so the whole thread retunes from a few knobs. Scoped tokens exist so the
-  tweak panel can group controls by the state they affect.
-- **Reuse the house curves.** New easing defaults point at the two curves already used
-  across the app rather than inventing a third feel.
-- **No hardcoded timing in components.** Durations, easings, delays, and staggers used by
-  the redesigned thread must reference these tokens; a check script rejects raw `ms` /
-  `cubic-bezier` values outside `ui/src/index.css`. This discipline is what makes the
-  tweak panel structurally possible.
-- **Values are placeholders.** The committed numbers are sensible starting points, tuned
-  live by a human and pasted back from the tweak panel's export — never treated as final
-  during the baseline build.
-- **Reduced motion is honored at the token layer.** A `prefers-reduced-motion: reduce`
-  block collapses the duration/stagger tokens to zero, cascading to every scoped token,
-  in addition to each animation's own component-level guard.
-
-Agent Chat and regular task chats keep pending questions as compact “Unanswered question” entries at their original position in history. Dismissing the form or sending a newer user message clears it from the composer without resolving it. Questions never contribute to composer pending counts or navigation. Opening the history entry restores the original form and its draft; submitting later uses the same durable question response path. Actual permission reviews retain their permission checks.
+Visual drafts live in `doc/design/themes/` (`pixel`, `lab`). The `lab` draft is closest to this document. Space, imhigh and Halo drafts are rejected directions kept only for comparison.

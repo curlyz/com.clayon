@@ -57,7 +57,7 @@ function recording(caseId = "task-reply-accept"): FirstTaskEvidence {
     tasks: [task],
     agents: [{ id: "agent" }],
     comments: [
-      { id: "greeting", authorAgentId: "agent", body: "Welcome to Paperclip" },
+      { id: "greeting", authorAgentId: "agent", body: "Welcome to Clayon" },
     ],
     interactions: [
       {
@@ -173,7 +173,7 @@ function rejectionRecording(): FirstTaskEvidence {
 
 function result(e = recording()): RunnerE2EResult {
   return {
-    schema: "paperclip.runner-e2e.result/v2",
+    schema: "clayon.runner-e2e.result/v2",
     suiteId: "first-task",
     executionId: `first-task.legacy-codex.local.${e.caseId}`,
     attempt: 1,
@@ -243,7 +243,7 @@ describe("first-task question presentation grading", () => {
   it("documents an API-valid text card that renders without a one-option choice", async () => {
     const reference = await readFile(
       new URL(
-        "../../skills/paperclip/references/api-reference.md",
+        "../../skills/clayon/references/api-reference.md",
         import.meta.url,
       ),
       "utf8",
@@ -754,7 +754,7 @@ Accept the card above and I write it. This task stays in review until then.`;
       const original = {
         adapterConfig: {
           instructionsFilePath: "/managed/AGENTS.md",
-          paperclipSkillSync: { desiredSkills: ["first-task"] },
+          clayonSkillSync: { desiredSkills: ["first-task"] },
           model: null,
         },
         permissions: { canCreateAgents: true },
@@ -767,15 +767,15 @@ Accept the card above and I write it. This task stays in review until then.`;
       expect(patch.adapterType).toBe("paperclip_runner");
       expect(patch.adapterConfig).toMatchObject({
         instructionsFilePath: "/managed/AGENTS.md",
-        paperclipSkillSync: original.adapterConfig.paperclipSkillSync,
+        clayonSkillSync: original.adapterConfig.clayonSkillSync,
         provider: execution.profile.provider,
       });
       expect(patch.adapterConfig).not.toHaveProperty("model");
       const withOperational = firstTaskNativeRuntimePatch(execution, fixtures, {
         adapterConfig: {
-          paperclipSkillSync: {
+          clayonSkillSync: {
             desiredSkills: [
-              "paperclipai/paperclip/paperclip",
+              "paperclipai/paperclip/clayon",
               "paperclipai/paperclip/first-task",
             ],
           },
@@ -783,7 +783,7 @@ Accept the card above and I write it. This task stays in review until then.`;
       });
       expect(
         (
-          withOperational.adapterConfig.paperclipSkillSync as {
+          withOperational.adapterConfig.clayonSkillSync as {
             desiredSkills: string[];
           }
         ).desiredSkills,
@@ -956,7 +956,7 @@ Accept the card above and I write it. This task stays in review until then.`;
   });
   it("keeps source and display hashes distinct when instruction examples are redacted", () => {
     const content = 'curl -H "Authorization: Bearer some-example-token"';
-    const snapshot = snapshotInstruction("paperclip/SKILL.md", content);
+    const snapshot = snapshotInstruction("clayon/SKILL.md", content);
     expect(snapshot.redacted).toBe(true);
     expect(snapshot.sha256).toBe(digestText(content));
     expect(snapshot.contentSha256).toBe(digestText(snapshot.content));

@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import type { Project } from "@paperclipai/shared";
-import { createProjectSchema, updateProjectSchema } from "@paperclipai/shared";
+import type { Project } from "@clayon/shared";
+import { createProjectSchema, updateProjectSchema } from "@clayon/shared";
 import {
   addCommonClientOptions,
   apiPath,

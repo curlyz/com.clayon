@@ -1,4 +1,4 @@
-import { configuredEnvironmentProjection } from "../../vendor/paperclip-runner/index.js";
+import { configuredEnvironmentProjection } from "../../vendor/clayon-runner/index.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { PgDialect } from "drizzle-orm/pg-core";
@@ -31,7 +31,7 @@ import {
   nativeRunFinalizations,
   nativeRunResults,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   CURSOR_DISTRIBUTION_PINS,
   QUALIFIED_ACPX_PROFILES,
@@ -46,24 +46,24 @@ import {
   type NativeExecutionInputV3,
   type NativeExecutionInput,
   type PrpEvent,
-} from "@paperclipai/paperclip-runner";
+} from "@clayon/clayon-runner";
 import { createHash, generateKeyPairSync, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { nativeSha256 } from "./canonical.js";
 import { agentDirectoryWorkingCopyService } from "../agent-directory-working-copies.js";
 import { probeAgentDirectory } from "../agent-directory-probe.js";
 import { AGENT_FILES_CONTRACT } from "../agent-file-store.js";
-import { captureDirectorySnapshot, directorySnapshotSha256, serializeDirectorySnapshot } from "@paperclipai/adapter-utils/workspace-restore-merge";
-import { agentInstructionWorkingCopies } from "@paperclipai/db";
+import { captureDirectorySnapshot, directorySnapshotSha256, serializeDirectorySnapshot } from "@clayon/adapter-utils/workspace-restore-merge";
+import { agentInstructionWorkingCopies } from "@clayon/db";
 import * as noLaunchProofModule from "./native-maintenance-no-launch.js";
 import {
   NativeSessionCleanupQuarantinedError,
   NativeProviderTerminalFailure,
   NativeSessionProtocolIntegrityError,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import * as issueServiceModule from "../issues.js";
 import { NativePermissionDeclinedError } from "./native-permission-decline.js";
-import { resolvePaperclipRunnerNativeProviderInput } from "./provider-profile.js";
+import { resolveClayonRunnerNativeProviderInput } from "./provider-profile.js";
 import {
   createNativeHarnessBackupStamp,
   verifyNativeHarnessBackupStamp,
@@ -121,7 +121,7 @@ type RunnerTransportOptions = {
   provider?: "codex" | "opencode" | "acpx";
   opencodePermissionMode?: "allow" | "ask" | "deny";
   acpxAgent?: "claude" | "codex";
-  acpxPermissionMode?: "approve-all" | "approve-paperclip" | "approve-reads" | "deny-all";
+  acpxPermissionMode?: "approve-all" | "approve-clayon" | "approve-reads" | "deny-all";
   resumeActiveTurnId?: string | null;
   resumeProviderSession?: {
     driverSessionId: string;
@@ -205,15 +205,15 @@ const state = vi.hoisted(() => ({
   assertCurrentWakeCommentsRead: vi.fn(async () => undefined),
   bundledPackManifestPath: null as string | null,
   bundledRunnerBinary: null as string | null,
-  resolveRunnerBinary: vi.fn(() => "/tmp/paperclip-runnerd"),
+  resolveRunnerBinary: vi.fn(() => "/tmp/clayon-runnerd"),
   release: null as null | (() => void),
 }));
 
 const accountingEvents = vi.hoisted(() => ({ committed: undefined as undefined | ((event: PrpEvent) => Promise<void>), duplicate: undefined as undefined | ((event: PrpEvent) => Promise<void>) }));
-vi.mock("./paperclip-control-plane-port.js", async importOriginal => {
-  const original = await importOriginal<typeof import("./paperclip-control-plane-port.js")>();
-  return { ...original, PaperclipControlPlanePort: class extends original.PaperclipControlPlanePort {
-    constructor(...args: ConstructorParameters<typeof original.PaperclipControlPlanePort>) {
+vi.mock("./clayon-control-plane-port.js", async importOriginal => {
+  const original = await importOriginal<typeof import("./clayon-control-plane-port.js")>();
+  return { ...original, ClayonControlPlanePort: class extends original.ClayonControlPlanePort {
+    constructor(...args: ConstructorParameters<typeof original.ClayonControlPlanePort>) {
       super(...args);
       accountingEvents.committed = args[2]?.onCommittedEvent;
       accountingEvents.duplicate = args[2]?.onDuplicateEvent;
@@ -222,14 +222,14 @@ vi.mock("./paperclip-control-plane-port.js", async importOriginal => {
 });
 
 const grokCopyBack = vi.hoisted(() => vi.fn(async (_input: { readSandboxAuth: () => Promise<Buffer>; hostHomeDir: string }) => undefined));
-vi.mock("@paperclipai/adapter-grok-local/server", async importOriginal => ({
-  ...await importOriginal<typeof import("@paperclipai/adapter-grok-local/server")>(),
+vi.mock("@clayon/adapter-grok-local/server", async importOriginal => ({
+  ...await importOriginal<typeof import("@clayon/adapter-grok-local/server")>(),
   copyBackGrokAuth: grokCopyBack,
 }));
 
-vi.mock("../../vendor/paperclip-runner/index.js", async (importOriginal) => {
+vi.mock("../../vendor/clayon-runner/index.js", async (importOriginal) => {
   const original = await importOriginal<
-    typeof import("../../vendor/paperclip-runner/index.js")
+    typeof import("../../vendor/clayon-runner/index.js")
   >();
   return {
     ...original,
@@ -241,19 +241,19 @@ vi.mock("../../vendor/paperclip-runner/index.js", async (importOriginal) => {
     settleRetainedRunnerdSession: state.cleanup,
     retainedRunnerdMaintenanceIsIdle: state.maintenanceIdle,
     completeRetainedNativeSessionCleanup: state.retireCleanup,
-    parsePaperclipQuestionSet: (value: unknown) => value,
+    parseClayonQuestionSet: (value: unknown) => value,
   };
 });
 
-vi.mock("@paperclipai/adapter-codex-local/server", async (importOriginal) => ({
+vi.mock("@clayon/adapter-codex-local/server", async (importOriginal) => ({
   ...(await importOriginal<
-    typeof import("@paperclipai/adapter-codex-local/server")
+    typeof import("@clayon/adapter-codex-local/server")
   >()),
   copyBackCodexAuth: state.copyBackCodexAuth,
 }));
 
-vi.mock("./paperclip-runner-tool-authority.js", () => ({
-  PaperclipRunnerToolAuthority: class {
+vi.mock("./clayon-runner-tool-authority.js", () => ({
+  ClayonRunnerToolAuthority: class {
     close() {}
     readonly binding: Record<string, unknown>;
 
@@ -299,7 +299,7 @@ vi.mock("../issue-recovery-actions.js", () => ({
 }));
 
 vi.mock("./native-codex-runner.js", () => ({
-  resolvePaperclipRunnerBinary: state.resolveRunnerBinary,
+  resolveClayonRunnerBinary: state.resolveRunnerBinary,
 }));
 
 import {
@@ -316,7 +316,7 @@ import {
   createGovernedWaitEventObservation,
   createRemoteRunnerProcessLauncher,
   createRunnerdBackend,
-  executePaperclipNativeSession,
+  executeClayonNativeSession,
   detachNativeSessionsForRestart,
   NativeControllerDetachedForRestartError,
   getNativeSessionSteeringState,
@@ -372,7 +372,7 @@ beforeEach(() => {
   state.bundledPackManifestPath = null;
   state.bundledRunnerBinary = null;
   state.createAssignedMcpTools.mockReset();
-  state.resolveRunnerBinary.mockReset().mockReturnValue("/tmp/paperclip-runnerd");
+  state.resolveRunnerBinary.mockReset().mockReturnValue("/tmp/clayon-runnerd");
   state.resolveCurrentWakeCommentsBinding.mockReset().mockResolvedValue(null);
   state.assertCurrentWakeCommentsRead.mockReset().mockResolvedValue(undefined);
 });
@@ -521,10 +521,10 @@ describe("remote controller restart adoption", () => {
   });
   it("wires remote adoption when only controller state survived on the host", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-remote-reattach-"),
+      join(tmpdir(), "clayon-remote-reattach-"),
     );
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const current = {
       ...execution,
       binding: { ...execution.binding, runId: "run" },
@@ -561,8 +561,8 @@ describe("remote controller restart adoption", () => {
       expect(await readdir(root)).toContain("control-plane");
       expect(await readdir(root)).not.toContain("runner");
     } finally {
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(stateBase, { recursive: true, force: true });
     }
   });
@@ -583,7 +583,7 @@ describe("remote controller restart adoption", () => {
   it("rejects a marker that cannot prove its process generation", async () => {
     const { target, execute } = fixture();
     const original = execute.getMockImplementation()!;
-    execute.mockImplementation(async request => request.args[2] === "paperclip-runner-recovery-identity"
+    execute.mockImplementation(async request => request.args[2] === "clayon-runner-recovery-identity"
       ? { stdout: "nonce\n123\n2026-09-19T10:00:00.000Z\nrunner\n", stderr: "", exitCode: 0, timedOut: false }
       : original(request));
     await expect(verifyRemoteRunnerReattachment({ claim, target: target as never, identity, runId: "run", normalizedSessionId: "session" }))
@@ -606,10 +606,10 @@ describe("remote controller restart adoption", () => {
       await writeFile(join(proc, "sys/kernel/random/boot_id"), "abcd-1234\n");
       await writeFile(markerPath, marker);
       execute.mockImplementation(async request => {
-        if (request.args[2] === "paperclip-runner-recovery-identity") {
+        if (request.args[2] === "clayon-runner-recovery-identity") {
           return { stdout: marker, stderr: "", exitCode: 0, timedOut: false };
         }
-        if (request.args[2] !== "paperclip-runner-recovery-check") return original(request);
+        if (request.args[2] !== "clayon-runner-recovery-check") return original(request);
         // Run the actual ownership shell against controlled Linux proc files.
         // kill -0 still checks a real live PID; only its generation changes.
         const args = [...request.args];
@@ -694,7 +694,7 @@ describe("remote runner process supervision", () => {
         bypassSession?: boolean;
       }) => {
         const label = input.args?.[2];
-        if (label === "paperclip-runner-launch") {
+        if (label === "clayon-runner-launch") {
           launchNonce = input.args?.[4] ?? "";
           return {
             exitCode: 0,
@@ -704,7 +704,7 @@ describe("remote runner process supervision", () => {
             stderr: "",
           };
         }
-        if (label === "paperclip-runner-process-identity") {
+        if (label === "clayon-runner-process-identity") {
           return {
             exitCode: 0,
             signal: null,
@@ -713,7 +713,7 @@ describe("remote runner process supervision", () => {
             stderr: "",
           };
         }
-        if (label === "paperclip-runner-monitor") {
+        if (label === "clayon-runner-monitor") {
           return {
             exitCode: 3,
             signal: null,
@@ -722,12 +722,12 @@ describe("remote runner process supervision", () => {
             stderr: "",
           };
         }
-        if (label === "paperclip-runner-diagnostics") {
+        if (label === "clayon-runner-diagnostics") {
           return {
             exitCode: 0,
             signal: null,
             timedOut: false,
-            stdout: "paperclip-runnerd: provider transport closed",
+            stdout: "clayon-runnerd: provider transport closed",
             stderr: "",
           };
         }
@@ -745,7 +745,7 @@ describe("remote runner process supervision", () => {
             stderr: "",
           };
         }
-        if (label === "paperclip-runner-signal") {
+        if (label === "clayon-runner-signal") {
           if (signalOutcome !== "delivered") throw new Error("Sandbox with ID test-deleted-sandbox not found");
           return {
             exitCode: 0,
@@ -771,7 +771,7 @@ describe("remote runner process supervision", () => {
         remoteCwd: "/workspace",
       },
       runner: { execute } as never,
-      remoteBinary: "/runtime/paperclip-runnerd",
+      remoteBinary: "/runtime/clayon-runnerd",
       processIdentityPath: "/runtime/runner-process.identity",
       stateDirectory: "/runtime",
       diagnosticsDirectory: "/runtime/diagnostics",
@@ -781,18 +781,18 @@ describe("remote runner process supervision", () => {
     });
 
     const handle = launcher({
-      command: "/controller/paperclip-runnerd",
+      command: "/controller/clayon-runnerd",
       args: ["--runner-id", "runner-remote"],
       cwd: "/controller",
       environment: {},
     });
     await expect(handle.completion).resolves.toMatchObject({
       code: null,
-      stderr: "paperclip-runnerd: provider transport closed",
+      stderr: "clayon-runnerd: provider transport closed",
     });
 
     const launch = execute.mock.calls.find(
-      ([input]) => input.args?.[2] === "paperclip-runner-launch",
+      ([input]) => input.args?.[2] === "clayon-runner-launch",
     )?.[0];
     expect(launch).toMatchObject({
       timeoutMs: 20_000,
@@ -816,7 +816,7 @@ describe("remote runner process supervision", () => {
       expect(
         execute.mock.calls.some(
           ([input]) =>
-            input.args?.[2] === "paperclip-runner-signal" &&
+            input.args?.[2] === "clayon-runner-signal" &&
             input.args?.[1]?.includes('kill -KILL "$expected_pid"'),
         ),
       ).toBe(true),
@@ -841,7 +841,7 @@ describe("remote runner process supervision", () => {
       const execute = vi.fn(
         async (input: { command?: string; args?: string[] }) => {
           const label = input.args?.[2];
-          if (label === "paperclip-runner-launch") {
+          if (label === "clayon-runner-launch") {
             launchNonce = input.args?.[4] ?? "";
             return {
               exitCode: 0,
@@ -851,7 +851,7 @@ describe("remote runner process supervision", () => {
               stderr: "",
             };
           }
-          if (label === "paperclip-runner-process-identity") {
+          if (label === "clayon-runner-process-identity") {
             return {
               exitCode: kind === "missing fingerprint" ? 0 : 3,
               signal: null,
@@ -860,7 +860,7 @@ describe("remote runner process supervision", () => {
               stderr: "",
             };
           }
-          if (label === "paperclip-runner-identity-failure-cleanup") {
+          if (label === "clayon-runner-identity-failure-cleanup") {
             expect(input.args?.[4]).toBe(launchNonce);
             return {
               exitCode: 0,
@@ -882,7 +882,7 @@ describe("remote runner process supervision", () => {
           remoteCwd: "/workspace",
         },
         runner: { execute } as never,
-        remoteBinary: "/runtime/paperclip-runnerd",
+        remoteBinary: "/runtime/clayon-runnerd",
         processIdentityPath: "/runtime/runner-process.identity",
         stateDirectory: "/runtime",
         diagnosticsDirectory: "/runtime/diagnostics",
@@ -891,7 +891,7 @@ describe("remote runner process supervision", () => {
       });
 
       const handle = launcher({
-        command: "/controller/paperclip-runnerd",
+        command: "/controller/clayon-runnerd",
         args: ["--runner-id", "runner-remote"],
         cwd: "/controller",
         environment: {},
@@ -904,7 +904,7 @@ describe("remote runner process supervision", () => {
 
       const cleanup = execute.mock.calls.find(
         ([call]) =>
-          call.args?.[2] === "paperclip-runner-identity-failure-cleanup",
+          call.args?.[2] === "clayon-runner-identity-failure-cleanup",
       )?.[0];
       expect(cleanup).toMatchObject({
         bypassSession: true,
@@ -931,11 +931,11 @@ describe("remote runner process supervision", () => {
           const label = input.args?.[2];
           return {
             exitCode:
-              label === "paperclip-runner-launch"
+              label === "clayon-runner-launch"
                 ? 0
-                : label === "paperclip-runner-process-identity"
+                : label === "clayon-runner-process-identity"
                   ? 3
-                  : label === "paperclip-runner-identity-failure-cleanup"
+                  : label === "clayon-runner-identity-failure-cleanup"
                     ? 4
                     : 1,
             signal: null,
@@ -954,7 +954,7 @@ describe("remote runner process supervision", () => {
           remoteCwd: "/workspace",
         },
         runner: { execute } as never,
-        remoteBinary: "/runtime/paperclip-runnerd",
+        remoteBinary: "/runtime/clayon-runnerd",
         processIdentityPath: "/runtime/runner-process.identity",
         stateDirectory: "/runtime",
         diagnosticsDirectory: "/runtime/diagnostics",
@@ -962,7 +962,7 @@ describe("remote runner process supervision", () => {
       });
 
       const handle = launcher({
-        command: "/controller/paperclip-runnerd",
+        command: "/controller/clayon-runnerd",
         args: ["--runner-id", "runner-remote"],
         cwd: "/controller",
         environment: {},
@@ -1128,7 +1128,7 @@ describe("remote provider pack manifest", () => {
   };
 
   it.each(["opencode", "cursor"] as const)("uses the bundled Linux image authority for remote %s without controller overrides", async provider => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-bundled-image-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-bundled-image-"));
     const digest = "sha256:" + "a".repeat(64);
     const artifacts = Object.fromEntries(Object.entries({
       grokLauncher: "dist/providers/grok/launcher.cjs", nodeCommand: "node_modules/node/bin/node",
@@ -1146,10 +1146,10 @@ describe("remote provider pack manifest", () => {
       distDigest: digest, artifacts,
       bridgeDigest: "sha256:" + createHash("sha256").update(digest + "\n" + digest + "\n" + digest).digest("hex"),
     };
-    const manifest = { schema: "paperclip-runner/remote-provider-pack/v1", payload,
+    const manifest = { schema: "clayon-runner/remote-provider-pack/v1", payload,
       digest: "sha256:" + createHash("sha256").update(canonical(payload)).digest("hex") };
     state.bundledPackManifestPath = join(root, "provider-pack.json");
-    state.bundledRunnerBinary = join(root, "linux-paperclip-runnerd");
+    state.bundledRunnerBinary = join(root, "linux-clayon-runnerd");
     await writeFile(state.bundledPackManifestPath, JSON.stringify(manifest));
     await writeFile(state.bundledRunnerBinary, "verified Linux daemon fixture");
     const remoteExecution = { ...execution, provider: provider === "opencode"
@@ -1175,7 +1175,7 @@ describe("remote provider pack manifest", () => {
       expect(transport.runnerBinary).toBe(state.bundledRunnerBinary);
       await expect(transport.controlPlaneRegistration({})).rejects.toThrow("reached-staged-Linux-daemon-verification");
       expect(syncIn).toHaveBeenCalledWith([expect.objectContaining({ files: [expect.objectContaining({
-        sourcePath: state.bundledRunnerBinary, targetPath: "/workspace/.paperclip-runtime/paperclip-runner/bin/paperclip-runnerd",
+        sourcePath: state.bundledRunnerBinary, targetPath: "/workspace/.clayon-runtime/clayon-runner/bin/clayon-runnerd",
       })] })]);
       expect(execute.mock.calls.some(([call]) => call.args?.[1] === "uname -s; uname -m")).toBe(false);
     } finally {
@@ -1185,7 +1185,7 @@ describe("remote provider pack manifest", () => {
   });
 
   it("accepts a fully digested pack and rejects artifact tampering", async () => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-provider-pack-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-provider-pack-"));
     await mkdir(join(root, "dist", "cli"), { recursive: true });
     await mkdir(join(root, "node_modules", "node", "bin"), { recursive: true });
     await mkdir(join(root, "node_modules", ".bin"), { recursive: true });
@@ -1280,7 +1280,7 @@ describe("remote provider pack manifest", () => {
       writeFile(
         join(root, "provider-pack.json"),
         JSON.stringify({
-          schema: "paperclip-runner/remote-provider-pack/v1",
+          schema: "clayon-runner/remote-provider-pack/v1",
           digest: `sha256:${createHash("sha256").update(canonical(payload)).digest("hex")}`,
           payload,
         }),
@@ -1298,7 +1298,7 @@ describe("remote provider pack manifest", () => {
     Object.assign(payload, { providers: { cursor } });
     await writeManifest();
     expect(readRemoteProviderPackManifest(root).payload.providers?.cursor?.version).toBe(QUALIFIED_ACPX_PROFILES.cursor.agentServerVersion);
-    const releaseMetadata = await mkdtemp(join(tmpdir(), "paperclip-image-identity-"));
+    const releaseMetadata = await mkdtemp(join(tmpdir(), "clayon-image-identity-"));
     const manifestPath = join(releaseMetadata, "provider-pack.json");
     await cp(join(root, "provider-pack.json"), manifestPath);
     expect(readBundledRemoteProviderPackManifest(manifestPath).digest).toBe(readRemoteProviderPackManifest(root).digest);
@@ -1426,7 +1426,7 @@ describe("provider pack read diagnostics", () => {
   });
 
   it("classifies a JSON null manifest as incompatible instead of a TypeError", async () => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-null-pack-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-null-pack-"));
     try {
       await writeFile(join(root, "provider-pack.json"), "null");
       expect(() => readRemoteProviderPackManifest(root)).toThrow(
@@ -1436,7 +1436,7 @@ describe("provider pack read diagnostics", () => {
   });
 
   it.each(["missing", "invalid_json", "invalid_path_type"])("reports %s without putting the path in the terminal message", async (reason) => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-private-pack-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-private-pack-"));
     try {
       const manifestPath = join(root, "provider-pack.json");
       if (reason === "invalid_json") await writeFile(manifestPath, "{ private-invalid-json");
@@ -1546,7 +1546,7 @@ describe("verified native harness backups", () => {
       cwd: "/workspace",
       repoUrl: "https://example.test/repo.git",
       repoRef: "main",
-      branchName: "paperclip/test",
+      branchName: "clayon/test",
     },
     session: {
       normalizedSessionId: "native-session",
@@ -1718,7 +1718,7 @@ describe("verified native harness backups", () => {
   });
 
   it("accepts a complete digest-matched backup and rejects corruption", async () => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-harness-backup-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-harness-backup-"));
     try {
       const current = join(root, "failover-backups", "current");
       await mkdir(join(current, "runner"), { recursive: true });
@@ -1796,7 +1796,7 @@ describe("verified native harness backups", () => {
 
   it("rejects a backup whose provider identity or harness contract changed", async () => {
     const root = await mkdtemp(
-      join(tmpdir(), "paperclip-harness-backup-identity-"),
+      join(tmpdir(), "clayon-harness-backup-identity-"),
     );
     try {
       const current = join(root, "failover-backups", "current");
@@ -1825,9 +1825,9 @@ describe("verified native harness backups", () => {
   });
 
   it("verifies the lease stamp and all backup directory digests before replacement", async () => {
-    const stateBase = await mkdtemp(join(tmpdir(), "paperclip-harness-stamp-"));
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const stateBase = await mkdtemp(join(tmpdir(), "clayon-harness-stamp-"));
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     try {
       const sessionScopeId = "native-session-scope-v2";
       const sessionRoot = join(
@@ -1884,9 +1884,9 @@ describe("verified native harness backups", () => {
       expect(verifyNativeHarnessBackupStamp(stamp, "sandbox-1")).toBe(false);
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -1894,10 +1894,10 @@ describe("verified native harness backups", () => {
 
   it("rejects a digest-valid legacy stamp for remote lease authorization", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-legacy-harness-stamp-"),
+      join(tmpdir(), "clayon-legacy-harness-stamp-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     try {
       const legacyRoot = join(
         stateBase,
@@ -1945,9 +1945,9 @@ describe("verified native harness backups", () => {
       ).toBe(false);
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -2281,7 +2281,7 @@ describe("remote provider checkpoint snapshots", () => {
     await syncRemoteRunnerDirectoryOut({
       runner: { execute, syncOut } as never,
       sourcePath: "/remote/session/filesystem/codex-home",
-      targetPath: "/tmp/paperclip-checkpoint-test-codex-home",
+      targetPath: "/tmp/clayon-checkpoint-test-codex-home",
       mode: 0o700,
       excludeEntries: ["tmp", ".tmp", "auth.json", "config.toml"],
     });
@@ -2307,14 +2307,14 @@ describe("remote provider checkpoint snapshots", () => {
     const batch = syncOut.mock.calls[0]?.[0]?.[0];
     expect(batch?.files[0]).toMatchObject({
       sourcePath: expect.stringMatching(
-        /^\/remote\/session\/filesystem\/\.paperclip-checkpoint-/,
+        /^\/remote\/session\/filesystem\/\.clayon-checkpoint-/,
       ),
-      targetPath: "/tmp/paperclip-checkpoint-test-codex-home",
+      targetPath: "/tmp/clayon-checkpoint-test-codex-home",
       kind: "directory",
       mode: 0o700,
     });
     expect(String(execute.mock.calls[2]?.[0]?.args?.[1])).toMatch(
-      /^rm -rf -- '\/remote\/session\/filesystem\/\.paperclip-checkpoint-/,
+      /^rm -rf -- '\/remote\/session\/filesystem\/\.clayon-checkpoint-/,
     );
   });
 
@@ -2337,7 +2337,7 @@ describe("remote provider checkpoint snapshots", () => {
     await syncRemoteRunnerDirectoryOut({
       runner: { execute, syncOut } as never,
       sourcePath: "/remote/session/filesystem/acpx",
-      targetPath: "/tmp/paperclip-checkpoint-test-acpx",
+      targetPath: "/tmp/clayon-checkpoint-test-acpx",
       mode: 0o700,
       excludeEntries: excluded,
     });
@@ -2362,7 +2362,7 @@ describe("remote provider checkpoint snapshots", () => {
       syncRemoteRunnerDirectoryOut({
         runner: { execute, syncOut: vi.fn() } as never,
         sourcePath: "/remote/codex-home",
-        targetPath: "/tmp/paperclip-checkpoint-invalid-codex-home",
+        targetPath: "/tmp/clayon-checkpoint-invalid-codex-home",
         mode: 0o700,
         excludeEntries: ["../outside"],
       }),
@@ -2370,7 +2370,7 @@ describe("remote provider checkpoint snapshots", () => {
   });
 
   it("rejects unsafe fallback archives without replacing durable state", async () => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-checkpoint-unsafe-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-checkpoint-unsafe-"));
     const archiveSource = join(root, "archive-source");
     const targetPath = join(root, "durable-target");
     try {
@@ -2418,7 +2418,7 @@ describe("remote provider checkpoint snapshots", () => {
 describe("remote provider checkpoint restores", () => {
   it("does not upload excluded Codex scratch trees or credentials", async () => {
     const sourcePath = await mkdtemp(
-      join(tmpdir(), "paperclip-codex-restore-source-"),
+      join(tmpdir(), "clayon-codex-restore-source-"),
     );
     try {
       await mkdir(join(sourcePath, "sessions"), { recursive: true });
@@ -2477,7 +2477,7 @@ describe("remote provider checkpoint restores", () => {
 
 describe("remote preinstalled executable discovery", () => {
   it("stages a relative-path CLI shim without changing its installation or losing arguments", async () => {
-    const root = await mkdtemp(join(tmpdir(), "paperclip-codex-shim-"));
+    const root = await mkdtemp(join(tmpdir(), "clayon-codex-shim-"));
     try {
       const installation = join(root, "image install's bin");
       const target = join(root, "workspace", "bin", "codex");
@@ -2512,13 +2512,13 @@ describe("remote preinstalled executable discovery", () => {
   it("accepts one normalized absolute executable path", () => {
     expect(
       parseRemoteExecutableCandidate(
-        "/home/daytona/.local/bin/paperclip-runnerd\n",
+        "/home/daytona/.local/bin/clayon-runnerd\n",
       ),
-    ).toBe("/home/daytona/.local/bin/paperclip-runnerd");
+    ).toBe("/home/daytona/.local/bin/clayon-runnerd");
   });
 
   it.each([
-    "paperclip-runnerd\n",
+    "clayon-runnerd\n",
     "/safe/path\n/unexpected/second-line\n",
     "/safe/path with spaces\n",
     "/safe/path;touch-bad\n",
@@ -2528,7 +2528,7 @@ describe("remote preinstalled executable discovery", () => {
 
   it("does not accept a merely contract-compatible runnerd when a build-owned artifact is configured", () => {
     expect(
-      mayUsePreinstalledRunnerArtifact("/artifacts/paperclip-runnerd"),
+      mayUsePreinstalledRunnerArtifact("/artifacts/clayon-runnerd"),
     ).toBe(false);
     expect(mayUsePreinstalledRunnerArtifact("  ")).toBe(true);
     expect(mayUsePreinstalledRunnerArtifact(undefined)).toBe(true);
@@ -2571,9 +2571,9 @@ describe("remote runner build metadata", () => {
   });
 
   const current = {
-    schema: "paperclip-runner/runnerd-build-metadata/v1",
-    binaryName: "paperclip-runnerd",
-    packageName: "@paperclipai/paperclip-runner",
+    schema: "clayon-runner/runnerd-build-metadata/v1",
+    binaryName: "clayon-runnerd",
+    packageName: "@clayon/clayon-runner",
     binaryContractVersion: 2,
     durableSessionCapabilities: ["unlimited_runtime", "connection_lease_renewal"],
     prpTransportModes: ["dial_ws_loopback", "dial_wss", "listen_ws"],
@@ -2843,7 +2843,7 @@ describe("native provider bootstrap environment", () => {
     const provider = { kind: "acpx", agent } as NativeExecutionInput["provider"];
     const host = { PATH: "/host/bin", HOME: "/host/home", OPENROUTER_API_KEY: "ambient-pi",
       CURSOR_API_KEY: "ambient-cursor", CURSOR_AUTH_TOKEN: "ambient-cursor-login", COPILOT_GITHUB_TOKEN: "ambient-copilot",
-      PAPERCLIP_ACPX_CREDENTIAL_BINDING: "ambient-forged-binding" };
+      CLAYON_ACPX_CREDENTIAL_BINDING: "ambient-forged-binding" };
     expect(resolveNativeProviderEnvironment(provider, undefined, host)).toEqual({ PATH: "/host/bin", HOME: "/host/home" });
     const explicit = { COPILOT_GITHUB_TOKEN: "explicit-company-binding" };
     expect(resolveNativeProviderEnvironment(provider, explicit, host)).toBe(explicit);
@@ -2864,7 +2864,7 @@ describe("native provider bootstrap environment", () => {
           PATH: "/opt/homebrew/bin:/usr/bin",
           HOME: "/Users/runner",
           CODEX_HOME: "/Users/runner/.codex",
-          PAPERCLIP_INTERNAL_SECRET: "must-not-leak",
+          CLAYON_INTERNAL_SECRET: "must-not-leak",
         },
       ),
     ).toEqual({
@@ -2897,15 +2897,15 @@ describe("native provider bootstrap environment", () => {
     expect(
       buildNativeProviderEnvironment(
         {
-          PAPERCLIP_WORKSPACE_CWD: "/untrusted/configured-workspace",
+          CLAYON_WORKSPACE_CWD: "/untrusted/configured-workspace",
         },
         { HOME: "/Users/runner" },
-        "/Users/runner/.paperclip/instances/default/workspaces/agent-1",
+        "/Users/runner/.clayon/instances/default/workspaces/agent-1",
       ),
     ).toEqual({
       HOME: "/Users/runner",
-      PAPERCLIP_WORKSPACE_CWD:
-        "/Users/runner/.paperclip/instances/default/workspaces/agent-1",
+      CLAYON_WORKSPACE_CWD:
+        "/Users/runner/.clayon/instances/default/workspaces/agent-1",
     });
   });
 });
@@ -2928,7 +2928,7 @@ const execution = {
     workMode: "standard",
   },
   workspace: {
-    cwd: "/tmp/paperclip-native-session-test",
+    cwd: "/tmp/clayon-native-session-test",
     repoUrl: null,
     repoRef: null,
     branchName: null,
@@ -3027,7 +3027,7 @@ describe("retained native cleanup activation", () => {
     "legacy_activation",
   ])("preserves exact original evidence for %s", async (mode) => {
     const directory = await mkdtemp(
-      join(tmpdir(), "paperclip-maintenance-activation-"),
+      join(tmpdir(), "clayon-maintenance-activation-"),
     );
     let providerHomeDatabase: DatabaseSync | undefined;
     const preservedHomeFiles = [
@@ -3040,8 +3040,8 @@ describe("retained native cleanup activation", () => {
       "config.toml",
     ];
     let preservedHomeBytes: Buffer[] | null = null;
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = directory;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = directory;
     const canonical = (value: unknown): string =>
       value && typeof value === "object" && !Array.isArray(value)
         ? `{${Object.entries(value)
@@ -4398,8 +4398,8 @@ describe("retained native cleanup activation", () => {
       proofSpy.mockRestore();
       state.maintenanceIdle.mockReset().mockReturnValue(true);
       releaseCommit();
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(directory, { recursive: true, force: true });
     }
   });
@@ -4411,8 +4411,8 @@ describe("stopped native conversation physical cleanup", () => {
     "foreign_run", "foreign_company", "foreign_runner", "remote", "unreleased", "changed_state", "changed_pid", "symlink", "startup_intent", "pending_identity", "wrong_schema", "replacement", "replacement_alive", "agent_alive", "checkpoint_owner_alive", "diagnostic_owner_alive", "normalized_session_receipt",
   ].map(mode => ({ provider, mode }))))("$provider $mode", async ({ provider, mode }) => {
     const base = await mkdtemp(join(tmpdir(), "native-conversation-cleanup-"));
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = base;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = base;
     const input = parseNativeExecutionInput({ ...execution,
       provider: provider === "codex" ? execution.provider : { kind: "acpx", agent: "claude", model: "claude-sonnet-5", permissionPolicy: "interactive",
         profile: { driverKind: "acpx_runtime", protocolVersion: 1, acpxVersion: "0.13.1", agent: "claude", agentProfileVersion: 1,
@@ -4440,7 +4440,7 @@ describe("stopped native conversation physical cleanup", () => {
     const providerEvents = mode.startsWith("replacement") ? [event, replacement] : [event];
     if (mode === "diagnostic_owner_alive") providerEvents.push({ ...event, eventType: "harness.diagnostic",
       payload: { providerMethod: "acpx/process", role: "acp_agent", pid: process.pid } } as unknown as typeof event);
-    const providerState = { schema: mode === "wrong_schema" ? "unknown" : `paperclip.runner.${provider}-provider-state.${provider === "codex" ? "v1" : "v3"}`, lifecycle: "turn_active",
+    const providerState = { schema: mode === "wrong_schema" ? "unknown" : `clayon.runner.${provider}-provider-state.${provider === "codex" ? "v1" : "v3"}`, lifecycle: "turn_active",
       ...(mode === "startup_intent" ? { startupAttempt: { phase: "intent" } } : {}),
       ...(mode === "pending_identity" ? { pendingEvents: [{ eventType: "session.started" }] } : {}),
     };
@@ -4478,7 +4478,7 @@ describe("stopped native conversation physical cleanup", () => {
         expect(await readFile(join(root, `runner/${provider}-provider-state.json`), "utf8")).toBe(JSON.stringify(providerState));
       } else expect(proof).toBeNull();
     } finally {
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR; else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR; else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(base, { recursive: true, force: true });
     }
   });
@@ -4508,10 +4508,10 @@ describe("explicit failed native retry physical evidence", () => {
     "unselected_result",
   ])("observes %s without mutating the retained root", async (kind) => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-failed-retry-state-"),
+      join(tmpdir(), "clayon-failed-retry-state-"),
     );
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const canonical = (value: unknown): string =>
       value && typeof value === "object" && !Array.isArray(value)
         ? `{${Object.entries(value)
@@ -4713,8 +4713,8 @@ describe("explicit failed native retry physical evidence", () => {
           await access(join(root, "control-plane", "control-plane-state.json")),
         ).toBeUndefined();
     } finally {
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(stateBase, { recursive: true, force: true });
     }
   });
@@ -5336,7 +5336,7 @@ describe("native startup cancellation fence", () => {
       }
       throw new Error("provider should not have been submitted");
     });
-    await expect(executePaperclipNativeSession({
+    await expect(executeClayonNativeSession({
       db: leaseDb(execution, {}, resultJson), execution, runnerInstanceId: "startup-stop",
     })).rejects.toThrow("native_cancellation_pending_recovery");
     expect(cancel).toHaveBeenCalledOnce();
@@ -5360,7 +5360,7 @@ describe("native startup restart detachment", () => {
       await options.onSession(null);
       throw new Error("settlement test complete");
     });
-    const outcome = executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner" }).catch(error => error);
+    const outcome = executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner" }).catch(error => error);
     await checkpointed;
     const detached = detachNativeSessionsForRestart([restarting.binding.runId]);
     try {
@@ -5387,7 +5387,7 @@ describe("native startup restart detachment", () => {
       await options.onSession(null);
       return { result: {}, terminal: { runTerminalState: "succeeded" }, usage: null };
     });
-    const outcome = executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", onUsage }).catch(error => error);
+    const outcome = executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", onUsage }).catch(error => error);
     await checkpointed;
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
     const detaching = detachNativeSessionsForRestart([restarting.binding.runId]);
@@ -5403,8 +5403,8 @@ describe("native startup restart detachment", () => {
   });
   it("waits for in-flight runner startup and its detach acknowledgement before shutdown returns", async () => {
     const root = await mkdtemp(join(tmpdir(), "native-startup-detach-"));
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = root;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = root;
     const restarting = structuredClone(execution);
     restarting.binding.runId = "restart-inflight-bootstrap";
     restarting.session.normalizedSessionId = "restart-inflight-session";
@@ -5421,7 +5421,7 @@ describe("native startup restart detachment", () => {
       await options.onSession(null);
       throw new Error("detachment closed the old event stream");
     });
-    const running = executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", useRunnerd: true });
+    const running = executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", useRunnerd: true });
     const outcome = running.catch(error => error);
     let detaching: Promise<unknown> | undefined;
     try {
@@ -5440,8 +5440,8 @@ describe("native startup restart detachment", () => {
       open(); acknowledge();
       await outcome;
       await detaching;
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(root, { recursive: true, force: true });
     }
   });
@@ -5458,7 +5458,7 @@ describe("native startup restart detachment", () => {
       return { result: {},
         terminal: { runTerminalState: "succeeded" }, usage: null };
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting,
+    await expect(executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting,
       runnerInstanceId: "runner", onUsage })).rejects.toBeInstanceOf(NativeControllerDetachedForRestartError);
     expect(detach).toHaveBeenCalledOnce();
     expect(onUsage).not.toHaveBeenCalled();
@@ -5466,8 +5466,8 @@ describe("native startup restart detachment", () => {
 
   it.each([false, true])("settles failed startup without claiming detachment (deadline exceeded: %s)", async (exceedDeadline) => {
     const root = await mkdtemp(join(tmpdir(), "native-startup-failure-"));
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = root;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = root;
     const restarting = structuredClone(execution);
     restarting.binding.runId = `restart-failed-bootstrap-${exceedDeadline}`;
     restarting.session.normalizedSessionId = `restart-failed-session-${exceedDeadline}`;
@@ -5479,7 +5479,7 @@ describe("native startup restart detachment", () => {
       await opening;
       throw new Error("bootstrap failed before session publication");
     });
-    const outcome = executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", useRunnerd: true }).catch(error => error);
+    const outcome = executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner", useRunnerd: true }).catch(error => error);
     try {
       await admitted;
       if (exceedDeadline) vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -5496,8 +5496,8 @@ describe("native startup restart detachment", () => {
       vi.useRealTimers();
       release();
       await outcome;
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(root, { recursive: true, force: true });
     }
   });
@@ -5513,15 +5513,15 @@ describe("native startup restart detachment", () => {
       await options.onSession(null);
       throw new Error("detachment closed the old event stream");
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner" })).rejects.toBeInstanceOf(NativeControllerDetachedForRestartError);
+    await expect(executeClayonNativeSession({ db: leaseDb(restarting), execution: restarting, runnerInstanceId: "runner" })).rejects.toBeInstanceOf(NativeControllerDetachedForRestartError);
   });
 });
 
 describe("native terminal-turn accounting", () => {
   it.each([false, true])("prices only complete direct Claude API turn accounting (%s)", async complete => {
-    const { rehydrateRunnerdUsageNotification } = await import("@paperclipai/paperclip-runner/live");
+    const { rehydrateRunnerdUsageNotification } = await import("@clayon/clayon-runner/live");
     const { priceAnthropicReceipt } = await import("../anthropic-pricing.js");
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const counts = { inputTokens: 12, outputTokens: 4, cacheReadTokens: 30, cacheWriteTokens: 20, providerCostUsd: 0 };
     state.execute.mockReset().mockImplementationOnce(async () => {
       const notification = rehydrateRunnerdUsageNotification({ provider: "acpx", cumulative: { ...counts, providerCostUsd: 10 }, runDelta: counts, runDeltaAvailable: complete }, "session", "turn");
@@ -5529,7 +5529,7 @@ describe("native terminal-turn accounting", () => {
       await accountingEvents.committed!({ eventType: "turn.interrupted", turnId: "turn", payload: {} } as unknown as PrpEvent);
       return { result: { summary: "Waiting for approval" }, terminal: { runTerminalState: "succeeded" }, turnId: "turn", normalizedSessionId: "session", providerSessionId: null, driverKind: "acpx_runtime", driverVersion: "1", nativeEventCount: 2, highestContiguousSourceSeq: 2, usage: null };
     });
-    await executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "acpx", agent: "claude", model: "claude-sonnet-5" } } as NativeExecutionInput, runnerInstanceId: "runner", runnerEnvironment: { ANTHROPIC_API_KEY: "fixture" }, onUsage });
+    await executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "acpx", agent: "claude", model: "claude-sonnet-5" } } as NativeExecutionInput, runnerInstanceId: "runner", runnerEnvironment: { ANTHROPIC_API_KEY: "fixture" }, onUsage });
     const receipt = onUsage.mock.calls.at(-1)![0];
     const priced = priceAnthropicReceipt(receipt);
     if (complete) expect(priced).toMatchObject({ complete: true, costStatus: "estimated", costUsdExact: "0.000150000" });
@@ -5538,8 +5538,8 @@ describe("native terminal-turn accounting", () => {
   it.each(["claude", "codex"].flatMap(agent => [false, true].flatMap(restart =>
     [false, true].flatMap(partialFirst => [false, true].map(zeroFirst => ({ agent, restart, partialFirst, zeroFirst }))),
   )))("accumulates ACPX turns for $agent (restart: $restart, partial: $partialFirst, zero first: $zeroFirst)", async ({ agent, restart, partialFirst, zeroFirst }) => {
-    const { rehydrateRunnerdUsageNotification } = await import("@paperclipai/paperclip-runner/live");
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const { rehydrateRunnerdUsageNotification } = await import("@clayon/clayon-runner/live");
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const event = (eventType: string, turnId: string, sourceSeq: number, payload: object = {}) => ({
       eventType, turnId, sourceSeq, sourceInstanceId: "provider", emittedAt: new Date().toISOString(), payload,
     }) as unknown as PrpEvent;
@@ -5558,7 +5558,7 @@ describe("native terminal-turn accounting", () => {
         normalizedSessionId: "session", providerSessionId: null, driverKind: "acpx_runtime", driverVersion: "1",
         nativeEventCount: 6, highestContiguousSourceSeq: 6, usage: null };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(execution, {}, {}, [], {}, "running", restart ? first : []),
+    const result = await executeClayonNativeSession({ db: leaseDb(execution, {}, {}, [], {}, "running", restart ? first : []),
       execution: { ...execution, provider: { kind: "acpx", agent, model: agent === "codex" ? "gpt-6-astra" : "claude-sonnet-4-6" } } as NativeExecutionInput,
       runnerInstanceId: "runner", runnerEnvironment: { OPENAI_API_KEY: "fixture" }, onUsage });
     expect(result).toMatchObject({ usageComplete: !partialFirst,
@@ -5580,8 +5580,8 @@ describe("native terminal-turn accounting", () => {
   it.each(["claude", "codex"].flatMap(agent =>
     ["missing", "partial", "complete_zero", "later_partial", "recovered"].map(scenario => ({ agent, scenario })),
   ))("honors runner completeness for ACPX $agent ($scenario)", async ({ agent, scenario }) => {
-    const { rehydrateRunnerdUsageNotification } = await import("@paperclipai/paperclip-runner/live");
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const { rehydrateRunnerdUsageNotification } = await import("@clayon/clayon-runner/live");
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const complete = ["complete_zero", "recovered"].includes(scenario);
     const zero = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, providerCostUsd: 0 };
     const full = { ...zero, inputTokens: 12, outputTokens: 4 };
@@ -5603,7 +5603,7 @@ describe("native terminal-turn accounting", () => {
         normalizedSessionId: "session", providerSessionId: null, driverKind: "acpx_runtime", driverVersion: "1", nativeEventCount: 2, highestContiguousSourceSeq: 2,
         usage: { runDelta: full, runDeltaComplete: true } };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution,
+    const result = await executeClayonNativeSession({ db: leaseDb(), execution: { ...execution,
       provider: { kind: "acpx", agent, model: agent === "codex" ? "gpt-6-astra" : "claude-sonnet-4-6" } } as NativeExecutionInput,
       runnerInstanceId: "runner", onUsage });
     expect(result).toMatchObject({ usageComplete: complete });
@@ -5612,8 +5612,8 @@ describe("native terminal-turn accounting", () => {
   });
 
   it.each([0, 0.25])("keeps interrupted AgentCore accounting pending despite cumulative cost %s", async providerCostUsd => {
-    const { rehydrateRunnerdUsageNotification } = await import("@paperclipai/paperclip-runner/live");
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const { rehydrateRunnerdUsageNotification } = await import("@clayon/clayon-runner/live");
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const total = { inputTokens: 10, outputTokens: 2, cacheReadTokens: 0, cacheWriteTokens: 0, providerCostUsd };
     const notification = rehydrateRunnerdUsageNotification({ provider: "aws_agentcore", cumulative: total, runDelta: null, runDeltaAvailable: false }, "session", "turn");
     state.execute.mockReset().mockImplementationOnce(async () => {
@@ -5625,13 +5625,13 @@ describe("native terminal-turn accounting", () => {
       return { result: { summary: "interrupted" }, terminal: { runTerminalState: "cancelled" }, turnId: "turn",
         normalizedSessionId: "session", providerSessionId: null, driverKind: "test", driverVersion: "1", nativeEventCount: 2, highestContiguousSourceSeq: 2, usage: { total } };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "aws_agentcore", model: "managed-model", agentCoreProfile: { profileId: "agentcore-test" } } } as unknown as NativeExecutionInput, runnerInstanceId: "runner", onUsage });
+    const result = await executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "aws_agentcore", model: "managed-model", agentCoreProfile: { profileId: "agentcore-test" } } } as unknown as NativeExecutionInput, runnerInstanceId: "runner", onUsage });
     expect(result).toMatchObject({ usageComplete: false, costStatus: "unpriced", billingType: "metered_api" });
   });
 
   it.each(["claude_managed", "aws_agentcore"] as const)("settles fresh runner receipts for %s and preserves estimated pricing", async kind => {
-    const { rehydrateRunnerdUsageNotification } = await import("@paperclipai/paperclip-runner/live");
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const { rehydrateRunnerdUsageNotification } = await import("@clayon/clayon-runner/live");
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const total = { inputTokens: 121, outputTokens: 18, cacheReadTokens: 33, cacheWriteTokens: 15, providerCostUsd: 1.25 };
     const delta = { inputTokens: 21, outputTokens: 8, cacheReadTokens: 13, cacheWriteTokens: 5, providerCostUsd: 0.25 };
     const notification = rehydrateRunnerdUsageNotification({ provider: kind, cumulative: total, runDelta: delta, runDeltaAvailable: true }, "session", "turn");
@@ -5646,7 +5646,7 @@ describe("native terminal-turn accounting", () => {
       return { result: { summary: "cancelled" }, terminal: { runTerminalState: "cancelled" },
         turnId: "turn", normalizedSessionId: "session", providerSessionId: null, driverKind: "test", driverVersion: "1", nativeEventCount: 2, highestContiguousSourceSeq: 2, usage: { total } };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind, model: "managed-model", managedProfile: { profileId: "managed-test" }, agentCoreProfile: { profileId: "agentcore-test" } } } as unknown as NativeExecutionInput, runnerInstanceId: "runner", onUsage });
+    const result = await executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind, model: "managed-model", managedProfile: { profileId: "managed-test" }, agentCoreProfile: { profileId: "agentcore-test" } } } as unknown as NativeExecutionInput, runnerInstanceId: "runner", onUsage });
     expect(result).toMatchObject({ usageComplete: true, costUsd: 0.25, billingType: "metered_api", costStatus: kind === "aws_agentcore" ? "estimated" : undefined });
   });
 
@@ -5654,7 +5654,7 @@ describe("native terminal-turn accounting", () => {
     { provider: "codex", restart: false }, { provider: "codex", restart: true },
     { provider: "opencode", restart: false }, { provider: "opencode", restart: true },
   ] as const)("preserves earlier turns for $provider (restart: $restart)", async ({ provider, restart }) => {
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const event = (eventType: string, turnId: string, sourceSeq: number, payload: object = {}) => ({
       eventType, turnId, sourceSeq, sourceInstanceId: "provider", emittedAt: new Date().toISOString(), payload,
     }) as unknown as PrpEvent;
@@ -5671,7 +5671,7 @@ describe("native terminal-turn accounting", () => {
         normalizedSessionId: "session", providerSessionId: null, driverKind: "test", driverVersion: "1", nativeEventCount: 6,
         highestContiguousSourceSeq: 6, usage: null };
     });
-    const result = await executePaperclipNativeSession({
+    const result = await executeClayonNativeSession({
       db: leaseDb(execution, {}, {}, [], {}, "running", restart ? first : []),
       execution: { ...execution, provider: { kind: provider, model: provider === "opencode" ? "openai/test" : "gpt-6-astra" } } as NativeExecutionInput,
       runnerInstanceId: "runner", onUsage,
@@ -5685,7 +5685,7 @@ describe("native terminal-turn accounting", () => {
   });
 
   it.each(["missing_usage", "partial_usage", "missing_terminal", "unknown_price", "late_update"] as const)("keeps OpenCode retry accounting conservative (%s)", async scenario => {
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     let seq = 0;
     const emit = (eventType: string, turnId: string, payload: object = {}) => accountingEvents.committed!({
       eventType, turnId, sourceSeq: ++seq, sourceInstanceId: "provider", emittedAt: new Date().toISOString(), payload,
@@ -5707,7 +5707,7 @@ describe("native terminal-turn accounting", () => {
         normalizedSessionId: "session", providerSessionId: null, driverKind: "test", driverVersion: "1", nativeEventCount: seq,
         highestContiguousSourceSeq: seq, usage: null };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(),
+    const result = await executeClayonNativeSession({ db: leaseDb(),
       execution: { ...execution, provider: { kind: "opencode", model: "openai/test" } } as NativeExecutionInput,
       runnerInstanceId: "runner", onUsage });
     const complete = ["unknown_price", "late_update"].includes(scenario);
@@ -5719,7 +5719,7 @@ describe("native terminal-turn accounting", () => {
   });
 
   it.each(["committed", "duplicate"] as const)("saves completed usage before returning to result commitment (%s)", async mode => {
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const failure = new Error("stopped after result commit, before executor returns");
     state.execute.mockReset().mockImplementationOnce(async () => {
       const observe = accountingEvents[mode]!;
@@ -5729,7 +5729,7 @@ describe("native terminal-turn accounting", () => {
       expect(onUsage).toHaveBeenLastCalledWith(expect.objectContaining({ complete: true, costUsd: 0.25, usage: { inputTokens: 20, cachedInputTokens: 100, outputTokens: 10 } }));
       throw failure;
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", onUsage })).rejects.toBe(failure);
+    await expect(executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", onUsage })).rejects.toBe(failure);
     expect(onUsage).toHaveBeenLastCalledWith(expect.objectContaining({ complete: true }));
   });
   it("clears provisional unpriced status when direct database persistence receives complete usage", async () => {
@@ -5739,7 +5739,7 @@ describe("native terminal-turn accounting", () => {
       return { result: { summary: "cancelled" }, terminal: { runTerminalState: "cancelled" },
         turnId: "turn", normalizedSessionId: "session", providerSessionId: null, driverKind: "test", driverVersion: "1", nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
-    await executePaperclipNativeSession({ db: leaseDb(execution, {}, {}, updates), execution, runnerInstanceId: "runner" });
+    await executeClayonNativeSession({ db: leaseDb(execution, {}, {}, updates), execution, runnerInstanceId: "runner" });
     const dialect = new PgDialect();
     const writes = updates.filter(update => update.values.usageJson).map(update =>
       JSON.parse(dialect.sqlToQuery(update.values.usageJson as SQL).params[0] as string) as Record<string, unknown>);
@@ -5749,7 +5749,7 @@ describe("native terminal-turn accounting", () => {
   });
 
   it.each(["stale_warm_zero", "partial", "fresh", "fresh_zero", "new_turn", "later_partial", "merged_partial"])("requires fresh complete usage at native completion (%s)", async scenario => {
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const usage = { inputTokens: 120, cacheReadTokens: 100, outputTokens: 10, providerCostUsd: 0 };
     const runDelta = scenario === "partial" ? { inputTokens: 120 } : scenario === "fresh_zero" ? { inputTokens: 0, outputTokens: 0 } : usage;
     state.execute.mockReset().mockImplementationOnce(async () => {
@@ -5765,7 +5765,7 @@ describe("native terminal-turn accounting", () => {
         usage: { runDelta: scenario === "stale_warm_zero" ? { inputTokens: 0, outputTokens: 0, providerCostUsd: 0 } : runDelta },
       };
     });
-    const result = await executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", runnerEnvironment: { OPENAI_API_KEY: "fixture" }, onUsage });
+    const result = await executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", runnerEnvironment: { OPENAI_API_KEY: "fixture" }, onUsage });
     const complete = ["fresh", "fresh_zero"].includes(scenario);
     expect(result.usageComplete).toBe(complete);
     expect(onUsage).toHaveBeenLastCalledWith(expect.objectContaining({ complete }));
@@ -5778,7 +5778,7 @@ describe("native terminal-turn accounting", () => {
   beforeEach(() => vi.spyOn(issueServiceModule, "issueService").mockReturnValue({ update: vi.fn(async () => ({ status: "blocked", statusVersion: 1 })) } as unknown as ReturnType<typeof issueServiceModule.issueService>));
   afterEach(() => vi.restoreAllMocks());
   it.each(["turn.failed", "turn.cancelled", "turn.interrupted", "missing_terminal", "session_total", "empty_usage", "different_turn"])("preserves run usage for %s without certifying incomplete evidence", async (scenario) => {
-    const onUsage = vi.fn(async (_receipt: import("@paperclipai/adapter-utils").AdapterUsageCheckpoint) => {});
+    const onUsage = vi.fn(async (_receipt: import("@clayon/adapter-utils").AdapterUsageCheckpoint) => {});
     const failure = new Error("provider_transport_failed: no semantic result");
     state.execute.mockReset().mockImplementationOnce(async () => {
       const usage = { inputTokens: 120, cacheReadTokens: 100, outputTokens: 10, providerCostUsd: 0.25 };
@@ -5786,7 +5786,7 @@ describe("native terminal-turn accounting", () => {
       if (scenario !== "missing_terminal") await accountingEvents.committed!({ eventType: scenario.startsWith("turn.") ? scenario : "turn.failed", turnId: scenario === "different_turn" ? "another-turn" : "turn", emittedAt: new Date().toISOString(), payload: { status: "failed" } } as unknown as PrpEvent);
       throw failure;
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", onUsage })).rejects.toBe(failure);
+    await expect(executeClayonNativeSession({ db: leaseDb(), execution: { ...execution, provider: { kind: "codex", model: "gpt-6-astra" } } as NativeExecutionInput, runnerInstanceId: "runner", onUsage })).rejects.toBe(failure);
     if (scenario === "session_total") expect(onUsage).not.toHaveBeenCalled();
     else if (scenario === "empty_usage") expect(onUsage).toHaveBeenLastCalledWith(expect.objectContaining({ complete: false, usage: undefined, costUsd: null, costStatus: "unpriced" }));
     else {
@@ -5813,7 +5813,7 @@ describe("native resumed preparation timing", () => {
     });
     const clock = vi.spyOn(Date, "now").mockReturnValue(answeredAtMs + 100);
     try {
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(),
         execution,
         runnerInstanceId: "runner",
@@ -5872,7 +5872,7 @@ describe("native resumed preparation timing", () => {
       .spyOn(Date, "now")
       .mockReturnValue(attemptStartedAtMs + 50);
     try {
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(),
         execution,
         runnerInstanceId: "runner",
@@ -5943,8 +5943,8 @@ describe("native session cancellation", () => {
     { useRunnerd: false, durableIntentVisible: true },
   ])("waits for an in-flight startup handle before acknowledging Stop (runnerd=$useRunnerd, durable intent=$durableIntentVisible)", async ({ useRunnerd, durableIntentVisible }) => {
     const root = await mkdtemp(join(tmpdir(), "native-startup-stop-"));
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = root;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = root;
     let open!: () => void, started!: () => void, finish!: () => void;
     const opening = new Promise<void>(resolve => { open = resolve; });
     const admitted = new Promise<void>(resolve => { started = resolve; });
@@ -5965,7 +5965,7 @@ describe("native session cancellation", () => {
       };
     });
     const runResultJson: Record<string, unknown> = {};
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(execution, {}, runResultJson), execution, runnerInstanceId: "runner", useRunnerd,
     });
     const outcome = running.catch(error => error);
@@ -5974,7 +5974,7 @@ describe("native session cancellation", () => {
     let acknowledged = false;
     try {
       await admitted;
-      await expect(executePaperclipNativeSession({
+      await expect(executeClayonNativeSession({
         db: leaseDb(), execution, runnerInstanceId: "duplicate-runner", useRunnerd,
       })).rejects.toThrow("native_session_supervisor_busy");
       stopping = cancelNativeSession(execution.binding.runId, "operator Stop during startup", {
@@ -6000,16 +6000,16 @@ describe("native session cancellation", () => {
       open(); finish();
       await outcome;
       await stopping;
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(root, { recursive: true, force: true });
     }
   });
 
   it.each([true, false])("fences a late startup even when Stop reaches its acknowledgement deadline (runnerd=%s)", async (useRunnerd) => {
     const root = await mkdtemp(join(tmpdir(), "native-late-startup-stop-"));
-    const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = root;
+    const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = root;
     let open!: () => void, started!: () => void;
     const opening = new Promise<void>(resolve => { open = resolve; });
     const admitted = new Promise<void>(resolve => { started = resolve; });
@@ -6020,7 +6020,7 @@ describe("native session cancellation", () => {
       submitTurn();
       throw new Error("a stopped startup must not reach prompt submission");
     });
-    const outcome = executePaperclipNativeSession({ db: leaseDb(), execution, runnerInstanceId: "runner", useRunnerd }).catch(error => error);
+    const outcome = executeClayonNativeSession({ db: leaseDb(), execution, runnerInstanceId: "runner", useRunnerd }).catch(error => error);
     const persistence = cancellationDb();
     try {
       await admitted;
@@ -6037,14 +6037,14 @@ describe("native session cancellation", () => {
       expect(submitTurn).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers(); open(); await outcome;
-      if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+      if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previous;
       await rm(root, { recursive: true, force: true });
     }
   });
 
   it("routes control-plane cancellation to the active normalized session and removes the handle", async () => {
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6074,7 +6074,7 @@ describe("native session cancellation", () => {
     state.cancel.mockImplementationOnce(() => {
       throw new Error("transport unavailable");
     });
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6100,7 +6100,7 @@ describe("native session cancellation", () => {
     state.cancel.mockImplementationOnce(() => ({
       cleanup: Promise.reject(new Error("provider cleanup failed")),
     }));
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6222,7 +6222,7 @@ describe("native session cancellation", () => {
 
   it("recovers a post-dispatch persistence failure without cancelling the provider twice", async () => {
     const persistence = cancellationDb({ failResultJsonUpdateAt: 2 });
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6353,7 +6353,7 @@ describe("native session execution lease fencing", () => {
     state.createTransport.mockClear();
 
     await expect(
-      executePaperclipNativeSession({
+      executeClayonNativeSession({
         db: leaseDb(execution, {
           phase: "workspace_finalizing",
           resultId: "native-result-1",
@@ -6375,7 +6375,7 @@ describe("native session execution lease fencing", () => {
       state.createTransport.mockClear();
 
       await expect(
-        executePaperclipNativeSession({
+        executeClayonNativeSession({
           db: leaseDb(
             execution,
             {},
@@ -6445,7 +6445,7 @@ describe("native runtime request resolution", () => {
   });
 
   it("revalidates lifecycle after provider reads and blocks stale dispatch", async () => {
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6474,7 +6474,7 @@ describe("native runtime request resolution", () => {
   });
 
   it("atomically joins duplicate responses and rejects a concurrent conflict", async () => {
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6531,7 +6531,7 @@ describe("native runtime request resolution", () => {
   });
 
   it("clears completed response reservations when the session tears down", async () => {
-    const firstSession = executePaperclipNativeSession({
+    const firstSession = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6548,7 +6548,7 @@ describe("native runtime request resolution", () => {
     await firstSession;
 
     state.release = null;
-    const secondSession = executePaperclipNativeSession({
+    const secondSession = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6600,7 +6600,7 @@ describe("native session same-turn steering", () => {
   });
 
   async function startActiveSession() {
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner",
@@ -6715,7 +6715,7 @@ describe("bounded stopped instruction collection", () => {
 
 describe("native warm session supervision", () => {
   it.each(["collect", "close-failure", "stopped", "destroyed", "missing-lease", "foreign-run", "foreign-environment", "deleted-environment", "claim-edit", "claim-add", "claim-remove", "claim-remove-entry", "claim-canonical", "claim-config", "claim-uncertain"])("composes remote warm ownership with real DB successor leases and current-run collection: %s", async ending => {
-    const tables = await import("@paperclipai/db");
+    const tables = await import("@clayon/db");
     const { eq } = await import("drizzle-orm");
     const { randomUUID } = await import("node:crypto");
     const { promisify } = await import("node:util");
@@ -6727,8 +6727,8 @@ describe("native warm session supervision", () => {
     const { prepareNativeHeartbeatRun } = await import("./prepare-native-run.js");
     const { buildNativeCompletionContract } = await import("./completion-contracts.js");
     const home = await realpath(await mkdtemp(join(tmpdir(), "warm-remote-db-")));
-    const previousHome = process.env.PAPERCLIP_HOME;
-    process.env.PAPERCLIP_HOME = home;
+    const previousHome = process.env.CLAYON_HOME;
+    process.env.CLAYON_HOME = home;
     const database = await startEmbeddedPostgresTestDatabase("warm-remote-db-");
     const db = tables.createDb(database.connectionString);
     const companyId = randomUUID(), agentId = randomUUID(), userId = randomUUID(), environmentId = randomUUID(), issueId = randomUUID();
@@ -6736,7 +6736,7 @@ describe("native warm session supervision", () => {
     const canonical = resolveManagedInstructionsRoot({ id: agentId, companyId, name: "Warm remote", adapterConfig: {} }), remoteCwd = join(home, "remote");
     let currentLease = "", failCleanup = false, failProbe = false, closed = false;
     const commands: Array<{ leaseId: string; command: string }> = [];
-    const commandRunner = (leaseId: string): import("@paperclipai/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner => ({ execute: async input => {
+    const commandRunner = (leaseId: string): import("@clayon/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner => ({ execute: async input => {
       expect(leaseId).toBe(currentLease); // The replaced collector must never execute.
       commands.push({ leaseId, command: `${input.command} ${(input.args ?? []).join(" ")}` });
       if (failProbe) {
@@ -6750,8 +6750,8 @@ describe("native warm session supervision", () => {
       }
       const env = { PATH: process.env.PATH, ...input.env }, args = [...(input.args ?? [])];
       if (input.stdin != null && (args[0] === "-c" || args[0] === "-lc")) {
-        Object.assign(env, { PAPERCLIP_TEST_STDIN: input.stdin });
-        args[1] = `printf '%s' "$PAPERCLIP_TEST_STDIN" | (${args[1]})`;
+        Object.assign(env, { CLAYON_TEST_STDIN: input.stdin });
+        args[1] = `printf '%s' "$CLAYON_TEST_STDIN" | (${args[1]})`;
       }
       const result = await executeCommand(input.command, args, { cwd: input.cwd, env, timeout: input.timeoutMs, maxBuffer: 32 * 1024 * 1024 });
       return { exitCode: 0, signal: null, timedOut: false, ...result, pid: null, startedAt: new Date().toISOString() };
@@ -6879,7 +6879,7 @@ describe("native warm session supervision", () => {
         current.runtimeContext = await buildNativeRuntimeContext({ db, agent, runId, runtimeConfig: {}, runtimeSkillEntries: [],
           instructionWorkingCopy: { rootPath: active!.executionRoot, entryPath: "AGENTS.md", kind: "agent_files" } });
         expect(current.runtimeContext.instructions.workingCopy?.rootPath).toBe(originalRoot);
-        await executePaperclipNativeSession({ db, execution: current, runnerInstanceId: environmentId, runnerExecutionTarget: target, instructionWorkingCopy: capability() });
+        await executeClayonNativeSession({ db, execution: current, runnerInstanceId: environmentId, runnerExecutionTarget: target, instructionWorkingCopy: capability() });
         if (prior) expect(state.execute.mock.calls.at(-1)?.[0].existingSession).toBe(session);
         expect(closed).toBe(false);
         await release?.(); expect(closed).toBe(false);
@@ -6966,7 +6966,7 @@ describe("native warm session supervision", () => {
       const cleanupFailures: unknown[] = [];
       try { await closeWarmNativeSessionsForEnvironment({ environmentId, reason: "test cleanup" }); } catch (error) { cleanupFailures.push(error); }
       try { await database.cleanup(); } catch (error) { cleanupFailures.push(error); }
-      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME; else process.env.PAPERCLIP_HOME = previousHome;
+      if (previousHome === undefined) delete process.env.CLAYON_HOME; else process.env.CLAYON_HOME = previousHome;
       try {
         const writable = async (directory: string): Promise<void> => {
           await chmod(directory, 0o700);
@@ -7014,7 +7014,7 @@ describe("native warm session supervision", () => {
         driverKind: "test", driverVersion: "1", nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
     try {
-      await executePaperclipNativeSession({ db: leaseDb(warmExecution), execution: warmExecution,
+      await executeClayonNativeSession({ db: leaseDb(warmExecution), execution: warmExecution,
         runnerInstanceId: identity, runnerExecutionTarget: { kind: "remote", transport: "sandbox", environmentId: identity, remoteCwd: `/tmp/${identity}` },
         instructionWorkingCopy: { runId: identity, root: localRoot, preparationKey: "same-preparation", hasChanges: () => copies.hasChanges(row), collectStopped } });
       expect(close).not.toHaveBeenCalled();
@@ -7043,7 +7043,7 @@ describe("native warm session supervision", () => {
         environmentId: identity, runId: second.binding.runId, preparationKey: "same-preparation",
         adopt: async () => currentCopy });
       expect(release).toBeTypeOf("function");
-      await executePaperclipNativeSession({ db: leaseDb(second), execution: second, runnerInstanceId: identity,
+      await executeClayonNativeSession({ db: leaseDb(second), execution: second, runnerInstanceId: identity,
         runnerExecutionTarget: { kind: "remote", transport: "sandbox", environmentId: identity, remoteCwd: `/tmp/${identity}` },
         instructionWorkingCopy: currentCopy });
       expect(state.execute.mock.calls.at(-1)?.[0].existingSession).toBe(session);
@@ -7099,7 +7099,7 @@ describe("native warm session supervision", () => {
       executionWorkspaceId: first.binding.executionWorkspaceId, workspace: first.workspace, environmentId: identity,
       runId: second.binding.runId, preparationKey: "key", adopt };
     try {
-      await executePaperclipNativeSession({ db: leaseDb(first), execution: first, runnerInstanceId: identity, runnerExecutionTarget: target, instructionWorkingCopy: copy });
+      await executeClayonNativeSession({ db: leaseDb(first), execution: first, runnerInstanceId: identity, runnerExecutionTarget: target, instructionWorkingCopy: copy });
       if (scenario.startsWith("foreign")) {
         expect(await claimWarmNativeInstructionCopy({ ...claim,
           ...(scenario === "foreign-company" ? { companyId: "other" } : { executionWorkspaceId: "other" }) })).toBeNull();
@@ -7110,7 +7110,7 @@ describe("native warm session supervision", () => {
         if (scenario === "final-config" || scenario === "changed-root" || scenario === "late-edit") {
           lateEdit = scenario === "late-edit";
           const changed = scenario !== "final-config" ? second : { ...second, session: { ...second.session, lifecyclePolicy: { mode: "warm" as const, idleTimeoutMs: 99_000 } } };
-          await expect(executePaperclipNativeSession({ db: leaseDb(changed), execution: changed, runnerInstanceId: identity,
+          await expect(executeClayonNativeSession({ db: leaseDb(changed), execution: changed, runnerInstanceId: identity,
             runnerExecutionTarget: target, instructionWorkingCopy: current })).rejects.toThrow(scenario === "late-edit"
               ? "native_instruction_preparation_copy_changed" : "native_instruction_preparation_configuration_changed");
           expect(state.execute).toHaveBeenCalledOnce();
@@ -7153,7 +7153,7 @@ describe("native warm session supervision", () => {
       return scenario === "wrong-capability" ? { ...current, runId: "foreign" } : current;
     });
     try {
-      await executePaperclipNativeSession({ db: leaseDb(first), execution: first, runnerInstanceId: identity, runnerExecutionTarget: target, instructionWorkingCopy: priorCopy });
+      await executeClayonNativeSession({ db: leaseDb(first), execution: first, runnerInstanceId: identity, runnerExecutionTarget: target, instructionWorkingCopy: priorCopy });
       priorCopy.hasChanges.mockClear();
       const claiming = claimWarmNativeInstructionCopy({ priorExecution: first, companyId: first.binding.companyId, agentId: first.binding.agentId,
         executionWorkspaceId: first.binding.executionWorkspaceId, workspace: first.workspace, environmentId: identity,
@@ -7203,10 +7203,10 @@ describe("native warm session supervision", () => {
       });
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
-      await executePaperclipNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
+      await executeClayonNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
         runnerEnvironment: configuredEnvironmentProjection(before) });
       const next = { ...current, binding: { ...current.binding, runId: `${name}-two` } };
-      await executePaperclipNativeSession({ db: leaseDb(next), execution: next, runnerInstanceId: name,
+      await executeClayonNativeSession({ db: leaseDb(next), execution: next, runnerInstanceId: name,
         runnerEnvironment: configuredEnvironmentProjection(after) });
       expect(first.close).toHaveBeenCalledTimes(replaced ? 1 : 0);
       if (replaced) expect(first.close).toHaveBeenCalledWith({ reason: "warm native session configuration changed" });
@@ -7242,7 +7242,7 @@ describe("native warm session supervision", () => {
       return terminalResult;
     });
     try {
-      const result = await executePaperclipNativeSession({ db: leaseDb(current), execution: current,
+      const result = await executeClayonNativeSession({ db: leaseDb(current), execution: current,
         runnerInstanceId: name, runnerExecutionTarget: target, ...(managedFiles ? { instructionWorkingCopy: copy } : {}) });
       expect(result.exitCode).toBe(1);
       // Heartbeat stops failed/cancelled sandboxes after the native executor
@@ -7264,7 +7264,7 @@ describe("native warm session supervision", () => {
         expect(options.existingSession).toBeUndefined();
         return { ...terminalResult, terminal: { runTerminalState: "succeeded" } };
       });
-      await expect(executePaperclipNativeSession({ db: leaseDb(next), execution: next,
+      await expect(executeClayonNativeSession({ db: leaseDb(next), execution: next,
         runnerInstanceId: `${name}-two`, runnerExecutionTarget: target })).resolves.toMatchObject({ exitCode: 0 });
       expect(close).toHaveBeenCalledOnce();
     } finally {
@@ -7289,7 +7289,7 @@ describe("native warm session supervision", () => {
         turnId: name, normalizedSessionId: name, providerSessionId: name, driverKind: "test", driverVersion: "1",
         nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
+    await expect(executeClayonNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
       instructionWorkingCopy: { runId: name, root: `/tmp/${name}`, checkpointWarm, collectStopped, hasChanges: vi.fn() },
     })).resolves.toMatchObject({ exitCode: 1 });
     expect(checkpointWarm).toHaveBeenCalledOnce();
@@ -7316,7 +7316,7 @@ describe("native warm session supervision", () => {
         turnId: name, normalizedSessionId: name, providerSessionId: name, driverKind: "test", driverVersion: "1",
         nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
+    await expect(executeClayonNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
       instructionWorkingCopy: { runId: name, root: `/tmp/${name}`, collectStopped, hasChanges: vi.fn(),
         checkpointWarm: async () => { throw failure; } },
     })).rejects.toBe(failure);
@@ -7343,7 +7343,7 @@ describe("native warm session supervision", () => {
         turnId: name, normalizedSessionId: name, providerSessionId: name, driverKind: "test", driverVersion: "1",
         nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
-    await expect(executePaperclipNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
+    await expect(executeClayonNativeSession({ db: leaseDb(current), execution: current, runnerInstanceId: name,
       instructionWorkingCopy: { runId: name, root: `/tmp/${name}`, checkpointWarm, collectStopped, hasChanges: vi.fn() },
     })).resolves.toMatchObject({ exitCode: 1 });
     expect(checkpointWarm).toHaveBeenCalledOnce();
@@ -7367,7 +7367,7 @@ describe("native warm session supervision", () => {
       const target = { kind: "remote" as const, transport: "sandbox" as const, environmentId: name, remoteCwd: `/tmp/${name}`, sandboxLeaseAcquisition: { outcome: "created" as const, providerLeaseId: name } };
       const copy = { runId: current.binding.runId, root: `/tmp/${name}/home`, collectStopped, checkpointWarm, hasChanges: vi.fn(async () => true) };
       state.execute.mockReset().mockImplementationOnce(async options => { await options.onSession?.(session); return result; });
-      const run = (next: NativeExecutionInputV1, nextCopy = copy) => executePaperclipNativeSession({
+      const run = (next: NativeExecutionInputV1, nextCopy = copy) => executeClayonNativeSession({
         db: leaseDb(next), execution: next, runnerInstanceId: name, runnerExecutionTarget: target, instructionWorkingCopy: nextCopy });
       await run(current);
       const reserve = (canReuse: () => Promise<boolean>, nextTarget = target) => reserveWarmNativeInstructionDirectory({
@@ -7491,7 +7491,7 @@ describe("native warm session supervision", () => {
         turnId: identity, normalizedSessionId: identity, providerSessionId: identity,
         driverKind: "test", driverVersion: "1", nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
-    const running = executePaperclipNativeSession({ db: leaseDb(warmExecution), execution: warmExecution,
+    const running = executeClayonNativeSession({ db: leaseDb(warmExecution), execution: warmExecution,
       runnerInstanceId: identity, runnerExecutionTarget: { kind: "remote", transport: "sandbox", environmentId: identity, remoteCwd: `/tmp/${identity}` },
       instructionWorkingCopy: { hasChanges, collectStopped } });
     const observed = running.then(() => null, error => error);
@@ -7523,14 +7523,14 @@ describe("native warm session supervision", () => {
     let previousHome: string | undefined;
     let isolatedHome: string;
     beforeEach(async () => {
-      previousHome = process.env.PAPERCLIP_HOME;
+      previousHome = process.env.CLAYON_HOME;
       isolatedHome = await mkdtemp(join(tmpdir(), "native-identity-transition-"));
-      process.env.PAPERCLIP_HOME = isolatedHome;
+      process.env.CLAYON_HOME = isolatedHome;
     });
     afterEach(async () => {
       await closeIdleWarmNativeSessionsForRestart();
-      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME;
-      else process.env.PAPERCLIP_HOME = previousHome;
+      if (previousHome === undefined) delete process.env.CLAYON_HOME;
+      else process.env.CLAYON_HOME = previousHome;
       await rm(isolatedHome, { recursive: true, force: true });
     });
     const result = {
@@ -7548,7 +7548,7 @@ describe("native warm session supervision", () => {
       } as NativeExecutionInputV1;
       const next = { ...base, binding: { ...base.binding, runId: `${name}-second` },
         session: { ...base.session, normalizedSessionId: `${name}-new` } };
-      const run = (input: NativeExecutionInputV1) => executePaperclipNativeSession({
+      const run = (input: NativeExecutionInputV1) => executeClayonNativeSession({
         db: leaseDb(input), execution: input, runnerInstanceId: "runner",
       });
       return { base, next, run };
@@ -7565,9 +7565,9 @@ describe("native warm session supervision", () => {
         expect(options.existingSession).toBeUndefined();
         return result;
       });
-      await executePaperclipNativeSession({ db: leaseDb(base), execution: base, runnerInstanceId: "runner" });
-      await executePaperclipNativeSession({ db: leaseDb(next), execution: next, runnerInstanceId: "runner",
-        runnerEnvironment: { PAPERCLIP_AGENT_KEY_ID: "sha256:identity-key" } });
+      await executeClayonNativeSession({ db: leaseDb(base), execution: base, runnerInstanceId: "runner" });
+      await executeClayonNativeSession({ db: leaseDb(next), execution: next, runnerInstanceId: "runner",
+        runnerEnvironment: { CLAYON_AGENT_KEY_ID: "sha256:identity-key" } });
       expect(state.execute).toHaveBeenCalledTimes(2);
     });
 
@@ -7659,7 +7659,7 @@ describe("native warm session supervision", () => {
           highestContiguousSourceSeq: 1,
         };
       });
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(),
         execution,
         runnerInstanceId: "runner",
@@ -7692,7 +7692,7 @@ describe("native warm session supervision", () => {
       };
     });
     await expect(
-      executePaperclipNativeSession({
+      executeClayonNativeSession({
         db: leaseDb(),
         execution,
         runnerInstanceId: "runner",
@@ -7738,7 +7738,7 @@ describe("native warm session supervision", () => {
       };
     });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(warmExecution),
       execution: warmExecution,
       runnerInstanceId: "runner-warm-environment-delete",
@@ -7769,9 +7769,9 @@ describe("native warm session supervision", () => {
   });
 
   it.each(["checkpoint first", "turn first"])("serializes restart checkpoint and turn admission: %s", async (order) => {
-    const stateBase = await mkdtemp(join(tmpdir(), "paperclip-close-race-"));
-    const previousPaperclipHome = process.env.PAPERCLIP_HOME;
-    process.env.PAPERCLIP_HOME = stateBase;
+    const stateBase = await mkdtemp(join(tmpdir(), "clayon-close-race-"));
+    const previousClayonHome = process.env.CLAYON_HOME;
+    process.env.CLAYON_HOME = stateBase;
     let finishClose!: () => void;
     const closing = new Promise<void>((resolve) => { finishClose = resolve; });
     const close = vi.fn(() => closing);
@@ -7805,7 +7805,7 @@ describe("native warm session supervision", () => {
         await options.onSession?.({ close });
         return result;
       });
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(first), execution: first,
         runnerInstanceId: "runner-close-race", useRunnerd: true,
       });
@@ -7821,7 +7821,7 @@ describe("native warm session supervision", () => {
       });
       const shutdown = order === "checkpoint first" ? closeIdleWarmNativeSessionsForRestart() : undefined;
       if (shutdown) await vi.waitFor(() => expect(close).toHaveBeenCalledOnce());
-      const continuation = executePaperclipNativeSession({
+      const continuation = executeClayonNativeSession({
         db: leaseDb(second), execution: second,
         runnerInstanceId: "runner-close-race", useRunnerd: true,
       }).catch((error) => error);
@@ -7842,8 +7842,8 @@ describe("native warm session supervision", () => {
     } finally {
       finishClose();
       await closeIdleWarmNativeSessionsForRestart();
-      if (previousPaperclipHome === undefined) delete process.env.PAPERCLIP_HOME;
-      else process.env.PAPERCLIP_HOME = previousPaperclipHome;
+      if (previousClayonHome === undefined) delete process.env.CLAYON_HOME;
+      else process.env.CLAYON_HOME = previousClayonHome;
       await rm(stateBase, { recursive: true, force: true });
     }
   });
@@ -7887,7 +7887,7 @@ describe("native warm session supervision", () => {
       };
     });
     let settled = false;
-    const running = executePaperclipNativeSession({
+    const running = executeClayonNativeSession({
       db: leaseDb(warmExecution),
       execution: warmExecution,
       runnerInstanceId: "runner-warm-restart-release",
@@ -7905,10 +7905,10 @@ describe("native warm session supervision", () => {
 
   it("preserves the active turn when a warm checkpoint resumes the same run", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-warm-same-run-recovery-"),
+      join(tmpdir(), "clayon-warm-same-run-recovery-"),
     );
-    const previousPaperclipHome = process.env.PAPERCLIP_HOME;
-    process.env.PAPERCLIP_HOME = stateBase;
+    const previousClayonHome = process.env.CLAYON_HOME;
+    process.env.CLAYON_HOME = stateBase;
     const activeRun = {
       ...execution,
       binding: {
@@ -7972,7 +7972,7 @@ describe("native warm session supervision", () => {
       });
 
     try {
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(activeRun),
         execution: activeRun,
         runnerInstanceId: "runner-warm-same-run-recovery",
@@ -7981,17 +7981,17 @@ describe("native warm session supervision", () => {
         timeout: 500,
       });
       await expect(
-        executePaperclipNativeSession({
+        executeClayonNativeSession({
           db: leaseDb(activeRun),
           execution: activeRun,
           runnerInstanceId: "runner-warm-same-run-recovery",
         }),
       ).resolves.toBeDefined();
     } finally {
-      if (previousPaperclipHome === undefined) {
-        delete process.env.PAPERCLIP_HOME;
+      if (previousClayonHome === undefined) {
+        delete process.env.CLAYON_HOME;
       } else {
-        process.env.PAPERCLIP_HOME = previousPaperclipHome;
+        process.env.CLAYON_HOME = previousClayonHome;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -8047,12 +8047,12 @@ describe("native warm session supervision", () => {
         return result;
       });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(base),
       execution: base,
       runnerInstanceId: "runner",
     });
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(second),
       execution: second,
       runnerInstanceId: "runner",
@@ -8115,12 +8115,12 @@ describe("native warm session supervision", () => {
         return result;
       });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(first),
       execution: first,
       runnerInstanceId: "runner-native-warm-quarantined",
     });
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(second),
       execution: second,
       runnerInstanceId: "runner-native-warm-quarantined",
@@ -8217,7 +8217,7 @@ describe("native warm session supervision", () => {
       brokerReady,
     }) => {
       githubAccess.create.mockReset().mockResolvedValue({
-        env: { PAPERCLIP_GITHUB_BROKER_TOKEN: "stable-session-capability" },
+        env: { CLAYON_GITHUB_BROKER_TOKEN: "stable-session-capability" },
         ready: brokerReady,
         activate: githubAccess.activate.mockReset().mockImplementation(() => vi.fn()),
         stop: githubAccess.stop.mockReset().mockResolvedValue(undefined),
@@ -8228,12 +8228,12 @@ describe("native warm session supervision", () => {
         firstMode !== secondMode ||
         firstNetwork !== secondNetwork;
       const stateBase = await mkdtemp(
-        join(tmpdir(), "paperclip-runnerd-warm-authority-"),
+        join(tmpdir(), "clayon-runnerd-warm-authority-"),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      const previousPaperclipHome = process.env.PAPERCLIP_HOME;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
-      process.env.PAPERCLIP_HOME = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      const previousClayonHome = process.env.CLAYON_HOME;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
+      process.env.CLAYON_HOME = stateBase;
       const firstClose = vi.fn(async () => undefined);
       const firstSession = { close: firstClose };
       const first = {
@@ -8278,7 +8278,7 @@ describe("native warm session supervision", () => {
               kind: "remote" as const,
               transport: "sandbox" as const,
               environmentId: "environment-runnerd-warm-authority",
-              remoteCwd: "/home/daytona/paperclip-workspace",
+              remoteCwd: "/home/daytona/clayon-workspace",
               runner: { execute: vi.fn() },
             }
       ) as never;
@@ -8339,14 +8339,14 @@ describe("native warm session supervision", () => {
         });
 
       try {
-        await executePaperclipNativeSession({
+        await executeClayonNativeSession({
           db: leaseDb(first),
           execution: first,
           runnerEnvironment: {
-            PAPERCLIP_GITHUB_AUTH_MODE: firstMode,
-            PAPERCLIP_RUNNER_NETWORK_ACCESS: firstNetwork,
+            CLAYON_GITHUB_AUTH_MODE: firstMode,
+            CLAYON_RUNNER_NETWORK_ACCESS: firstNetwork,
             ...(firstBroker
-              ? { PAPERCLIP_GITHUB_BROKER_TOKEN: "first-run-capability" }
+              ? { CLAYON_GITHUB_BROKER_TOKEN: "first-run-capability" }
               : {}),
           },
           runnerInstanceId: "runner-runnerd-warm",
@@ -8361,7 +8361,7 @@ describe("native warm session supervision", () => {
             await readdir(stateBase, { recursive: true })
           ).find(
             (path) =>
-              path.includes("paperclip-runner/sessions/") &&
+              path.includes("clayon-runner/sessions/") &&
               path.endsWith(".json"),
           );
           expect(checkpointFile).toBeDefined();
@@ -8434,14 +8434,14 @@ describe("native warm session supervision", () => {
             }),
           }),
         } as unknown as Db;
-        await executePaperclipNativeSession({
+        await executeClayonNativeSession({
           db: continuationDb,
           execution: second,
           runnerEnvironment: {
-            PAPERCLIP_GITHUB_AUTH_MODE: secondMode,
-            PAPERCLIP_RUNNER_NETWORK_ACCESS: secondNetwork,
+            CLAYON_GITHUB_AUTH_MODE: secondMode,
+            CLAYON_RUNNER_NETWORK_ACCESS: secondNetwork,
             ...(secondBroker
-              ? { PAPERCLIP_GITHUB_BROKER_TOKEN: "second-run-capability" }
+              ? { CLAYON_GITHUB_BROKER_TOKEN: "second-run-capability" }
               : {}),
           },
           runnerInstanceId: "runner-runnerd-warm",
@@ -8481,14 +8481,14 @@ describe("native warm session supervision", () => {
         }
       } finally {
         if (previousStateDirectory === undefined) {
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
         } else {
-          process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         }
-        if (previousPaperclipHome === undefined) {
-          delete process.env.PAPERCLIP_HOME;
+        if (previousClayonHome === undefined) {
+          delete process.env.CLAYON_HOME;
         } else {
-          process.env.PAPERCLIP_HOME = previousPaperclipHome;
+          process.env.CLAYON_HOME = previousClayonHome;
         }
         await rm(stateBase, { recursive: true, force: true });
       }
@@ -8552,12 +8552,12 @@ describe("native warm session supervision", () => {
         return result;
       });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(base),
       execution: base,
       runnerInstanceId: "runner-first",
     });
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(second),
       execution: second,
       runnerInstanceId: "runner-second",
@@ -8646,14 +8646,14 @@ describe("native warm session supervision", () => {
     // Advance that window only after proving the permission change closed it.
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(base),
         execution: base,
         managedAiCredentialIdentity: "first-identity",
         runnerInstanceId: "runner",
       });
       contract?.mockReturnValue(currentRuntimeContract);
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(lowered),
         execution: lowered,
         managedAiCredentialIdentity: change === "managed credential" ? "second-identity" : "first-identity",
@@ -8682,7 +8682,7 @@ describe("native session bounded recovery", () => {
     const updateIssue = vi.fn(async () => ({ status: "blocked", statusVersion: 7 }));
     const service = vi.spyOn(issueServiceModule, "issueService").mockReturnValue({ update: updateIssue } as unknown as ReturnType<typeof issueServiceModule.issueService>);
     try {
-    await expect(executePaperclipNativeSession({ db: leaseDb(execution, {}, {}, updates), execution, runnerInstanceId: "runner" })).rejects.toBe(failure);
+    await expect(executeClayonNativeSession({ db: leaseDb(execution, {}, {}, updates), execution, runnerInstanceId: "runner" })).rejects.toBe(failure);
     expect(updates.find(update => update.table === nativeRunFinalizations && update.values.phase === "terminal_failure")?.values).toMatchObject({
       failureCode: "native_permission_declined", nextAttemptAt: null,
       failureDetail: { recoverable: false, nextAction: expect.stringContaining("Automatic recovery is stopped") },
@@ -8705,7 +8705,7 @@ describe("native session bounded recovery", () => {
       throw failureKind === "permission-declined" ? new NativePermissionDeclinedError() : new Error("native_finalization_missing: session returned no semantic result");
     });
     state.upsertRecoveryAction.mockClear();
-    await expect(executePaperclipNativeSession({
+    await expect(executeClayonNativeSession({
       db: leaseDb(execution, {}, stop, updates), execution, runnerInstanceId: "stop-before-completion",
     })).rejects.toThrow("native_cancellation_pending_recovery");
     expect(updates.some(update => update.table === heartbeatRuns && update.values.status === "failed")).toBe(false);
@@ -8725,7 +8725,7 @@ describe("native session bounded recovery", () => {
       throw new Error("native_session_cancelled");
     });
     state.upsertRecoveryAction.mockClear();
-    await expect(executePaperclipNativeSession({
+    await expect(executeClayonNativeSession({
       db: leaseDb(execution, {}, stop, updates), execution, runnerInstanceId: "stop-before-first-turn",
     })).rejects.toThrow("native_cancellation_pending_recovery");
     expect(updates.some(update => update.table === heartbeatRuns && update.values.status === "failed")).toBe(false);
@@ -8814,7 +8814,7 @@ describe("native session bounded recovery", () => {
         >);
       try {
         await expect(
-          executePaperclipNativeSession({
+          executeClayonNativeSession({
             db,
             execution,
             runnerInstanceId: "runner",
@@ -8934,9 +8934,9 @@ describe("native session bounded recovery", () => {
       update: vi.fn(async () => ({ status: "blocked", statusVersion: 1 })),
     } as unknown as ReturnType<typeof issueServiceModule.issueService>);
     try {
-      await expect(executePaperclipNativeSession({
+      await expect(executeClayonNativeSession({
         db: leaseDb(execution, {}, {}, updates), execution, runnerInstanceId: "runner",
-        runnerEnvironment: { PAPERCLIP_AGENT_PRIVATE_KEY: privateKeyPem },
+        runnerEnvironment: { CLAYON_AGENT_PRIVATE_KEY: privateKeyPem },
         onLog: async (_stream, text) => { logs.push(text); },
       })).rejects.toBe(failure);
       expect(updates.some(entry => entry.table === nativeRunFinalizations && entry.values.failureDetail)).toBe(true);
@@ -8963,7 +8963,7 @@ describe("native session bounded recovery", () => {
       >);
     try {
       await expect(
-        executePaperclipNativeSession({
+        executeClayonNativeSession({
           db: leaseDb(execution, {}, {}, updates),
           execution,
           runnerInstanceId: "runner",
@@ -9026,7 +9026,7 @@ describe("native session bounded recovery", () => {
         );
       }
       await expect(
-        executePaperclipNativeSession({
+        executeClayonNativeSession({
           db: leaseDb(execution, {}, {}, updates),
           execution,
           runnerInstanceId: "runner",
@@ -9378,7 +9378,7 @@ describe("native process ownership", () => {
       highestContiguousSourceSeq: 1,
       usage: null,
     });
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(),
       execution,
       runnerInstanceId: "runner-current-wake-receipt",
@@ -9394,7 +9394,7 @@ describe("native process ownership", () => {
     "refuses native provider claims after the run became %s", async status => {
       const updates: Array<{ table: unknown; values: Record<string, unknown> }> = [];
       state.createBackend.mockClear();
-      await expect(executePaperclipNativeSession({
+      await expect(executeClayonNativeSession({
         db: leaseDb(execution, {}, {}, updates, {}, status), execution, runnerInstanceId: "late-startup",
       })).rejects.toThrow();
       expect(state.createBackend).not.toHaveBeenCalled();
@@ -9405,7 +9405,7 @@ describe("native process ownership", () => {
 
   it("fences a cancellation request before its terminal status commits", async () => {
     state.createBackend.mockClear();
-    await expect(executePaperclipNativeSession({
+    await expect(executeClayonNativeSession({
       db: leaseDb(execution, {}, { startupCancellation: { requestedAt: new Date().toISOString() } }),
       execution, runnerInstanceId: "cancel-requested",
     })).rejects.toThrow();
@@ -9444,7 +9444,7 @@ describe("native process ownership", () => {
       return { kind: "test", onSpawn: options.onSpawn };
     });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(execution, {}, {}, updates),
       execution,
       runnerInstanceId: "runner",
@@ -9521,7 +9521,7 @@ describe("native process ownership", () => {
         highestContiguousSourceSeq: 1,
       });
 
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: leaseDb(providerExecution),
         execution: providerExecution,
         runnerInstanceId: "runner",
@@ -9544,7 +9544,7 @@ describe("native process ownership", () => {
     state.createBackend.mockClear();
 
     await expect(
-      executePaperclipNativeSession({
+      executeClayonNativeSession({
         db: leaseDb(piExecution),
         execution: piExecution,
         runnerInstanceId: "runner",
@@ -9559,18 +9559,18 @@ describe("runnerd provider runtime wiring", () => {
   let previousStateDirectory: string | undefined;
 
   beforeEach(async () => {
-    previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
+    previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
     isolatedStateDirectory = await mkdtemp(
-      join(tmpdir(), "paperclip-runnerd-wiring-"),
+      join(tmpdir(), "clayon-runnerd-wiring-"),
     );
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = isolatedStateDirectory;
+    process.env.CLAYON_RUNNER_STATE_DIR = isolatedStateDirectory;
   });
 
   afterEach(async () => {
     if (previousStateDirectory === undefined) {
-      delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+      delete process.env.CLAYON_RUNNER_STATE_DIR;
     } else {
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+      process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
     }
     await rm(isolatedStateDirectory, { recursive: true, force: true });
   });
@@ -9629,9 +9629,9 @@ describe("runnerd provider runtime wiring", () => {
   });
 
   it("copies back and removes Grok credentials from the exact ACPX launch home", async () => {
-    const priorHome = process.env.PAPERCLIP_HOME;
+    const priorHome = process.env.CLAYON_HOME;
     const privateRoot = await realpath(isolatedStateDirectory);
-    process.env.PAPERCLIP_HOME = privateRoot;
+    process.env.CLAYON_HOME = privateRoot;
     const managedHome = join(privateRoot, "company-login");
     await mkdir(managedHome, { mode: 0o700 });
     await writeFile(join(managedHome, "auth.json"), "fixture-old-login", { mode: 0o600 });
@@ -9666,8 +9666,8 @@ describe("runnerd provider runtime wiring", () => {
         await expect(access(join(agentHome, name))).rejects.toMatchObject({ code: "ENOENT" });
       }
     } finally {
-      if (priorHome === undefined) delete process.env.PAPERCLIP_HOME;
-      else process.env.PAPERCLIP_HOME = priorHome;
+      if (priorHome === undefined) delete process.env.CLAYON_HOME;
+      else process.env.CLAYON_HOME = priorHome;
     }
   });
 
@@ -9711,14 +9711,14 @@ describe("runnerd provider runtime wiring", () => {
           contentType: "text/plain",
           byteSize: 12,
           workspaceRelativePath:
-            ".paperclip-inbound/run/00000000-0000-4000-8000-000000009202",
+            ".clayon-inbound/run/00000000-0000-4000-8000-000000009202",
           unavailableReason: null,
         },
       ],
       cleanup,
     });
     state.renderNativeRunnerStagedAttachmentPrompt.mockReturnValueOnce(
-      "Paperclip native attachment access: staged.",
+      "Clayon native attachment access: staged.",
     );
     state.execute.mockReset().mockResolvedValueOnce({
       result: { summary: "completed" },
@@ -9745,7 +9745,7 @@ describe("runnerd provider runtime wiring", () => {
     } as NativeExecutionInputV1;
 
     await expect(
-      executePaperclipNativeSession({
+      executeClayonNativeSession({
         db: leaseDb(stagedExecution),
         execution: stagedExecution,
         runnerInstanceId: "runner-attachment-cleanup",
@@ -9847,7 +9847,7 @@ describe("runnerd provider runtime wiring", () => {
         }),
     );
 
-    const active = executePaperclipNativeSession({
+    const active = executeClayonNativeSession({
       db: leaseDb(first),
       execution: first,
       runnerInstanceId: "runner-runnerd-overlap",
@@ -9862,7 +9862,7 @@ describe("runnerd provider runtime wiring", () => {
       }),
     );
     await expect(
-      executePaperclipNativeSession({
+      executeClayonNativeSession({
         db: leaseDb(second),
         execution: second,
         runnerInstanceId: "runner-runnerd-overlap",
@@ -9875,10 +9875,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("carries the verified runner and lease binding into a projectless continuation", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-runner-binding-"),
+      join(tmpdir(), "clayon-runner-binding-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const prior = {
       ...execution,
       binding: {
@@ -9900,7 +9900,7 @@ describe("runnerd provider runtime wiring", () => {
         executionWorkspaceId: "run-projectless-next",
       },
     } as NativeExecutionInputV1;
-    const remoteCwd = "/home/daytona/paperclip-workspace";
+    const remoteCwd = "/home/daytona/clayon-workspace";
     try {
       state.createBackend.mockClear();
       state.createTransport.mockClear();
@@ -9958,7 +9958,7 @@ describe("runnerd provider runtime wiring", () => {
         }),
       } as unknown as Db;
 
-      await executePaperclipNativeSession({
+      await executeClayonNativeSession({
         db: continuationDb,
         execution: continuation,
         runnerInstanceId: "runner-new-heartbeat",
@@ -10009,24 +10009,24 @@ describe("runnerd provider runtime wiring", () => {
       );
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
   });
 
   it.each([
-    { PAPERCLIP_NATIVE_MCP_NAME: "paperclip-assigned" },
-    { PAPERCLIP_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/test" },
-    { PAPERCLIP_NATIVE_MCP_TOKEN: "private-run-token" },
+    { CLAYON_NATIVE_MCP_NAME: "clayon-assigned" },
+    { CLAYON_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/test" },
+    { CLAYON_NATIVE_MCP_TOKEN: "private-run-token" },
   ])("rejects partial remote assigned MCP bindings", async (runnerEnvironment) => {
     await expect(createRunnerdBackend({
       db: leaseDb(execution), execution, runnerInstanceId: "runner-partial-mcp", runnerEnvironment,
       runnerExecutionTarget: {
         kind: "remote", transport: "sandbox", providerKey: "daytona",
-        leaseId: "lease-partial-mcp", remoteCwd: "/home/daytona/paperclip-workspace",
+        leaseId: "lease-partial-mcp", remoteCwd: "/home/daytona/clayon-workspace",
         runner: { execute: vi.fn() },
       } as never,
     })).rejects.toThrow("assigned native MCP launch binding is incomplete");
@@ -10042,13 +10042,13 @@ describe("runnerd provider runtime wiring", () => {
     await createRunnerdBackend({
       db: leaseDb(execution), execution, runnerInstanceId: "runner-assigned-mcp",
       runnerEnvironment: {
-        PAPERCLIP_NATIVE_MCP_NAME: "paperclip-assigned",
-        PAPERCLIP_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/assigned-test",
-        PAPERCLIP_NATIVE_MCP_TOKEN: "private-run-token",
+        CLAYON_NATIVE_MCP_NAME: "clayon-assigned",
+        CLAYON_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/assigned-test",
+        CLAYON_NATIVE_MCP_TOKEN: "private-run-token",
       },
       runnerExecutionTarget: {
         kind: "remote", transport: "sandbox", providerKey: "daytona",
-        leaseId: "lease-assigned-mcp", remoteCwd: "/home/daytona/paperclip-workspace",
+        leaseId: "lease-assigned-mcp", remoteCwd: "/home/daytona/clayon-workspace",
         runner: { execute: vi.fn() },
       } as never,
     });
@@ -10058,9 +10058,9 @@ describe("runnerd provider runtime wiring", () => {
     expect(state.toolAuthorityDefinitions).toHaveBeenCalledWith(expect.objectContaining({ assignedMcpTools }));
     state.createBackend.mock.calls[0]![1].codexTransportFactory!();
     const options = state.createTransport.mock.calls[0]![0] as { environment: NodeJS.ProcessEnv };
-    expect(options.environment.PAPERCLIP_NATIVE_MCP_NAME).toBeUndefined();
-    expect(options.environment.PAPERCLIP_NATIVE_MCP_URL).toBeUndefined();
-    expect(options.environment.PAPERCLIP_NATIVE_MCP_TOKEN).toBeUndefined();
+    expect(options.environment.CLAYON_NATIVE_MCP_NAME).toBeUndefined();
+    expect(options.environment.CLAYON_NATIVE_MCP_URL).toBeUndefined();
+    expect(options.environment.CLAYON_NATIVE_MCP_TOKEN).toBeUndefined();
   });
 
   it("makes remote authority archival idempotent and returns the archived state", async () => {
@@ -10070,7 +10070,7 @@ describe("runnerd provider runtime wiring", () => {
       transport: "sandbox" as const,
       providerKey: "daytona",
       leaseId: "lease-authority-archive",
-      remoteCwd: "/home/daytona/paperclip-workspace",
+      remoteCwd: "/home/daytona/clayon-workspace",
       runner: { execute: remoteExecute },
     } as never;
     const normalizedSessionId = execution.session.normalizedSessionId;
@@ -10103,7 +10103,7 @@ describe("runnerd provider runtime wiring", () => {
       expect.objectContaining({
         externallySandboxed: true,
         environment: expect.objectContaining({
-          PAPERCLIP_RUNNER_EXTERNAL_SANDBOX: "1",
+          CLAYON_RUNNER_EXTERNAL_SANDBOX: "1",
         }),
       }),
     );
@@ -10164,8 +10164,8 @@ describe("runnerd provider runtime wiring", () => {
       runnerInstanceId: "runner-local-workspace",
       runnerEnvironment: {
         HOME: "/home/runner",
-        PAPERCLIP_WORKSPACE_CWD: "/untrusted/configured-workspace",
-        PAPERCLIP_RUNNER_EXTERNAL_SANDBOX: "1",
+        CLAYON_WORKSPACE_CWD: "/untrusted/configured-workspace",
+        CLAYON_RUNNER_EXTERNAL_SANDBOX: "1",
       },
     });
 
@@ -10175,7 +10175,7 @@ describe("runnerd provider runtime wiring", () => {
     expect(state.createTransport).toHaveBeenCalledWith(
       expect.objectContaining({
         environment: expect.objectContaining({
-          PAPERCLIP_WORKSPACE_CWD: execution.workspace.cwd,
+          CLAYON_WORKSPACE_CWD: execution.workspace.cwd,
         }),
       }),
     );
@@ -10183,16 +10183,16 @@ describe("runnerd provider runtime wiring", () => {
       environment: NodeJS.ProcessEnv;
     };
     expect(
-      localTransportOptions.environment.PAPERCLIP_RUNNER_EXTERNAL_SANDBOX,
+      localTransportOptions.environment.CLAYON_RUNNER_EXTERNAL_SANDBOX,
     ).toBeUndefined();
   });
 
   it("atomically migrates legacy unscoped state only for its exact durable run identity", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-legacy-runner-state-"),
+      join(tmpdir(), "clayon-legacy-runner-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const legacyExecution = {
       ...execution,
       binding: {
@@ -10249,7 +10249,7 @@ describe("runnerd provider runtime wiring", () => {
         }),
       );
       expect(state.createTransport.mock.calls[0]![0].runnerBinary).toBe(
-        "/tmp/paperclip-runnerd",
+        "/tmp/clayon-runnerd",
       );
       expect(state.resolveRunnerBinary).toHaveBeenCalled();
 
@@ -10272,9 +10272,9 @@ describe("runnerd provider runtime wiring", () => {
       );
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -10282,10 +10282,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("migrates the former company/session scope into the full native session scope", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-company-session-state-"),
+      join(tmpdir(), "clayon-company-session-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const legacyExecution = {
       ...execution,
       binding: {
@@ -10346,9 +10346,9 @@ describe("runnerd provider runtime wiring", () => {
       ).resolves.toBeUndefined();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -10356,10 +10356,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it.each([0, 2048])("migrates a suspended prior-run authority in the same full session scope with %i retained events", async (eventCount) => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-prior-run-session-state-"),
+      join(tmpdir(), "clayon-prior-run-session-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const priorExecution = {
       ...execution,
       binding: {
@@ -10499,9 +10499,9 @@ describe("runnerd provider runtime wiring", () => {
       );
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -10554,10 +10554,10 @@ describe("runnerd provider runtime wiring", () => {
     "uses remote prior-run backup when acceptance=$accepted direct=$directLifecycle backup=$backupLifecycle corrupt=$corrupt",
     async ({ directLifecycle, backupLifecycle, corrupt, accepted }) => {
       const stateBase = await mkdtemp(
-        join(tmpdir(), "paperclip-remote-prior-run-state-"),
+        join(tmpdir(), "clayon-remote-prior-run-state-"),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       const priorExecution = {
         ...execution,
         binding: {
@@ -10601,7 +10601,7 @@ describe("runnerd provider runtime wiring", () => {
         transport: "sandbox" as const,
         providerKey: "daytona",
         leaseId: "environment-lease-remote-prior-scope",
-        remoteCwd: "/home/daytona/paperclip-workspace",
+        remoteCwd: "/home/daytona/clayon-workspace",
         runner: {
           execute: vi.fn(),
         },
@@ -10712,9 +10712,9 @@ describe("runnerd provider runtime wiring", () => {
         );
       } finally {
         if (previousStateDirectory === undefined) {
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
         } else {
-          process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         }
         await rm(stateBase, { recursive: true, force: true });
       }
@@ -10723,10 +10723,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("quarantines legacy prior-run state only after the database proves a terminal owner in the same full scope", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-legacy-terminal-unsuspended-state-"),
+      join(tmpdir(), "clayon-legacy-terminal-unsuspended-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const priorExecution = {
       ...execution,
       binding: {
@@ -10811,9 +10811,9 @@ describe("runnerd provider runtime wiring", () => {
       expect(state.createTransport).not.toHaveBeenCalled();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -10821,10 +10821,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("rejects scoped prior-run state after restart while its heartbeat is still running", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-running-prior-run-state-"),
+      join(tmpdir(), "clayon-running-prior-run-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const priorExecution = {
       ...execution,
       binding: {
@@ -10906,9 +10906,9 @@ describe("runnerd provider runtime wiring", () => {
       expect(state.createTransport).not.toHaveBeenCalled();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -10942,10 +10942,10 @@ describe("runnerd provider runtime wiring", () => {
     "automatically recovers only a proven settled local session: %s",
     async (scenario) => {
       const stateBase = await mkdtemp(
-        join(tmpdir(), "paperclip-quiescent-recovery-"),
+        join(tmpdir(), "clayon-quiescent-recovery-"),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       const priorExecution = {
         ...execution,
         binding: {
@@ -11048,7 +11048,7 @@ describe("runnerd provider runtime wiring", () => {
                       scenario === "missing process identity" ? null : 90000001,
                     processGroupId: 90000001,
                     contextSnapshot: {
-                      paperclipEnvironment: { driver: "local" },
+                      clayonEnvironment: { driver: "local" },
                     },
                   },
                 ]),
@@ -11223,8 +11223,8 @@ describe("runnerd provider runtime wiring", () => {
       } finally {
         processKill.mockRestore();
         if (previousStateDirectory === undefined)
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-        else process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
+        else process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         await rm(stateBase, { recursive: true, force: true });
       }
     },
@@ -11232,10 +11232,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("quarantines scoped prior-run state when the heartbeat is terminal but runnerd is not suspended", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-terminal-unsuspended-state-"),
+      join(tmpdir(), "clayon-terminal-unsuspended-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const priorExecution = {
       ...execution,
       binding: {
@@ -11366,9 +11366,9 @@ describe("runnerd provider runtime wiring", () => {
       expect(state.createTransport).not.toHaveBeenCalled();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -11376,10 +11376,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("resumes a matching scoped authority with valid history above 64 MiB", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-current-scoped-state-"),
+      join(tmpdir(), "clayon-current-scoped-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const currentExecution = {
       ...execution,
       binding: {
@@ -11496,9 +11496,9 @@ describe("runnerd provider runtime wiring", () => {
       );
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -11517,10 +11517,10 @@ describe("runnerd provider runtime wiring", () => {
     "preserves unadmitted forward warm-transition evidence (%s)",
     async (variant) => {
       const stateBase = await mkdtemp(
-        join(tmpdir(), "paperclip-pending-warm-transition-"),
+        join(tmpdir(), "clayon-pending-warm-transition-"),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       const currentExecution = {
         ...execution,
         binding: {
@@ -11630,8 +11630,8 @@ describe("runnerd provider runtime wiring", () => {
         expect(state.createTransport).not.toHaveBeenCalled();
       } finally {
         if (previousStateDirectory === undefined)
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-        else process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
+        else process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         await rm(stateBase, { recursive: true, force: true });
       }
     },
@@ -11641,10 +11641,10 @@ describe("runnerd provider runtime wiring", () => {
     "quarantines an exact-run runner state with %s",
     async (caseName) => {
       const stateBase = await mkdtemp(
-        join(tmpdir(), `paperclip-${caseName}-runner-state-`),
+        join(tmpdir(), `clayon-${caseName}-runner-state-`),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       const currentExecution = {
         ...execution,
         binding: {
@@ -11715,9 +11715,9 @@ describe("runnerd provider runtime wiring", () => {
         expect(state.createTransport).not.toHaveBeenCalled();
       } finally {
         if (previousStateDirectory === undefined) {
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
         } else {
-          process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         }
         await rm(stateBase, { recursive: true, force: true });
       }
@@ -11735,10 +11735,10 @@ describe("runnerd provider runtime wiring", () => {
     "fails closed on %s durable identity in an existing scoped root",
     async (caseName) => {
       const stateBase = await mkdtemp(
-        join(tmpdir(), `paperclip-${caseName}-scoped-state-`),
+        join(tmpdir(), `clayon-${caseName}-scoped-state-`),
       );
-      const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       const scopedExecution = {
         ...execution,
         binding: {
@@ -11892,9 +11892,9 @@ describe("runnerd provider runtime wiring", () => {
         expect(state.createTransport).not.toHaveBeenCalled();
       } finally {
         if (previousStateDirectory === undefined) {
-          delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+          delete process.env.CLAYON_RUNNER_STATE_DIR;
         } else {
-          process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+          process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
         }
         await rm(stateBase, { recursive: true, force: true });
       }
@@ -11903,10 +11903,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("does not quarantine an unsafe scoped-root symlink", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-symlink-scoped-state-"),
+      join(tmpdir(), "clayon-symlink-scoped-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const scopedExecution = {
       ...execution,
       binding: {
@@ -11956,9 +11956,9 @@ describe("runnerd provider runtime wiring", () => {
       expect(state.createTransport).not.toHaveBeenCalled();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -11966,10 +11966,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("rejects a suspended prior-run authority whose persisted execution belongs to another full session scope", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-prior-run-mismatched-state-"),
+      join(tmpdir(), "clayon-prior-run-mismatched-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const currentExecution = {
       ...execution,
       binding: {
@@ -12049,9 +12049,9 @@ describe("runnerd provider runtime wiring", () => {
       await expect(access(join(stateBase, "quarantine"))).rejects.toThrow();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -12059,10 +12059,10 @@ describe("runnerd provider runtime wiring", () => {
 
   it("fails closed instead of claiming a mismatched former session scope", async () => {
     const stateBase = await mkdtemp(
-      join(tmpdir(), "paperclip-mismatched-session-state-"),
+      join(tmpdir(), "clayon-mismatched-session-state-"),
     );
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const currentExecution = {
       ...execution,
       binding: {
@@ -12112,9 +12112,9 @@ describe("runnerd provider runtime wiring", () => {
       await expect(access(legacyRoot)).resolves.toBeUndefined();
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -12194,9 +12194,9 @@ describe("runnerd provider runtime wiring", () => {
   });
 
   it("scopes local durable sessions by agent, workspace, and provider profile while reusing them across runs", async () => {
-    const stateBase = await mkdtemp(join(tmpdir(), "paperclip-session-scope-"));
-    const previousStateDirectory = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    const stateBase = await mkdtemp(join(tmpdir(), "clayon-session-scope-"));
+    const previousStateDirectory = process.env.CLAYON_RUNNER_STATE_DIR;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     const scopedExecution = (input: {
       runId: string;
       agentId?: string;
@@ -12216,7 +12216,7 @@ describe("runnerd provider runtime wiring", () => {
         },
         workspace: {
           cwd: "/tmp/native-session-scope",
-          repoUrl: "https://example.test/paperclip.git",
+          repoUrl: "https://example.test/clayon.git",
           repoRef: "refs/heads/main",
           branchName: "main",
         },
@@ -12368,9 +12368,9 @@ describe("runnerd provider runtime wiring", () => {
       expect(tracedRuns).toEqual([continuation.binding.runId, continuation.binding.runId]);
     } finally {
       if (previousStateDirectory === undefined) {
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
       } else {
-        process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateDirectory;
+        process.env.CLAYON_RUNNER_STATE_DIR = previousStateDirectory;
       }
       await rm(stateBase, { recursive: true, force: true });
     }
@@ -12419,7 +12419,7 @@ describe("runnerd provider runtime wiring", () => {
   });
 
   it("uses the remote workspace for both the runner backend and native session", async () => {
-    const remoteCwd = "/home/daytona/paperclip-workspace";
+    const remoteCwd = "/home/daytona/clayon-workspace";
     const remoteExecution = {
       ...execution,
       binding: { ...execution.binding, runId: "run-remote-workspace-test" },
@@ -12431,7 +12431,7 @@ describe("runnerd provider runtime wiring", () => {
         workMode: "standard",
       },
       workspace: {
-        cwd: "/host/paperclip-workspace",
+        cwd: "/host/clayon-workspace",
         repoUrl: null,
         repoRef: null,
         branchName: null,
@@ -12465,7 +12465,7 @@ describe("runnerd provider runtime wiring", () => {
       highestContiguousSourceSeq: 1,
     });
 
-    await executePaperclipNativeSession({
+    await executeClayonNativeSession({
       db: leaseDb(remoteExecution),
       execution: remoteExecution,
       runnerInstanceId: "runner",
@@ -12485,7 +12485,7 @@ describe("runnerd provider runtime wiring", () => {
           strictHostKeyChecking: true,
         },
       },
-      runnerPublicUrl: "wss://paperclip.example.test",
+      runnerPublicUrl: "wss://clayon.example.test",
     });
 
     expect(state.createBackend).toHaveBeenCalledWith(
@@ -12508,9 +12508,9 @@ describe("runnerd provider runtime wiring", () => {
     backendOptions.codexTransportFactory!();
     expect(state.createTransport).toHaveBeenCalledWith(
       expect.objectContaining({
-        runnerBinary: "/tmp/paperclip-runnerd",
+        runnerBinary: "/tmp/clayon-runnerd",
         environment: expect.objectContaining({
-          PAPERCLIP_WORKSPACE_CWD: remoteCwd,
+          CLAYON_WORKSPACE_CWD: remoteCwd,
         }),
       }),
     );
@@ -12518,10 +12518,10 @@ describe("runnerd provider runtime wiring", () => {
       environment: NodeJS.ProcessEnv;
     };
     expect(
-      sshTransportOptions.environment.PAPERCLIP_RUNNER_EXTERNAL_SANDBOX,
+      sshTransportOptions.environment.CLAYON_RUNNER_EXTERNAL_SANDBOX,
     ).toBeUndefined();
     expect(state.createTransport.mock.calls[0]![0].runnerBinary).not.toBe(
-      `${remoteCwd}/.paperclip-runtime/paperclip-runner/bin/paperclip-runnerd`,
+      `${remoteCwd}/.clayon-runtime/clayon-runner/bin/clayon-runnerd`,
     );
   });
 
@@ -12530,8 +12530,8 @@ describe("runnerd provider runtime wiring", () => {
     const remoteExecute = vi.fn(async (command: { command: string; args?: string[] }) => {
       if (command.args?.[0] === "--build-metadata") return {
         exitCode: 0, timedOut: false, stdout: JSON.stringify({
-          schema: "paperclip-runner/runnerd-build-metadata/v1", binaryName: "paperclip-runnerd",
-          packageName: "@paperclipai/paperclip-runner", binaryContractVersion: 2,
+          schema: "clayon-runner/runnerd-build-metadata/v1", binaryName: "clayon-runnerd",
+          packageName: "@clayon/clayon-runner", binaryContractVersion: 2,
           durableSessionCapabilities: ["unlimited_runtime", "connection_lease_renewal"],
           prpTransportModes: ["listen_ws"],
         }), stderr: "",
@@ -12591,14 +12591,14 @@ describe("runnerd provider runtime wiring", () => {
   it.each(["fresh", "existing_state", "symlink_parent", "wrong_identity", "connected", "pending_turn", "remote_probe_failed", "backup_present"])(
     "bootstraps only an untouched provider session in a resumed workspace lease: %s", async (scenario) => {
     const remoteCwd = join(isolatedStateDirectory, "remote");
-    const runtimeRoot = join(remoteCwd, ".paperclip-runtime", "paperclip-runner");
+    const runtimeRoot = join(remoteCwd, ".clayon-runtime", "clayon-runner");
     await mkdir(runtimeRoot, { recursive: true });
     const sessionRoot = join(runtimeRoot, "sessions", createHash("sha256").update(execution.session.normalizedSessionId!).digest("hex"));
     if (scenario === "existing_state") await mkdir(sessionRoot, { recursive: true });
     if (scenario === "symlink_parent") await symlink(isolatedStateDirectory, join(runtimeRoot, "sessions"));
     const syncIn = vi.fn(async () => undefined);
     const remoteExecute = vi.fn(async (command: { command: string; args?: string[] }) => {
-      if (command.args?.[2] === "paperclip-runner-claim-unstarted-session") {
+      if (command.args?.[2] === "clayon-runner-claim-unstarted-session") {
         let exitCode = 1;
         if (scenario !== "remote_probe_failed") {
           try { execFileSync("sh", command.args, { stdio: "pipe" }); exitCode = 0; } catch {}
@@ -12607,8 +12607,8 @@ describe("runnerd provider runtime wiring", () => {
       }
       if (command.args?.[0] === "--build-metadata") return {
         exitCode: 0, timedOut: false, stdout: JSON.stringify({
-          schema: "paperclip-runner/runnerd-build-metadata/v1", binaryName: "paperclip-runnerd",
-          packageName: "@paperclipai/paperclip-runner", binaryContractVersion: 2,
+          schema: "clayon-runner/runnerd-build-metadata/v1", binaryName: "clayon-runnerd",
+          packageName: "@clayon/clayon-runner", binaryContractVersion: 2,
           durableSessionCapabilities: ["unlimited_runtime", "connection_lease_renewal"],
           prpTransportModes: ["listen_ws"],
         }), stderr: "",
@@ -12616,7 +12616,7 @@ describe("runnerd provider runtime wiring", () => {
       if (command.args?.[0] === "--version") return {
         exitCode: 0, timedOut: false, stdout: "codex-cli 0.160.0", stderr: "",
       };
-      if (command.args?.[2] === "paperclip-runner-launch") {
+      if (command.args?.[2] === "clayon-runner-launch") {
         throw new Error("fixture_stop_after_launch_staging");
       }
       if (command.args?.[1]?.includes("base64")) return {
@@ -12658,7 +12658,7 @@ describe("runnerd provider runtime wiring", () => {
       await expect(options.prepareExternalRunnerState()).resolves.toBeUndefined();
       expect(remoteExecute.mock.calls.some(([command]) => command.args?.[1]?.includes("install -d"))).toBe(false);
       expect(syncIn).not.toHaveBeenCalled();
-      const claimCommand = remoteExecute.mock.calls.find(([command]) => command.args?.[2] === "paperclip-runner-claim-unstarted-session")![0];
+      const claimCommand = remoteExecute.mock.calls.find(([command]) => command.args?.[2] === "clayon-runner-claim-unstarted-session")![0];
       expect((await lstat(sessionRoot)).mode & 0o777).toBe(0o700);
       // The exact same claim cannot silently reopen an existing partial root.
       expect(() => execFileSync("sh", claimCommand.args!, { stdio: "pipe" })).toThrow();
@@ -12674,7 +12674,7 @@ describe("runnerd provider runtime wiring", () => {
       await expect(options.prepareExternalRunnerState()).resolves.toBeUndefined();
       expect(syncIn).not.toHaveBeenCalled();
       const launched = options.runnerProcessLauncher({
-        command: "/controller/paperclip-runnerd", args: [], cwd: "/controller", environment: {},
+        command: "/controller/clayon-runnerd", args: [], cwd: "/controller", environment: {},
       });
       await expect(launched.completion).rejects.toThrow("fixture_stop_after_launch_staging");
       for (const name of ["auth.json", "config.toml"]) {
@@ -12687,7 +12687,7 @@ describe("runnerd provider runtime wiring", () => {
       expect(syncIn).toHaveBeenCalledWith([expect.objectContaining({
         files: [expect.objectContaining({ sourcePath: join(options.stateDirectory!, "runtime-context.json"), kind: "file" })],
       })]);
-      expect(remoteExecute.mock.calls.filter(([command]) => command.args?.[2] === "paperclip-runner-claim-unstarted-session")).toHaveLength(1);
+      expect(remoteExecute.mock.calls.filter(([command]) => command.args?.[2] === "clayon-runner-claim-unstarted-session")).toHaveLength(1);
     } else {
       await expect(options.prepareExternalRunnerState()).rejects.toThrow("runner_harness_state_mismatch");
       expect(remoteExecute.mock.calls.some(([command]) => command.args?.[1]?.includes("install -d"))).toBe(false);
@@ -12707,7 +12707,7 @@ describe("runnerd provider runtime wiring", () => {
     const needsReplacement = image !== "current" && image !== "preinstalled-exact" && !exactRetained;
     // The mocked remote executes metadata probes; artifact staging only needs bytes.
     // Keep this regression independent of a locally compiled Rust runner binary.
-    const controllerArtifact = join(isolatedStateDirectory, "paperclip-runnerd");
+    const controllerArtifact = join(isolatedStateDirectory, "clayon-runnerd");
     if (needsReplacement || retained || image === "preinstalled-exact") {
       await writeFile(controllerArtifact, "fixture runner artifact");
       state.resolveRunnerBinary.mockReturnValueOnce(controllerArtifact);
@@ -12726,11 +12726,11 @@ describe("runnerd provider runtime wiring", () => {
           };
         } else if (command.args?.[0] === "--build-metadata") {
           stdout = JSON.stringify({
-            schema: "paperclip-runner/runnerd-build-metadata/v1",
-            binaryName: "paperclip-runnerd",
-            packageName: "@paperclipai/paperclip-runner",
+            schema: "clayon-runner/runnerd-build-metadata/v1",
+            binaryName: "clayon-runnerd",
+            packageName: "@clayon/clayon-runner",
             binaryContractVersion: 2,
-            durableSessionCapabilities: (image === "stale" || retained) && command.command === "/usr/local/bin/paperclip-runnerd"
+            durableSessionCapabilities: (image === "stale" || retained) && command.command === "/usr/local/bin/clayon-runnerd"
               ? undefined
               : ["unlimited_runtime", "connection_lease_renewal"],
             prpTransportModes: ["listen_ws"],
@@ -12738,7 +12738,7 @@ describe("runnerd provider runtime wiring", () => {
         } else if (command.args?.[0] === "--version") {
           if (
             command.command.endsWith(
-              "/.paperclip-runtime/paperclip-runner/bin/codex",
+              "/.clayon-runtime/clayon-runner/bin/codex",
             )
           ) {
             throw new Error("reached-preinstalled-codex-verification");
@@ -12746,11 +12746,11 @@ describe("runnerd provider runtime wiring", () => {
           stdout = `codex-cli ${version}`;
         } else if (script === "uname -s; uname -m") {
           stdout = `${process.platform === "darwin" ? "Darwin" : "Linux"}\n${process.arch === "arm64" ? "arm64" : "x86_64"}\n`;
-        } else if (script.includes("command -v paperclip-runnerd")) {
-          stdout = image === "missing" ? "" : "/usr/local/bin/paperclip-runnerd\n";
+        } else if (script.includes("command -v clayon-runnerd")) {
+          stdout = image === "missing" ? "" : "/usr/local/bin/clayon-runnerd\n";
         } else if (script.includes("command -v codex")) {
-          stdout = script.includes("/opt/paperclip-runner/bin/codex")
-            ? "/opt/paperclip-runner/bin/codex\n"
+          stdout = script.includes("/opt/clayon-runner/bin/codex")
+            ? "/opt/clayon-runner/bin/codex\n"
             : "/usr/local/bin/codex\n";
         } else if (
           !script.includes("ln -sfn") &&
@@ -12810,22 +12810,22 @@ describe("runnerd provider runtime wiring", () => {
       expect(syncIn).toHaveBeenCalledWith([expect.objectContaining({
         files: [expect.objectContaining({
           sourcePath: controllerArtifact,
-          targetPath: "/workspace/.paperclip-runtime/paperclip-runner/bin/paperclip-runnerd",
+          targetPath: "/workspace/.clayon-runtime/clayon-runner/bin/clayon-runnerd",
         })],
       })]);
     } else {
       expect(syncIn).not.toHaveBeenCalled();
     }
     if (exactRetained) {
-      expect(remoteExecute.mock.calls.some(([call]) => call.args?.[1]?.includes("command -v paperclip-runnerd"))).toBe(false);
+      expect(remoteExecute.mock.calls.some(([call]) => call.args?.[1]?.includes("command -v clayon-runnerd"))).toBe(false);
       expect(remoteExecute).toHaveBeenCalledWith(expect.objectContaining({
-        command: "/workspace/.paperclip-runtime/paperclip-runner/bin/paperclip-runnerd",
+        command: "/workspace/.clayon-runtime/clayon-runner/bin/clayon-runnerd",
         args: ["--build-metadata"],
       }));
     }
     expect(remoteExecute).toHaveBeenCalledWith(
       expect.objectContaining({
-        command: "/opt/paperclip-runner/bin/codex",
+        command: "/opt/clayon-runner/bin/codex",
         args: ["--version"],
       }),
     );
@@ -12854,7 +12854,7 @@ describe("runnerd provider runtime wiring", () => {
     // with "not supported when using Codex with a ChatGPT account". The
     // verifier names the stale image instead of letting the run fail as an
     // account problem.
-    const preparedModel = recover ? resolvePaperclipRunnerNativeProviderInput({
+    const preparedModel = recover ? resolveClayonRunnerNativeProviderInput({
       backend: "codex_app_server", adapterConfig: { provider: "codex", model }, codexCliVersion: version,
     }).model : model;
     const gatedExecution = {
@@ -12870,24 +12870,24 @@ describe("runnerd provider runtime wiring", () => {
         const script = command.args?.[1] ?? "";
         if (command.args?.[0] === "--build-metadata") {
           stdout = JSON.stringify({
-            schema: "paperclip-runner/runnerd-build-metadata/v1",
-            binaryName: "paperclip-runnerd",
-            packageName: "@paperclipai/paperclip-runner",
+            schema: "clayon-runner/runnerd-build-metadata/v1",
+            binaryName: "clayon-runnerd",
+            packageName: "@clayon/clayon-runner",
             binaryContractVersion: 2,
             durableSessionCapabilities: ["unlimited_runtime", "connection_lease_renewal"],
             prpTransportModes: ["listen_ws"],
           });
         } else if (command.args?.[0] === "--version") {
-          if (command.command.endsWith("/.paperclip-runtime/paperclip-runner/bin/codex")) {
+          if (command.command.endsWith("/.clayon-runtime/clayon-runner/bin/codex")) {
             throw new Error("reached-preinstalled-codex-verification");
           }
           stdout = `codex-cli ${version}`;
         } else if (script === "uname -s; uname -m") {
           stdout = `${process.platform === "darwin" ? "Darwin" : "Linux"}\n${process.arch === "arm64" ? "arm64" : "x86_64"}\n`;
-        } else if (script.includes("command -v paperclip-runnerd")) {
-          stdout = "/usr/local/bin/paperclip-runnerd\n";
+        } else if (script.includes("command -v clayon-runnerd")) {
+          stdout = "/usr/local/bin/clayon-runnerd\n";
         } else if (script.includes("command -v codex")) {
-          stdout = "/opt/paperclip-runner/bin/codex\n";
+          stdout = "/opt/clayon-runner/bin/codex\n";
         } else if (!script.includes("ln -sfn") && !script.includes("paperclip_codex_launcher_tmp")) {
           throw new Error(`unexpected command: ${command.command}`);
         }
@@ -12924,7 +12924,7 @@ describe("runnerd provider runtime wiring", () => {
     }
     await expect(transport.controlPlaneRegistration({})).rejects.toThrow(
       floor
-        ? `runner_remote_provider_artifact_incompatible: ${model} requires Codex ${floor} or newer with ChatGPT sign-in, received ${version} from the sandbox image; promote a sandbox image with Codex 0.160.0 or configure PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@0.160.0`
+        ? `runner_remote_provider_artifact_incompatible: ${model} requires Codex ${floor} or newer with ChatGPT sign-in, received ${version} from the sandbox image; promote a sandbox image with Codex 0.160.0 or configure CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@0.160.0`
         : "reached-preinstalled-codex-verification",
     );
     if (floor) {
@@ -12936,12 +12936,12 @@ describe("runnerd provider runtime wiring", () => {
   });
 
   it("binds a remote launch to the configured controller-owned runner artifact", async () => {
-    const remoteCwd = "/home/daytona/paperclip-workspace";
-    const controllerArtifact = "/controller/artifacts/paperclip-runnerd";
+    const remoteCwd = "/home/daytona/clayon-workspace";
+    const controllerArtifact = "/controller/artifacts/clayon-runnerd";
     const remoteExecution = {
       ...execution,
       binding: { ...execution.binding, runId: "run-remote-runner-artifact" },
-      workspace: { ...execution.workspace, cwd: "/host/paperclip-workspace" },
+      workspace: { ...execution.workspace, cwd: "/host/clayon-workspace" },
     } as NativeExecutionInputV1;
 
     await createRunnerdBackend({
@@ -12980,7 +12980,7 @@ describe("runnerd provider runtime wiring", () => {
     "requires a build-owned provider pack identity before launching remote %s",
     async (providerKind, provider, driverKind) => {
       state.bundledPackManifestPath = join(tmpdir(), randomUUID(), "provider-pack.json");
-      const remoteCwd = "/home/daytona/paperclip-workspace";
+      const remoteCwd = "/home/daytona/clayon-workspace";
       const remoteProviderExecution = {
         ...execution,
         binding: {
@@ -13019,7 +13019,7 @@ describe("runnerd provider runtime wiring", () => {
         }),
       ).rejects.toThrow(providerKind === "opencode"
         ? "runner_remote_provider_artifact_incompatible: provider-pack.json is unreadable"
-        : "runner_remote_provider_artifact_incompatible: configure PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH",
+        : "runner_remote_provider_artifact_incompatible: configure CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH",
       );
       expect(state.createBackend).not.toHaveBeenCalled();
     },
@@ -13085,7 +13085,7 @@ describe("runnerd provider runtime wiring", () => {
       acpxExecution,
       expect.objectContaining({
         acpxRuntimeDirectory: expect.stringContaining(
-          "/runtime/paperclip-runner/acpx",
+          "/runtime/clayon-runner/acpx",
         ),
         acpxDynamicToolHandler: expect.any(Function),
       }),

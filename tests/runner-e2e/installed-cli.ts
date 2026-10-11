@@ -7,8 +7,8 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { CREDENTIAL_NAMES, type MatrixExecution } from "./types.js";
 
-export const installedCliKeys = ["PAPERCLIP_RUNNER_E2E_INSTALLED_CLI", "PAPERCLIP_RUNNER_E2E_INSTALLED_CLI_SHA256", "PAPERCLIP_RUNNER_E2E_INSTALLED_SERVER_ROOT", "PAPERCLIP_RUNNER_E2E_INSTALLED_SERVER_SHA256"] as const;
-const overrideKeys = ["PAPERCLIP_RUNNER_BINARY", "PAPERCLIP_RUNNER_REMOTE_BINARY_PATH", "PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH", "PAPERCLIP_RUNNER_ACPX_QUALIFICATION", "PAPERCLIP_ACPX_BUILTIN_ROOT", "PAPERCLIP_ACPX_PROVIDER_PACKAGE_ROOT", "PAPERCLIP_ACPX_PROVIDER_PACKAGE_MANIFEST"] as const;
+export const installedCliKeys = ["CLAYON_RUNNER_E2E_INSTALLED_CLI", "CLAYON_RUNNER_E2E_INSTALLED_CLI_SHA256", "CLAYON_RUNNER_E2E_INSTALLED_SERVER_ROOT", "CLAYON_RUNNER_E2E_INSTALLED_SERVER_SHA256"] as const;
+const overrideKeys = ["CLAYON_RUNNER_BINARY", "CLAYON_RUNNER_REMOTE_BINARY_PATH", "CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH", "CLAYON_RUNNER_ACPX_QUALIFICATION", "CLAYON_ACPX_BUILTIN_ROOT", "CLAYON_ACPX_PROVIDER_PACKAGE_ROOT", "CLAYON_ACPX_PROVIDER_PACKAGE_MANIFEST"] as const;
 const suites = new Set(["extended-harnesses", "pi-native", "pi-controls", "rich-acp-warm-continuity"]);
 export function usesInstalledCli(env: NodeJS.ProcessEnv): boolean {
   return installedCliKeys.some(key => env[key] !== undefined);
@@ -32,23 +32,23 @@ async function readOwned(path: string, maximum: number): Promise<Buffer> {
 export async function verifyInstalledCli(env: NodeJS.ProcessEnv, executions: readonly MatrixExecution[]) {
   if (!usesInstalledCli(env)) return undefined;
   assertInstalledCliSelection(env, executions);
-  const entry = env.PAPERCLIP_RUNNER_E2E_INSTALLED_CLI!;
-  const serverRoot = env.PAPERCLIP_RUNNER_E2E_INSTALLED_SERVER_ROOT!;
+  const entry = env.CLAYON_RUNNER_E2E_INSTALLED_CLI!;
+  const serverRoot = env.CLAYON_RUNNER_E2E_INSTALLED_SERVER_ROOT!;
   for (const path of [entry, serverRoot]) if (!isAbsolute(path) || resolve(path) !== path || await realpath(path) !== path) throw new Error("Installed CLI proof paths must be canonical and unlinked");
   if (!entry.endsWith("/dist/index.js")) throw new Error("Installed CLI proof requires published dist/index.js");
   const cliRoot = resolve(dirname(entry), "..");
   const cli = JSON.parse((await readOwned(join(cliRoot, "package.json"), 65536)).toString());
-  const manifest = findPackageJSON("@paperclipai/server", pathToFileURL(entry));
+  const manifest = findPackageJSON("@clayon/server", pathToFileURL(entry));
   if (!manifest || await realpath(manifest) !== join(serverRoot, "package.json")) throw new Error("Installed CLI resolved a foreign server dependency");
   const server = JSON.parse((await readOwned(join(serverRoot, "package.json"), 65536)).toString());
-  if (cli.name !== "paperclipai" || cli.bin?.paperclipai !== "./dist/index.js" || server.name !== "@paperclipai/server" || typeof cli.version !== "string" || cli.version !== server.version || server.exports?.["."]?.import !== "./dist/index.js") throw new Error("Installed CLI/server public package identity differs");
+  if (cli.name !== "clayon" || cli.bin?.clayon !== "./dist/index.js" || server.name !== "@clayon/server" || typeof cli.version !== "string" || cli.version !== server.version || server.exports?.["."]?.import !== "./dist/index.js") throw new Error("Installed CLI/server public package identity differs");
   const serverEntry = join(serverRoot, "dist/index.js");
   if (await realpath(serverEntry) !== serverEntry) throw new Error("Installed server entrypoint escapes its package");
   const digest = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
   const cliSha256 = digest(await readOwned(entry, 64 * 1024 * 1024));
   const serverSha256 = digest(await readOwned(serverEntry, 16 * 1024 * 1024));
-  if (cliSha256 !== env.PAPERCLIP_RUNNER_E2E_INSTALLED_CLI_SHA256 || serverSha256 !== env.PAPERCLIP_RUNNER_E2E_INSTALLED_SERVER_SHA256) throw new Error("Installed CLI/server bytes differ from their reviewed pins");
-  return { schema: "paperclip.e2e.installed-cli-admission/v1", entry, cliRoot, cliSha256, serverRoot, serverEntry, serverSha256, version: cli.version, defaultRuntimeResolution: true, qualificationOverride: false };
+  if (cliSha256 !== env.CLAYON_RUNNER_E2E_INSTALLED_CLI_SHA256 || serverSha256 !== env.CLAYON_RUNNER_E2E_INSTALLED_SERVER_SHA256) throw new Error("Installed CLI/server bytes differ from their reviewed pins");
+  return { schema: "clayon.e2e.installed-cli-admission/v1", entry, cliRoot, cliSha256, serverRoot, serverEntry, serverSha256, version: cli.version, defaultRuntimeResolution: true, qualificationOverride: false };
 }
 
 /** This prep lane cannot create agents or read the normal local credential file. */

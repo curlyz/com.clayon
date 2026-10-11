@@ -2,22 +2,22 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { afterAll, describe, expect, it } from "vitest";
-import type { Db } from "@paperclipai/db";
-import { PaperclipRunnerToolAuthority } from "../services/native-runtime/paperclip-runner-tool-authority.js";
-import { buildNativeModelEnvelope, parseNativeExecutionInput, type NativeExecutionInput } from "../../../packages/paperclip-runner/src/contracts/native-execution.js";
-import type { PersistedNativeSession } from "../../../packages/paperclip-runner/src/contracts/native-session-backend.js";
-import { NATIVE_RUNTIME_ASSET_SCHEMA, PAPERCLIP_EXECUTION_PROMPT, PAPERCLIP_EXECUTION_PROMPT_REVISION, canonicalNativeRuntimeContextDigest, nativeRuntimePromptDigest } from "../../../packages/paperclip-runner/src/contracts/runtime-context.js";
-import { createRunnerdNativeSessionBackend } from "../../../packages/paperclip-runner/src/backends/codex-native-backend.js";
-import { resolveQualifiedAcpxProfile } from "../../../packages/paperclip-runner/src/drivers/acpx/qualified-profiles.js";
-import { FakeCodexTransport, WORKSPACE } from "../../../packages/paperclip-runner/src/drivers/codex/codex-app-server-driver.test-support.js";
-import { startOpenCodeMcpBridge } from "../../../packages/paperclip-runner/src/drivers/opencode/mcp-bridge.js";
+import type { Db } from "@clayon/db";
+import { ClayonRunnerToolAuthority } from "../services/native-runtime/clayon-runner-tool-authority.js";
+import { buildNativeModelEnvelope, parseNativeExecutionInput, type NativeExecutionInput } from "../../../packages/clayon-runner/src/contracts/native-execution.js";
+import type { PersistedNativeSession } from "../../../packages/clayon-runner/src/contracts/native-session-backend.js";
+import { NATIVE_RUNTIME_ASSET_SCHEMA, CLAYON_EXECUTION_PROMPT, CLAYON_EXECUTION_PROMPT_REVISION, canonicalNativeRuntimeContextDigest, nativeRuntimePromptDigest } from "../../../packages/clayon-runner/src/contracts/runtime-context.js";
+import { createRunnerdNativeSessionBackend } from "../../../packages/clayon-runner/src/backends/codex-native-backend.js";
+import { resolveQualifiedAcpxProfile } from "../../../packages/clayon-runner/src/drivers/acpx/qualified-profiles.js";
+import { FakeCodexTransport, WORKSPACE } from "../../../packages/clayon-runner/src/drivers/codex/codex-app-server-driver.test-support.js";
+import { startOpenCodeMcpBridge } from "../../../packages/clayon-runner/src/drivers/opencode/mcp-bridge.js";
 
 // Production catalog selection, scripted provider transport: this measures what
-// Paperclip delivers, not the vendor's private prompt, tokenizer or billing.
+// Clayon delivers, not the vendor's private prompt, tokenizer or billing.
 const root = new URL("../../../", import.meta.url);
 const sha = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 const identity = { companyId: "company", agentId: "agent", issueId: "issue", runId: "run", sessionId: "session" };
-const tools = new PaperclipRunnerToolAuthority({} as Db, {
+const tools = new ClayonRunnerToolAuthority({} as Db, {
   ...identity, apiToolsEnabled: true, workspaceRoot: WORKSPACE,
 }).definitions();
 const { qualificationModel: _model, reportedModelId: _reportedModel, permissionPolicy: _policy, ...profile } = resolveQualifiedAcpxProfile("claude", "claude-sonnet-5");
@@ -40,7 +40,7 @@ function execution(provider: NativeExecutionInput["provider"]): NativeExecutionI
   const entry = readFileSync(new URL("server/src/onboarding-assets/default/AGENTS.md", root), "utf8");
   writeFileSync(`${WORKSPACE}/AGENTS.md`, entry);
   const context = {
-    prompt: { revision: PAPERCLIP_EXECUTION_PROMPT_REVISION, text: PAPERCLIP_EXECUTION_PROMPT, digest: nativeRuntimePromptDigest() },
+    prompt: { revision: CLAYON_EXECUTION_PROMPT_REVISION, text: CLAYON_EXECUTION_PROMPT, digest: nativeRuntimePromptDigest() },
     instructions: { entryPath: "AGENTS.md", bundle: { schema: NATIVE_RUNTIME_ASSET_SCHEMA, rootPath: WORKSPACE, digest: sha(entry), manifestDigest: sha(entry), fileCount: 1, totalBytes: Buffer.byteLength(entry) } },
     skills: [], mcp: { assignmentSetId: "none", digest: "0".repeat(64), bindingId: null },
   };
@@ -77,7 +77,7 @@ describe("production native procedure instruction measurement", () => {
       "hire_agent", "list_agents", "create_task", "set_dependencies", "connections_search", "connection_request", "register_deliverable",
     ]));
     expect(new Set(tools.map(tool => tool.name)).size).toBe(tools.length);
-    const withoutApi = new PaperclipRunnerToolAuthority({} as Db, { ...identity, apiToolsEnabled: false }).definitions();
+    const withoutApi = new ClayonRunnerToolAuthority({} as Db, { ...identity, apiToolsEnabled: false }).definitions();
     expect(withoutApi.some(tool => tool.name === "hire_agent")).toBe(false);
   });
 
@@ -88,7 +88,7 @@ describe("production native procedure instruction measurement", () => {
       const captured = transport(provider);
       captured.readResponse = { thread: { id: "thread-1", sessionId: "provider-session-1", cwd: WORKSPACE, turns: [] } };
       const current = phase === "continuation" ? parseNativeExecutionInput({ ...input, continuationPrompt: "Review the teammate's saved result." }) : input;
-      const backend = createRunnerdNativeSessionBackend(current, { transportFactory: () => captured, dynamicTools: tools, environment: { PAPERCLIP_WORKSPACE_CWD: WORKSPACE } });
+      const backend = createRunnerdNativeSessionBackend(current, { transportFactory: () => captured, dynamicTools: tools, environment: { CLAYON_WORKSPACE_CWD: WORKSPACE } });
       const recovery = checkpoint ? await backend.recoverSession!(checkpoint, { signal: new AbortController().signal }) : null;
       if (recovery) expect(recovery.recovered).toBe(true);
       const session = recovery?.session ?? await backend.openSession({ identity, workingDirectory: WORKSPACE });
@@ -103,7 +103,7 @@ describe("production native procedure instruction measurement", () => {
         const delivered = setup.dynamicTools as Record<string, unknown>[];
         expect(delivered.filter(tool => !["paperclip_finish", "paperclip_block"].includes(String(tool.name)))).toEqual(tools);
         expect(delivered).toHaveLength(tools.length + 2);
-        expect(instructions).toContain(PAPERCLIP_EXECUTION_PROMPT);
+        expect(instructions).toContain(CLAYON_EXECUTION_PROMPT);
         expect(JSON.parse((turn.input as {text: string}[])[0]!.text)).toEqual(envelope);
         receipts.push({ provider: provider.kind, phase, instructions: measure(instructions), tools: measure(delivered), input: measure(turn.input),
           fullProjection: measure({ instructions, tools: delivered, input: turn.input }), deliveredToolCount: delivered.length });
@@ -127,23 +127,23 @@ describe("production native procedure instruction measurement", () => {
 });
 
 afterAll(() => {
-  const output = process.env.PAPERCLIP_NATIVE_PROCEDURE_MEASUREMENT;
+  const output = process.env.CLAYON_NATIVE_PROCEDURE_MEASUREMENT;
   if (!output) return;
   if (receipts.length !== 9 || !mcpReceipt) throw new Error("Refusing incomplete instruction measurement");
   const paths = [
     "server/src/onboarding-assets/default/AGENTS.md",
-    "packages/paperclip-runner/src/contracts/runtime-context.ts",
-    "packages/paperclip-runner/src/protocol-actions/hire-agent.ts",
-    "packages/paperclip-runner/src/protocol-actions/create-task.ts",
-    "packages/paperclip-runner/src/protocol-actions/set-dependencies.ts",
-    "packages/paperclip-runner/src/catalog/semantic-action-catalog.ts",
-    "packages/paperclip-runner/generated/semantic-action-catalog.json",
-    "packages/paperclip-runner/generated/capability/semantic-tool-contracts.json",
-    "packages/paperclip-runner/protocol/fixtures/evals/native-execution-seeded.json",
-    "packages/paperclip-runner/protocol/manifest.json",
-    "packages/paperclip-runner/src/backends/codex-native-backend.ts",
-    "packages/paperclip-runner/src/drivers/opencode/mcp-bridge.ts",
-    "server/src/services/native-runtime/paperclip-runner-tool-authority.ts",
+    "packages/clayon-runner/src/contracts/runtime-context.ts",
+    "packages/clayon-runner/src/protocol-actions/hire-agent.ts",
+    "packages/clayon-runner/src/protocol-actions/create-task.ts",
+    "packages/clayon-runner/src/protocol-actions/set-dependencies.ts",
+    "packages/clayon-runner/src/catalog/semantic-action-catalog.ts",
+    "packages/clayon-runner/generated/semantic-action-catalog.json",
+    "packages/clayon-runner/generated/capability/semantic-tool-contracts.json",
+    "packages/clayon-runner/protocol/fixtures/evals/native-execution-seeded.json",
+    "packages/clayon-runner/protocol/manifest.json",
+    "packages/clayon-runner/src/backends/codex-native-backend.ts",
+    "packages/clayon-runner/src/drivers/opencode/mcp-bridge.ts",
+    "server/src/services/native-runtime/clayon-runner-tool-authority.ts",
     "server/src/services/connection-tool-definitions.ts",
     "packages/shared/src/connection-intent-guidance.ts",
     "packages/shared/src/validators/connection-intent.ts",

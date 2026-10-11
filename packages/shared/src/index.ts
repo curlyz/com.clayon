@@ -1196,9 +1196,9 @@ export type {
   SuggestTasksResult,
   AskUserQuestionsQuestionOption,
   AskUserQuestionsQuestion,
-  PaperclipQuestionSetOption,
-  PaperclipQuestionSetQuestion,
-  PaperclipQuestionSetPayload,
+  ClayonQuestionSetOption,
+  ClayonQuestionSetQuestion,
+  ClayonQuestionSetPayload,
   AskUserQuestionsPayload,
   AskUserQuestionsAnswer,
   AskUserQuestionsResult,
@@ -1628,7 +1628,7 @@ export type {
   PluginApiRouteDeclaration,
   PluginObjectReferenceRefreshPolicy,
   PluginObjectReferenceProviderDeclaration,
-  PaperclipPluginManifestV1,
+  ClayonPluginManifestV1,
   PluginRecord,
   PluginDatabaseNamespaceRecord,
   PluginMigrationRecord,
@@ -1785,7 +1785,7 @@ export {
   WEEKLY_RETENTION_PRESETS,
   MONTHLY_RETENTION_PRESETS,
   DEFAULT_BACKUP_RETENTION,
-  PAPERCLIP_CLOUD_MANAGED_BY,
+  CLAYON_CLOUD_MANAGED_BY,
 } from "./types/instance.js";
 
 export type {
@@ -2017,7 +2017,7 @@ export {
   suggestTasksResultSchema,
   askUserQuestionsQuestionOptionSchema,
   askUserQuestionsQuestionSchema,
-  paperclipQuestionSetPayloadSchema,
+  clayonQuestionSetPayloadSchema,
   askUserQuestionsPayloadSchema,
   askUserQuestionsAnswerSchema,
   askUserQuestionsResultSchema,
@@ -2587,7 +2587,7 @@ export {
 } from "./routine-variables.js";
 
 export {
-  paperclipConfigSchema,
+  clayonConfigSchema,
   configMetaSchema,
   llmConfigSchema,
   databaseBackupConfigSchema,
@@ -2602,12 +2602,12 @@ export {
   secretsLocalEncryptedConfigSchema,
   telemetryConfigSchema,
   updatesConfigSchema,
-  mergePaperclipConfig,
-  findPaperclipConfigKeyWarnings,
+  mergeClayonConfig,
+  findClayonConfigKeyWarnings,
   type ConfigKeyWarning,
   type TelemetryConfig,
   type UpdatesConfig,
-  type PaperclipConfig,
+  type ClayonConfig,
   type LlmConfig,
   type DatabaseBackupConfig,
   type DatabaseConfig,
@@ -2789,7 +2789,7 @@ export {
   isRuntimeExposureHmrPort,
   isAllowedRuntimeExposurePort,
   deriveViteHmrPort,
-  derivePaperclipViteHmrPort,
+  deriveClayonViteHmrPort,
   buildRuntimeExposureUrl,
   buildRuntimeExposureHealthUrl,
 } from "./runtime-exposure/ports.js";
@@ -2798,7 +2798,7 @@ export {
   RUNTIME_EXPOSURE_BIND_HOST,
   commandSelectsBindMode,
   forceLoopbackBindInCommand,
-  isPaperclipDevRunnerCommand,
+  isClayonDevRunnerCommand,
   rewriteUrlHostToLoopback,
 } from "./runtime-exposure/loopback-bind.js";
 export { ACCOUNT_HANDLE_MAX_LENGTH, toAccountHandle } from "./account-handle.js";

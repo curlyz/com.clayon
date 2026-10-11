@@ -65,7 +65,7 @@ export async function startPublishedCanary({
   signal = new AbortController().signal,
 }) {
   if (!version || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version)) {
-    throw new Error("An exact published Paperclip version is required");
+    throw new Error("An exact published Clayon version is required");
   }
   let prefix;
   try {
@@ -80,7 +80,7 @@ export async function startPublishedCanary({
         prefix = await mkdtemp(path.join(workspace, "npm-install-"));
         const result = await run(process.platform === "win32" ? "npm.cmd" : "npm", [
           "install", "--prefix", prefix, "--no-save", "--no-package-lock", "--no-audit", "--no-fund",
-          ...(attempt > 1 ? ["--prefer-online"] : []), `paperclipai@${version}`,
+          ...(attempt > 1 ? ["--prefer-online"] : []), `clayon@${version}`,
         ], { env, signal: installSignal, captureStderr: true });
         if (result.code === 0) break;
         const codes = [...result.stderr.matchAll(/^npm (?:error|ERR!) code ([A-Z0-9_]+)\r?$/gm)];
@@ -99,7 +99,7 @@ export async function startPublishedCanary({
     signal.throwIfAborted();
     // Start the installed CLI exactly once. Its own failures must never trigger
     // another onboarding run or another dependency-install attempt.
-    const result = await run(path.join(prefix, "node_modules", ".bin", process.platform === "win32" ? "paperclipai.cmd" : "paperclipai"),
+    const result = await run(path.join(prefix, "node_modules", ".bin", process.platform === "win32" ? "clayon.cmd" : "clayon"),
       ["onboard", "--yes", "--data-dir", dataDir], { env, signal });
     if (result.code !== 0) throw new Error(`Canary onboarding failed (exit ${result.code ?? result.signal})`);
   } finally {

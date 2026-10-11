@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { agents, agentWakeupRequests, companies, completionContracts, createDb, environmentLeases, heartbeatRuns, issueComments, issueRecoveryActions, issues, nativeRunFinalizations, statusDecisionEffects, statusDecisions } from "@paperclipai/db";
-import type { ControlPlanePort, NativeExecutionInputV1, PrpEvent, PrpTerminalState } from "@paperclipai/paperclip-runner";
+import { agents, agentWakeupRequests, companies, completionContracts, createDb, environmentLeases, heartbeatRuns, issueComments, issueRecoveryActions, issues, nativeRunFinalizations, statusDecisionEffects, statusDecisions } from "@clayon/db";
+import type { ControlPlanePort, NativeExecutionInputV1, PrpEvent, PrpTerminalState } from "@clayon/clayon-runner";
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
-import { CONTROL_PLANE_CONFORMANCE_RESULT } from "../../vendor/paperclip-runner/testing.js";
+import { CONTROL_PLANE_CONFORMANCE_RESULT } from "../../vendor/clayon-runner/testing.js";
 
 const provider = vi.hoisted(() => ({ execute: vi.fn() }));
-vi.mock("../../vendor/paperclip-runner/index.js", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../vendor/paperclip-runner/index.js")>()), executeNativeSession: provider.execute,
+vi.mock("../../vendor/clayon-runner/index.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../vendor/clayon-runner/index.js")>()), executeNativeSession: provider.execute,
 }));
-import { executePaperclipNativeSession } from "./native-session-executor.js";
+import { executeClayonNativeSession } from "./native-session-executor.js";
 import { buildNativeCompletionContract } from "./completion-contracts.js";
 import { prepareNativeHeartbeatRun } from "./prepare-native-run.js";
 import { finalizeNativeRun } from "./native-run-finalizer.js";
@@ -69,7 +69,7 @@ describe("durable native provider capacity retry", () => {
       return { result, terminal, turnId: native.turnId, normalizedSessionId: native.normalizedSessionId, providerSessionId: "fixture-session", driverKind: "codex_app_server", driverVersion: "fixture", nativeEventCount: 1, highestContiguousSourceSeq: 1, usage: null };
     });
     const unexpected = async () => { throw new Error("Unexpected provider call"); };
-    const adapter = await executePaperclipNativeSession({ db, execution, runnerInstanceId: native.runnerInstanceId, backend: { descriptor: unexpected, openSession: unexpected } });
+    const adapter = await executeClayonNativeSession({ db, execution, runnerInstanceId: native.runnerInstanceId, backend: { descriptor: unexpected, openSession: unexpected } });
     expect(adapter).toMatchObject({ errorCode: "native_provider_overloaded", errorMessage: NATIVE_PROVIDER_OVERLOADED_MESSAGE });
     const [persisted] = await db.select().from(heartbeatRuns).where(eq(heartbeatRuns.id, runId));
     expect(persisted.errorCode).toBeNull(); // Restart before adapter metadata is saved.
@@ -129,7 +129,7 @@ describe("durable native provider capacity retry", () => {
     await db.insert(issueComments).values({ id: commentId, companyId, issueId, authorUserId: "capacity-owner", authorType: "user", body: "Continue the investigation." });
     const consumedContext = { issueId, wakeCommentId: commentId, wakeCommentIds: [commentId],
       explicitUserContinuation: { previousRunId: olderRunId, commentId },
-      previousRunId: olderRunId, resumeIntent: "continue", paperclipTurnContext: "Previously delivered context" };
+      previousRunId: olderRunId, resumeIntent: "continue", clayonTurnContext: "Previously delivered context" };
     await db.insert(heartbeatRuns).values([
       { id: olderRunId, companyId, agentId, status: "failed", contextSnapshot: { issueId } },
       { id: runId, companyId, agentId, responsibleUserId: "capacity-owner", contextSnapshot: consumedContext },
@@ -139,7 +139,7 @@ describe("durable native provider capacity retry", () => {
     expect(retry.contextSnapshot).not.toHaveProperty("explicitUserContinuation");
     expect(retry.contextSnapshot).not.toHaveProperty("wakeCommentId");
     expect(retry.contextSnapshot).not.toHaveProperty("resumeIntent");
-    expect(retry.contextSnapshot).not.toHaveProperty("paperclipTurnContext");
+    expect(retry.contextSnapshot).not.toHaveProperty("clayonTurnContext");
     const continuation = await buildExecutionContinuation({ db, companyId, issueId, agentId,
       runId: retry.id, context: retry.contextSnapshot!, summary: null, exposeLowTrustRaw: false });
     expect(continuation).toMatchObject({ trigger: { sourceRunId: runId }, objective: "Continue the investigation.",

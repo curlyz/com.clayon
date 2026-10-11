@@ -1,11 +1,11 @@
 import { mkdtemp, mkdir, readFile, readdir, chmod, lstat, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
-  PAPERCLIP_OPERATIONAL_SKILL_KEY,
-  type PaperclipSkillEntry,
-} from "@paperclipai/adapter-utils/server-utils";
+  CLAYON_OPERATIONAL_SKILL_KEY,
+  type ClayonSkillEntry,
+} from "@clayon/adapter-utils/server-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const serviceMocks = vi.hoisted(() => ({
@@ -40,7 +40,7 @@ import { createHash } from "node:crypto";
 import { buildNativeRuntimeContext, resolveNativeRuntimeMcpSnapshot } from "./runtime-context.js";
 
 const temporaryRoots: string[] = [];
-let previousPaperclipHome: string | undefined;
+let previousClayonHome: string | undefined;
 let previousInstanceId: string | undefined;
 
 async function makeTreeWritable(target: string): Promise<void> {
@@ -61,12 +61,12 @@ beforeEach(async () => {
   serviceMocks.readCommittedForRuntime.mockResolvedValue(null);
   serviceMocks.githubBotConnectionIdsForRun.mockResolvedValue(new Set());
   serviceMocks.spekoToolsForSession.mockResolvedValue([]);
-  previousPaperclipHome = process.env.PAPERCLIP_HOME;
-  previousInstanceId = process.env.PAPERCLIP_INSTANCE_ID;
-  const root = await mkdtemp(path.join(tmpdir(), "paperclip-native-context-"));
+  previousClayonHome = process.env.CLAYON_HOME;
+  previousInstanceId = process.env.CLAYON_INSTANCE_ID;
+  const root = await mkdtemp(path.join(tmpdir(), "clayon-native-context-"));
   temporaryRoots.push(root);
-  process.env.PAPERCLIP_HOME = root;
-  process.env.PAPERCLIP_INSTANCE_ID = "runtime_context_test";
+  process.env.CLAYON_HOME = root;
+  process.env.CLAYON_INSTANCE_ID = "runtime_context_test";
   serviceMocks.getEffectiveProfilesForAgent.mockResolvedValue({
     agentId: "agent-1",
     profiles: [],
@@ -85,10 +85,10 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  if (previousPaperclipHome === undefined) delete process.env.PAPERCLIP_HOME;
-  else process.env.PAPERCLIP_HOME = previousPaperclipHome;
-  if (previousInstanceId === undefined) delete process.env.PAPERCLIP_INSTANCE_ID;
-  else process.env.PAPERCLIP_INSTANCE_ID = previousInstanceId;
+  if (previousClayonHome === undefined) delete process.env.CLAYON_HOME;
+  else process.env.CLAYON_HOME = previousClayonHome;
+  if (previousInstanceId === undefined) delete process.env.CLAYON_INSTANCE_ID;
+  else process.env.CLAYON_INSTANCE_ID = previousInstanceId;
   // A rejected Promise.all does not cancel the other materializers. Let their
   // bounded local writes settle before removing the read-only asset tree.
   await new Promise((resolve) => setTimeout(resolve, 25));
@@ -258,7 +258,7 @@ describe("buildNativeRuntimeContext", () => {
         "references/policy.md": "Company policy sibling.\n",
       },
     });
-    const sourceRoot = await mkdtemp(path.join(tmpdir(), "paperclip-native-skill-"));
+    const sourceRoot = await mkdtemp(path.join(tmpdir(), "clayon-native-skill-"));
     temporaryRoots.push(sourceRoot);
     const selectedRoot = path.join(sourceRoot, "reviewer");
     const unselectedRoot = path.join(sourceRoot, "unused");
@@ -267,7 +267,7 @@ describe("buildNativeRuntimeContext", () => {
     await writeFile(path.join(selectedRoot, "SKILL.md"), "# Reviewer\nUse the checklist.\n");
     await writeFile(path.join(selectedRoot, "references", "checklist.md"), "- Verify tests\n");
     await writeFile(path.join(unselectedRoot, "SKILL.md"), "# Not selected\n");
-    const entries: PaperclipSkillEntry[] = [
+    const entries: ClayonSkillEntry[] = [
       { key: "company-1/reviewer", runtimeName: "reviewer", source: selectedRoot, versionId: "version-1" },
       { key: "company-1/unused", runtimeName: "unused", source: unselectedRoot, versionId: "version-2" },
     ];
@@ -281,7 +281,7 @@ describe("buildNativeRuntimeContext", () => {
         adapterConfig: {},
       },
       runId: "run-1",
-      runtimeConfig: { paperclipSkillSync: { desiredSkills: ["company-1/reviewer"] } },
+      runtimeConfig: { clayonSkillSync: { desiredSkills: ["company-1/reviewer"] } },
       runtimeSkillEntries: entries,
     };
 
@@ -335,7 +335,7 @@ describe("buildNativeRuntimeContext", () => {
     };
     await expect(buildNativeRuntimeContext({
       ...base,
-      runtimeConfig: { paperclipSkillSync: { desiredSkills: ["company-1/missing"] } },
+      runtimeConfig: { clayonSkillSync: { desiredSkills: ["company-1/missing"] } },
       runtimeSkillEntries: [{
         key: "company-1/missing",
         runtimeName: "missing",
@@ -344,20 +344,20 @@ describe("buildNativeRuntimeContext", () => {
         missingDetail: "assigned skill checkout is unavailable",
       }],
     })).rejects.toThrow("assigned skill checkout is unavailable");
-    const supportedRoot = await mkdtemp(path.join(tmpdir(), "paperclip-native-supported-skill-"));
+    const supportedRoot = await mkdtemp(path.join(tmpdir(), "clayon-native-supported-skill-"));
     temporaryRoots.push(supportedRoot);
     await writeFile(path.join(supportedRoot, "SKILL.md"), "# Supported\n");
     const context = await buildNativeRuntimeContext({
       ...base,
       runtimeConfig: {
-        paperclipSkillSync: {
-          desiredSkills: [PAPERCLIP_OPERATIONAL_SKILL_KEY, "company-1/supported"],
+        clayonSkillSync: {
+          desiredSkills: [CLAYON_OPERATIONAL_SKILL_KEY, "company-1/supported"],
         },
       },
       runtimeSkillEntries: [
         {
-          key: PAPERCLIP_OPERATIONAL_SKILL_KEY,
-          runtimeName: "paperclip",
+          key: CLAYON_OPERATIONAL_SKILL_KEY,
+          runtimeName: "clayon",
           source: "/unused",
         },
         {

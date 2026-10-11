@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
-import { assets, agentConfigRevisions, agentTaskSessions, agentRuntimeState, type Db } from "@paperclipai/db";
-import { normalizeAgentUrlKey } from "@paperclipai/shared";
-import { normalizePaperclipRunnerAdapterConfig } from "@paperclipai/adapter-utils/server-utils";
+import { assets, agentConfigRevisions, agentTaskSessions, agentRuntimeState, type Db } from "@clayon/db";
+import { normalizeAgentUrlKey } from "@clayon/shared";
+import { normalizeClayonRunnerAdapterConfig } from "@clayon/adapter-utils/server-utils";
 import { conflict, notFound, unprocessable } from "../errors.js";
 import { agentRecordQueries, type UpdateAgentOptions, type AgentConfigurationPatch, type AgentConfigurationRecord, isPlainRecord, buildConfigSnapshot,
   hasConfigPatchFields, changedPendingApprovalConfigFields, diffConfigSnapshot } from "../lib/agent-records.js";
@@ -67,7 +67,7 @@ export async function prepareAgentConfiguration(db: Db, existing: AgentConfigura
       normalizedPatch.adapterConfig,
       { adapterType: (normalizedPatch.adapterType ?? existing.adapterType) as string },
     );
-    normalizedPatch.adapterConfig = normalizePaperclipRunnerAdapterConfig(
+    normalizedPatch.adapterConfig = normalizeClayonRunnerAdapterConfig(
       (normalizedPatch.adapterType ?? existing.adapterType) as string,
       normalizedAdapterConfig,
     );
@@ -75,7 +75,7 @@ export async function prepareAgentConfiguration(db: Db, existing: AgentConfigura
     Object.prototype.hasOwnProperty.call(normalizedPatch, "adapterType")
     && isPlainRecord(existing.adapterConfig)
   ) {
-    normalizedPatch.adapterConfig = normalizePaperclipRunnerAdapterConfig(
+    normalizedPatch.adapterConfig = normalizeClayonRunnerAdapterConfig(
       normalizedPatch.adapterType as string,
       existing.adapterConfig,
     );

@@ -1,10 +1,10 @@
-import type { AgentLifecycleRequest, AgentLifecycleResult } from "@paperclipai/shared";
-import type { AiConnectionRouterRequest, AiConnectionRouterResult } from "@paperclipai/shared";
+import type { AgentLifecycleRequest, AgentLifecycleResult } from "@clayon/shared";
+import type { AiConnectionRouterRequest, AiConnectionRouterResult } from "@clayon/shared";
 /**
  * JSON-RPC 2.0 message types and protocol helpers for the host ↔ worker IPC
  * channel.
  *
- * The Paperclip plugin runtime uses JSON-RPC 2.0 over stdio to communicate
+ * The Clayon plugin runtime uses JSON-RPC 2.0 over stdio to communicate
  * between the host process and each plugin worker process. This module defines:
  *
  * - Core JSON-RPC 2.0 envelope types (request, response, notification, error)
@@ -18,7 +18,7 @@ import type { AiConnectionRouterRequest, AiConnectionRouterResult } from "@paper
  */
 
 import type {
-  PaperclipPluginManifestV1,
+  ClayonPluginManifestV1,
   PluginLauncherBounds,
   PluginLauncherRenderContextSnapshot,
   PluginLauncherRenderEnvironment,
@@ -50,8 +50,8 @@ import type {
   ExternalObjectMentionConfidence,
   ExternalObjectMentionSourceKind,
   EnvSecretRefBinding,
-} from "@paperclipai/shared";
-export type { PluginLauncherRenderContextSnapshot } from "@paperclipai/shared";
+} from "@clayon/shared";
+export type { PluginLauncherRenderContextSnapshot } from "@clayon/shared";
 
 import type {
   PluginEvent,
@@ -95,7 +95,7 @@ export const JSONRPC_VERSION = "2.0" as const;
 
 /**
  * A unique request identifier. JSON-RPC 2.0 allows strings or numbers;
- * we use strings (UUIDs or monotonic counters) for all Paperclip messages.
+ * we use strings (UUIDs or monotonic counters) for all Clayon messages.
  */
 export type JsonRpcId = string | number;
 
@@ -134,9 +134,9 @@ export interface JsonRpcRequest<
    * executing. The worker treats this as opaque and echoes only the id on
    * worker→host calls made from the same async execution context.
    */
-  readonly paperclipInvocation?: PluginInvocationContext;
+  readonly clayonInvocation?: PluginInvocationContext;
   /** Opaque top-level invocation id echoed by worker→host requests. */
-  readonly paperclipInvocationId?: string;
+  readonly clayonInvocationId?: string;
 }
 
 /**
@@ -199,11 +199,11 @@ export interface JsonRpcNotification<
   readonly params: TParams;
   /**
    * Host-issued metadata for host→worker push notifications such as events.
-   * Worker→host notifications echo only `paperclipInvocationId`.
+   * Worker→host notifications echo only `clayonInvocationId`.
    */
-  readonly paperclipInvocation?: PluginInvocationContext;
+  readonly clayonInvocation?: PluginInvocationContext;
   /** Opaque top-level invocation id echoed by worker→host notifications. */
-  readonly paperclipInvocationId?: string;
+  readonly clayonInvocationId?: string;
 }
 
 /**
@@ -240,7 +240,7 @@ export type JsonRpcErrorCode =
   (typeof JSONRPC_ERROR_CODES)[keyof typeof JSONRPC_ERROR_CODES];
 
 /**
- * Paperclip plugin-specific error codes.
+ * Clayon plugin-specific error codes.
  *
  * These live in the JSON-RPC "server error" reserved range (-32000 to -32099)
  * as specified by JSON-RPC 2.0 for implementation-defined server errors.
@@ -330,14 +330,14 @@ export interface WorkerHostCallContext {
  */
 export interface InitializeParams {
   /** Full plugin manifest snapshot. */
-  manifest: PaperclipPluginManifestV1;
+  manifest: ClayonPluginManifestV1;
   /** Bootstrap configuration. Company-scoped config is read via `ctx.config.get(companyId)`. */
   config: Record<string, unknown>;
   /** Instance-level metadata. */
   instanceInfo: {
-    /** UUID of this Paperclip instance. */
+    /** UUID of this Clayon instance. */
     instanceId: string;
-    /** Semver version of the running Paperclip host. */
+    /** Semver version of the running Clayon host. */
     hostVersion: string;
   };
   /** Host API version. */
@@ -422,7 +422,7 @@ export interface GetDataParams {
 export type PluginPerformActionActorType = "user" | "agent" | "system";
 
 export interface PluginPerformActionActorContext {
-  /** Authenticated principal type resolved by the Paperclip host. */
+  /** Authenticated principal type resolved by the Clayon host. */
   type: PluginPerformActionActorType;
   /** Authenticated board user id when `type === "user"`, otherwise null. */
   userId: string | null;
@@ -809,7 +809,7 @@ export interface PluginSyncFileMapping {
  * aborts the operation).
  *
  * SECURITY — command origin (Stage-1 design review, condition C1). `command` is
- * a **Paperclip/adapter-authored control operation**: it may be supplied ONLY by
+ * a **Clayon/adapter-authored control operation**: it may be supplied ONLY by
  * core/adapter code. No server route, issue/comment content, project/workspace
  * file content, provider-plugin callback, or arbitrary adapter config may supply
  * a raw `command` string, and any path embedded in it MUST be built by
@@ -1052,7 +1052,7 @@ export interface PluginLoginPtyOpenParams {
   loginCommandKey: PluginLoginCommandKey;
   /**
    * The server-controlled, validated session home. The shape is exact:
-   * `/tmp/paperclip-adapter-login/<uuid>`. The worker revalidates the shape
+   * `/tmp/clayon-adapter-login/<uuid>`. The worker revalidates the shape
    * before it touches the filesystem.
    */
   sessionHome: string;
@@ -2347,7 +2347,7 @@ export interface WorkerToHostNotifications {
    *
    * The worker emits this notification for each new `stdout` or `stderr` chunk
    * while one execute call runs. The host reads the active invocation id from
-   * the envelope field `paperclipInvocationId`, which the worker RPC host stamps
+   * the envelope field `clayonInvocationId`, which the worker RPC host stamps
    * from the active invocation context. The host correlates the chunk to the
    * host-owned execute route for that id and delivers it to that route's
    * `onLog` callback.

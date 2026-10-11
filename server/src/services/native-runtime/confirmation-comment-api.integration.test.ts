@@ -1,8 +1,8 @@
-import { createIssueThreadInteractionSchema } from "@paperclipai/shared";
+import { createIssueThreadInteractionSchema } from "@clayon/shared";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { issueComments, issueThreadInteractions, issues } from "@paperclipai/db";
+import { issueComments, issueThreadInteractions, issues } from "@clayon/db";
 import { createLocalAgentJwt } from "../../agent-auth-jwt.js";
 import { startRunnerApiTestServer } from "../../__tests__/helpers/runner-api-server.js";
 import { issueThreadInteractionService } from "../issue-thread-interactions.js";
@@ -10,9 +10,9 @@ import { runnerApiMutationRestriction } from "./runner-api-policy.js";
 
 describe("confirmation reply through the native API tool", () => {
   let server: Awaited<ReturnType<typeof startRunnerApiTestServer>>;
-  const oldSecret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
-  beforeAll(async () => { process.env.PAPERCLIP_AGENT_JWT_SECRET = randomUUID(); server = await startRunnerApiTestServer(); }, 60_000);
-  afterAll(async () => { await server?.close(); if (oldSecret === undefined) delete process.env.PAPERCLIP_AGENT_JWT_SECRET; else process.env.PAPERCLIP_AGENT_JWT_SECRET = oldSecret; });
+  const oldSecret = process.env.CLAYON_AGENT_JWT_SECRET;
+  beforeAll(async () => { process.env.CLAYON_AGENT_JWT_SECRET = randomUUID(); server = await startRunnerApiTestServer(); }, 60_000);
+  afterAll(async () => { await server?.close(); if (oldSecret === undefined) delete process.env.CLAYON_AGENT_JWT_SECRET; else process.env.CLAYON_AGENT_JWT_SECRET = oldSecret; });
   async function seed(mode: "standard" | "planning" | "ask" = "standard") {
     const f = await server.fixture({ conversation: true, disableWakeOnDemand: true, mode });
     const [issue] = await server.db.select().from(issues).where(eq(issues.id, f.issueId));

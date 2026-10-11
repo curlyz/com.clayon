@@ -6,7 +6,7 @@ import {
   CONNECTABLE_APP_DEFINITIONS,
   type AppDefinition,
   type ToolConnection,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { queryKeys } from "@/lib/queryKeys";
 import { Browse } from "@/pages/apps/Browse";
 import {
@@ -270,7 +270,7 @@ export const OAuthError: Story = {
   render: () => (
     <OAuthStateHost
       phase="error"
-      error="Paperclip could not reach Enterpret's authorization service. Check the connection and try again."
+      error="Clayon could not reach Enterpret's authorization service. Check the connection and try again."
     />
   ),
   play: async ({ canvasElement }) => {

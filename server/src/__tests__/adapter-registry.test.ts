@@ -1,6 +1,6 @@
-import { probeAcpxClaudeInstallation, probeAcpxPiInstallation } from "../vendor/paperclip-runner/live/index.js";
+import { probeAcpxClaudeInstallation, probeAcpxPiInstallation } from "../vendor/clayon-runner/live/index.js";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import { buildSandboxNpmInstallCommand } from "@paperclipai/adapter-utils";
+import { buildSandboxNpmInstallCommand } from "@clayon/adapter-utils";
 import type { ServerAdapterModule } from "../adapters/index.js";
 
 import {
@@ -17,7 +17,7 @@ import {
   setOverridePaused,
 } from "../adapters/registry.js";
 
-vi.mock("../vendor/paperclip-runner/live/index.js", () => ({
+vi.mock("../vendor/clayon-runner/live/index.js", () => ({
   probeAcpxClaudeInstallation: vi.fn(async () => undefined),
   probeAcpxGrokInstallation: vi.fn(async () => undefined),
   probeAcpxPiInstallation: vi.fn(async () => undefined),
@@ -349,7 +349,7 @@ describe("server adapter registry", () => {
     expect(probe).toHaveBeenLastCalledWith("openrouter/deepseek/deepseek-v4-flash-0731");
   });
   it("reports qualification-only readiness for an exact host-authorized candidate", async () => {
-    const key = "PAPERCLIP_RUNNER_ACPX_QUALIFICATION";
+    const key = "CLAYON_RUNNER_ACPX_QUALIFICATION";
     const previous = process.env[key];
     process.env[key] = JSON.stringify([{ agent: "copilot", model: "exact-model" }]);
     try {
@@ -402,7 +402,7 @@ describe("server adapter registry", () => {
       installCommand: expectedRunnerOpenCodeInstall,
     });
     expect(findActiveServerAdapter("paperclip_runner")?.getRuntimeCommandSpec?.({ provider: "acpx" })).toEqual({
-      command: "paperclip-runnerd",
+      command: "clayon-runnerd",
       detectCommand: null,
       installCommand: null,
     });

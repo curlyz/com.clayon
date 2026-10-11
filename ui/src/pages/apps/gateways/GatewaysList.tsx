@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
-import type { ToolMcpGatewayWithTokens } from "@paperclipai/shared";
+import type { ToolMcpGatewayWithTokens } from "@clayon/shared";
 import { useNavigate } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -18,6 +18,7 @@ import { ErrorState, RelativeTime } from "@/pages/tools/shared";
 import { CopyableGatewayUrl } from "./CopyableGatewayUrl";
 import { NewGatewayDialog, gatewaysQueryKey } from "./NewGatewayDialog";
 import { gatewayTabHref } from "./gateway-tabs";
+import { AppsPageTabs } from "@/components/AppsPageTabs";
 import {
   activeTokenCount,
   allowedToolsLabel,
@@ -132,6 +133,7 @@ export function GatewaysList() {
 
   return (
     <div className="max-w-5xl space-y-5">
+      <AppsPageTabs />
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Apps</h1>
         <p className="text-sm text-muted-foreground">

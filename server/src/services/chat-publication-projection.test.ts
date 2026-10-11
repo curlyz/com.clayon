@@ -35,7 +35,7 @@ describe("chat publication projection", () => {
     const input = [
       `token: ${slackTokenCanary}`,
       `key ${openAiKeyCanary}`,
-      "database postgresql://paperclip:hunter2@example.com/db",
+      "database postgresql://clayon:hunter2@example.com/db",
       "-----BEGIN PRIVATE KEY-----",
       "definitely-private",
       "-----END PRIVATE KEY-----",
@@ -85,7 +85,7 @@ describe("chat publication projection", () => {
 
   it("uses a safe fallback if only private material remains", () => {
     expect(projectSafeChatPublicationText("<thinking>all private</thinking>")).toBe(
-      "Update available in Paperclip.",
+      "Update available in Clayon.",
     );
   });
 
@@ -107,8 +107,8 @@ describe("chat publication projection", () => {
             { type: "callback", actionId: "choice.one", label: "First", style: "primary" },
             {
               type: "link",
-              label: "Open Paperclip",
-              url: "https://paperclip.example/tasks/123?handoff=secret#private",
+              label: "Open Clayon",
+              url: "https://clayon.example/tasks/123?handoff=secret#private",
             },
             { type: "link", label: "Unsafe", url: "javascript:alert(1)" },
           ],
@@ -130,8 +130,8 @@ describe("chat publication projection", () => {
           { type: "callback", actionId: "choice.one", label: "First", style: "primary" },
           {
             type: "link",
-            label: "Open Paperclip",
-            url: "https://paperclip.example/tasks/123",
+            label: "Open Clayon",
+            url: "https://clayon.example/tasks/123",
           },
         ],
       },

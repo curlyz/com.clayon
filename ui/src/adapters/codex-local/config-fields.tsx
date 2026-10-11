@@ -17,18 +17,18 @@ import {
   CODEX_LOCAL_FAST_MODE_SUPPORTED_MODELS,
   isCodexLocalFastModeSupported,
   isCodexLocalManualModel,
-} from "@paperclipai/adapter-codex-local";
+} from "@clayon/adapter-codex-local";
 import {
-  PAPERCLIP_RUNNER_IDLE_TIMEOUT_DEFAULT_MS,
-  PAPERCLIP_RUNNER_IDLE_TIMEOUT_MAX_MS,
-  PAPERCLIP_RUNNER_PERMISSION_CAPABILITIES,
-  PAPERCLIP_RUNNER_ACPX_PROFILES,
-  isPaperclipRunnerProvider,
-  resolvePaperclipRunnerIdleTimeoutMs,
-  resolvePaperclipRunnerPermissionMode,
-  type PaperclipRunnerPermissionMode,
-  type PaperclipRunnerProvider,
-} from "@paperclipai/adapter-utils";
+  CLAYON_RUNNER_IDLE_TIMEOUT_DEFAULT_MS,
+  CLAYON_RUNNER_IDLE_TIMEOUT_MAX_MS,
+  CLAYON_RUNNER_PERMISSION_CAPABILITIES,
+  CLAYON_RUNNER_ACPX_PROFILES,
+  isClayonRunnerProvider,
+  resolveClayonRunnerIdleTimeoutMs,
+  resolveClayonRunnerPermissionMode,
+  type ClayonRunnerPermissionMode,
+  type ClayonRunnerProvider,
+} from "@clayon/adapter-utils";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
@@ -67,20 +67,20 @@ export function CodexLocalConfigFields({
   // The execution engine picks which binary runs on the execution host, and the
   // ACP sub-fields below name host paths. The platform-managed environment owns
   // both, so the managed-sandbox-only policy hides them the same way
-  // `runnerManaged` already does for the Paperclip Runner.
+  // `runnerManaged` already does for the Clayon Runner.
   const hideEngineChoice = runnerManaged || managedSandboxOnly === true;
   const configuredRunnerProvider = runnerManaged
     ? isCreate
       ? values!.adapterSchemaValues?.provider
       : eff("adapterConfig", "provider", config.provider === "acpx" && config.acpxAgent === "codex" ? "codex" : config.provider ?? "codex")
     : "codex";
-  const runnerProvider: PaperclipRunnerProvider = isPaperclipRunnerProvider(
+  const runnerProvider: ClayonRunnerProvider = isClayonRunnerProvider(
     configuredRunnerProvider,
   )
     ? configuredRunnerProvider
     : "codex";
   const runnerPermissionCapability =
-    PAPERCLIP_RUNNER_PERMISSION_CAPABILITIES[runnerProvider];
+    CLAYON_RUNNER_PERMISSION_CAPABILITIES[runnerProvider];
   const configuredRunnerPermissionMode =
     runnerManaged && runnerPermissionCapability.configurable
       ? isCreate
@@ -105,7 +105,7 @@ export function CodexLocalConfigFields({
     );
   const runnerPermissionMode =
     runnerManaged && runnerPermissionCapability.configurable
-      ? resolvePaperclipRunnerPermissionMode(
+      ? resolveClayonRunnerPermissionMode(
           runnerProvider,
           configuredRunnerPermissionMode,
         )
@@ -128,7 +128,7 @@ export function CodexLocalConfigFields({
   };
   const runnerLifecycleMode = runnerManaged
     ? isCreate
-      ? (values!.paperclipRunnerLifecycleMode ?? "per_turn")
+      ? (values!.clayonRunnerLifecycleMode ?? "per_turn")
       : eff(
           "adapterConfig",
           "lifecycleMode",
@@ -136,12 +136,12 @@ export function CodexLocalConfigFields({
         )
     : "per_turn";
   const runnerIdleTimeoutMs = runnerManaged
-    ? resolvePaperclipRunnerIdleTimeoutMs(
+    ? resolveClayonRunnerIdleTimeoutMs(
         isCreate
-          ? values!.paperclipRunnerIdleTimeoutMs
+          ? values!.clayonRunnerIdleTimeoutMs
           : eff("adapterConfig", "idleTimeoutMs", config.idleTimeoutMs),
       )
-    : PAPERCLIP_RUNNER_IDLE_TIMEOUT_DEFAULT_MS;
+    : CLAYON_RUNNER_IDLE_TIMEOUT_DEFAULT_MS;
   const rawEngine = runnerManaged
     ? "cli"
     : isCreate
@@ -167,7 +167,7 @@ export function CodexLocalConfigFields({
     ? "Fast mode will be passed through for this manual model. If Codex rejects it, turn the toggle off."
     : fastModeSupported
       ? "Fast mode consumes credits/tokens much faster than standard Codex runs."
-      : `Fast mode currently only works on ${supportedModelsLabel} or manual model IDs. Paperclip will ignore this toggle until the model is switched.`;
+      : `Fast mode currently only works on ${supportedModelsLabel} or manual model IDs. Clayon will ignore this toggle until the model is switched.`;
 
   return configFieldsForSection(section, (
     <>
@@ -210,7 +210,7 @@ export function CodexLocalConfigFields({
             value={runnerProvider === "acpx" && runnerSchemaValue("acpxAgent", "claude") === "grok" ? "grok" : runnerProvider}
             onValueChange={(value) => {
               const grok = value === "grok";
-              const provider = grok ? "acpx" : isPaperclipRunnerProvider(value)
+              const provider = grok ? "acpx" : isClayonRunnerProvider(value)
                 ? value
                 : "codex";
               const model =
@@ -271,15 +271,15 @@ export function CodexLocalConfigFields({
           checked={runnerSchemaValue("dotAttachmentAccess", false) === true} onChange={value => updateRunnerSchemaValue("dotAttachmentAccess", value)} />
         <ToggleField label="Workspace files and commands" hint="Let Dot read and write its assigned workspace and publish files. Requires a local Runner. Commands are available only on Linux with bubblewrap; they cannot read your home directory or use injected credentials."
           checked={runnerSchemaValue("dotWorkspaceAccess", false) === true} onChange={value => updateRunnerSchemaValue("dotWorkspaceAccess", value)} />
-        <ToggleField label="Allow externally billed provider" hint="Dot does not report token usage or cost. Paperclip cannot enforce a provider spend ceiling; known company and agent budget limits still apply."
+        <ToggleField label="Allow externally billed provider" hint="Dot does not report token usage or cost. Clayon cannot enforce a provider spend ceiling; known company and agent budget limits still apply."
           checked={runnerSchemaValue("allowUnmeteredProvider", false) === true} onChange={value => updateRunnerSchemaValue("allowUnmeteredProvider", value)} />
       </>}
       {runnerManaged && runnerProvider === "acpx" && runnerSchemaValue("acpxAgent", "claude") !== "grok" && (
-        <Field configSection="adapter" label="ACP agent" hint="Cursor uses Paperclip questions; per-run cost is unavailable. Pi accepts any provider/model ID. GitHub Copilot awaits qualification.">
+        <Field configSection="adapter" label="ACP agent" hint="Cursor uses Clayon questions; per-run cost is unavailable. Pi accepts any provider/model ID. GitHub Copilot awaits qualification.">
           <Select
             value={String(isCreate ? values!.adapterSchemaValues?.acpxAgent ?? "claude" : eff("adapterConfig", "acpxAgent", config.acpxAgent ?? "claude"))}
             onValueChange={(value) => {
-              const profile = PAPERCLIP_RUNNER_ACPX_PROFILES.find(entry => entry.value === value);
+              const profile = CLAYON_RUNNER_ACPX_PROFILES.find(entry => entry.value === value);
               const acpxSessionMode = profile?.value === "cursor" ? "agent" : undefined;
               const piThinkingLevel = profile?.value === "pi" ? "low" : undefined;
               if (!profile?.qualified) return;
@@ -289,7 +289,7 @@ export function CodexLocalConfigFields({
             }}>
             <SelectTrigger className="w-full" aria-label="ACP agent"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PAPERCLIP_RUNNER_ACPX_PROFILES.map(profile => (
+              {CLAYON_RUNNER_ACPX_PROFILES.map(profile => (
                 <SelectItem key={profile.value} value={profile.value} disabled={!profile.qualified}>
                   <AdapterMark type={profile.value === "cursor" ? "cursor" : `${profile.value}_local`} className="size-4" />
                   {profile.label}{profile.qualified ? "" : " — qualification pending"}
@@ -386,7 +386,7 @@ export function CodexLocalConfigFields({
           </Field>
           <Field
             label="Estimated session ceiling (USD)"
-            hint="Paperclip estimate; AWS does not provide a per-session currency hard stop."
+            hint="Clayon estimate; AWS does not provide a per-session currency hard stop."
           >
             <DraftNumberInput
               value={Number(runnerSchemaValue("maxEstimatedSessionCostUsd", 1))}
@@ -459,7 +459,7 @@ export function CodexLocalConfigFields({
       {runnerManaged && runnerPermissionCapability.configurable && (runnerPermissionCapability.options.length > 1 || runnerPermissionModeUnsupported) && (
         <Field
           label="Permission mode"
-          hint={`${runnerPermissionCapability.description} The selected mode does not widen Paperclip's workspace, network, credential, or planning boundaries.`}
+          hint={`${runnerPermissionCapability.description} The selected mode does not widen Clayon's workspace, network, credential, or planning boundaries.`}
         >
           <Select
             value={
@@ -468,10 +468,10 @@ export function CodexLocalConfigFields({
                 : runnerPermissionMode
             }
             onValueChange={(selectedMode) => {
-              const value = resolvePaperclipRunnerPermissionMode(
+              const value = resolveClayonRunnerPermissionMode(
                 runnerProvider,
                 selectedMode,
-              ) as PaperclipRunnerPermissionMode;
+              ) as ClayonRunnerPermissionMode;
               if (isCreate) {
                 set!({
                   adapterSchemaValues: {
@@ -510,7 +510,7 @@ export function CodexLocalConfigFields({
           </Select>
           {runnerPermissionModeUnsupported && runnerProvider === "codex" && (
             <p className="mt-1 text-xs text-destructive" role="alert">
-              This saved Codex mode cannot start or recover a Paperclip Runner
+              This saved Codex mode cannot start or recover a Clayon Runner
               run. Select Automatic (isolated) to remediate it.
             </p>
           )}
@@ -527,7 +527,7 @@ export function CodexLocalConfigFields({
             onChange={(event) => {
               const value = event.target.value === "warm" ? "warm" : "per_turn";
               isCreate
-                ? set!({ paperclipRunnerLifecycleMode: value })
+                ? set!({ clayonRunnerLifecycleMode: value })
                 : mark("adapterConfig", "lifecycleMode", value);
             }}
           >
@@ -545,13 +545,13 @@ export function CodexLocalConfigFields({
             <input
               type="number"
               min={1}
-              max={PAPERCLIP_RUNNER_IDLE_TIMEOUT_MAX_MS}
+              max={CLAYON_RUNNER_IDLE_TIMEOUT_MAX_MS}
               className={inputClass}
               value={runnerIdleTimeoutMs}
               onChange={(event) =>
                 set!({
-                  paperclipRunnerIdleTimeoutMs:
-                    resolvePaperclipRunnerIdleTimeoutMs(
+                  clayonRunnerIdleTimeoutMs:
+                    resolveClayonRunnerIdleTimeoutMs(
                       Number(event.target.value),
                     ),
                 })
@@ -561,12 +561,12 @@ export function CodexLocalConfigFields({
             <DraftNumberInput
               value={runnerIdleTimeoutMs}
               min={1}
-              max={PAPERCLIP_RUNNER_IDLE_TIMEOUT_MAX_MS}
+              max={CLAYON_RUNNER_IDLE_TIMEOUT_MAX_MS}
               onCommit={(value) =>
                 mark(
                   "adapterConfig",
                   "idleTimeoutMs",
-                  resolvePaperclipRunnerIdleTimeoutMs(value),
+                  resolveClayonRunnerIdleTimeoutMs(value),
                 )
               }
               immediate
@@ -659,7 +659,7 @@ export function CodexLocalConfigFields({
           {!managedSandboxOnly && (
             <Field
               label="ACP state directory"
-              hint="Optional ACP session state directory. Defaults to Paperclip-managed organization/agent scoped storage."
+              hint="Optional ACP session state directory. Defaults to Clayon-managed organization/agent scoped storage."
             >
               <div className="flex items-center gap-2">
                 <DraftInput

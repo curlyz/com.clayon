@@ -1,14 +1,14 @@
 import { PrimaryAgentIndicator, SetPrimaryAgentButton } from "@/components/primary-agent/PrimaryAgentPresentation";
 import { AiConnectionPoolRunDetails } from "@/components/ai-connections/AiConnectionPoolRunDetails";
 import { AgentConnectionInstructions } from "@/features/connections/ConnectionInstructions";
-import type { AgentInstructionCandidate, AgentInstructionsBundle } from "@paperclipai/shared";
+import type { AgentInstructionCandidate, AgentInstructionsBundle } from "@clayon/shared";
 import { InstructionHistory } from "../components/InstructionHistory";
 import { AgentCharacter } from "../components/AgentCharacter";
-import { characterStateForAgent } from "@paperclipai/shared";
+import { characterStateForAgent } from "@clayon/shared";
 import { mergeRunLogChunks, readChunkSeq } from "../lib/run-log-chunks";
 import { getPageVisibility, usePageVisibility } from "../lib/page-visibility";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { useParams, useNavigate, Link, Navigate, useBeforeUnload, type NavigateFunction } from "@/lib/router";
+import { useParams, useNavigate, Link, Navigate, type NavigateFunction } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   agentsApi,
@@ -38,12 +38,18 @@ import { getAdapterDisplay } from "../adapters/adapter-display-registry";
 import { adapterLabels, roleLabels, help } from "../components/agent-config-primitives";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useAdapterCapabilities } from "@/adapters/use-adapter-capabilities";
-import { redactCommandText as redactCommandSecretText } from "@paperclipai/adapter-utils";
+import { redactCommandText as redactCommandSecretText } from "@clayon/adapter-utils";
 import { MarkdownEditor } from "../components/MarkdownEditor";
 import { assetsApi } from "../api/assets";
 import { toolsApi } from "../api/tools";
+import { budgetsApi } from "../api/budgets";
+import { chatEndpointsApi } from "../api/chatEndpoints";
 import { getUIAdapter, buildTranscript, onAdapterChange } from "../adapters";
 import { StatusBadge } from "../components/StatusBadge";
+import { SectionTabs } from "../components/SectionTabs";
+import { buildAgentSectionTabs } from "../lib/section-tabs/agentSectionTabs";
+import { SaveStatus } from "../components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "../hooks/useAutosave";
 import { AgentLifecycleStatus, useAgentLifecycleStatus } from "../components/AgentLifecycleStatus";
 import { MarkdownBody } from "../components/MarkdownBody";
 import { CopyText } from "../components/CopyText";
@@ -118,7 +124,7 @@ import {
   type WorkspaceOperation,
   isResponsibleUserDenialCode,
   responsibleUserLabel,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { ResponsibleUserDenialNotice } from "../components/ResponsibleUserDenialNotice";
 import { RunWorkspaceRecoverySurface } from "../components/RunWorkspaceRecoverySurface";
 import { RunnerInspector } from "../components/RunnerInspector";
@@ -128,7 +134,7 @@ import {
   runRequestedProviderTrace,
 } from "../components/ProviderTraceStatusBadge";
 import { buildPermissionsForTrustPreset, getTrustPreset } from "../lib/trust-policy-ui";
-import { redactHomePathUserSegments, redactHomePathUserSegmentsInValue } from "@paperclipai/adapter-utils";
+import { redactHomePathUserSegments, redactHomePathUserSegmentsInValue } from "@clayon/adapter-utils";
 import { agentRouteRef } from "../lib/utils";
 import {
   isStarred,
@@ -161,7 +167,7 @@ const RUN_LOG_PAGE_BYTES = 256_000;
 const REDACTED_ENV_VALUE = "***REDACTED***";
 const SECRET_ENV_KEY_RE =
   /(api[-_]?key|access[-_]?token|auth(?:_?token)?|authorization|bearer|secret|passwd|password|credential|jwt|private[-_]?key|cookie|connectionstring)/i;
-const COMMAND_ENV_KEY_RE = /(^command$|^cmd$|command[-_]?line|resolved[-_]?command|PAPERCLIP_RESOLVED_COMMAND)/i;
+const COMMAND_ENV_KEY_RE = /(^command$|^cmd$|command[-_]?line|resolved[-_]?command|CLAYON_RESOLVED_COMMAND)/i;
 const JWT_VALUE_RE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?$/;
 
 function formatOrgChainHealthPath(agent: AgentDetailRecord) {
@@ -782,27 +788,13 @@ export function AgentDetail() {
   const [dismissedLeftAgentIds, setDismissedLeftAgentIds] = useState<Set<string>>(() => new Set());
   const activeView: AgentDetailView = urlRunId ? "run-detail"
     : parseAgentDetailView(urlTab ?? null);
+  // Addendum 3: the base route (no :tab) renders the long scrolling page;
+  // every dedicated route keeps its single-view page.
+  const isLongPage = !urlRunId && !urlTab;
   const legacyAuditSection = !urlRunId ? agentLegacyAuditSection(urlTab ?? null) : null;
-  const legacyView = urlRunId
-    ? "runs"
-    : legacyAuditSection === "runs"
-      ? "runs"
-      : legacyAuditSection === "activity"
-        ? "audit"
-        : legacyAuditSection === "costs" || legacyAuditSection === "budgets"
-          ? "budget"
-          : activeView === "overview"
-            ? "dashboard"
-            : activeView === "runtime"
-              ? "configuration"
-              : activeView;
   const needsOverviewData = activeView === "overview";
   const needsRunData = activeView === "run-detail";
   const shouldLoadHeartbeats = needsOverviewData || needsRunData;
-  const [configDirty, setConfigDirty] = useState(false);
-  const [configSaving, setConfigSaving] = useState(false);
-  const saveConfigActionRef = useRef<(() => void) | null>(null);
-  const cancelConfigActionRef = useRef<(() => void) | null>(null);
   const { isMobile } = useSidebar();
   const routeAgentRef = agentId ?? "";
   const routeCompanyId = useMemo(() => {
@@ -812,11 +804,6 @@ export function AgentDetail() {
   }, [companies, companyPrefix]);
   const lookupCompanyId = routeCompanyId ?? selectedCompanyId ?? undefined;
   const canFetchAgent = routeAgentRef.length > 0 && (isUuidLike(routeAgentRef) || Boolean(lookupCompanyId));
-  const setSaveConfigAction = useCallback((fn: (() => void) | null) => { saveConfigActionRef.current = fn; }, []);
-  const setCancelConfigAction = useCallback((fn: (() => void) | null) => { cancelConfigActionRef.current = fn; }, []);
-  const prepareAgentNavigation = useCallback(() => {
-    return confirmAgentConfigNavigation(configDirty);
-  }, [configDirty]);
   const { data: agent, isLoading, error } = useQuery<AgentDetailRecord>({
     queryKey: [...queryKeys.agents.detail(routeAgentRef), lookupCompanyId ?? null],
     queryFn: () => agentsApi.get(routeAgentRef, lookupCompanyId),
@@ -825,10 +812,6 @@ export function AgentDetail() {
   const lifecycle = useAgentLifecycleStatus(agent);
   const resolvedCompanyId = agent?.companyId ?? selectedCompanyId;
   const canonicalAgentRef = agent ? agentRouteRef(agent) : routeAgentRef;
-  const handleLegacyTabChange = useCallback((next: string) => {
-    if (!prepareAgentNavigation()) return;
-    navigate(`/agents/${canonicalAgentRef || routeAgentRef}/${next}`);
-  }, [canonicalAgentRef, navigate, prepareAgentNavigation, routeAgentRef]);
   const agentLookupRef = agent?.id ?? routeAgentRef;
   const resolvedAgentId = agent?.id ?? null;
   const { data: boardAccess } = useQuery({
@@ -1087,99 +1070,19 @@ export function AgentDetail() {
     });
   }, [resolvedAgentId, agentMembershipState]);
 
-  useBeforeUnload(
-    useCallback((event) => {
-      if (!configDirty) return;
-      event.preventDefault();
-      event.returnValue = "";
-    }, [configDirty]),
-  );
-
-  useEffect(() => {
-    if (!configDirty) return;
-
-    function handleDocumentClick(event: MouseEvent) {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey
-      ) {
-        return;
-      }
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const anchor = target.closest("a[href]");
-      if (!(anchor instanceof HTMLAnchorElement)) return;
-      if (anchor.target && anchor.target !== "_self") return;
-
-      const nextUrl = new URL(anchor.href, window.location.href);
-      const currentUrl = new URL(window.location.href);
-      if (nextUrl.origin !== currentUrl.origin) return;
-      if (
-        nextUrl.pathname === currentUrl.pathname &&
-        nextUrl.search === currentUrl.search &&
-        nextUrl.hash === currentUrl.hash
-      ) {
-        return;
-      }
-      if (prepareAgentNavigation()) return;
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    document.addEventListener("click", handleDocumentClick, true);
-    return () => document.removeEventListener("click", handleDocumentClick, true);
-  }, [configDirty, prepareAgentNavigation]);
-
-  useEffect(() => {
-    if (!configDirty) return;
-
-    // BrowserRouter updates after popstate. Run first in the capture phase so a
-    // rejected Back/Forward navigation can be restored before React Router
-    // consumes it and unmounts the route-backed form.
-    const currentEntry = {
-      index: window.history.state?.idx,
-      state: window.history.state,
-      url: window.location.href,
-    };
-    let restoring = false;
-
-    function handlePopState(event: PopStateEvent) {
-      if (restoring) {
-        restoring = false;
-        return;
-      }
-
-      if (prepareAgentNavigation()) return;
-
-      event.stopImmediatePropagation();
-      restoring = restoreAgentConfigHistoryEntry(window.history, currentEntry, event.state?.idx);
-    }
-
-    window.addEventListener("popstate", handlePopState, true);
-    return () => window.removeEventListener("popstate", handlePopState, true);
-  }, [configDirty, prepareAgentNavigation]);
-
   if (isLoading) return <PageSkeleton variant="detail" />;
   if (error) return <p className="text-sm text-destructive">{error.message}</p>;
   if (!agent) return null;
   if (!urlRunId && legacyAuditSection) {
     return <Navigate to={agentScopedAuditHref(agent.id, legacyAuditSection)} replace />;
   }
-  if (!urlRunId && !urlTab) {
-    return <Navigate to={agentDetailHref(canonicalAgentRef)} replace />;
-  }
+  // Addendum 3: the base route (no :tab) IS the long page — no redirect to
+  // /overview.
   const currentAgent = lifecycle.data && (lifecycle.data.lifecycleVersion ?? 0) >= (agent.lifecycleVersion ?? 0)
     ? { ...agent, ...lifecycle.data } : agent;
   const isPendingApproval = currentAgent.status === "pending_approval";
   const hasInvalidOrgChain = agent.orgChainHealth?.status === "invalid_org_chain";
   const pausedEscalationWarning = !hasInvalidOrgChain ? agent.orgChainHealth?.escalationWarning ?? null : null;
-  const showConfigActionBar = (
-    activeView === "runtime" || activeView === "instructions" || activeView === "secrets"
-  );
   const showLeftAgentNotice = agentMembershipState === "left" && !dismissedLeftAgentIds.has(agent.id);
   const agentMembershipPending =
     membershipMutation.isPending &&
@@ -1296,8 +1199,6 @@ export function AgentDetail() {
             actionsDisabled={agentAction.isPending}
             workActionsDisabled={hasInvalidOrgChain}
             workActionsDisabledReason="Repair this agent's reporting chain before assigning tasks or starting runs"
-            hasPendingNavigationChanges={configDirty}
-            onBeforeNavigate={prepareAgentNavigation}
             onActionError={setActionError}
             onTerminateSuccess={() => navigate("/agents/all", { replace: true })}
             hideTerminate={Boolean(builtInState)}
@@ -1347,7 +1248,7 @@ export function AgentDetail() {
             </Button>
           }
         >
-          Ships with Paperclip and powers <strong>{builtInFeatureLabel}</strong>. Configure it like
+          Ships with Clayon and powers <strong>{builtInFeatureLabel}</strong>. Configure it like
           any agent — model, instructions, budget. It can be paused but not deleted; pausing it
           pauses {builtInFeatureLabel}.
         </InlineBanner>
@@ -1397,10 +1298,24 @@ export function AgentDetail() {
         </div>
       )}
 
-      {activeView !== "run-detail" && activeView !== "channels" && <h2 className="text-xl font-semibold">{activeView === "secrets" ? "Secrets & variables" : AGENT_DETAIL_NAVIGATION.flatMap(section => section.items).find(item => item.value === activeView)?.label}</h2>}
+      {activeView !== "run-detail" && activeView !== "channels" && !isLongPage && <h2 className="text-xl font-semibold">{buildAgentSectionTabs(canonicalAgentRef, agent.id).find(section => section.id === activeView)?.label}</h2>}
 
       {/* View content */}
-      {activeView === "overview" && (
+      {activeView === "overview" && isLongPage && (
+        <AgentLongPage
+          agent={agent}
+          runs={heartbeats ?? []}
+          assignedIssues={assignedIssues}
+          runtimeState={runtimeState}
+          reportsToAgent={reportsToAgent}
+          directReportCount={directReports.length}
+          skillNames={overviewSkillNames}
+          agentRouteId={canonicalAgentRef}
+          companyId={resolvedCompanyId ?? undefined}
+        />
+      )}
+
+      {activeView === "overview" && !isLongPage && (
         <AgentOverview
           agent={agent}
           runs={heartbeats ?? []}
@@ -1418,10 +1333,6 @@ export function AgentDetail() {
           agent={agent}
           companyId={resolvedCompanyId ?? undefined}
           showSaveNotice={false}
-          onDirtyChange={setConfigDirty}
-          onSaveActionChange={setSaveConfigAction}
-          onCancelActionChange={setCancelConfigAction}
-          onSavingChange={setConfigSaving}
         />
         {resolvedCompanyId && <AgentConnectionInstructions companyId={resolvedCompanyId} agentId={agent.id} />}
         </div>
@@ -1432,10 +1343,6 @@ export function AgentDetail() {
           <ConfigurationTab
             agent={agent}
             companyId={resolvedCompanyId ?? undefined}
-            onDirtyChange={setConfigDirty}
-            onSaveActionChange={setSaveConfigAction}
-            onCancelActionChange={setCancelConfigAction}
-            onSavingChange={setConfigSaving}
             updatePermissions={updatePermissions}
             canConfigureProviderTrace={canUseProviderTrace}
             content="runtime"
@@ -1450,10 +1357,6 @@ export function AgentDetail() {
           <ConfigurationTab
             agent={agent}
             companyId={resolvedCompanyId ?? undefined}
-            onDirtyChange={setConfigDirty}
-            onSaveActionChange={setSaveConfigAction}
-            onCancelActionChange={setCancelConfigAction}
-            onSavingChange={setConfigSaving}
             updatePermissions={updatePermissions}
             content="secrets"
           />
@@ -1480,10 +1383,6 @@ export function AgentDetail() {
           <ConfigurationTab
             agent={agent}
             companyId={resolvedCompanyId ?? undefined}
-            onDirtyChange={setConfigDirty}
-            onSaveActionChange={setSaveConfigAction}
-            onCancelActionChange={setCancelConfigAction}
-            onSavingChange={setConfigSaving}
             updatePermissions={updatePermissions}
             content="permissions"
           />
@@ -1511,15 +1410,6 @@ export function AgentDetail() {
           adapterConfig={agent.adapterConfig}
         />
       )}
-
-      {showConfigActionBar && <footer className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-background py-4">
-        <p role="status" className="text-xs text-muted-foreground">{configSaving ? "Saving changes…" : configDirty ? "You have unsaved changes." : ""}</p>
-        <div className="flex gap-2">
-          <Button variant="ghost" disabled={!configDirty || configSaving} onClick={() => cancelConfigActionRef.current?.()}>Discard</Button>
-          <Button disabled={!configDirty || configSaving} onClick={() => {Promise.resolve(saveConfigActionRef.current?.()).catch(() => {});}}>{configSaving ? "Saving…" : "Save changes"}</Button>
-        </div>
-      </footer>}
-
     </div>
   );
 }
@@ -1727,6 +1617,7 @@ export function AgentOverview({
   directReportCount,
   skillNames,
   agentRouteId,
+  embedded = false,
 }: {
   agent: AgentDetailRecord;
   runs: HeartbeatRun[];
@@ -1736,6 +1627,8 @@ export function AgentOverview({
   directReportCount: number;
   skillNames: string[];
   agentRouteId: string;
+  /** Long-page band mode: the Runs and Audit bands own those surfaces. */
+  embedded?: boolean;
 }) {
   const issuesById = useMemo(() => {
     const map = new Map<string, (typeof assignedIssues)[number]>();
@@ -1753,11 +1646,12 @@ export function AgentOverview({
   });
   return (
     <div className="space-y-6">
-      <LatestRunCard runs={runs} agentId={agentRouteId} issuesById={issuesById} />
+      {!embedded && <LatestRunCard runs={runs} agentId={agentRouteId} issuesById={issuesById} />}
 
       {/* Leaf-node: overview sections are bands split by hairlines — no
-          grouping cards; padding lives on the leaf rows. */}
-      <div className="grid gap-4 border-t border-border pt-6 md:grid-cols-2">
+          grouping cards; padding lives on the leaf rows. Collections tile
+          (per-page criteria): 2-up from md, 4-up at xl. */}
+      <div className="grid gap-4 border-t border-border md:grid-cols-2 xl:grid-cols-4">
         <section className="space-y-3" aria-labelledby="agent-identity-heading">
           <div className="flex items-center justify-between gap-3">
             <h3 id="agent-identity-heading" className="text-sm font-medium">Identity</h3>
@@ -1833,7 +1727,7 @@ export function AgentOverview({
 
       {/* Leaf-node: sibling sections split by one hairline; task rows stand
           free (their own rounding + hover wash) instead of a list card. */}
-      <section className="space-y-3 border-t border-border pt-6" aria-labelledby="agent-recent-tasks-heading">
+      <section className="space-y-3 border-t border-border" aria-labelledby="agent-recent-tasks-heading">
         <div className="flex items-center justify-between">
           <h3 id="agent-recent-tasks-heading" className="text-sm font-medium">Recent Tasks</h3>
           <Link
@@ -1864,7 +1758,7 @@ export function AgentOverview({
         )}
       </section>
 
-      <section className="space-y-3 border-t border-border pt-6" aria-labelledby="agent-audit-links-heading">
+      <section className="space-y-3 border-t border-border" aria-labelledby="agent-audit-links-heading">
         <h3 id="agent-audit-links-heading" className="text-sm font-medium">Audit</h3>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {(["activity", "runs", "costs", "budgets"] as const).map((section) => (
@@ -1878,6 +1772,430 @@ export function AgentOverview({
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+/* ---- Agent long page (addendum 3): one immersive scrolling page whose
+   bands each preview a section and link to its dedicated route. ---- */
+
+/** One band of the long page: title, compact preview, one See more link. */
+function SectionBand({
+  id,
+  title,
+  to,
+  first = false,
+  children,
+}: {
+  id: string;
+  title: string;
+  to: string;
+  first?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={`${id}-band-heading`}
+      className={cn("scroll-mt-16 space-y-3", !first && "border-t border-border")}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h3 id={`${id}-band-heading`} className="text-sm font-medium">{title}</h3>
+        <Link className="text-xs text-muted-foreground hover:text-foreground" to={to}>
+          See more &rarr;
+        </Link>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Lazy-mounts a band's preview when it approaches the viewport, so the
+ * first screen renders fast and below-fold previews fetch nothing (addendum 3).
+ */
+function LazySection({ children }: { children: React.ReactNode }) {
+  const holderRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const element = holderRef.current;
+    if (!element || visible) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "320px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [visible]);
+  return <div ref={holderRef} className={cn(!visible && "min-h-6")}>{visible ? children : null}</div>;
+}
+
+function LoadingPreview() {
+  return <p className="text-sm text-muted-foreground">Loading…</p>;
+}
+
+function InstructionsPreview({ agent }: { agent: AgentDetailRecord }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.agents.instructionsBundle(agent.id),
+    queryFn: () => agentsApi.instructionsBundle(agent.id, agent.companyId),
+  });
+  if (isLoading) return <LoadingPreview />;
+  if (!data) return <p className="text-sm text-muted-foreground">No instructions bundle.</p>;
+  return (
+    <div className="space-y-1">
+      <SummaryRow label="Mode">
+        <span className="text-sm">{data.mode ?? "external"}</span>
+      </SummaryRow>
+      <SummaryRow label="Entry file">
+        <span className="truncate font-mono text-sm">{data.entryFile}</span>
+      </SummaryRow>
+      {data.warnings.length > 0 ? (
+        <SummaryRow label="Warnings">
+          <span className="text-sm text-muted-foreground">{data.warnings.length}</span>
+        </SummaryRow>
+      ) : null}
+    </div>
+  );
+}
+
+function SkillsPreview({ skillNames }: { skillNames: string[] }) {
+  return skillNames.length > 0 ? (
+    <div className="flex flex-wrap gap-2">
+      {skillNames.slice(0, 5).map((skill) => <Badge key={skill} variant="secondary">{skill}</Badge>)}
+      {skillNames.length > 5 ? <Badge variant="outline">+{skillNames.length - 5} more</Badge> : null}
+    </div>
+  ) : (
+    <p className="text-sm text-muted-foreground">No skills enabled.</p>
+  );
+}
+
+function RuntimePreview({
+  agent,
+  runtimeState,
+}: {
+  agent: AgentDetailRecord;
+  runtimeState?: AgentRuntimeState;
+}) {
+  const configuredModel = asNonEmptyString(agent.adapterConfig?.model)
+    ?? asNonEmptyString(agent.adapterConfig?.modelName)
+    ?? asNonEmptyString(agent.runtimeConfig?.model)
+    ?? "Adapter default";
+  return (
+    <div className="space-y-1">
+      <SummaryRow label="Adapter">
+        <span className="text-sm">{getAdapterDisplay(agent.adapterType === "paperclip_runner" && agent.adapterConfig.provider === "openai_dot" ? "openai_dot" : agent.adapterType).label}</span>
+      </SummaryRow>
+      <SummaryRow label="Model">
+        <span className="max-w-64 truncate font-mono text-sm">{configuredModel}</span>
+      </SummaryRow>
+      <SummaryRow label="Session">
+        <span className="max-w-64 truncate font-mono text-sm">{runtimeState?.sessionDisplayId ?? runtimeState?.sessionId ?? "No session"}</span>
+      </SummaryRow>
+    </div>
+  );
+}
+
+function SecretsPreview({ agent }: { agent: AgentDetailRecord }) {
+  const env = asRecord(agent.runtimeConfig?.env) ?? asRecord(agent.adapterConfig?.env);
+  const names = env ? Object.keys(env) : [];
+  if (names.length === 0) {
+    return <p className="text-sm text-muted-foreground">No environment variables configured.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      {names.slice(0, 4).map((name) => (
+        <SummaryRow key={name} label={name}>
+          <span className="font-mono text-xs text-muted-foreground">••••••••</span>
+        </SummaryRow>
+      ))}
+      {names.length > 4 ? (
+        <p className="text-xs text-muted-foreground">+{names.length - 4} more variables</p>
+      ) : null}
+    </div>
+  );
+}
+
+function ToolsPreview({ agent, companyId }: { agent: AgentDetailRecord; companyId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.tools.effectiveProfilesForAgent(companyId, agent.id),
+    queryFn: () => toolsApi.getEffectiveProfilesForAgent(companyId, agent.id),
+  });
+  if (isLoading) return <LoadingPreview />;
+  const names = data?.allowedToolNames ?? [];
+  if (names.length === 0) {
+    return <p className="text-sm text-muted-foreground">No tools allowed yet.</p>;
+  }
+  return (
+    <div className="flex flex-wrap gap-2">
+      {names.slice(0, 6).map((name) => <Badge key={name} variant="secondary">{name}</Badge>)}
+      {names.length > 6 ? <Badge variant="outline">+{names.length - 6} more</Badge> : null}
+    </div>
+  );
+}
+
+function ChannelsPreview({ agent, companyId }: { agent: AgentDetailRecord; companyId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.chatEndpoints.list(companyId),
+    queryFn: () => chatEndpointsApi.list(companyId),
+  });
+  if (isLoading) return <LoadingPreview />;
+  const endpoints = (data ?? []).filter(
+    (endpoint) => endpoint.assignedAgentId === agent.id && endpoint.status !== "archived",
+  );
+  if (endpoints.length === 0) {
+    return <p className="text-sm text-muted-foreground">No channels connected.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      {endpoints.slice(0, 4).map((endpoint) => (
+        <SummaryRow key={endpoint.id} label={endpoint.provider}>
+          <StatusBadge status={endpoint.status} />
+        </SummaryRow>
+      ))}
+      {endpoints.length > 4 ? (
+        <p className="text-xs text-muted-foreground">+{endpoints.length - 4} more channels</p>
+      ) : null}
+    </div>
+  );
+}
+
+function PermissionsPreview({ agent }: { agent: AgentDetailRecord }) {
+  return (
+    <div className="space-y-1">
+      <SummaryRow label="Assign tasks">
+        <span className="text-sm">{agent.access?.canAssignTasks ? "Granted" : "Not granted"}</span>
+      </SummaryRow>
+      <SummaryRow label="Source">
+        <span className="text-sm">{agent.access?.taskAssignSource ?? "—"}</span>
+      </SummaryRow>
+      <SummaryRow label="Chain of command">
+        <span className="text-sm">{agent.chainOfCommand?.length ?? 0} levels</span>
+      </SummaryRow>
+    </div>
+  );
+}
+
+function ApiKeysPreview({ agent }: { agent: AgentDetailRecord }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.agents.keys(agent.id),
+    queryFn: () => agentsApi.listKeys(agent.id, agent.companyId),
+  });
+  if (isLoading) return <LoadingPreview />;
+  const keys = data ?? [];
+  if (keys.length === 0) {
+    return <p className="text-sm text-muted-foreground">No API keys issued.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      {keys.slice(0, 3).map((key: AgentKey) => (
+        <SummaryRow key={key.id} label={key.name}>
+          <span className="text-xs text-muted-foreground">{relativeTime(key.createdAt)}</span>
+        </SummaryRow>
+      ))}
+      {keys.length > 3 ? (
+        <p className="text-xs text-muted-foreground">+{keys.length - 3} more keys</p>
+      ) : null}
+    </div>
+  );
+}
+
+function RevisionsPreview({ agent }: { agent: AgentDetailRecord }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.agents.configRevisions(agent.id),
+    queryFn: () => agentsApi.listConfigRevisions(agent.id, agent.companyId),
+  });
+  if (isLoading) return <LoadingPreview />;
+  const revisions = data ?? [];
+  if (revisions.length === 0) {
+    return <p className="text-sm text-muted-foreground">No config revisions recorded.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      {revisions.slice(0, 3).map((revision) => (
+        <SummaryRow key={revision.id} label={revision.source}>
+          <span className="text-xs text-muted-foreground">{relativeTime(revision.createdAt)}</span>
+        </SummaryRow>
+      ))}
+      {revisions.length > 3 ? (
+        <p className="text-xs text-muted-foreground">+{revisions.length - 3} more revisions</p>
+      ) : null}
+    </div>
+  );
+}
+
+function ActivityPreview({ agent, companyId }: { agent: AgentDetailRecord; companyId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["companies", companyId, "activity", { agentId: agent.id, limit: 5 }],
+    queryFn: () => activityApi.list(companyId, { agentId: agent.id, limit: 5 }),
+  });
+  if (isLoading) return <LoadingPreview />;
+  const events = data ?? [];
+  if (events.length === 0) {
+    return <p className="text-sm text-muted-foreground">No recorded activity.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      {events.map((event) => (
+        <SummaryRow key={event.id} label={event.action}>
+          <span className="text-xs text-muted-foreground">{event.entityType} · {relativeTime(event.createdAt)}</span>
+        </SummaryRow>
+      ))}
+    </div>
+  );
+}
+
+function RunsPreview({
+  runs,
+  agentRouteId,
+  issuesById,
+}: {
+  runs: HeartbeatRun[];
+  agentRouteId: string;
+  issuesById: Map<string, Issue>;
+}) {
+  if (runs.length === 0) {
+    return <p className="text-sm text-muted-foreground">No runs yet.</p>;
+  }
+  return (
+    <div className="space-y-3">
+      <LatestRunCard runs={runs} agentId={agentRouteId} issuesById={issuesById} />
+      <p className="text-xs text-muted-foreground">{runs.length} runs tracked.</p>
+    </div>
+  );
+}
+
+function CostsPreview({ runtimeState }: { runtimeState?: AgentRuntimeState }) {
+  if (!runtimeState) {
+    return <p className="text-sm text-muted-foreground">No usage recorded yet.</p>;
+  }
+  return (
+    <div className="space-y-1">
+      <SummaryRow label="Lifetime cost">
+        <span className="text-sm tabular-nums">${(runtimeState.totalCostCents / 100).toFixed(2)}</span>
+      </SummaryRow>
+      <SummaryRow label="Input tokens">
+        <span className="text-sm tabular-nums">{formatTokens(runtimeState.totalInputTokens)}</span>
+      </SummaryRow>
+      <SummaryRow label="Output tokens">
+        <span className="text-sm tabular-nums">{formatTokens(runtimeState.totalOutputTokens)}</span>
+      </SummaryRow>
+    </div>
+  );
+}
+
+function BudgetsPreview({ companyId }: { companyId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.budgets.overview(companyId),
+    queryFn: () => budgetsApi.overview(companyId),
+  });
+  if (isLoading) return <LoadingPreview />;
+  if (!data) return <p className="text-sm text-muted-foreground">No budget overview available.</p>;
+  return (
+    <div className="space-y-1">
+      <SummaryRow label="Active policies">
+        <span className="text-sm tabular-nums">{data.policies.length}</span>
+      </SummaryRow>
+      <SummaryRow label="Active incidents">
+        <span className={cn("text-sm tabular-nums", data.activeIncidents.length > 0 && "text-destructive")}>
+          {data.activeIncidents.length}
+        </span>
+      </SummaryRow>
+      <SummaryRow label="Paused agents">
+        <span className="text-sm tabular-nums">{data.pausedAgentCount}</span>
+      </SummaryRow>
+    </div>
+  );
+}
+
+function AgentLongPage({
+  agent,
+  runs,
+  assignedIssues,
+  runtimeState,
+  reportsToAgent,
+  directReportCount,
+  skillNames,
+  agentRouteId,
+  companyId,
+}: {
+  agent: AgentDetailRecord;
+  runs: HeartbeatRun[];
+  assignedIssues: Issue[];
+  runtimeState?: AgentRuntimeState;
+  reportsToAgent?: Agent;
+  directReportCount: number;
+  skillNames: string[];
+  agentRouteId: string;
+  companyId?: string;
+}) {
+  const sections = useMemo(
+    () => buildAgentSectionTabs(agentRouteId, agent.id),
+    [agentRouteId, agent.id],
+  );
+  const issuesById = useMemo(() => {
+    const map = new Map<string, Issue>();
+    for (const issue of assignedIssues) map.set(issue.id, issue);
+    return map;
+  }, [assignedIssues]);
+  // Each band's compact preview, keyed by the section id the strip and the
+  // bands share; id, label and See-more route come from the section list.
+  const previews: Record<string, React.ReactNode> = {
+    overview: (
+      <AgentOverview
+        agent={agent}
+        runs={runs}
+        assignedIssues={assignedIssues}
+        runtimeState={runtimeState}
+        reportsToAgent={reportsToAgent}
+        directReportCount={directReportCount}
+        skillNames={skillNames}
+        agentRouteId={agentRouteId}
+        embedded
+      />
+    ),
+    instructions: <LazySection><InstructionsPreview agent={agent} /></LazySection>,
+    skills: <SkillsPreview skillNames={skillNames} />,
+    runtime: <RuntimePreview agent={agent} runtimeState={runtimeState} />,
+    secrets: <SecretsPreview agent={agent} />,
+    tools: companyId
+      ? <LazySection><ToolsPreview agent={agent} companyId={companyId} /></LazySection>
+      : <p className="text-sm text-muted-foreground">Select a company to view tools.</p>,
+    channels: companyId
+      ? <LazySection><ChannelsPreview agent={agent} companyId={companyId} /></LazySection>
+      : <p className="text-sm text-muted-foreground">Select a company to view channels.</p>,
+    permissions: <PermissionsPreview agent={agent} />,
+    "api-keys": <LazySection><ApiKeysPreview agent={agent} /></LazySection>,
+    revisions: <LazySection><RevisionsPreview agent={agent} /></LazySection>,
+    activity: companyId
+      ? <LazySection><ActivityPreview agent={agent} companyId={companyId} /></LazySection>
+      : <p className="text-sm text-muted-foreground">Select a company to view activity.</p>,
+    runs: <RunsPreview runs={runs} agentRouteId={agentRouteId} issuesById={issuesById} />,
+    costs: <CostsPreview runtimeState={runtimeState} />,
+    budgets: companyId
+      ? <LazySection><BudgetsPreview companyId={companyId} /></LazySection>
+      : <p className="text-sm text-muted-foreground">Select a company to view budgets.</p>,
+  };
+  return (
+    <div className="space-y-6">
+      <SectionTabs sections={sections} ariaLabel={`${agent.name} sections`} />
+      <div className="space-y-6">
+        {sections.map((section, index) => (
+          <SectionBand
+            key={section.id}
+            id={section.id}
+            title={section.label}
+            to={section.to}
+            first={index === 0}
+          >
+            {previews[section.id] ?? null}
+          </SectionBand>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1980,10 +2298,6 @@ export function AgentRevisionsTab({
 export function ConfigurationTab({
   agent,
   companyId,
-  onDirtyChange,
-  onSaveActionChange,
-  onCancelActionChange,
-  onSavingChange,
   updatePermissions,
   hidePromptTemplate,
   hideInstructionsFile,
@@ -1992,10 +2306,6 @@ export function ConfigurationTab({
 }: {
   agent: AgentDetailRecord;
   companyId?: string;
-  onDirtyChange: (dirty: boolean) => void;
-  onSaveActionChange: (save: (() => void) | null) => void;
-  onCancelActionChange: (cancel: (() => void) | null) => void;
-  onSavingChange: (saving: boolean) => void;
   updatePermissions: { mutate: (permissions: AgentPermissionUpdate) => void; isPending: boolean };
   hidePromptTemplate?: boolean;
   hideInstructionsFile?: boolean;
@@ -2067,18 +2377,6 @@ export function ConfigurationTab({
     }
     lastAgentRef.current = agent;
   }, [agent, awaitingRefreshAfterSave]);
-  const isConfigSaving = content !== "permissions" && (updateAgent.isPending || awaitingRefreshAfterSave);
-
-  useEffect(() => {
-    onSavingChange(isConfigSaving);
-  }, [onSavingChange, isConfigSaving]);
-
-  useEffect(() => {
-    if (content !== "permissions") return;
-    onDirtyChange(false);
-    onSaveActionChange(null);
-    onCancelActionChange(null);
-  }, [content, onCancelActionChange, onDirtyChange, onSaveActionChange]);
 
   const canCreateAgents = Boolean(agent.permissions?.canCreateAgents);
   const canCreateSkills = agent.permissions?.canCreateSkills !== false;
@@ -2102,12 +2400,7 @@ export function ConfigurationTab({
         mode="edit"
         agent={agent}
         onSave={(patch) => updateAgent.mutateAsync(patch)}
-        isSaving={isConfigSaving}
         adapterModels={adapterModels}
-        onDirtyChange={onDirtyChange}
-        onSaveActionChange={onSaveActionChange}
-        onCancelActionChange={onCancelActionChange}
-        hideInlineSave
         hidePromptTemplate={hidePromptTemplate}
         hideInstructionsFile={hideInstructionsFile}
         content={content === "runtime" ? "configuration" : "secrets"}
@@ -2216,19 +2509,11 @@ export function ConfigurationTab({
 export function PromptsTab({
   agent,
   companyId,
-  onDirtyChange,
-  onSaveActionChange,
-  onCancelActionChange,
-  onSavingChange,
   showSaveNotice = true,
 }: {
   showSaveNotice?: boolean;
   agent: Agent;
   companyId?: string;
-  onDirtyChange: (dirty: boolean) => void;
-  onSaveActionChange: (save: (() => void) | null) => void;
-  onCancelActionChange: (cancel: (() => void) | null) => void;
-  onSavingChange: (saving: boolean) => void;
 }) {
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
@@ -2240,6 +2525,11 @@ export function PromptsTab({
   const draftBaseRevisionRef = useRef<string | null | undefined>(undefined);
   const draftBaseHashRef = useRef<string | null | undefined>(undefined);
   const [candidateRunId, setCandidateRunId] = useState<string | null>(null);
+  // Apply-on-choice resolution state (operator autosave rule): the preserved
+  // edit being resolved right now, plus the pre-resolution content for Undo.
+  const [candidateResolution, setCandidateResolution] = useState<{ runId: string; content: string } | null>(null);
+  const previousFileContentRef = useRef<string | null>(null);
+  const resolutionUndoneRef = useRef(false);
   const [readOnlyCandidateRunId, setReadOnlyCandidateRunId] = useState<string | null>(null);
   const candidateAgentRef = useRef(agent.id);
   candidateAgentRef.current = agent.id;
@@ -2367,6 +2657,13 @@ export function PromptsTab({
       setCandidateRunId(candidate.runId);
       setDraft(candidate.content);
       setInstructionMode("edit");
+      // Apply-on-choice (operator autosave rule): reviewing a preserved edit
+      // IS the decision — schedule its resolution immediately. The previous
+      // file content stays in memory for the inline Undo until the save
+      // settles.
+      previousFileContentRef.current = file?.content ?? null;
+      resolutionUndoneRef.current = false;
+      setCandidateResolution({ runId: candidate.runId, content: candidate.content ?? "" });
     },
   });
   const resolveCandidate = useMutation({
@@ -2376,8 +2673,12 @@ export function PromptsTab({
     }),
     onSuccess: ({ file, agentId: requestedAgentId }) => {
       if (candidateAgentRef.current !== requestedAgentId) return;
-      setDraft(null);
+      // An undone resolution keeps the restored draft in the editor; it
+      // re-saves through the ordinary file autosave.
+      if (!resolutionUndoneRef.current) setDraft(null);
+      resolutionUndoneRef.current = false;
       setCandidateRunId(null);
+      setCandidateResolution(null);
       draftBaseRevisionRef.current = undefined;
       draftBaseHashRef.current = undefined;
       queryClient.setQueryData(queryKeys.agents.instructionsFile(agent.id, file.path), file);
@@ -2576,77 +2877,88 @@ export function PromptsTab({
   const isDirty = bundleDirty || fileDirty || candidateRunId !== null;
   const isSaving = updateBundle.isPending || saveFile.isPending || resolveCandidate.isPending || loadCandidate.isPending || refreshCandidateBase.isPending || deleteFile.isPending || awaitingRefresh;
 
-  useEffect(() => { onSavingChange(isSaving); }, [onSavingChange, isSaving]);
-  useEffect(() => { onDirtyChange(isDirty); }, [onDirtyChange, isDirty]);
-
-  useEffect(() => () => {
-    onSaveActionChange(null);
-    onCancelActionChange(null);
-    onDirtyChange(false);
-    onSavingChange(false);
-  }, [onCancelActionChange, onDirtyChange, onSaveActionChange, onSavingChange]);
-
-  useEffect(() => {
-    onSaveActionChange(isDirty ? () => {
-      const save = async () => {
-        const shouldClearLegacy =
-          Boolean(bundle?.legacyPromptTemplateActive) || Boolean(bundle?.legacyBootstrapPromptTemplateActive);
-        if (bundleDirty && bundleDraft) {
-          await updateBundle.mutateAsync({
-            mode: bundleDraft.mode,
-            rootPath: bundleDraft.mode === "external" ? bundleDraft.rootPath : null,
-            entryFile: bundleDraft.entryFile,
-          });
-        }
-        if (candidateRunId) {
-          await resolveCandidate.mutateAsync({ runId: candidateRunId, content: displayValue,
-            baseRevisionId: draftBaseRevisionRef.current ?? null });
-        } else if (fileDirty) {
-          await saveFile.mutateAsync({
-            path: selectedOrEntryFile,
-            content: displayValue,
-            ...(bundle?.persistence === "agent_files" ? { baseHash: draftBaseHashRef.current !== undefined ? draftBaseHashRef.current : selectedFileDetail?.contentHash ?? null } : {}),
-            ...(selectedOrEntryFile === currentEntryFile && currentMode === "managed" ? { baseRevisionId: draftBaseRevisionRef.current !== undefined ? draftBaseRevisionRef.current : selectedFileDetail?.revision?.id ?? null } : {}),
-            clearLegacyPromptTemplate: shouldClearLegacy,
-          });
-        }
-      };
-      void save().catch(() => undefined);
-    } : null);
+  // Autosave (operator directive): bundle settings and instruction file
+  // drafts save themselves through the surface's existing mutations. The
+  // preserved-edit review flow (candidateRunId) stays an explicit Save —
+  // applying a preserved edit is a review decision, not an edit.
+  const saveDrafts = useCallback(async () => {
+    const shouldClearLegacy =
+      Boolean(bundle?.legacyPromptTemplateActive) || Boolean(bundle?.legacyBootstrapPromptTemplateActive);
+    if (bundleDirty && bundleDraft) {
+      await updateBundle.mutateAsync({
+        mode: bundleDraft.mode,
+        rootPath: bundleDraft.mode === "external" ? bundleDraft.rootPath : null,
+        entryFile: bundleDraft.entryFile,
+      });
+    }
+    if (fileDirty && candidateRunId === null) {
+      await saveFile.mutateAsync({
+        path: selectedOrEntryFile,
+        content: displayValue,
+        ...(bundle?.persistence === "agent_files" ? { baseHash: draftBaseHashRef.current !== undefined ? draftBaseHashRef.current : selectedFileDetail?.contentHash ?? null } : {}),
+        ...(selectedOrEntryFile === currentEntryFile && currentMode === "managed" ? { baseRevisionId: draftBaseRevisionRef.current !== undefined ? draftBaseRevisionRef.current : selectedFileDetail?.revision?.id ?? null } : {}),
+        clearLegacyPromptTemplate: shouldClearLegacy,
+      });
+    }
   }, [
     bundle,
-    bundleDirty,
     bundleDraft,
+    bundleDirty,
     candidateRunId,
-    resolveCandidate,
-    displayValue,
-    fileDirty,
-    isDirty,
-    onSaveActionChange,
-    selectedFileDetail?.revision?.id,
     currentEntryFile,
     currentMode,
+    displayValue,
+    fileDirty,
     saveFile,
+    selectedFileDetail?.contentHash,
+    selectedFileDetail?.revision?.id,
     selectedOrEntryFile,
     updateBundle,
   ]);
 
-  useEffect(() => {
-    onCancelActionChange(isDirty ? () => {
-      draftBaseRevisionRef.current = undefined;
-      draftBaseHashRef.current = undefined;
-      setCandidateRunId(null);
-      resolveCandidate.reset();
-      setDraft(null);
-      if (bundle) {
-        setBundleDraft({
-          mode: persistedMode,
-          rootPath: persistedRootPath,
-          entryFile: bundle.entryFile,
-        });
-      }
-    } : null);
-  }, [bundle, isDirty, onCancelActionChange, persistedMode, persistedRootPath, resolveCandidate]);
+  // The autosave value mirrors the two self-saving drafts only, and only
+  // while they actually differ from the persisted state (a reverted draft is
+  // clean); the mutations converge both back to null after each save.
+  const autosaveDraft = useMemo(() => ({
+    bundle: bundleDirty && bundleDraft ? { ...bundleDraft } : null,
+    file: fileDirty && candidateRunId === null ? { path: selectedOrEntryFile, content: draft } : null,
+  }), [bundleDirty, bundleDraft, fileDirty, candidateRunId, draft, selectedOrEntryFile]);
+  const autosaveBaseline = useMemo(() => ({ bundle: null, file: null }), []);
+  const autosave = useAutosave({
+    value: autosaveDraft,
+    savedValue: autosaveBaseline,
+    isEqual: autosaveJsonEqual,
+    save: () => saveDrafts(),
+  });
+
+  // Apply-on-choice resolution of a preserved edit (operator autosave rule):
+  // zero debounce — the review choice saves immediately. Undo restores the
+  // pre-resolution file content as a draft that re-saves through the
+  // ordinary file autosave.
+  const candidateAutosave = useAutosave({
+    value: candidateResolution,
+    savedValue: null,
+    isEqual: autosaveJsonEqual,
+    debounceMs: 0,
+    save: async (next) => {
+      if (next === null) return;
+      await resolveCandidate.mutateAsync({
+        runId: next.runId,
+        content: next.content,
+        baseRevisionId: draftBaseRevisionRef.current ?? null,
+      });
+    },
+  });
+  const undoResolution = useCallback(() => {
+    setCandidateResolution(null);
+    setCandidateRunId(null);
+    resolveCandidate.reset();
+    resolutionUndoneRef.current = true;
+    if (previousFileContentRef.current !== null) {
+      setDraft(previousFileContentRef.current);
+      setInstructionMode("edit");
+    }
+  }, [resolveCandidate]);
 
   const handleSeparatorDrag = useCallback((event: React.MouseEvent) => {
     event.preventDefault();
@@ -2700,6 +3012,9 @@ export function PromptsTab({
       {showSaveNotice && <p className="text-xs text-muted-foreground">
         Saved instructions affect the next run. Active runs keep the instructions they started with, and instruction changes may start a fresh adapter session.
       </p>}
+      <div className="flex justify-end">
+        <SaveStatus status={autosave.status} errorMessage={autosave.errorMessage} onRetry={autosave.retry} />
+      </div>
 
       <Collapsible defaultOpen={currentMode === "external"}>
         <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group">
@@ -2717,7 +3032,7 @@ export function PromptsTab({
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" sideOffset={4}>
-                      Managed: Paperclip stores and serves the instructions bundle. External: you provide a path on disk where the instructions live.
+                      Managed: Clayon stores and serves the instructions bundle. External: you provide a path on disk where the instructions live.
                     </TooltipContent>
                   </Tooltip>
                 </span>
@@ -2772,7 +3087,7 @@ export function PromptsTab({
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="right" sideOffset={4}>
-                      The absolute directory on disk where the instructions bundle lives. In managed mode this is set by Paperclip automatically.
+                      The absolute directory on disk where the instructions bundle lives. In managed mode this is set by Clayon automatically.
                     </TooltipContent>
                   </Tooltip>
                 </span>
@@ -3109,7 +3424,21 @@ export function PromptsTab({
             </div>
           )}
           {candidateRunId && <div role="status" className="space-y-3">
-            <p className="text-sm text-muted-foreground">Reviewing preserved edits. Save to apply your resolved draft and close this preserved edit.</p>
+            <p className="text-sm text-muted-foreground">Applying preserved edits to your resolved draft.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <SaveStatus
+                status={candidateAutosave.status}
+                errorMessage={candidateAutosave.errorMessage}
+                onRetry={candidateAutosave.retry}
+              />
+              <button
+                type="button"
+                className="text-xs font-medium text-foreground underline underline-offset-2 hover:text-muted-foreground"
+                onClick={undoResolution}
+              >
+                Undo
+              </button>
+            </div>
             <details><summary className="cursor-pointer text-sm text-muted-foreground">Compare current instructions</summary>
               <pre className="whitespace-pre-wrap break-words rounded-md border border-border p-3 font-mono text-sm">{currentContent}</pre>
             </details>
@@ -3439,8 +3768,8 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
     queryKey: queryKeys.instance.experimentalSettings,
     queryFn: () => instanceSettingsApi.getExperimental(),
   });
-  const paperclipDeveloperMode =
-    experimentalSettings?.enablePaperclipDeveloperMode === true;
+  const clayonDeveloperMode =
+    experimentalSettings?.enableClayonDeveloperMode === true;
   const { data: providerTraceRows } = useQuery({
     queryKey: queryKeys.providerTraceMetadata(run.companyId, [run.id]),
     queryFn: () => heartbeatsApi.providerTraceMetadata(run.companyId, [run.id]),
@@ -3686,7 +4015,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
               </Button>
               <HoneycombRunLink
                 runId={run.id}
-                enabled={paperclipDeveloperMode && canUseProviderTrace}
+                enabled={clayonDeveloperMode && canUseProviderTrace}
               />
               {canUseProviderTrace && !["queued", "running"].includes(run.status) ? (
                 <Button
@@ -4750,7 +5079,7 @@ export function KeysTab({ agentId, companyId }: { agentId: string; companyId?: s
           Create API Key
         </h3>
         <p className="text-xs text-muted-foreground">
-          API keys allow this agent to authenticate calls to the Paperclip server.
+          API keys allow this agent to authenticate calls to the Clayon server.
         </p>
         <div className="flex items-center gap-2">
           <Input

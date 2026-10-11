@@ -9,7 +9,7 @@ const script = new URL("../provision-worktree.sh", import.meta.url).pathname;
 const runtimeScript = new URL("../provision-worktree-runtime.sh", import.meta.url).pathname;
 
 // Keep the PATH minimal so the fallback ladder is deterministic: node must be
-// reachable, but a globally installed `paperclipai` must not shadow the paths
+// reachable, but a globally installed `clayon` must not shadow the paths
 // under test.
 const testPath = [path.dirname(process.execPath), "/usr/bin", "/bin"].join(":");
 
@@ -26,7 +26,7 @@ function makeTempDir(prefix) {
  * instance config of its own, so this is the seed source the scripts fall back to.
  */
 function makeInstanceHome() {
-  const home = makeTempDir("paperclip-provision-instance-home-");
+  const home = makeTempDir("clayon-provision-instance-home-");
   fs.mkdirSync(path.join(home, "instances", "default"), { recursive: true });
   fs.writeFileSync(path.join(home, "instances", "default", "config.json"), "{}\n");
   return home;
@@ -47,7 +47,7 @@ test.after(() => {
  *           writes a marker config so tests can tell CLI init from fallback.
  */
 function makeBaseWorkspace({ helpExit, initExit, ensureExit = 0 }) {
-  const baseCwd = makeTempDir("paperclip-provision-base-");
+  const baseCwd = makeTempDir("clayon-provision-base-");
   const runnerPath = path.join(baseCwd, "cli", "node_modules", "tsx", "dist", "cli.mjs");
   const entryPath = path.join(baseCwd, "cli", "src", "index.ts");
   fs.mkdirSync(path.dirname(runnerPath), { recursive: true });
@@ -68,9 +68,9 @@ if (cliArgs[0] === "worktree" && cliArgs[1] === "init") {
     console.error("fake worktree init failure");
     process.exit(${initExit});
   }
-  fs.mkdirSync(".paperclip", { recursive: true });
-  fs.writeFileSync(".paperclip/config.json", JSON.stringify({ $meta: { source: "fake-cli" } }));
-  fs.writeFileSync(".paperclip/.env", "PAPERCLIP_IN_WORKTREE=true\\n");
+  fs.mkdirSync(".clayon", { recursive: true });
+  fs.writeFileSync(".clayon/config.json", JSON.stringify({ $meta: { source: "fake-cli" } }));
+  fs.writeFileSync(".clayon/.env", "CLAYON_IN_WORKTREE=true\\n");
   process.exit(0);
 }
 if (cliArgs[0] === "worktree" && cliArgs[1] === "ensure-seeded") {
@@ -78,11 +78,11 @@ if (cliArgs[0] === "worktree" && cliArgs[1] === "ensure-seeded") {
     console.error("fake worktree ensure-seeded failure");
     process.exit(${ensureExit});
   }
-  fs.rmSync(".paperclip/seed-pending", { force: true });
-  fs.rmSync(".paperclip/seed-complete", { force: true });
-  fs.writeFileSync(".paperclip/seed-manifest.json", JSON.stringify({
+  fs.rmSync(".clayon/seed-pending", { force: true });
+  fs.rmSync(".clayon/seed-complete", { force: true });
+  fs.writeFileSync(".clayon/seed-manifest.json", JSON.stringify({
     version: 2,
-    source: { instanceId: "base-source", configPath: ${JSON.stringify(path.join(baseCwd, ".paperclip", "config.json"))} },
+    source: { instanceId: "base-source", configPath: ${JSON.stringify(path.join(baseCwd, ".clayon", "config.json"))} },
     snapshotAt: "2026-08-19T00:00:00.000Z",
     seedMode: "minimal",
     migrationRevision: "0142_test.sql",
@@ -103,47 +103,47 @@ process.exit(0);
 }
 
 function runProvision(baseCwd, { pathPrefix, setupWorktree, setupInstance, existingWorktree, env = {} } = {}) {
-  const worktreeCwd = existingWorktree ?? makeTempDir("paperclip-provision-worktree-");
+  const worktreeCwd = existingWorktree ?? makeTempDir("clayon-provision-worktree-");
   setupWorktree?.(worktreeCwd);
-  const worktreesHome = makeTempDir("paperclip-provision-home-");
-  const paperclipHome = makeInstanceHome();
-  setupInstance?.(paperclipHome);
+  const worktreesHome = makeTempDir("clayon-provision-home-");
+  const clayonHome = makeInstanceHome();
+  setupInstance?.(clayonHome);
   const result = spawnSync("bash", [script], {
     cwd: worktreeCwd,
     encoding: "utf8",
     env: {
       PATH: pathPrefix ? `${pathPrefix}:${testPath}` : testPath,
       HOME: os.homedir(),
-      PAPERCLIP_WORKSPACE_BASE_CWD: baseCwd,
-      PAPERCLIP_WORKSPACE_CWD: worktreeCwd,
-      PAPERCLIP_WORKSPACE_BRANCH: "feature/provision-test",
-      PAPERCLIP_WORKTREES_DIR: worktreesHome,
-      PAPERCLIP_HOME: paperclipHome,
-      PAPERCLIP_PROJECT_WORKSPACE_ID: "project-workspace-1",
-      PAPERCLIP_SEED_EXPECTED_COMPANY_ID: "company-1",
-      ...(typeof env === "function" ? env(paperclipHome) : env),
+      CLAYON_WORKSPACE_BASE_CWD: baseCwd,
+      CLAYON_WORKSPACE_CWD: worktreeCwd,
+      CLAYON_WORKSPACE_BRANCH: "feature/provision-test",
+      CLAYON_WORKTREES_DIR: worktreesHome,
+      CLAYON_HOME: clayonHome,
+      CLAYON_PROJECT_WORKSPACE_ID: "project-workspace-1",
+      CLAYON_SEED_EXPECTED_COMPANY_ID: "company-1",
+      ...(typeof env === "function" ? env(clayonHome) : env),
     },
   });
-  return { result, worktreeCwd, worktreesHome, paperclipHome };
+  return { result, worktreeCwd, worktreesHome, clayonHome };
 }
 
 function runRuntimeProvision(baseCwd, worktreeCwd, { setupInstance } = {}) {
-  const worktreesHome = makeTempDir("paperclip-provision-runtime-home-");
-  const paperclipHome = makeInstanceHome();
-  setupInstance?.(paperclipHome);
+  const worktreesHome = makeTempDir("clayon-provision-runtime-home-");
+  const clayonHome = makeInstanceHome();
+  setupInstance?.(clayonHome);
   return spawnSync("bash", [runtimeScript], {
     cwd: worktreeCwd,
     encoding: "utf8",
     env: {
       PATH: testPath,
       HOME: os.homedir(),
-      PAPERCLIP_WORKSPACE_BASE_CWD: baseCwd,
-      PAPERCLIP_WORKSPACE_CWD: worktreeCwd,
-      PAPERCLIP_WORKSPACE_BRANCH: "feature/provision-runtime-test",
-      PAPERCLIP_WORKTREES_DIR: worktreesHome,
-      PAPERCLIP_HOME: paperclipHome,
-      PAPERCLIP_PROJECT_WORKSPACE_ID: "project-workspace-1",
-      PAPERCLIP_COMPANY_ID: "company-1",
+      CLAYON_WORKSPACE_BASE_CWD: baseCwd,
+      CLAYON_WORKSPACE_CWD: worktreeCwd,
+      CLAYON_WORKSPACE_BRANCH: "feature/provision-runtime-test",
+      CLAYON_WORKTREES_DIR: worktreesHome,
+      CLAYON_HOME: clayonHome,
+      CLAYON_PROJECT_WORKSPACE_ID: "project-workspace-1",
+      CLAYON_COMPANY_ID: "company-1",
     },
   });
 }
@@ -160,7 +160,7 @@ function readCliInvocations(baseCwd) {
 }
 
 function readWorktreeConfig(worktreeCwd) {
-  const configPath = path.join(worktreeCwd, ".paperclip", "config.json");
+  const configPath = path.join(worktreeCwd, ".clayon", "config.json");
   assert.ok(fs.existsSync(configPath), `expected ${configPath} to exist`);
   return JSON.parse(fs.readFileSync(configPath, "utf8"));
 }
@@ -173,7 +173,7 @@ test("uses the base CLI when its import graph boots", () => {
   const config = readWorktreeConfig(worktreeCwd);
   assert.equal(config.$meta.source, "fake-cli");
   assert.equal(
-    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state,
+    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state,
     "pending",
   );
   const initInvocation = readCliInvocations(baseCwd).find(
@@ -190,13 +190,13 @@ for (const defaultConfigInEnv of [false, true]) {
     const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
     const { result, worktreeCwd } = runProvision(baseCwd, {
       setupInstance: (home) => fs.rmSync(path.join(home, "instances", "default", "config.json")),
-      env: (home) => defaultConfigInEnv ? { PAPERCLIP_CONFIG: path.join(home, "instances", "default", "config.json") } : {},
+      env: (home) => defaultConfigInEnv ? { CLAYON_CONFIG: path.join(home, "instances", "default", "config.json") } : {},
     });
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stderr, /preparing checkout dependencies without a seeded development instance/);
     for (const file of ["config.json", ".env", "seed-manifest.json", "seed-pending", "seed-complete"]) {
-      assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip", file)), false);
+      assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", file)), false);
     }
     assert.equal(fs.realpathSync(path.join(worktreeCwd, "cli", "node_modules")), path.join(baseCwd, "cli", "node_modules"));
     assert.deepEqual(readCliInvocations(baseCwd), []);
@@ -206,13 +206,13 @@ for (const defaultConfigInEnv of [false, true]) {
 test("rejects a missing custom seed source", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
   const { result, worktreeCwd } = runProvision(baseCwd, {
-    env: { PAPERCLIP_CONFIG: path.join(baseCwd, "missing", "config.json") },
+    env: { CLAYON_CONFIG: path.join(baseCwd, "missing", "config.json") },
   });
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /config is unavailable \(control-plane instance\)/);
   assert.match(result.stderr, /For a seeded development instance, configure a canonical config/);
-  assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip")), false);
+  assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon")), false);
   assert.deepEqual(readCliInvocations(baseCwd), []);
 });
 
@@ -227,7 +227,7 @@ test("initializes a previously plain checkout once a registered seed source is a
   const second = runProvision(baseCwd, { existingWorktree: first.worktreeCwd });
   assert.equal(second.result.status, 0, second.result.stderr);
   assert.equal(readWorktreeConfig(first.worktreeCwd).$meta.source, "fake-cli");
-  assert.equal(JSON.parse(fs.readFileSync(path.join(first.worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state, "pending");
+  assert.equal(JSON.parse(fs.readFileSync(path.join(first.worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state, "pending");
 });
 
 test("a plain checkout without a source is not ready for a seeded runtime", () => {
@@ -241,7 +241,7 @@ test("a plain checkout without a source is not ready for a seeded runtime", () =
   const runtime = runRuntimeProvision(baseCwd, worktreeCwd, { setupInstance });
   assert.notEqual(runtime.status, 0);
   assert.match(runtime.stderr, /Worktree config still does not exist after built-in provisioning/);
-  assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json")), false);
+  assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json")), false);
   assert.deepEqual(readCliInvocations(baseCwd), []);
 });
 
@@ -257,7 +257,7 @@ for (const relativePath of ["instances/default/config.json", "instances/default"
     });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /canonical/);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip")), false);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon")), false);
     assert.deepEqual(readCliInvocations(baseCwd), []);
   });
 }
@@ -268,13 +268,13 @@ for (const file of ["config.json", ".env", "seed-manifest.json", "seed-pending",
     const { result, worktreeCwd } = runProvision(baseCwd, {
       setupInstance: (home) => fs.rmSync(path.join(home, "instances", "default", "config.json")),
       setupWorktree(root) {
-        fs.mkdirSync(path.join(root, ".paperclip"));
-        fs.writeFileSync(path.join(root, ".paperclip", file), "retained state\n");
+        fs.mkdirSync(path.join(root, ".clayon"));
+        fs.writeFileSync(path.join(root, ".clayon", file), "retained state\n");
       },
     });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /config is unavailable/);
-    assert.equal(fs.readFileSync(path.join(worktreeCwd, ".paperclip", file), "utf8"), "retained state\n");
+    assert.equal(fs.readFileSync(path.join(worktreeCwd, ".clayon", file), "utf8"), "retained state\n");
     assert.deepEqual(readCliInvocations(baseCwd), []);
   });
 }
@@ -282,7 +282,7 @@ for (const file of ["config.json", ".env", "seed-manifest.json", "seed-pending",
 for (const installExit of [0, 42]) {
   test(`plain checkout dependency provisioning preserves install exit ${installExit}`, () => {
     const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-    const bin = makeTempDir("paperclip-checkout-pnpm-");
+    const bin = makeTempDir("clayon-checkout-pnpm-");
     fs.writeFileSync(path.join(bin, "pnpm"), `#!/bin/sh\nprintf '%s\\n' "$*" >> pnpm-calls\nmkdir -p node_modules cli/node_modules\nexit ${installExit}\n`, { mode: 0o700 });
     const { result, worktreeCwd } = runProvision(baseCwd, {
       pathPrefix: bin,
@@ -294,24 +294,24 @@ for (const installExit of [0, 42]) {
     });
     assert.equal(result.status, installExit, result.stderr);
     assert.match(fs.readFileSync(path.join(worktreeCwd, "pnpm-calls"), "utf8"), /^install --prod=false --frozen-lockfile/);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip", "pnpm-install-fingerprint")), installExit === 0);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip", "config.json")), false);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json")), false);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "pnpm-install-fingerprint")), installExit === 0);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "config.json")), false);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json")), false);
     assert.deepEqual(readCliInvocations(baseCwd), []);
   });
 }
 
 test("rejects a dangling base workspace config symlink instead of falling back", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  fs.mkdirSync(path.join(baseCwd, ".paperclip"), { recursive: true });
-  fs.symlinkSync(path.join(baseCwd, "absent.json"), path.join(baseCwd, ".paperclip", "config.json"));
+  fs.mkdirSync(path.join(baseCwd, ".clayon"), { recursive: true });
+  fs.symlinkSync(path.join(baseCwd, "absent.json"), path.join(baseCwd, ".clayon", "config.json"));
 
   const { result, worktreeCwd } = runProvision(baseCwd);
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /is not a canonical file \(base project workspace\)/);
   assert.doesNotMatch(result.stderr, /checkout-only|provisionCommand/);
-  assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip")), false);
+  assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon")), false);
   assert.deepEqual(readCliInvocations(baseCwd), []);
 });
 
@@ -329,20 +329,20 @@ test("rejects a non-regular instance config without suggesting a setup bypass", 
   assert.match(result.stderr, /is not a canonical file \(control-plane instance\)/);
   assert.match(result.stderr, /Repair the registered source path/);
   assert.doesNotMatch(result.stderr, /checkout-only|provisionCommand/);
-  assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip")), false);
+  assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon")), false);
   assert.deepEqual(readCliInvocations(baseCwd), []);
 });
 
-test("rejects a dangling base workspace .paperclip symlink instead of falling back", () => {
+test("rejects a dangling base workspace .clayon symlink instead of falling back", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  // `-e`/`-L` on the config resolve `.paperclip` first, so the config reads as absent
+  // `-e`/`-L` on the config resolve `.clayon` first, so the config reads as absent
   // here even though the workspace is malformed rather than a plain checkout.
-  fs.symlinkSync(path.join(baseCwd, "absent-dir"), path.join(baseCwd, ".paperclip"));
+  fs.symlinkSync(path.join(baseCwd, "absent-dir"), path.join(baseCwd, ".clayon"));
 
   const { result } = runProvision(baseCwd);
 
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr, /\.paperclip is a broken symlink/);
+  assert.match(result.stderr, /\.clayon is a broken symlink/);
 });
 
 test("falls back to an isolated config when the base CLI cannot boot", () => {
@@ -362,24 +362,24 @@ test("falls back to an isolated config when the base CLI cannot boot", () => {
     !path.relative(worktreesHome, dataDir).startsWith(".."),
     `expected ${dataDir} to live under ${worktreesHome}`,
   );
-  const env = fs.readFileSync(path.join(worktreeCwd, ".paperclip", ".env"), "utf8");
-  assert.match(env, /PAPERCLIP_IN_WORKTREE=true/);
+  const env = fs.readFileSync(path.join(worktreeCwd, ".clayon", ".env"), "utf8");
+  assert.match(env, /CLAYON_IN_WORKTREE=true/);
   assert.equal(
-    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state,
+    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state,
     "pending",
   );
 });
 
 test("reconciles deployment mode from the registered source when reusing a guest config", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 1, initExit: 0 });
-  const { result: first, worktreeCwd, worktreesHome, paperclipHome } = runProvision(baseCwd);
+  const { result: first, worktreeCwd, worktreesHome, clayonHome } = runProvision(baseCwd);
   assert.equal(first.status, 0, first.stderr);
   assert.equal(readWorktreeConfig(worktreeCwd).server.deploymentMode, "local_trusted");
 
   // A base workspace that does carry its own instance config outranks the fallback.
-  fs.mkdirSync(path.join(baseCwd, ".paperclip"), { recursive: true });
+  fs.mkdirSync(path.join(baseCwd, ".clayon"), { recursive: true });
   fs.writeFileSync(
-    path.join(baseCwd, ".paperclip", "config.json"),
+    path.join(baseCwd, ".clayon", "config.json"),
     `${JSON.stringify({
       server: {
         deploymentMode: "authenticated",
@@ -394,19 +394,19 @@ test("reconciles deployment mode from the registered source when reusing a guest
     env: {
       PATH: testPath,
       HOME: os.homedir(),
-      PAPERCLIP_WORKSPACE_BASE_CWD: baseCwd,
-      PAPERCLIP_WORKSPACE_CWD: worktreeCwd,
-      PAPERCLIP_WORKSPACE_BRANCH: "feature/provision-test",
-      PAPERCLIP_WORKTREES_DIR: worktreesHome,
-      PAPERCLIP_HOME: paperclipHome,
-      PAPERCLIP_PROJECT_WORKSPACE_ID: "project-workspace-1",
-      PAPERCLIP_SEED_EXPECTED_COMPANY_ID: "company-1",
+      CLAYON_WORKSPACE_BASE_CWD: baseCwd,
+      CLAYON_WORKSPACE_CWD: worktreeCwd,
+      CLAYON_WORKSPACE_BRANCH: "feature/provision-test",
+      CLAYON_WORKTREES_DIR: worktreesHome,
+      CLAYON_HOME: clayonHome,
+      CLAYON_PROJECT_WORKSPACE_ID: "project-workspace-1",
+      CLAYON_SEED_EXPECTED_COMPANY_ID: "company-1",
     },
   });
 
   assert.equal(second.status, 0, second.stderr);
-  assert.match(second.stderr, /Reusing existing isolated Paperclip worktree config/);
-  assert.match(second.stderr, /Reconciled isolated Paperclip worktree deployment mode/);
+  assert.match(second.stderr, /Reusing existing isolated Clayon worktree config/);
+  assert.match(second.stderr, /Reconciled isolated Clayon worktree deployment mode/);
   assert.equal(readWorktreeConfig(worktreeCwd).server.deploymentMode, "authenticated");
   assert.equal(readWorktreeConfig(worktreeCwd).server.exposure, "private");
 });
@@ -422,7 +422,7 @@ test("repairs an unhealthy base install under the lock and then uses the CLI", (
 
   // The CLI's health is controlled by a flag file, and a fake `pnpm install`
   // creates that flag — modeling a forced reinstall that relinks the store.
-  const baseCwd = makeTempDir("paperclip-provision-repair-base-");
+  const baseCwd = makeTempDir("clayon-provision-repair-base-");
   const healthFlag = path.join(baseCwd, "cli-healthy.flag");
   const runnerPath = path.join(baseCwd, "cli", "node_modules", "tsx", "dist", "cli.mjs");
   const entryPath = path.join(baseCwd, "cli", "src", "index.ts");
@@ -438,9 +438,9 @@ if (cliArgs.includes("--help")) {
   process.exit(fs.existsSync(${JSON.stringify(healthFlag)}) ? 0 : 1);
 }
 if (cliArgs[0] === "worktree" && cliArgs[1] === "init") {
-  fs.mkdirSync(".paperclip", { recursive: true });
-  fs.writeFileSync(".paperclip/config.json", JSON.stringify({ $meta: { source: "fake-cli" } }));
-  fs.writeFileSync(".paperclip/.env", "PAPERCLIP_IN_WORKTREE=true\\n");
+  fs.mkdirSync(".clayon", { recursive: true });
+  fs.writeFileSync(".clayon/config.json", JSON.stringify({ $meta: { source: "fake-cli" } }));
+  fs.writeFileSync(".clayon/.env", "CLAYON_IN_WORKTREE=true\\n");
   process.exit(0);
 }
 process.exit(0);
@@ -450,7 +450,7 @@ process.exit(0);
   fs.writeFileSync(path.join(baseCwd, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
   spawnSync("git", ["init", "-q", baseCwd], { env: { PATH: testPath } });
 
-  const fakeBin = makeTempDir("paperclip-provision-fakebin-");
+  const fakeBin = makeTempDir("clayon-provision-fakebin-");
   const installLog = path.join(baseCwd, "pnpm-invocations.log");
   fs.writeFileSync(
     path.join(fakeBin, "pnpm"),
@@ -475,7 +475,7 @@ exit 1
   assert.match(installs[0], /--force/);
   assert.match(installs[0], /--frozen-lockfile/);
   assert.ok(
-    fs.existsSync(path.join(baseCwd, ".git", "paperclip-provision-repair.lock")),
+    fs.existsSync(path.join(baseCwd, ".git", "clayon-provision-repair.lock")),
     "expected the repair lock file inside the resolved git dir",
   );
 });
@@ -490,23 +490,23 @@ test("a failed CLI init fails provisioning instead of being masked as success", 
 
   assert.equal(result.status, 3, result.stderr);
   assert.match(result.stderr, /fake worktree init failure/);
-  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".paperclip", "config.json")));
+  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".clayon", "config.json")));
 });
 
 test("runtime provisioning invokes ensure-seeded once and fast-exits after success", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-worktree-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "config.json"), "{}\n");
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "seed-pending"), "{}\n");
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-worktree-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "seed-pending"), "{}\n");
 
   const first = runRuntimeProvision(baseCwd, worktreeCwd);
   assert.equal(first.status, 0, first.stderr);
   assert.equal(
-    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state,
+    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state,
     "verified",
   );
-  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".paperclip", "seed-pending")));
+  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-pending")));
 
   const ensureCallsAfterFirst = readCliInvocations(baseCwd)
     .filter((args) => args[0] === "worktree" && args[1] === "ensure-seeded");
@@ -524,11 +524,11 @@ test("runtime provisioning invokes ensure-seeded once and fast-exits after succe
 
 test("runtime provisioning omits the source override when the base config exists", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  fs.mkdirSync(path.join(baseCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(baseCwd, ".paperclip", "config.json"), "{}\n");
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-base-config-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "config.json"), "{}\n");
+  fs.mkdirSync(path.join(baseCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(baseCwd, ".clayon", "config.json"), "{}\n");
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-base-config-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "config.json"), "{}\n");
 
   const result = runRuntimeProvision(baseCwd, worktreeCwd);
 
@@ -557,9 +557,9 @@ test("runtime provisioning guards every optional source-config expansion for Bas
 
 test("runtime provisioning seeds a worktree config that has no seed markers", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-unmarked-config-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "config.json"), "{}\n");
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-unmarked-config-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "config.json"), "{}\n");
 
   const result = runRuntimeProvision(baseCwd, worktreeCwd);
 
@@ -570,17 +570,17 @@ test("runtime provisioning seeds a worktree config that has no seed markers", ()
     1,
   );
   assert.equal(
-    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state,
+    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state,
     "verified",
   );
 });
 
-test("runtime provisioning bootstraps and seeds an empty .paperclip directory", () => {
+test("runtime provisioning bootstraps and seeds an empty .clayon directory", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
   fs.mkdirSync(path.join(baseCwd, "scripts"), { recursive: true });
   fs.copyFileSync(script, path.join(baseCwd, "scripts", "provision-worktree.sh"));
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-empty-state-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-empty-state-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
 
   const result = runRuntimeProvision(baseCwd, worktreeCwd);
 
@@ -596,32 +596,32 @@ test("runtime provisioning bootstraps and seeds an empty .paperclip directory", 
     1,
   );
   assert.equal(
-    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".paperclip", "seed-manifest.json"), "utf8")).state,
+    JSON.parse(fs.readFileSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json"), "utf8")).state,
     "verified",
   );
 });
 
 test("runtime provisioning leaves seed-pending in place when ensure-seeded fails", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0, ensureExit: 4 });
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-failure-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "config.json"), "{}\n");
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "seed-pending"), "{}\n");
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-failure-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "seed-pending"), "{}\n");
 
   const result = runRuntimeProvision(baseCwd, worktreeCwd);
   assert.equal(result.status, 4, result.stderr);
   assert.match(result.stderr, /fake worktree ensure-seeded failure/);
-  assert.ok(fs.existsSync(path.join(worktreeCwd, ".paperclip", "seed-pending")));
-  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".paperclip", "seed-complete")));
+  assert.ok(fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-pending")));
+  assert.ok(!fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-complete")));
 });
 
 test("runtime provisioning does not trust a truncated verified manifest", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0, ensureExit: 4 });
-  const worktreeCwd = makeTempDir("paperclip-provision-runtime-truncated-");
-  fs.mkdirSync(path.join(worktreeCwd, ".paperclip"), { recursive: true });
-  fs.writeFileSync(path.join(worktreeCwd, ".paperclip", "config.json"), "{}\n");
+  const worktreeCwd = makeTempDir("clayon-provision-runtime-truncated-");
+  fs.mkdirSync(path.join(worktreeCwd, ".clayon"), { recursive: true });
+  fs.writeFileSync(path.join(worktreeCwd, ".clayon", "config.json"), "{}\n");
   fs.writeFileSync(
-    path.join(worktreeCwd, ".paperclip", "seed-manifest.json"),
+    path.join(worktreeCwd, ".clayon", "seed-manifest.json"),
     JSON.stringify({ version: 2, state: "verified" }),
   );
 
@@ -669,7 +669,7 @@ test("every pnpm install call site silences DEP0169 without overwriting NODE_OPT
 for (const failure of ["ERR_PNPM_LOCKFILE_CONFIG_MISMATCH", "ERR_PNPM_OUTDATED_LOCKFILE", "ENOTFOUND", "retry-fails"]) {
   test(`dependency provisioning preserves failures and bounds recovery: ${failure}`, () => {
     const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-    const bin = makeTempDir("paperclip-fake-pnpm-");
+    const bin = makeTempDir("clayon-fake-pnpm-");
     fs.writeFileSync(path.join(bin, "pnpm"), `#!/bin/sh
 printf '%s\\n' "$*" >> pnpm-calls
 case "$*" in
@@ -686,7 +686,7 @@ esac
     });
     const recovers = failure.startsWith("ERR_PNPM_");
     assert.equal(result.status, recovers ? 0 : failure === "ENOTFOUND" ? 42 : 1, result.stderr);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".paperclip/pnpm-install-fingerprint")), recovers);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon/pnpm-install-fingerprint")), recovers);
     const calls = fs.readFileSync(path.join(worktreeCwd, "pnpm-calls"), "utf8").trim().split("\n").filter((call) => call.startsWith("install "));
     assert.equal(calls.length, failure === "ENOTFOUND" ? 1 : 2);
     if (calls.length === 2) assert.match(calls[1], /--no-frozen-lockfile/);
@@ -695,7 +695,7 @@ esac
 
 test("patch content changes invalidate an otherwise matching install fingerprint", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  const bin = makeTempDir("paperclip-patch-pnpm-");
+  const bin = makeTempDir("clayon-patch-pnpm-");
   fs.writeFileSync(path.join(bin, "pnpm"), '#!/bin/sh\ncase "$1" in install) echo install >> pnpm-calls; mkdir -p node_modules cli/node_modules ;; esac\n', { mode: 0o700 });
   const first = runProvision(baseCwd, { pathPrefix: bin, setupWorktree(root) {
     fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ pnpm: { patchedDependencies: { "dependency@1": "patches/dependency.diff" } } }));

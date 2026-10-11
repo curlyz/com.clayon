@@ -8,7 +8,7 @@ import {
   buildSkillMentionHref,
   type GitHubChatConfiguration,
   type GitHubTaskReview,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { ChatEndpointDetail } from "./ChatEndpointDetail";
 import { GitHubReviewList, orderedGitHubReviews } from "./GitHubBotManagement";
 import { GitHubPolicyEditor } from "./GitHubBotConfiguration";
@@ -83,7 +83,7 @@ vi.mock("@/lib/router", () => ({
     reviewId: mocks.reviewId,
   }),
   useNavigate: () => vi.fn(),
-  useLocation: () => ({ state: null }),
+  useLocation: () => ({ state: null, pathname: "/apps/chat/bot/settings" }),
   Link: ({
     children,
     to,
@@ -91,6 +91,19 @@ vi.mock("@/lib/router", () => ({
   }: React.ComponentProps<"a"> & { to: string }) => (
     <a href={to} {...props}>
       {children}
+    </a>
+  ),
+  NavLink: ({
+    children,
+    to,
+    className: _classes,
+    ...props
+  }: Omit<React.ComponentProps<"a">, "children"> & {
+    to: string;
+    children: (state: { isActive: boolean }) => React.ReactNode;
+  }) => (
+    <a href={to} {...props}>
+      {children({ isActive: false })}
     </a>
   ),
   Navigate: () => null,
@@ -161,8 +174,8 @@ describe("GitHub bot management", () => {
         status: "linked",
         githubUserId: "42",
         githubLogin: "maya",
-        paperclipUserId: "member",
-        paperclipUserLabel: "Maya",
+        clayonUserId: "member",
+        clayonUserLabel: "Maya",
       },
     ]);
     mocks.members.mockResolvedValue({
@@ -224,6 +237,12 @@ describe("GitHub bot management", () => {
     );
     expect(target).toBeDefined();
     await act(async () => target!.click());
+  }
+  /** Wait out the autosave debounce (~800 ms) plus the save round-trip. */
+  async function settleAutosave() {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+    });
   }
   async function input(
     element: HTMLTextAreaElement | HTMLSelectElement | HTMLInputElement,
@@ -354,58 +373,55 @@ describe("GitHub bot management", () => {
     ).toBe("https://github.com/settings/apps");
     expect(gitHubBotMention({ botUsername: null })).toBeNull();
   });
-  it("keeps one draft across Settings, Access, and read-only tabs, then saves with the original revision", async () => {
+  it("keeps one draft across Settings, Access, and read-only tabs, autosaving each edit with the current revision", async () => {
     await render();
     await input(container.querySelector("textarea")!, "Edited instructions");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
+    expect(mocks.save.mock.calls[0][0]).toBe("bot");
+    expect(mocks.save.mock.calls[0][1]).toBe(4);
+    expect(mocks.save.mock.calls[0][2]).toEqual({
+      ...base,
+      defaults: { ...base.defaults, instructions: "Edited instructions" },
+    });
+    await vi.waitFor(() =>
+      expect(container.textContent).toContain("Saved"),
+    );
     await render("access");
     await click("Allow mentions from all linked members");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(2));
+    expect(mocks.save.mock.calls[1][1]).toBe(5);
+    expect(mocks.save.mock.calls[1][2].memberAccess).toBe("all_linked");
     await render("reviews");
     await render("settings");
     expect(container.querySelector("textarea")?.value).toBe(
       "Edited instructions",
     );
-    expect(mocks.save).not.toHaveBeenCalled();
-    await click("Save changes");
-    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
-    const [id, revision, saved] = mocks.save.mock.calls[0];
-    expect(id).toBe("bot");
-    expect(revision).toBe(4);
-    expect(saved).toEqual({
-      ...base,
-      defaults: { ...base.defaults, instructions: "Edited instructions" },
-      memberAccess: "all_linked",
-    });
-    await vi.waitFor(() =>
-      expect(container.textContent).toContain("Changes saved."),
-    );
-    expect(
-      [...container.querySelectorAll("button")].some(
-        (b) => b.textContent === "Save changes",
-      ),
-    ).toBe(false);
   });
-  it("retains a rejected draft and lets the user discard it", async () => {
+  it("retains a rejected draft and offers an inline retry that keeps the draft", async () => {
     mocks.save.mockRejectedValue(
       new Error("Configuration changed. Reload before saving."),
     );
     await render();
     await input(container.querySelector("textarea")!, "Unsaved");
-    await click("Save changes");
+    await settleAutosave();
     await vi.waitFor(() =>
       expect(container.querySelector('[role="alert"]')?.textContent).toContain(
         "Configuration changed",
       ),
     );
     expect(container.querySelector("textarea")?.value).toBe("Unsaved");
-    await click("Discard changes");
-    expect(container.querySelector("textarea")?.value).toBe(
-      base.defaults.instructions,
-    );
-    expect(container.querySelector('[role="alert"]')).toBeNull();
+    await click("Retry");
+    await settleAutosave();
+    expect(mocks.save).toHaveBeenCalledTimes(2);
+    expect(container.querySelector("textarea")?.value).toBe("Unsaved");
   });
   it("saves repository restrictions separately without touching the behavior draft", async () => {
     await render();
     await input(container.querySelector("textarea")!, "Unsaved behavior");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
     await render("access");
     await vi.waitFor(() => expect(container.querySelector('button[aria-label="acme/web"]')).not.toBeNull());
     await click("acme/web");
@@ -414,7 +430,7 @@ describe("GitHub bot management", () => {
         { id: "repo", enabled: false },
       ]),
     );
-    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.save).toHaveBeenCalledTimes(1);
     await render("settings");
     expect(container.querySelector("textarea")?.value).toBe("Unsaved behavior");
   });
@@ -429,7 +445,7 @@ describe("GitHub bot management", () => {
     expect(container.querySelector("#github-policy-repository")).toBeNull();
     expect(mocks.resources).not.toHaveBeenCalled();
     await input(container.querySelector("textarea")!, "Updated default instructions");
-    await click("Save changes");
+    await settleAutosave();
     await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     const saved = mocks.save.mock.calls[0][2];
     expect(saved.defaults.instructions).toBe("Updated default instructions");
@@ -444,7 +460,8 @@ describe("GitHub bot management", () => {
     expect(container.querySelector('[aria-label="Run automatically for @maya"]')).toBeNull();
     await click("Allow mentions from all linked members");
     await click("Allow mentions from @maya");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].people).toEqual([{ kind: "member", userId: "member", githubUserId: "42", login: "maya" }]);
   });
   it("does not show an off switch or silently enable a retained disabled bot", async () => {
@@ -459,7 +476,7 @@ describe("GitHub bot management", () => {
     expect(container.textContent).toContain("cannot start work or respond");
     await render("settings");
     await input(container.querySelector("textarea")!, "Edited instructions");
-    await click("Save changes");
+    await settleAutosave();
     await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].toolsEnabled).toBe(false);
   });
@@ -476,9 +493,11 @@ describe("GitHub bot management", () => {
         "No assessment has been submitted yet.",
       ),
     );
+    // The page tab strip's Reviews tab is the way back to all reviews
+    // (the old sidebar's "All reviews" link is gone).
     expect(
       container.querySelector('a[href="/apps/chat/bot/reviews"]')?.textContent,
-    ).toContain("All reviews");
+    ).toContain("Reviews");
     mocks.reviewId = "foreign";
     await render("reviews");
     await vi.waitFor(() =>
@@ -508,20 +527,19 @@ describe("GitHub bot management", () => {
     await render();
     await click("Run automatically");
     await click("Run automatically");
-    expect(container.querySelector('[aria-label="Save changes"]')).toBeNull();
     await input(container.querySelector("textarea")!, "Still keep the same audience");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].defaults).toEqual({ ...base.defaults, invocation: "allowed_authors", instructions: "Still keep the same audience" });
   });
   it("preserves an invalid score across Access and Settings without saving a stale value", async () => {
     await render();
     await input(container.querySelector('input[type="number"]')!, "6");
+    await settleAutosave();
+    expect(mocks.save).not.toHaveBeenCalled();
     await render("access");
-    expect([...container.querySelectorAll("button")].find(b => b.textContent === "Save changes")?.disabled).toBe(true);
     await render("settings");
     expect(container.querySelector<HTMLInputElement>('input[type="number"]')!.value).toBe("6");
-    await click("Discard changes");
-    expect(container.querySelector<HTMLInputElement>('input[type="number"]')!.value).toBe("5");
     expect(mocks.save).not.toHaveBeenCalled();
   });
   it("remembers external-author automation across tab changes", async () => {
@@ -529,19 +547,23 @@ describe("GitHub bot management", () => {
     await render(); await click("Run automatically");
     await render("access"); await render("settings"); await click("Run automatically");
     await input(container.querySelector("textarea")!, "Updated");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].defaults.invocation).toBe("allowed_authors");
   });
-  it("makes common and event instruction editors read-only throughout a pending save", async () => {
+  it("keeps editors writable while an autosave is in flight and coalesces the newer edit", async () => {
     let finish!: (value: unknown) => void;
     mocks.save.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
     await render();
     await input(container.querySelector("textarea")!, "Saved instructions");
-    await act(async () => [...container.querySelectorAll("summary")].find(s => s.textContent?.includes("Event-specific instructions"))!.click());
-    await click("Save changes");
-    expect([...container.querySelectorAll<HTMLTextAreaElement>("textarea[aria-label]")].every(editor => editor.readOnly)).toBe(true);
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
+    expect([...container.querySelectorAll<HTMLTextAreaElement>("textarea[aria-label]")].every(editor => !editor.readOnly)).toBe(true);
+    await input(container.querySelector("textarea")!, "Second edit");
+    await settleAutosave();
     await act(async () => { finish({ revision: 5, configuration: { ...base, defaults: { ...base.defaults, instructions: "Saved instructions" } } }); });
-    expect(container.querySelector("textarea")!.readOnly).toBe(false);
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(2));
+    expect(mocks.save.mock.calls[1][2].defaults.instructions).toBe("Second edit");
   });
   it("defaults to a typed score of 5 and preserves report-only and other review decisions", async () => {
     await render();
@@ -549,36 +571,40 @@ describe("GitHub bot management", () => {
     expect(score.value).toBe("5");
     expect(container.querySelector('input[type="range"]')).toBeNull();
     await input(score, "3");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
     expect(mocks.save.mock.calls[0][2].defaults).toEqual({ ...base.defaults, ratingThreshold: 3 });
     await click("Report only");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(2));
     expect(mocks.save.mock.calls[1][2].defaults.ratingThreshold).toBeNull();
     expect(score.disabled).toBe(true);
     await click("Report only");
     expect(score.value).toBe("5");
   });
-  it.each(["", "0", "6", "2.5"])("does not save an invalid score %s and allows correction or discard", async (value) => {
+  it.each(["", "0", "6", "2.5"])("does not autosave an invalid score %s and recovers when corrected", async (value) => {
     await render();
     const score = container.querySelector<HTMLInputElement>('input[type="number"]')!;
     await input(score, value);
     expect(container.textContent).toContain("Enter a whole number from 1 to 5.");
-    await click("Save changes");
+    await settleAutosave();
     expect(mocks.save).not.toHaveBeenCalled();
     await input(score, "4");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
     expect(mocks.save.mock.calls[0][2].defaults.ratingThreshold).toBe(4);
     await input(score, value);
-    await click("Discard changes");
-    expect(container.querySelector<HTMLInputElement>('input[type="number"]')?.value).toBe("4");
-    expect(container.querySelector('[role="alert"]')).toBeNull();
+    await settleAutosave();
+    expect(mocks.save).toHaveBeenCalledTimes(1);
+    expect(container.querySelector<HTMLInputElement>('input[type="number"]')?.value).toBe(value);
   });
   it("retains a saved report-only policy until the user changes it", async () => {
     mocks.config.mockResolvedValue({ revision: 4, configuration: { ...base, defaults: { ...base.defaults, ratingThreshold: null } } });
     await render();
     expect(container.querySelector<HTMLInputElement>('input[type="number"]')?.disabled).toBe(true);
     await input(container.querySelector("textarea")!, "Updated guidance");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].defaults.ratingThreshold).toBeNull();
   });
   it("turns off selected member access without retaining an authorization entry", async () => {
@@ -586,7 +612,8 @@ describe("GitHub bot management", () => {
     await vi.waitFor(() => expect(container.querySelector('[aria-label="Allow mentions from @maya"]')?.hasAttribute("disabled")).toBe(false));
     await click("Allow mentions from @maya");
     expect(container.querySelector('[aria-label="Run automatically for @maya"]')).toBeNull();
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].people).toEqual([]);
     expect(mocks.save.mock.calls[0][2].memberAccess).toBe("selected");
   });
@@ -594,10 +621,11 @@ describe("GitHub bot management", () => {
     mocks.config.mockResolvedValue({ revision: 4, configuration: { ...base, defaults: { ...base.defaults, invocation: "mentions_only" } } });
     await render("access");
     await click("Allow mentions from all linked members");
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalled());
     expect(mocks.save.mock.calls[0][2].defaults.invocation).toBe("mentions_only");
   });
-  it("keeps newlines and commas while editing filters, saves separate entries, and restores discarded values", async () => {
+  it("keeps newlines and commas while editing filters and saves separate entries", async () => {
     await render();
     const paths = container.querySelector<HTMLTextAreaElement>('textarea[id$="github-ignoredPaths"]')!;
     await input(paths, "dist/**\n");
@@ -607,12 +635,14 @@ describe("GitHub bot management", () => {
     await input(categories, "security, ");
     expect(categories.value).toBe("security, ");
     await input(categories, `${categories.value}correctness`);
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
     expect(mocks.save.mock.calls[0][2].defaults.ignoredPaths).toEqual(["dist/**", "vendor/**"]);
     expect(mocks.save.mock.calls[0][2].defaults.findingCategories).toEqual(["security", "correctness"]);
     await input(paths, "tmp/**");
-    await click("Discard changes");
-    expect(container.querySelector<HTMLTextAreaElement>('textarea[id$="github-ignoredPaths"]')?.value).toBe("dist/**\nvendor/**");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(2));
+    expect(container.querySelector<HTMLTextAreaElement>('textarea[id$="github-ignoredPaths"]')?.value).toBe("tmp/**");
   });
   it("saves skill links in general and event instructions without resetting other guidance", async () => {
     await render();
@@ -622,7 +652,8 @@ describe("GitHub bot management", () => {
     await input(container.querySelector('textarea[aria-label="Mention instructions"]')!, `For mentions, use ${skill}.`);
     await input(container.querySelector('select[id$="github-prompt-event"]')!, "issue_opened");
     await input(container.querySelector('textarea[aria-label="New issue instructions"]')!, `For issues, use ${skill}.`);
-    await click("Save changes");
+    await settleAutosave();
+    await vi.waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
     const saved = mocks.save.mock.calls[0][2];
     expect(saved.defaults.instructions).toBe(`Use ${skill}.`);
     expect(saved.defaults.prompts.mention).toBe(`For mentions, use ${skill}.`);

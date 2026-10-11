@@ -13,9 +13,9 @@ import { GROK_PUBLIC_INSTALL_IMAGE, GROK_PUBLIC_INSTALL_LIFECYCLE, assertNoBundl
 import { retainRunnerQualificationPackages } from './retain-runner-qualification-packages.mjs';
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 assert.equal(process.platform, 'linux', 'Run this verification on disposable EC2 Linux, not a developer host');
-const root = mkdtempSync(join(tmpdir(), 'paperclip-grok-public-install-'));
+const root = mkdtempSync(join(tmpdir(), 'clayon-grok-public-install-'));
 const prerequisite = join(root, 'native/grok');
-const env = { ...process.env, NODE_PATH: '', PAPERCLIP_RELEASE_REUSE_UI_DIST: '1', npm_config_ignore_scripts: 'false', npm_config_audit: 'false', npm_config_fund: 'false' };
+const env = { ...process.env, NODE_PATH: '', CLAYON_RELEASE_REUSE_UI_DIST: '1', npm_config_ignore_scripts: 'false', npm_config_audit: 'false', npm_config_fund: 'false' };
 const run = (cmd, args, cwd = root) => execFileSync(cmd, args, { cwd, env, stdio: 'pipe', maxBuffer: 32 * 1024 * 1024 });
 const sourceRevision = run('git', ['rev-parse', 'HEAD'], repo).toString().trim();
 const releaseVersion = `0.0.0-grok-verify.${sourceRevision.slice(0, 12)}`;
@@ -30,8 +30,8 @@ try {
       if (spec.startsWith('workspace:')) visit(dep);
     }
   }
-  visit('@paperclipai/server');
-  visit('paperclipai');
+  visit('@clayon/server');
+  visit('clayon');
   // Match release.sh's unified versioning in temporary staging directories.
   // Source manifests remain untouched, including independently versioned SDKs.
   run(process.execPath, [join(repo, 'scripts/build-standalone-public-packages.mjs')], repo);
@@ -74,11 +74,11 @@ try {
   // Prove lifecycle execution is real even if npm changes its script defaults.
   const sentinelSource = join(root, 'lifecycle-sentinel'); mkdirSync(sentinelSource);
   writeFileSync(join(sentinelSource, 'package.json'), JSON.stringify({
-    name: 'paperclip-verification-lifecycle-sentinel', version: '1.0.0', private: true,
+    name: 'clayon-verification-lifecycle-sentinel', version: '1.0.0', private: true,
     scripts: { postinstall: 'node -e "require(\'node:fs\').writeFileSync(\'lifecycle-ran\', \'ok\')"' },
   }));
   run('npm', ['pack', '--ignore-scripts', '--pack-destination', assets], sentinelSource);
-  const sentinel = join(consumer, 'node_modules/paperclip-verification-lifecycle-sentinel/lifecycle-ran');
+  const sentinel = join(consumer, 'node_modules/clayon-verification-lifecycle-sentinel/lifecycle-ran');
   const consumerUid = process.getuid();
   const isolated = (command, options = {}) => run('docker', grokConsumerDockerArgs({ assets, consumer, cache, uid: consumerUid, gid: process.getgid(), command, ...options }));
   // npm resolution is intentionally the public consumer graph, not the pnpm
@@ -97,24 +97,24 @@ try {
     assert.equal(installedManifest.version, releaseVersion, `Installed release version for ${name}`);
   }
   assert.equal(existsSync(prerequisite), false, 'npm must not provision Grok');
-  const server = join(consumer, 'node_modules/@paperclipai/server');
-  const installed = join(server, 'dist/vendor/paperclip-runner');
-  const codexVersion = JSON.parse(readFileSync(join(repo, 'packages/paperclip-runner/acpx-profiles.json'), 'utf8')).profiles.codex.agentRuntimeVersion;
+  const server = join(consumer, 'node_modules/@clayon/server');
+  const installed = join(server, 'dist/vendor/clayon-runner');
+  const codexVersion = JSON.parse(readFileSync(join(repo, 'packages/clayon-runner/acpx-profiles.json'), 'utf8')).profiles.codex.agentRuntimeVersion;
   assert.match(codexVersion, /^\d+\.\d+\.\d+$/);
   writeFileSync(join(assets, 'codex-probe.mjs'), installedCodexProbeSource(
-    '/consumer/node_modules/@paperclipai/server/dist/vendor/paperclip-runner/index.js', '/consumer', codexVersion), { mode: 0o644 });
+    '/consumer/node_modules/@clayon/server/dist/vendor/clayon-runner/index.js', '/consumer', codexVersion), { mode: 0o644 });
   const codex = JSON.parse(isolated(['node', '/packages/codex-probe.mjs']).toString().trim());
   assert.equal(codex.codexConsumerHostOnly, true);
   assert.equal(codex.codexPlatformPackageSource, 'official npm');
   assert.ok(existsSync(join(installed, 'providers/grok/launcher.cjs')));
-  assert.equal(existsSync(join(consumer, 'node_modules/@paperclipai/grok-acp')), false);
+  assert.equal(existsSync(join(consumer, 'node_modules/@clayon/grok-acp')), false);
   assert.equal(existsSync(join(installed, 'providers/grok/bin')), false);
   // Use real installed compiled code and its actual npm dependency graph. A
   // separate process prevents module resolution from borrowing this checkout.
   const probe = `
     import assert from 'node:assert/strict';
-    import { verifyQualifiedAcpxInstallation } from '/consumer/node_modules/@paperclipai/server/dist/vendor/paperclip-runner/drivers/acpx/installation-integrity.js';
-    import { resolveQualifiedAcpxProfile } from '/consumer/node_modules/@paperclipai/server/dist/vendor/paperclip-runner/drivers/acpx/qualified-profiles.js';
+    import { verifyQualifiedAcpxInstallation } from '/consumer/node_modules/@clayon/server/dist/vendor/clayon-runner/drivers/acpx/installation-integrity.js';
+    import { resolveQualifiedAcpxProfile } from '/consumer/node_modules/@clayon/server/dist/vendor/clayon-runner/drivers/acpx/qualified-profiles.js';
     const profile = resolveQualifiedAcpxProfile('grok', 'grok-4.7');
     const inspect = () => verifyQualifiedAcpxInstallation(profile, () => { throw new Error('Grok must not resolve an npm package'); });
     if (process.argv[2] === 'missing') await assert.rejects(inspect, /prerequisite missing/);
@@ -124,7 +124,7 @@ try {
   isolated(['node', '/packages/probe.mjs', 'missing']);
   // Provision as the unprivileged verification user, never into the host's /opt.
   // Only the positive probe sees this file at the canonical sandbox path.
-  run(process.execPath, [join(repo, 'packages/paperclip-runner/scripts/provision-grok.mjs'), prerequisite]);
+  run(process.execPath, [join(repo, 'packages/clayon-runner/scripts/provision-grok.mjs'), prerequisite]);
   isolated(['node', '/packages/probe.mjs', 'present'], { prerequisite });
   console.log(JSON.stringify({ schema: 'paperclip.grok.public-npm-install.v1', sourceRevision, releaseVersion, lifecycleScriptsEnabled: true, lifecycleSentinelVerified: true, lifecycleNetwork: 'none', consumerImage: GROK_PUBLIC_INSTALL_IMAGE, consumerUid, consumerLockPreserved: true, cleanNpmInstall: true, packageCount: needed.size, codexPackedPayloadsOmitted: true, codexPackedPackagesChecked: tarballs.length, ...codex, builtinLauncherPresent: true, separateGrokPackage: false, npmProvisionedBinary: false, missingPrerequisiteRejected: true, provisionedBinaryVerified: true, commandLeaseVerified: true, providerCalls: 0 }));
   // Exercise Pi's public CLI and installed server, never a private workspace
@@ -135,7 +135,7 @@ try {
   // Pi assembles a bundled runtime in scratch space before atomic publication.
   // Keep the existing sandbox and memory bound; only this download needs more
   // temporary capacity than the smaller offline lifecycle probes.
-  const setup = isolated(['node', '/consumer/node_modules/paperclipai/dist/index.js', 'runtime', 'setup', 'pi'], { download: true, temporarySizeMiB: 2048 }).toString();
+  const setup = isolated(['node', '/consumer/node_modules/clayon/dist/index.js', 'runtime', 'setup', 'pi'], { download: true, temporarySizeMiB: 2048 }).toString();
   const receipt = JSON.parse(setup.trim());
   assert.equal(receipt.status, 'installed_verified');
   assert.equal(receipt.target, 'linux-x64');
@@ -143,9 +143,9 @@ try {
   // Verified launch leases also materialize the runtime in private scratch.
   // Docker defaults tmpfs to noexec. The offline admission probe must execute
   // its verified private snapshot while keeping lifecycle/download scratch noexec.
-  console.log(isolated(['node', '/packages/pi-public-install-probe.mjs', '/consumer/node_modules/@paperclipai/server'], { temporarySizeMiB: 2048, temporaryExecutable: true }).toString().trim());
-  if (process.env.PAPERCLIP_RUNNER_QUALIFICATION_PACKAGES_DIR) {
-    const retained = retainRunnerQualificationPackages({ repo, output: process.env.PAPERCLIP_RUNNER_QUALIFICATION_PACKAGES_DIR, sourceRevision, releaseVersion, env,
+  console.log(isolated(['node', '/packages/pi-public-install-probe.mjs', '/consumer/node_modules/@clayon/server'], { temporarySizeMiB: 2048, temporaryExecutable: true }).toString().trim());
+  if (process.env.CLAYON_RUNNER_QUALIFICATION_PACKAGES_DIR) {
+    const retained = retainRunnerQualificationPackages({ repo, output: process.env.CLAYON_RUNNER_QUALIFICATION_PACKAGES_DIR, sourceRevision, releaseVersion, env,
       publicArchives: [...needed].map((name, index) => ({ name, file: tarballs[index] })),
     });
     console.log(JSON.stringify(retained));

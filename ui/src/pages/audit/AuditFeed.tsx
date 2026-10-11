@@ -2,7 +2,8 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Download, ScrollText, ShieldAlert } from "lucide-react";
-import type { Agent } from "@paperclipai/shared";
+import { z } from "zod";
+import type { Agent } from "@clayon/shared";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -264,7 +265,7 @@ function AuditUpsell() {
     <div className="flex flex-col items-center gap-3 border-t border-border text-center">
       <p className="flex items-center gap-3 px-4 pt-14 text-sm font-medium text-foreground">
         <ShieldAlert className="size-10 shrink-0 text-muted-foreground" />
-        Agent audit is a Paperclip Enterprise view
+        Agent audit is a Clayon Enterprise view
       </p>
       <p className="max-w-md px-4 pb-14 text-sm text-muted-foreground">
         The agent audit log gives you a searchable, exportable record of everything your agents
@@ -498,9 +499,10 @@ export function AuditFeed({
     <div className="flex flex-col">
       {!hideHeader ? (
         <>
-          <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50">
-            <h2 className="px-4 py-3 text-lg font-semibold text-foreground">Activity</h2>
-            <Badge variant="secondary">{items.length}</Badge>
+          <div className="flex items-center justify-between gap-3 border-t border-border">
+            <h2 className="px-4 py-3 text-lg font-semibold text-foreground">
+              Activity <span className="ml-1 text-sm font-normal text-muted-foreground">{items.length}</span>
+            </h2>
           </div>
           <p className="max-w-2xl px-4 py-3 text-sm text-muted-foreground">
             {resolvedMode === "agents"
@@ -511,7 +513,14 @@ export function AuditFeed({
       ) : null}
 
       {showModeToggle ? (
-        <Tabs className="border-t border-border bg-muted/50" value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
+        <Tabs
+          className="border-t border-border"
+          value={resolvedMode}
+          onValueChange={(value) => {
+            const next = z.enum(["all", "agents"]).safeParse(value);
+            if (next.success) onModeChange?.(next.data);
+          }}
+        >
           <TabsList variant="line" aria-label="Activity scope">
             <TabsTrigger value="all">Activity</TabsTrigger>
             <TabsTrigger
@@ -535,7 +544,7 @@ export function AuditFeed({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-3 border-t border-border bg-muted/50">
+      <div className="flex flex-wrap items-end gap-3 border-t border-border">
         {canUseAdvancedControls && !lockedAgentId && !lockedRunId ? (
           <label className="grid gap-1 text-(length:--text-micro) font-medium text-muted-foreground">
             <span className="px-3 pt-3">Agent</span>
@@ -708,7 +717,7 @@ export function AuditFeed({
       ) : null}
 
       <p className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
-        Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
+        Recorded by Clayon — entries can't be edited. Sensitive values are never stored.
       </p>
     </div>
   );

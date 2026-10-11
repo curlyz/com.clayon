@@ -10,7 +10,7 @@ import {
 import type {
   GitHubChatConfiguration,
   GitHubTaskReview,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   githubChatApi,
   type GitHubConfigurationRecord,
@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/EmptyState";
 import { MarkdownBody } from "@/components/MarkdownBody";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave } from "@/hooks/useAutosave";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -176,7 +178,6 @@ export function GitHubBotManagement({
     queryFn: () => githubChatApi.configuration(endpoint.id),
   });
   const [draft, setDraft] = useState<GitHubConfigurationRecord | null>(null);
-  const [editorVersion, setEditorVersion] = useState(0);
   const [scoreText, setScoreText] = useState<string | null>(null);
   const [automaticMode, setAutomaticMode] = useState<"linked_authors" | "allowed_authors" | null>(null);
   const [pending, setPending] = useState(false);
@@ -187,11 +188,25 @@ export function GitHubBotManagement({
   const score = Number(currentScoreText);
   const scoreValid = record?.configuration.defaults.ratingThreshold === null ||
     (currentScoreText.trim() !== "" && Number.isInteger(score) && score >= 1 && score <= 5);
-  const dirty = Boolean(
-    draft &&
-      JSON.stringify(draft.configuration) !==
-        JSON.stringify(query.data?.configuration),
-  );
+  // Autosave: an edit to the configuration persists on its own; an invalid
+  // score draft is not saveable (matches the old disabled Save button).
+  const autosave = useAutosave({
+    value: record?.configuration,
+    savedValue: query.data?.configuration,
+    isEqual: (a, b) => (scoreValid ? JSON.stringify(a) === JSON.stringify(b) : true),
+    save: async (configuration) => {
+      if (!configuration) return;
+      const saved = await githubChatApi.save(
+        endpoint.id,
+        query.data?.revision ?? record!.revision,
+        configuration,
+      );
+      client.setQueryData(["github-bot-configuration", endpoint.id], saved);
+      setDraft(null);
+      setScoreText(null);
+      setAutomaticMode(null);
+    },
+  });
   const edit = (configuration: GitHubChatConfiguration) => {
     if (record) {
       if (configuration.defaults.invocation !== "mentions_only")
@@ -303,7 +318,7 @@ export function GitHubBotManagement({
           </>
         ) : (
           <>
-            <GitHubPolicyEditor key={editorVersion}
+            <GitHubPolicyEditor
               readOnly={pending}
               scoreText={currentScoreText}
               onScoreTextChange={setScoreText}
@@ -325,45 +340,11 @@ export function GitHubBotManagement({
           {notice}
         </p>
       )}
-      {(dirty || !scoreValid) && (
-        <div className="sticky bottom-(--tc-composer-bottom) z-10 flex items-center justify-between gap-3 border-t border-border bg-background py-4 md:bottom-0">
-          <Button
-            variant="ghost"
-            disabled={pending}
-            onClick={() => {
-              setDraft(null);
-              setScoreText(null);
-              setAutomaticMode(null);
-              setEditorVersion((value) => value + 1);
-              setError("");
-            }}
-          >
-            Discard changes
-          </Button>
-          <Button
-            disabled={pending || !scoreValid}
-            onClick={() =>
-              void act(async () => {
-                const saved = await githubChatApi.save(
-                  endpoint.id,
-                  record.revision,
-                  config,
-                );
-                client.setQueryData(
-                  ["github-bot-configuration", endpoint.id],
-                  saved,
-                );
-                setDraft(null);
-                setScoreText(null);
-                setAutomaticMode(null);
-                setNotice("Changes saved.");
-              })
-            }
-          >
-            {pending ? "Saving…" : "Save changes"}
-          </Button>
-        </div>
-      )}
+      <SaveStatus
+        status={autosave.status}
+        errorMessage={autosave.errorMessage}
+        onRetry={autosave.retry}
+      />
     </section>
   );
 }
@@ -422,7 +403,7 @@ function ReviewResult({ review }: { review: GitHubTaskReview }) {
           className="underline underline-offset-4"
           to={`/issues/${review.issueId}`}
         >
-          Paperclip task
+          Clayon task
         </Link>
         {review.summaryUrl && (
           <a

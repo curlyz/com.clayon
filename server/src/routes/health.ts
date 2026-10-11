@@ -1,10 +1,11 @@
 import { supportsLocalAiLogin } from "../services/local-ai-login-policy.js";
+import { enabledAuthSocialProviders, passkeySignEnabled } from "../auth/better-auth.js";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { Router } from "express";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import { and, count, eq, gt, inArray, isNull, sql } from "drizzle-orm";
-import { heartbeatRuns, instanceUserRoles, invites } from "@paperclipai/db";
-import type { DeploymentExposure, DeploymentMode } from "@paperclipai/shared";
+import { heartbeatRuns, instanceUserRoles, invites } from "@clayon/db";
+import type { DeploymentExposure, DeploymentMode } from "@clayon/shared";
 import {
   readPersistedDevServerStatus,
   removeDevServerRestartRequest,
@@ -62,7 +63,7 @@ function matchesSharedToken(expectedToken: string | undefined | null, providedTo
 }
 
 function hasDevServerStatusToken(providedToken: string | undefined) {
-  return matchesSharedToken(process.env.PAPERCLIP_DEV_SERVER_STATUS_TOKEN, providedToken);
+  return matchesSharedToken(process.env.CLAYON_DEV_SERVER_STATUS_TOKEN, providedToken);
 }
 
 /**
@@ -105,7 +106,7 @@ function getCloudHealthStatus(env: CloudInstanceEnv) {
 
   return {
     managed: true as const,
-    managedBy: "paperclip-cloud" as const,
+    managedBy: "clayon-cloud" as const,
     stackSlug: context.stackSlug,
     cloudBaseUrl: context.cloudOrigin,
     ...(runtimeIdentity ? {
@@ -258,7 +259,7 @@ export function healthRoutes(
     // can read which commit this server is running without authenticating.
     const commit = serverInfo.git.available ? serverInfo.git.fullSha : null;
     const exposeDevServerDetails =
-      exposeFullDetails || hasDevServerStatusToken(req.get("x-paperclip-dev-server-status-token"));
+      exposeFullDetails || hasDevServerStatusToken(req.get("x-clayon-dev-server-status-token"));
     // Workspace readiness names the instance and execution workspace that
     // answered, so it rides the protected responses only. Public health stays
     // redacted: an anonymous caller still learns liveness and nothing else.
@@ -270,6 +271,10 @@ export function healthRoutes(
     const handoffSubject = requestedHandoffUserId && requestedHandoffUserEmail
       ? { userId: requestedHandoffUserId, email: requestedHandoffUserEmail }
       : null;
+    // Provider names only (never a secret), on every response variant: the
+    // sign-in page is anonymous and reads the redacted one.
+    const authSocialProviders = enabledAuthSocialProviders();
+    const authPasskey = passkeySignEnabled();
 
     if (!db) {
       res.json(
@@ -411,6 +416,8 @@ export function healthRoutes(
         deploymentMode: opts.deploymentMode,
         deploymentExposure: opts.deploymentExposure,
         localAiLoginSupported: supportsLocalAiLogin(opts),
+        ...(authSocialProviders.length ? { authSocialProviders } : {}),
+        ...(authPasskey ? { authPasskey: true } : {}),
         commit,
         bootstrapStatus,
         bootstrapInviteActive,
@@ -435,6 +442,8 @@ export function healthRoutes(
       deploymentMode: opts.deploymentMode,
       deploymentExposure: opts.deploymentExposure,
         localAiLoginSupported: supportsLocalAiLogin(opts),
+      ...(authSocialProviders.length ? { authSocialProviders } : {}),
+      ...(authPasskey ? { authPasskey: true } : {}),
       authReady: opts.authReady,
       bootstrapStatus,
       bootstrapInviteActive,

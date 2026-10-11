@@ -9,8 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { AlertCircle, KeyRound, Plus, RotateCcw, Save, UserRound } from "lucide-react";
-import type { CompanySecret, EnvBinding, UserSecretDefinition } from "@paperclipai/shared";
+import { AlertCircle, KeyRound, Plus, UserRound } from "lucide-react";
+import type { CompanySecret, EnvBinding, UserSecretDefinition } from "@clayon/shared";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOptionalToastActions } from "@/context/ToastContext";
@@ -29,10 +29,10 @@ import {
 } from "./model";
 import type { EnvironmentVariableDirtyFields } from "./Row";
 
-const DEFAULT_RESERVED_PREFIXES = ["PAPERCLIP_"];
+const DEFAULT_RESERVED_PREFIXES = ["CLAYON_"];
 
 const DEFAULT_HINT =
-  "Set the KEY to the env var name the process expects, for example GH_TOKEN. Choose a secret to resolve a stored value at run start. PAPERCLIP_* variables are injected automatically.";
+  "Set the KEY to the env var name the process expects, for example GH_TOKEN. Choose a secret to resolve a stored value at run start. CLAYON_* variables are injected automatically.";
 
 // Canonical entries for dirty comparison. Must mirror the emit semantics of
 // valueFromRows (trimmed names, incomplete refs dropped, last-writer-wins on
@@ -78,15 +78,6 @@ function normalizedEnvKey(value: Record<string, EnvBinding> | null | undefined):
   return JSON.stringify(normalizedEnvEntries(value));
 }
 
-const CHANGE_SUMMARY_MAX_NAMES = 3;
-
-function formatChangedNames(names: readonly string[]): string {
-  const shown = names.slice(0, CHANGE_SUMMARY_MAX_NAMES).join(", ");
-  return names.length > CHANGE_SUMMARY_MAX_NAMES
-    ? `${shown} +${names.length - CHANGE_SUMMARY_MAX_NAMES} more`
-    : shown;
-}
-
 function cloneRows(rows: readonly EnvRow[]): EnvRow[] {
   return rows.map((row) => ({ ...row }));
 }
@@ -129,14 +120,12 @@ export interface EnvironmentVariablesEditorProps {
   recentlyUsedSecrets?: readonly CompanySecret[];
   /** Read-only rendering. */
   disabled?: boolean;
-  /** Prefixes flagged as reserved/auto-provided. Default `["PAPERCLIP_"]`. */
+  /** Prefixes flagged as reserved/auto-provided. Default `["CLAYON_"]`. */
   reservedPrefixes?: readonly string[];
   /** Context-specific hint line. `null` hides the default copy; omit for default. */
   footerHint?: ReactNode | null;
   /** Reports editor-local draft changes that are not yet promoted to the parent value. */
   onDirtyChange?: (dirty: boolean) => void;
-  /** Parent owns Save/Discard and flushes the editor through its ref. */
-  hideDraftActions?: boolean;
 }
 
 export interface EnvironmentVariablesEditorHandle {
@@ -145,6 +134,11 @@ export interface EnvironmentVariablesEditorHandle {
    * action reads parent state. Returns the promoted value when a draft existed.
    */
   flushPendingDraft: () => Record<string, EnvBinding> | null;
+  /**
+   * Read the staged draft without touching any state — for an unmounting
+   * parent whose setState can no longer land, so it can save the rows itself.
+   */
+  readPendingDraft: () => Record<string, EnvBinding> | null;
 }
 
 export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorHandle, EnvironmentVariablesEditorProps>(function EnvironmentVariablesEditor({
@@ -158,7 +152,6 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
   reservedPrefixes = DEFAULT_RESERVED_PREFIXES,
   footerHint,
   onDirtyChange,
-  hideDraftActions = false,
 }: EnvironmentVariablesEditorProps, ref) {
   const toast = useOptionalToastActions();
   const editorRootRef = useRef<HTMLDivElement | null>(null);
@@ -242,34 +235,6 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
     onDirtyChange?.(!disabled && hasUnsavedChanges);
   }, [disabled, hasUnsavedChanges, onDirtyChange]);
 
-  // Which variables differ from the committed baseline, so the unsaved-changes
-  // banner can say *what* is unsaved instead of a bare label. A rename shows
-  // as one addition plus one removal.
-  const changeSummary = useMemo(() => {
-    const committed = new Map(
-      normalizedEnvEntries(valueFromRows(committedRows)).map(([name, binding]) => [name, JSON.stringify(binding)]),
-    );
-    const draft = new Map(
-      normalizedEnvEntries(draftValue).map(([name, binding]) => [name, JSON.stringify(binding)]),
-    );
-    const added: string[] = [];
-    const changed: string[] = [];
-    for (const [name, bindingKey] of draft) {
-      if (!committed.has(name)) added.push(name);
-      else if (committed.get(name) !== bindingKey) changed.push(name);
-    }
-    const removed = [...committed.keys()].filter((name) => !draft.has(name));
-    return { added, changed, removed };
-  }, [committedRows, draftValue]);
-
-  const changeSummaryText = useMemo(() => {
-    const parts: string[] = [];
-    if (changeSummary.added.length > 0) parts.push(`New: ${formatChangedNames(changeSummary.added)}`);
-    if (changeSummary.changed.length > 0) parts.push(`Edited: ${formatChangedNames(changeSummary.changed)}`);
-    if (changeSummary.removed.length > 0) parts.push(`Removed: ${formatChangedNames(changeSummary.removed)}`);
-    return parts.join(" · ");
-  }, [changeSummary]);
-
   // Warn before the tab unloads with a dirty draft (same guard as the skill
   // file editor). In-app navigation is not intercepted here.
   useEffect(() => {
@@ -291,7 +256,21 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
     return draftValue ?? {};
   }, [disabled, draftValue, draftValueKey, hasUnsavedChanges, onChange]);
 
-  useImperativeHandle(ref, () => ({ flushPendingDraft }), [flushPendingDraft]);
+  const readPendingDraft = useCallback(() => {
+    if (disabled || !hasUnsavedChanges) return null;
+    return draftValue ?? {};
+  }, [disabled, draftValue, hasUnsavedChanges]);
+
+  useImperativeHandle(ref, () => ({ flushPendingDraft, readPendingDraft }), [flushPendingDraft, readPendingDraft]);
+
+  // Autosave: staged rows that never reached the idle debounce still commit
+  // on unmount, so a route change inside the debounce window cannot drop them
+  // (when the parent unmounts too, it reads them via readPendingDraft).
+  const flushOnUnmountRef = useRef<() => void>(() => {});
+  flushOnUnmountRef.current = () => {
+    if (!disabled && hasUnsavedChanges) saveDraft();
+  };
+  useEffect(() => () => flushOnUnmountRef.current(), []);
 
   useEffect(() => {
     const form = editorRootRef.current?.closest("form");
@@ -401,12 +380,16 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
     onChange(draftValue);
   }
 
-  function revertDraft() {
-    pendingSaveValueKeyRef.current = null;
-    lastPropValueKeyRef.current = normalizedEnvKey(value);
-    const nextRows = adoptExternalValue(value);
-    markCommitted(lastPropValueKeyRef.current, nextRows);
-  }
+  // Autosave: staged rows commit into the parent's value after a short idle
+  // (operator directive — no Save/Revert pair). The parent's own autosave
+  // then persists the committed value.
+  useEffect(() => {
+    if (!hasUnsavedChanges || disabled) return;
+    const timer = setTimeout(() => {
+      saveDraft();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [hasUnsavedChanges, disabled, draftValueKey]);
 
   const duplicateNames = useMemo(() => computeDuplicateNames(rows), [rows]);
 
@@ -520,43 +503,6 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
         ) : null}
 
       </div>
-
-      {hasUnsavedChanges && !disabled && !hideDraftActions ? (
-        <div
-          role="status"
-          className="mt-3 flex w-full flex-col gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-amber-950 shadow-sm dark:bg-amber-500/15 dark:text-amber-100 @[34rem]/env:flex-row @[34rem]/env:items-center @[34rem]/env:justify-between"
-        >
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <span className="size-2 rounded-full bg-amber-500 shadow-(--shadow-extract-13)" />
-              <span>Unsaved changes</span>
-            </div>
-            {changeSummaryText ? (
-              <p className="min-w-0 truncate pl-4 text-xs text-amber-950/80 dark:text-amber-100/80" title={changeSummaryText}>
-                {changeSummaryText}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={revertDraft}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-amber-500/30 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-amber-500/10 dark:bg-background/80"
-            >
-              <RotateCcw className="size-4" />
-              Revert
-            </button>
-            <button
-              type="button"
-              onClick={saveDraft}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <Save className="size-4" />
-              Save
-            </button>
-          </div>
-        </div>
-      ) : null}
 
       {hint ? <p className="text-(length:--text-micro) text-muted-foreground/70">{hint}</p> : null}
       {rows.some((row) => row.source === "user_secret" && row.userSecretKey) ? (

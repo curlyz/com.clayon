@@ -12,11 +12,11 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   type BillingType,
   type CostStatus,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   agents,
   agentConfigRevisions,
@@ -25,7 +25,7 @@ import {
   heartbeatRunEvents,
   heartbeatRuns,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { notFound } from "../../errors.js";
 import { logger } from "../../middleware/logger.js";
 import { getServerAdapter } from "../../adapters/index.js";
@@ -48,8 +48,8 @@ import {
   hasSessionCompactionThresholds,
   resolveSessionCompactionPolicy,
   type SessionCompactionPolicy,
-} from "@paperclipai/adapter-utils";
-import { isUuidLike } from "@paperclipai/shared";
+} from "@clayon/adapter-utils";
+import { isUuidLike } from "@clayon/shared";
 import { isUnsafeSessionWorkspaceCwd } from "../session-workspace-cwd.js";
 
 export const EXECUTION_REVIEW_PARTICIPANT_RECOVERY_WAKE_REASON =
@@ -1361,7 +1361,7 @@ export function createHeartbeatRunState(db: Db) {
       readNonEmptyString(summarizeRunErrorForModel(latestRun.error, latestRun.terminalFailureCategory));
 
     const handoffMarkdown = [
-      "Paperclip session handoff:",
+      "Clayon session handoff:",
       `- Previous session: ${sessionId}`,
       issueId ? `- Issue: ${issueId}` : "",
       `- Rotation reason: ${reason}`,

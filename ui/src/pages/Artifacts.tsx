@@ -11,6 +11,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { EmptyState } from "../components/EmptyState";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { ArtifactCard } from "../components/artifacts/ArtifactCard";
 import { ArtifactGroupCard } from "../components/artifacts/ArtifactGroupCard";
@@ -246,7 +247,8 @@ export function Artifacts() {
           : "No artifacts of this type yet.";
 
   return (
-    <div className="w-full max-w-6xl space-y-5">
+    <div className="flex w-full flex-col">
+      <PageHeaderBand title="Artifacts">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -347,8 +349,9 @@ export function Artifacts() {
           ) : null}
         </div>
       ) : null}
+      </PageHeaderBand>
 
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
 
       {isLoading ? (
         <PageSkeleton variant="list" />
@@ -358,7 +361,7 @@ export function Artifacts() {
         <>
           {/* Grid audit: artifacts and stacks are independent entity tiles —
               they tile responsively (leaf cards, no wrapper nesting). */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-2 xl:grid-cols-4">
             {showGroupCards
               ? groups.map((group) => (
                   <ArtifactGroupCard key={group.id} group={group} to={stackTo(group.issue.id)} />

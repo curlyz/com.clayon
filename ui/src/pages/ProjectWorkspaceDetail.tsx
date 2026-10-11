@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isUuidLike, type ProjectWorkspace } from "@paperclipai/shared";
+import { isUuidLike, type ProjectWorkspace } from "@clayon/shared";
 import { ArrowLeft, Check, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import { useCompany } from "../context/CompanyContext";
 import { useManagedSandboxOnly } from "../hooks/useManagedSandboxOnly";
 import { queryKeys } from "../lib/queryKeys";
 import { projectRouteRef, projectWorkspaceUrl } from "../lib/utils";
+import { SaveStatus } from "@/components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "@/hooks/useAutosave";
 
 type WorkspaceFormState = {
   name: string;
@@ -73,7 +75,7 @@ function orderProjectWorkspaceTabItems(items: OrderedProjectWorkspaceTabItem[]) 
 }
 
 const SOURCE_TYPE_OPTIONS: Array<{ value: ProjectWorkspaceSourceType; label: string; description: string }> = [
-  { value: "local_path", label: "Local git checkout", description: "A local path Paperclip can use directly." },
+  { value: "local_path", label: "Local git checkout", description: "A local path Clayon can use directly." },
   { value: "non_git_path", label: "Local non-git path", description: "A local folder without git semantics." },
   { value: "git_repo", label: "Remote git repo", description: "A repo URL with optional refs and local checkout." },
   { value: "remote_managed", label: "Remote-managed workspace", description: "A hosted workspace tracked by external reference." },
@@ -285,7 +287,25 @@ export function ProjectWorkspaceDetail() {
   );
   const canonicalProjectRef = project ? projectRouteRef(project) : routeProjectRef;
   const initialState = useMemo(() => (workspace ? formStateFromWorkspace(workspace) : null), [workspace]);
-  const isDirty = Boolean(form && initialState && JSON.stringify(form) !== JSON.stringify(initialState));
+  // Autosave: a valid draft persists on its own; an invalid one is not
+  // saveable (matching the old disabled Save button).
+  const workspaceAutosave = useAutosave({
+    value: form,
+    savedValue: initialState,
+    isEqual: (draft, saved) =>
+      draft === null ||
+      saved === null ||
+      validateWorkspaceForm(draft) !== null ||
+      autosaveJsonEqual(draft, saved),
+    save: async (draft) => {
+      if (!project || !initialState || draft === null) return;
+      const patch = buildWorkspacePatch(initialState, draft);
+      if (Object.keys(patch).length === 0) return;
+      await projectsApi.updateWorkspace(project.id, routeWorkspaceId, patch, lookupCompanyId);
+      invalidateProject();
+      setErrorMessage(null);
+    },
+  });
   const {
     slots: pluginDetailSlots,
     isLoading: pluginDetailSlotsLoading,
@@ -346,18 +366,6 @@ export function ProjectWorkspaceDetail() {
     }
   };
 
-  const updateWorkspace = useMutation({
-    mutationFn: (patch: Record<string, unknown>) =>
-      projectsApi.updateWorkspace(project!.id, routeWorkspaceId, patch, lookupCompanyId),
-    onSuccess: () => {
-      invalidateProject();
-      setErrorMessage(null);
-    },
-    onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save workspace.");
-    },
-  });
-
   const setPrimaryWorkspace = useMutation({
     mutationFn: () => projectsApi.updateWorkspace(project!.id, routeWorkspaceId, { isPrimary: true }, lookupCompanyId),
     onSuccess: () => {
@@ -412,17 +420,6 @@ export function ProjectWorkspaceDetail() {
     canRunJobs: canRunWorkspaceCommands,
   });
   const pendingRuntimeAction = controlRuntimeServices.isPending ? controlRuntimeServices.variables ?? null : null;
-
-  const saveChanges = () => {
-    const validationError = validateWorkspaceForm(form);
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
-    const patch = buildWorkspacePatch(initialState, form);
-    if (Object.keys(patch).length === 0) return;
-    updateWorkspace.mutate(patch);
-  };
 
   const sourceTypeDescription = SOURCE_TYPE_OPTIONS.find((option) => option.value === form.sourceType)?.description ?? null;
   const handleTabChange = (tab: ProjectWorkspaceTab) => {
@@ -487,7 +484,7 @@ export function ProjectWorkspaceDetail() {
         <div className="space-y-6">
           <Card className="block p-5">
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Configure the concrete workspace Paperclip attaches to this project. These values drive per-workspace
+              Configure the concrete workspace Clayon attaches to this project. These values drive per-workspace
               checkout behavior, default runtime services for child execution workspaces, and let you override setup
               or cleanup commands when one workspace needs special handling.
             </p>
@@ -635,7 +632,7 @@ export function ProjectWorkspaceDetail() {
               <details className="rounded-xl border border-dashed border-border/70 bg-background px-3 py-3">
                 <summary className="cursor-pointer text-sm font-medium">Advanced runtime JSON</summary>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Paperclip derives Services and Jobs from this JSON. Prefer editing named commands first; use raw JSON for advanced lifecycle, port, readiness, or environment settings.
+                  Clayon derives Services and Jobs from this JSON. Prefer editing named commands first; use raw JSON for advanced lifecycle, port, readiness, or environment settings.
                 </p>
                 <div className="mt-3">
                   <Field label="Workspace commands JSON" hint="Execution workspaces inherit this config unless they override it. Legacy `services` arrays still work, but `commands` supports both services and jobs.">
@@ -650,25 +647,14 @@ export function ProjectWorkspaceDetail() {
               </details>
             </div>
 
-            <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
-                {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Save changes
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto"
-                disabled={!isDirty || updateWorkspace.isPending}
-                onClick={() => {
-                  setForm(initialState);
-                  setErrorMessage(null);
-                }}
-              >
-                Reset
-              </Button>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <SaveStatus
+                status={workspaceAutosave.status}
+                errorMessage={workspaceAutosave.errorMessage}
+                onRetry={workspaceAutosave.retry}
+              />
               {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
               {!errorMessage && runtimeActionMessage ? <p className="text-sm text-muted-foreground">{runtimeActionMessage}</p> : null}
-              {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">No unsaved changes.</p> : null}
             </div>
           </Card>
         </div>

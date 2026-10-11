@@ -6,13 +6,13 @@ import { projectRoutes } from "../routes/projects.js";
 import { agentRoutes } from "../routes/agents.js";
 import { companySkillRoutes } from "../routes/company-skills.js";
 import { MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
-import { mcpAttachmentUploads, mcpFileTickets, principalPermissionGrants, heartbeatRuns, issueAccessGrants } from "@paperclipai/db";
+import { mcpAttachmentUploads, mcpFileTickets, principalPermissionGrants, heartbeatRuns, issueAccessGrants } from "@clayon/db";
 import { createHmac, createHash, randomBytes, randomUUID } from "node:crypto";
 import express, { type Request } from "express";
 import request from "supertest";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { activityLog, mcpEventAdmissions, mcpEventDeliveries, mcpEventSubscriptions, createDb, authUsers, companies, companyLogos, assets, companyMemberships, mcpOauthTokens, mcpOauthRequests, mcpOauthGrants, mcpOauthClients, mcpOauthDeviceRequests, mcpOauthMetadataAdmissions, mcpMutationReceipts, agents, issues, issueComments, instanceUserRoles } from "@paperclipai/db";
+import { activityLog, mcpEventAdmissions, mcpEventDeliveries, mcpEventSubscriptions, createDb, authUsers, companies, companyLogos, assets, companyMemberships, mcpOauthTokens, mcpOauthRequests, mcpOauthGrants, mcpOauthClients, mcpOauthDeviceRequests, mcpOauthMetadataAdmissions, mcpMutationReceipts, agents, issues, issueComments, instanceUserRoles } from "@clayon/db";
 import { instanceSettingsService } from "../services/instance-settings.js";
 import { createPublicMcpOAuth, publicMcpConfig, hashMcpSecret, DEVICE_GRANT } from "../services/public-mcp/oauth.js";
 import { McpApiError, createMcpApiDispatch, createPublicMcpExecutor, publicMcpCapabilities } from "../services/public-mcp/capabilities.js";
@@ -32,13 +32,13 @@ import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } fro
 
 import { createPublicMcpEvents, publicMcpEventDefinitions } from "../services/public-mcp/events.js";
 import { createDotRunnerMcpBridge } from "../services/public-mcp/dot-runner.js";
-import { DotHarnessDriver } from "../../../packages/paperclip-runner/src/drivers/dot/dot-harness-driver.js";
-import { HarnessDriverBackend } from "../../../packages/paperclip-runner/src/backends/harness-driver-backend.js";
+import { DotHarnessDriver } from "../../../packages/clayon-runner/src/drivers/dot/dot-harness-driver.js";
+import { HarnessDriverBackend } from "../../../packages/clayon-runner/src/backends/harness-driver-backend.js";
 import { eventFetch, signingKey, type EventFetch } from "../services/public-mcp/event-webhooks.js";
 
 const support = await getEmbeddedPostgresTestSupport();
 if (!support.supported) console.warn(`Public MCP database checks unavailable: ${support.reason}`);
-const config = { origin: "https://paperclip.example", resource: "https://paperclip.example/mcp/paperclip" };
+const config = { origin: "https://clayon.example", resource: "https://clayon.example/mcp/clayon" };
 const redirectUri = "https://client.example/callback";
 const verifier = randomBytes(32).toString("base64url");
 const challenge = createHash("sha256").update(verifier).digest("base64url");
@@ -46,10 +46,10 @@ const challenge = createHash("sha256").update(verifier).digest("base64url");
 describe("public MCP configuration", () => {
   it("uses the configured origin independently of the retired environment gate", () => {
     expect(publicMcpConfig({})).toBeNull();
-    expect(() => publicMcpConfig({ PAPERCLIP_PUBLIC_URL: "http://example.com" })).toThrow();
-    expect(publicMcpConfig({ PAPERCLIP_PUBLIC_URL: "http://localhost:3100" })?.resource).toBe("http://localhost:3100/mcp/paperclip");
-    expect(publicMcpConfig({}, "https://paperclip.example")?.origin).toBe("https://paperclip.example");
-    expect(publicMcpConfig({ PAPERCLIP_PUBLIC_MCP_ENABLED: "true" })).toBeNull();
+    expect(() => publicMcpConfig({ CLAYON_PUBLIC_URL: "http://example.com" })).toThrow();
+    expect(publicMcpConfig({ CLAYON_PUBLIC_URL: "http://localhost:3100" })?.resource).toBe("http://localhost:3100/mcp/clayon");
+    expect(publicMcpConfig({}, "https://clayon.example")?.origin).toBe("https://clayon.example");
+    expect(publicMcpConfig({ CLAYON_PUBLIC_MCP_ENABLED: "true" })).toBeNull();
     expect(publicMcpCapabilities.map((c) => c.name)).not.toEqual(expect.arrayContaining(["run_tool", "call_api"]));
   });
 });
@@ -59,8 +59,8 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
   let db: ReturnType<typeof createDb>;
   let oauth: ReturnType<typeof createPublicMcpOAuth>;
   beforeAll(async () => {
-    vi.stubEnv("PAPERCLIP_SECRETS_MASTER_KEY", randomBytes(32).toString("base64"));
-    temp = await startEmbeddedPostgresTestDatabase("paperclip-public-mcp-");
+    vi.stubEnv("CLAYON_SECRETS_MASTER_KEY", randomBytes(32).toString("base64"));
+    temp = await startEmbeddedPostgresTestDatabase("clayon-public-mcp-");
     db = createDb(temp.connectionString);
     oauth = createPublicMcpOAuth(db, config);
     expect(await oauth.isEnabled()).toBe(false);
@@ -72,21 +72,21 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     let standby = true;
     const app = express();
     const ui = express.Router();
-    ui.get(/.*/, (_req, res) => res.type("html").send("Paperclip UI"));
+    ui.get(/.*/, (_req, res) => res.type("html").send("Clayon UI"));
     app.use(cloudWarmStandbyMiddleware(() => standby, express.Router(), ui));
     app.use(publicMcpIngressRoutes(oauth, vi.fn()));
     const select = vi.spyOn(db, "select");
     try {
       for (const path of [
-        "/mcp/setup", "/mcp/setup.md", "/mcp/paperclip", "/mcp/oauth/authorize",
-        "/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp/paperclip",
+        "/mcp/setup", "/mcp/setup.md", "/mcp/clayon", "/mcp/oauth/authorize",
+        "/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp/clayon",
         "/.well-known/oauth-authorization-server",
       ]) {
         for (const method of ["get", "head"] as const) {
           expect((await request(app)[method](path).set("authorization", "Bearer unclaimed")).status).toBe(503);
         }
       }
-      for (const path of ["/mcp/paperclip", "/mcp/oauth/register", "/mcp/oauth/device_authorization", "/mcp/oauth/token", "/mcp/oauth/revoke"]) {
+      for (const path of ["/mcp/clayon", "/mcp/oauth/register", "/mcp/oauth/device_authorization", "/mcp/oauth/token", "/mcp/oauth/revoke"]) {
         const response = await request(app).post(path).send({});
         expect(response.status).toBe(503);
         expect(response.body).toEqual({ error: "workspace_unclaimed" });
@@ -96,12 +96,12 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
       expect((await request(app).get("/mcp-device")).status).toBe(200);
       expect(select).not.toHaveBeenCalled();
       standby = false;
-      const metadata = await request(app).get("/.well-known/oauth-protected-resource/mcp/paperclip");
+      const metadata = await request(app).get("/.well-known/oauth-protected-resource/mcp/clayon");
       expect(metadata.status).toBe(200);
       expect(metadata.body.resource).toBe(config.resource);
       expect(select).toHaveBeenCalled();
       expect((await request(app).get("/mcp/setup.md")).status).toBe(200);
-      expect((await request(app).post("/mcp/paperclip")).status).toBe(401);
+      expect((await request(app).post("/mcp/clayon")).status).toBe(401);
     } finally {
       select.mockRestore();
     }
@@ -114,7 +114,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const [membership] = await db.insert(companyMemberships).values({ companyId: company!.id, principalType: "user", principalId: userId, membershipRole: role, status: "active" }).returning();
     const actor: Request["actor"] = { type: "board", source: "session", userId };
     const client = await oauth.register({ client_name: "Test client", redirect_uris: [redirectUri] }, randomUUID());
-    const url = await oauth.authorize({ client_id: client.client_id, redirect_uri: redirectUri, resource: config.resource, scope: "paperclip:read paperclip:write paperclip:configure offline_access", state: "state", response_type: "code", code_challenge: challenge, code_challenge_method: "S256" });
+    const url = await oauth.authorize({ client_id: client.client_id, redirect_uri: redirectUri, resource: config.resource, scope: "clayon:read clayon:write clayon:configure offline_access", state: "state", response_type: "code", code_challenge: challenge, code_challenge_method: "S256" });
     const id = url.split("/").at(-1)!;
     const consent = await oauth.consent(id, actor, { decision: "approve", companyId: company!.id, allowWrites: write, allowConfiguration: configure });
     const code = new URL(consent.redirectUrl).searchParams.get("code")!;
@@ -139,7 +139,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
   async function deviceFixture() {
     const f = await fixture();
     const client = await oauth.register({ client_name: "Device client", redirect_uris: [], grant_types: [DEVICE_GRANT, "refresh_token"], response_types: [] }, randomUUID());
-    const codes = await oauth.deviceAuthorize({ client_id: client.client_id, resource: config.resource, scope: "paperclip:read paperclip:write offline_access", company_id: f.company.id }, randomUUID());
+    const codes = await oauth.deviceAuthorize({ client_id: client.client_id, resource: config.resource, scope: "clayon:read clayon:write offline_access", company_id: f.company.id }, randomUUID());
     const exchange = { grant_type: DEVICE_GRANT, client_id: client.client_id, resource: config.resource, device_code: codes.device_code };
     return { ...f, deviceClient: client, codes, deviceExchange: exchange };
   }
@@ -229,7 +229,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     it("rejects wrong resources, scopes and disabled connections before fetching", async () => {
       const fetcher = vi.fn(async (url: URL) => metadata(url));
       const client = createPublicMcpOAuth(db, config, { metadataFetch: fetcher });
-      for (const override of [{ resource: "https://wrong.example/mcp" }, { scope: "paperclip:read invalid" }]) {
+      for (const override of [{ resource: "https://wrong.example/mcp" }, { scope: "clayon:read invalid" }]) {
         await expect(client.authorize({ ...input(0), ...override })).rejects.toThrow();
         await expect(client.deviceAuthorize({ ...input(0), ...override })).rejects.toThrow();
       }
@@ -326,7 +326,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const client = await oauth.register({ client_name: "Client", redirect_uris: [redirectUri] });
     const input = { client_id: client.client_id, redirect_uri: redirectUri, response_type: "code", resource: config.resource, code_challenge: challenge, code_challenge_method: "S256" };
     await expect(oauth.authorize({ ...input, redirect_uri: "https://evil.example" })).rejects.toThrow();
-    await expect(oauth.authorize({ ...input, resource: "https://other.example/mcp/paperclip" })).rejects.toThrow();
+    await expect(oauth.authorize({ ...input, resource: "https://other.example/mcp/clayon" })).rejects.toThrow();
     await expect(oauth.authorize({ ...input, code_challenge_method: "plain" })).rejects.toThrow();
     const id = (await oauth.authorize(input)).split("/").at(-1)!;
     await expect(oauth.consent(id, { type: "board", source: "local_implicit", userId: "board" }, { decision: "approve", companyId: randomUUID(), allowWrites: true })).rejects.toThrow();
@@ -369,7 +369,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const [other] = await db.insert(companies).values({ name: "Other organization", issuePrefix: "M" + randomBytes(4).toString("hex") }).returning();
     await db.insert(companyMemberships).values({ companyId: other!.id, principalType: "user", principalId: f.actor.userId!, membershipRole: "member", status: "active" });
     const input = { client_id: f.client.client_id, redirect_uri: redirectUri, resource: config.resource, response_type: "code",
-      code_challenge: challenge, code_challenge_method: "S256", scope: "paperclip:read paperclip:write", company_id: f.company.id };
+      code_challenge: challenge, code_challenge_method: "S256", scope: "clayon:read clayon:write", company_id: f.company.id };
     const id = (await oauth.authorize(input)).split("/").at(-1)!;
     // The binding survives a new service instance, and the description reveals only this membership.
     const resumed = createPublicMcpOAuth(db, config);
@@ -428,10 +428,10 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     try {
       await settings.updateExperimental({ enablePublicMcp: false });
       expect(await createPublicMcpOAuth(db, config).isEnabled()).toBe(false);
-      for (const path of ["/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource/mcp/paperclip"]) {
+      for (const path of ["/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource/mcp/clayon"]) {
         expect((await request(app).get(path)).status).toBe(503);
       }
-      expect((await request(app).post("/mcp/paperclip").set("Authorization", `Bearer ${f.tokens.access_token}`).send({})).status).toBe(503);
+      expect((await request(app).post("/mcp/clayon").set("Authorization", `Bearer ${f.tokens.access_token}`).send({})).status).toBe(503);
       await expect(oauth.register({ client_name: "disabled", redirect_uris: [redirectUri] })).rejects.toMatchObject({ status: 503 });
       await expect(oauth.token({ grant_type: "refresh_token", client_id: f.client.client_id, resource: config.resource, refresh_token: f.tokens.refresh_token })).rejects.toMatchObject({ status: 503 });
       await expect(execute(f.tokens.access_token, "paperclip_list_agents", { companyId: f.company.id })).rejects.toMatchObject({ status: 503 });
@@ -546,7 +546,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const first = await execute(f.tokens.access_token, "paperclip_create_task", args);
     expect(await execute(f.tokens.access_token, "paperclip_create_task", args)).toEqual(first);
     const reconnectedClient = await oauth.register({ client_name: "Reconnected assistant", redirect_uris: [redirectUri] });
-    const reconnectId = (await oauth.authorize({ client_id: reconnectedClient.client_id, redirect_uri: redirectUri, resource: config.resource, scope: "paperclip:read paperclip:write", response_type: "code", code_challenge: challenge, code_challenge_method: "S256" })).split("/").at(-1)!;
+    const reconnectId = (await oauth.authorize({ client_id: reconnectedClient.client_id, redirect_uri: redirectUri, resource: config.resource, scope: "clayon:read clayon:write", response_type: "code", code_challenge: challenge, code_challenge_method: "S256" })).split("/").at(-1)!;
     const reconnectConsent = await oauth.consent(reconnectId, f.actor, { decision: "approve", companyId: f.company.id, allowWrites: true });
     const reconnected = await oauth.token({ grant_type: "authorization_code", client_id: reconnectedClient.client_id, resource: config.resource, redirect_uri: redirectUri, code: new URL(reconnectConsent.redirectUrl).searchParams.get("code"), code_verifier: verifier });
     expect(await execute(reconnected.access_token, "paperclip_create_task", args)).toEqual(first);
@@ -579,7 +579,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     try {
       const [agent] = await db.insert(agents).values({ companyId: f.company.id, name: "Researcher", role: "researcher", adapterType: "process", status: "idle" }).returning();
       const api = express.Router(); api.use(boardMutationGuard());
-      api.use(issueRoutes(db, createStorageService(createLocalDiskStorageProvider("/tmp/paperclip-public-mcp-unused-storage"))));
+      api.use(issueRoutes(db, createStorageService(createLocalDiskStorageProvider("/tmp/clayon-public-mcp-unused-storage"))));
       api.use(activityRoutes(db));
       const execute = createPublicMcpExecutor(db, oauth, createMcpApiDispatch(api));
       const args = { companyId: f.company.id, requestId: randomUUID(), title: "Write a durable report", description: "Research the supplied material", assigneeAgentId: agent!.id };
@@ -625,11 +625,11 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const dispatch = vi.fn().mockResolvedValue({ id: randomUUID(), name: "Updated" });
     const execute = createPublicMcpExecutor(db, oauth, dispatch);
     const args = { companyId: old.company.id, agentId: randomUUID(), requestId: randomUUID(), changes: { title: "Writer" } };
-    await expect(execute(old.tokens.access_token, "paperclip_update_agent", args)).rejects.toThrow("paperclip:configure");
+    await expect(execute(old.tokens.access_token, "paperclip_update_agent", args)).rejects.toThrow("clayon:configure");
     expect(dispatch).not.toHaveBeenCalled();
     await execute(f.tokens.access_token, "paperclip_update_agent", { ...args, companyId: f.company.id });
     expect(dispatch).toHaveBeenCalledTimes(1);
-    expect((await oauth.authenticate(f.tokens.access_token)).grant.scopes).toContain("paperclip:configure");
+    expect((await oauth.authenticate(f.tokens.access_token)).grant.scopes).toContain("clayon:configure");
     await db.update(companyMemberships).set({ membershipRole: "viewer" }).where(eq(companyMemberships.id, f.membership.id));
     await expect(execute(f.tokens.access_token, "paperclip_update_agent", { ...args, companyId: f.company.id, requestId: randomUUID() })).rejects.toThrow("permission");
     const refreshed = await oauth.token({ grant_type: "refresh_token", client_id: old.client.client_id, resource: config.resource, refresh_token: old.tokens.refresh_token });
@@ -988,9 +988,9 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     app.use((req, _res, next) => { req.actor = f.actor; next(); }); app.use("/api", publicMcpManagementRoutes(oauth));
     const discovery = await request(app).get("/.well-known/oauth-authorization-server");
     expect(discovery.body.code_challenge_methods_supported).toEqual(["S256"]);
-    expect((await request(app).post("/mcp/paperclip").send({})).status).toBe(401);
-    const rpc = (method: string, params?: unknown) => request(app).post("/mcp/paperclip").timeout({ response: 5000, deadline: 7000 }).set("Authorization", `Bearer ${f.tokens.access_token}`).set("Accept", "application/json, text/event-stream").send({ jsonrpc: "2.0", id: 1, method, ...(params ? { params } : {}) });
-    expect((await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "1" } })).body.result.serverInfo.name).toBe("paperclip");
+    expect((await request(app).post("/mcp/clayon").send({})).status).toBe(401);
+    const rpc = (method: string, params?: unknown) => request(app).post("/mcp/clayon").timeout({ response: 5000, deadline: 7000 }).set("Authorization", `Bearer ${f.tokens.access_token}`).set("Accept", "application/json, text/event-stream").send({ jsonrpc: "2.0", id: 1, method, ...(params ? { params } : {}) });
+    expect((await rpc("initialize", { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "test", version: "1" } })).body.result.serverInfo.name).toBe("clayon");
     const catalog = await rpc("tools/list");
     expect(catalog.body.result.tools).toHaveLength(publicMcpCapabilities.length);
     expect(catalog.body.result.tools.find((t: { name: string }) => t.name === "paperclip_create_task").annotations.readOnlyHint).toBe(false);
@@ -1008,7 +1008,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     expect(invalid.body.result.structuredContent.issues[0].message).toContain("UUID");
     expect(dispatch).not.toHaveBeenCalled();
     const pending = await oauth.authorize({ client_id: f.client.client_id, redirect_uri: redirectUri, resource: config.resource, response_type: "code", code_challenge: challenge, code_challenge_method: "S256" });
-    vi.stubEnv("PAPERCLIP_CLOUD_API_ORIGIN", "https://cloud.example.test");
+    vi.stubEnv("CLAYON_CLOUD_API_ORIGIN", "https://cloud.example.test");
     try {
       const described = await request(app).get(`/api/mcp/requests/${pending.split("/").at(-1)}`);
       expect(described.body.setupUrl).toBe("https://cloud.example.test/orgs/new");
@@ -1089,7 +1089,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     let goodChallenge = true;
     let duringVerification: (() => Promise<void>) | undefined;
     const fetcher: EventFetch = async (url, init) => {
-      if (cloudOrigin && url === cloudOrigin + "/mcp/paperclip") return cloudAllowed
+      if (cloudOrigin && url === cloudOrigin + "/mcp/clayon") return cloudAllowed
         ? Response.json({ result: { structuredContent: { user: { id: f.actor.userId }, companyId: f.company.id, connectionId: principal.grant.id } } })
         : new Response(null, { status: 403 });
       const headers = new Headers(init.headers);
@@ -1108,7 +1108,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     };
     const options = { fetch: fetcher, now: () => clock, ...(cloudOrigin ? { cloudOrigin } : {}) };
     const service = createPublicMcpEvents(db, oauth, dispatch, options);
-    const input = { name: "paperclip.task.status_changed", arguments: { companyId: f.company.id, taskId: task!.id, statuses: ["done"] }, delivery: { mode: "webhook", url: "https://receiver.example/events/" + randomUUID(), secret } };
+    const input = { name: "clayon.task.status_changed", arguments: { companyId: f.company.id, taskId: task!.id, statuses: ["done"] }, delivery: { mode: "webhook", url: "https://receiver.example/events/" + randomUUID(), secret } };
     const activity = async (action = "issue.updated", details: Record<string, unknown> = { status: "done" }) => {
       clock += 100;
       const [row] = await db.insert(activityLog).values({ companyId: f.company.id, actorType: "user", actorId: f.actor.userId!, action, entityType: "issue", entityId: task!.id, details, createdAt: new Date(clock) }).returning();
@@ -1140,14 +1140,14 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const app = express(); app.use(express.json());
     app.use(publicMcpIngressRoutes(oauth, createPublicMcpExecutor(db, oauth, f.dispatch), events, extension));
     const meta = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
-    const rpc = (method: string, params: Record<string, unknown> = {}, token = f.tokens.access_token) => request(app).post("/mcp/paperclip")
+    const rpc = (method: string, params: Record<string, unknown> = {}, token = f.tokens.access_token) => request(app).post("/mcp/clayon")
       .set("Authorization", `Bearer ${token}`).set("MCP-Protocol-Version", "2026-07-28").set("Mcp-Method", method)
       .set("Mcp-Name", String(params.name ?? "")).send({ jsonrpc: "2.0", id: 1, method, params: { ...params, _meta: meta } });
     const tool = async (name: string, args: Record<string, unknown>) => (await rpc("tools/call", { name, arguments: args })).body.result;
     try {
       expect((await rpc("server/discover")).body.result.capabilities).toHaveProperty("events");
-      expect((await rpc("events/list")).body.result.events.map((e: { name: string }) => e.name)).toContain("paperclip.dot.work_available");
-      const subscription = { ...f.input, name: "paperclip.dot.work_available", arguments: { companyId: f.company.id, taskId: f.task.id } };
+      expect((await rpc("events/list")).body.result.events.map((e: { name: string }) => e.name)).toContain("clayon.dot.work_available");
+      const subscription = { ...f.input, name: "clayon.dot.work_available", arguments: { companyId: f.company.id, taskId: f.task.id } };
       expect((await rpc("events/subscribe", subscription)).body.result.id).toBeTruthy();
       const { turnId } = await session.startTurn({ message: { role: "user", text: "Save a competitor research report." } });
       await events.tick();
@@ -1190,7 +1190,7 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     const app = express(); app.use(express.json());
     app.use(publicMcpIngressRoutes(oauth, createPublicMcpExecutor(db, oauth, f.dispatch), f.service));
     const params = { _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } };
-    const rpc = (method: string, extra = {}, headers: Record<string, string> = {}) => request(app).post("/mcp/paperclip")
+    const rpc = (method: string, extra = {}, headers: Record<string, string> = {}) => request(app).post("/mcp/clayon")
       .set({ Authorization: `Bearer ${f.tokens.access_token}`, "MCP-Protocol-Version": "2026-07-28", "Mcp-Method": method, ...headers })
       .send({ jsonrpc: "2.0", id: 1, method, params: { ...params, ...extra } });
     expect((await rpc("server/discover")).body.result).toMatchObject({ resultType: "complete", supportedVersions: ["2026-07-28"], capabilities: { tools: {}, events: {} } });
@@ -1471,8 +1471,8 @@ describe.skipIf(!support.supported)("public MCP OAuth and tool boundary", () => 
     await f.service.unsubscribe(f.principal, f.input);
     const g = await eventFixture();
     for (const [name, action, details] of [
-      ["paperclip.task.comment_created", "issue.comment_added", { commentId: randomUUID(), body: "private comment" }],
-      ["paperclip.task.document_updated", "issue.document_updated", { key: "report", revisionNumber: 2, body: "private report" }],
+      ["clayon.task.comment_created", "issue.comment_added", { commentId: randomUUID(), body: "private comment" }],
+      ["clayon.task.document_updated", "issue.document_updated", { key: "report", revisionNumber: 2, body: "private report" }],
     ] as const) {
       const input = { ...g.input, name, arguments: { companyId: g.company.id, taskId: g.task.id } };
       await g.service.subscribe(g.principal, input); await g.activity(action, details); await g.service.tick();

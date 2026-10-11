@@ -4,17 +4,17 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   agents, agentWakeupRequests, approvals, companies, completionContracts, createDb, heartbeatRuns, issueApprovals,
   issueComments, issueQuestionResponseDeliveries, issueThreadInteractions, issueWorkProducts, issues, statusDecisions,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import { readTaskQuestionContext } from "../issue-question-context.js";
 import { issueThreadInteractionService } from "../issue-thread-interactions.js";
 import { nativeCompletionFeedback } from "./native-completion-feedback.js";
 import { finalizeNativeRun, pendingNativeGovernance } from "./native-run-finalizer.js";
-import { PaperclipControlPlanePort } from "./paperclip-control-plane-port.js";
-import { CONTROL_PLANE_CONFORMANCE_RESULT, CONTROL_PLANE_CONFORMANCE_TERMINAL } from "../../vendor/paperclip-runner/testing.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
-import { PaperclipRunnerSemanticAuthority } from "./runner-semantic-authority.js";
-import type { PrpStructuredRunResult } from "../../vendor/paperclip-runner/index.js";
+import { ClayonControlPlanePort } from "./clayon-control-plane-port.js";
+import { CONTROL_PLANE_CONFORMANCE_RESULT, CONTROL_PLANE_CONFORMANCE_TERMINAL } from "../../vendor/clayon-runner/testing.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
+import { ClayonRunnerSemanticAuthority } from "./runner-semantic-authority.js";
+import type { PrpStructuredRunResult } from "../../vendor/clayon-runner/index.js";
 
 const questionTime = new Date("2026-01-01T12:00:00Z");
 const messageTime = new Date("2026-01-01T12:01:00Z");
@@ -76,10 +76,10 @@ describe("historical task questions", () => {
     });
     expect(blockedFeedback).toContain("Explain why work cannot continue");
     expect(blockedFeedback).not.toContain(f.question.id);
-    const authority = new PaperclipRunnerToolAuthority(db, f);
+    const authority = new ClayonRunnerToolAuthority(db, f);
     expect(await authority.execute({ tool: "get_task_context", callId: "context", arguments: {} }))
       .toMatchObject({ taskQuestionContext: { questions: [{ id: f.question.id, historical: true }], truncated: false } });
-    const semantic = new PaperclipRunnerSemanticAuthority(db, f);
+    const semantic = new ClayonRunnerSemanticAuthority(db, f);
     expect(await semantic.dispatch({ callId: "context", operationId: "get_task_context", input: {},
       correlation: { runId: f.runId, normalizedSessionId: randomUUID(), turnId: "turn", itemId: "item" } }))
       .toMatchObject({ ok: true, value: { taskQuestionContext: { questions: [{ id: f.question.id, historical: true }] } } });
@@ -116,7 +116,7 @@ describe("historical task questions", () => {
         criteria: [{ criterionId: "objective", status: "satisfied", evidenceRefs: [evidenceRef] }] },
       evidence: [{ kind: "work_product", ref: evidenceRef }],
       verification: [{ commandOrCheck: "Configuration verification", status: "passed", artifactRef: evidenceRef }] };
-    const port = new PaperclipControlPlanePort(db, { ...f, sessionId, completionContractId: contractId,
+    const port = new ClayonControlPlanePort(db, { ...f, sessionId, completionContractId: contractId,
       completionContractSha256: contractSha256, sourceInstanceId: runnerId, controlPlaneSourceInstanceId: randomUUID() });
     await port.openRun({ identity: { ...f, sessionId }, backendKind: "mock", sourceInstanceId: runnerId });
     await port.completeRun({ result: verifiedResult, terminal: CONTROL_PLANE_CONFORMANCE_TERMINAL,

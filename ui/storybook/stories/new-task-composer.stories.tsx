@@ -10,7 +10,7 @@ import {
   buildRoutineMentionHref,
   buildSkillMentionHref,
   buildUserMentionHref,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { NewIssueDialog } from "@/components/NewIssueDialog";
 import { useCompany } from "@/context/CompanyContext";
@@ -25,7 +25,7 @@ import {
   storybookExecutionWorkspaces,
   storybookProjects,
   storybookIssues,
-} from "../fixtures/paperclipData";
+} from "../fixtures/clayonData";
 
 const COMPANY_ID = "company-storybook";
 const NEW_TASK_AGENTS = [...storybookAgents, { ...storybookAgents[2]!, id: "agent-ceo", name: "CEO", role: "ceo" }].map((agent) =>
@@ -123,12 +123,12 @@ function NewTaskStory({
     }
     if (opened.current) return;
     opened.current = true;
-    localStorage.removeItem("paperclip:issue-draft");
-    localStorage.removeItem("paperclip:recent-assignees");
-    localStorage.removeItem(`paperclip:recent-assignees:${COMPANY_ID}`);
-    localStorage.removeItem("paperclip:recent-projects");
-    localStorage.removeItem(`paperclip:recent-projects:${COMPANY_ID}`);
-    localStorage.removeItem(`paperclip:composer-effort:${COMPANY_ID}`);
+    localStorage.removeItem("clayon:issue-draft");
+    localStorage.removeItem("clayon:recent-assignees");
+    localStorage.removeItem(`clayon:recent-assignees:${COMPANY_ID}`);
+    localStorage.removeItem("clayon:recent-projects");
+    localStorage.removeItem(`clayon:recent-projects:${COMPANY_ID}`);
+    localStorage.removeItem(`clayon:composer-effort:${COMPANY_ID}`);
     if (rememberedAssignee === "agent") trackRecentAssignee("agent-codex", COMPANY_ID);
     if (rememberedAssignee === "human") trackRecentAssigneeUser(storybookAuthSession.user.id, COMPANY_ID);
     if (rememberedProject) trackRecentProject("project-board-ui", COMPANY_ID);
@@ -479,7 +479,7 @@ export const RichChips: Story = {
       await waitFor(() => expect(composer.querySelector(`[data-mention-kind="${kind}"]`)).toBeVisible());
     }
     const agentChip = composer.querySelector('[data-mention-kind="agent"]')!;
-    await expect(agentChip).toHaveAttribute("style", expect.stringContaining("--paperclip-mention-avatar-image"));
+    await expect(agentChip).toHaveAttribute("style", expect.stringContaining("--clayon-mention-avatar-image"));
     await expect(canvasElement.ownerDocument.defaultView!.getComputedStyle(agentChip, "::before").backgroundImage)
       .toContain(new URL("./agent-avatar-images/", canvasElement.ownerDocument.baseURI).href);
   },

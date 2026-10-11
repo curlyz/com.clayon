@@ -52,7 +52,7 @@ async function exercise(taskId: string, remote: boolean, failure?: "mutation" | 
     get: async (path: string) => {
       sync();
       if (path === "/api/health") return { deploymentMode: "local_trusted" };
-      if (path === "/api/auth/get-session") return { session: { userId: "local-board", id: "paperclip:local_implicit:local-board" } };
+      if (path === "/api/auth/get-session") return { session: { userId: "local-board", id: "clayon:local_implicit:local-board" } };
       if (path === "/api/agents/agent") return { adapterConfig: {} };
       if (path.endsWith("/issues?limit=100")) return [f.issue];
       if (path === "/api/issues/issue") return f.issue;
@@ -134,10 +134,10 @@ async function exercise(taskId: string, remote: boolean, failure?: "mutation" | 
     targets: { "pi-control-fixture.txt": { absent: true, sha256: null, complete: true, mutationCount: retired && harness.mutation ? 1 : 0, parent: { dev: "1", ino: "2" } } },
     watcher: { complete: !(retired && harness.incomplete), targetMutationCount: retired && harness.mutation ? 1 : 0, workspaceMutationCount: 0 },
     processes: { captured: true, root: retired && failure === "root-rotation" ? { ...root, startTicks: "201" } : root, journal: [root], live: retired ? [] : [50] },
-    setup: { path: ".paperclip-eval-action-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt", sha256: published ? `sha256:${"b".repeat(64)}` : null, published }, attached: null,
+    setup: { path: ".clayon-eval-action-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt", sha256: published ? `sha256:${"b".repeat(64)}` : null, published }, attached: null,
   });
   let seal: ReturnType<typeof snapshot> | undefined;
-  const fixture = { binding, remoteCwd: binding.remoteCwd, actionFile: ".paperclip-eval-action-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt", snapshot: async () => snapshot(), finish: async () => seal ??= snapshot(true), close: vi.fn() };
+  const fixture = { binding, remoteCwd: binding.remoteCwd, actionFile: ".clayon-eval-action-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.txt", snapshot: async () => snapshot(), finish: async () => seal ??= snapshot(true), close: vi.fn() };
   const remoteBootstrap = remote ? { prompt: () => "Read bootstrap only", bindAndRelease: async (input: any) => {
     expect(input.targets).toEqual(["pi-control-fixture.txt"]); harness.prompt = await input.actionPrompt(fixture); published = true; return fixture;
   } } : undefined;

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type InteractionResolverGovernance,
   type IssueThreadInteractionKind,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useOptionalToastActions } from "../context/ToastContext";
@@ -16,6 +16,9 @@ import { navigateTopLevel } from "@/lib/browserNavigation";
 import { companiesApi } from "../api/companies";
 import { assetsApi } from "../api/assets";
 import { queryKeys } from "../lib/queryKeys";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave } from "@/hooks/useAutosave";
+import { SettingsPageTabs } from "@/components/SettingsPageTabs";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
 import {
@@ -62,18 +65,27 @@ export function CompanySettings() {
     setGovernance(selectedCompany.interactionResolverGovernance ?? {});
   }, [selectedCompany]);
 
-  const generalDirty =
-    !!selectedCompany &&
-    (companyName !== selectedCompany.name ||
-      description !== (selectedCompany.description ?? ""));
-
-  const generalMutation = useMutation({
-    mutationFn: (data: {
-      name: string;
-      description: string | null;
-    }) => companiesApi.update(selectedCompanyId!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
+  // Autosave: General edits save themselves (empty name is not saveable,
+  // matching the old disabled Save button — clearing the name saves nothing).
+  const generalAutosave = useAutosave({
+    value: { name: companyName, description },
+    savedValue: {
+      name: selectedCompany?.name ?? "",
+      description: selectedCompany?.description ?? ""
+    },
+    isEqual: (a, b) =>
+      a.name.trim() === ""
+        ? true
+        : a.name.trim() === b.name.trim() &&
+          (a.description.trim() || null) === (b.description.trim() || null),
+    save: async (draft) => {
+      await companiesApi.update(selectedCompanyId!, {
+        name: draft.name.trim(),
+        description: draft.description.trim() || null
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.companies.all
+      });
     }
   });
 
@@ -206,15 +218,9 @@ export function CompanySettings() {
     );
   }
 
-  function handleSaveGeneral() {
-    generalMutation.mutate({
-      name: companyName.trim(),
-      description: description.trim() || null
-    });
-  }
-
   return (
     <div className="max-w-6xl space-y-8">
+      <SettingsPageTabs />
       <div className="flex items-center gap-2">
         <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
         <h1 className="text-lg font-semibold">General</h1>
@@ -222,8 +228,15 @@ export function CompanySettings() {
 
       {/* General */}
       <div className="max-w-2xl space-y-4 border-t border-border pt-8">
-        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          General
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            General
+          </div>
+          <SaveStatus
+            status={generalAutosave.status}
+            errorMessage={generalAutosave.errorMessage}
+            onRetry={generalAutosave.retry}
+          />
         </div>
         {/* Independent fields tile (per-page review criterion 1). */}
         <div className="grid gap-3 md:grid-cols-2">
@@ -233,6 +246,7 @@ export function CompanySettings() {
               type="text"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
+              onBlur={generalAutosave.flush}
             />
             {isCloudManaged && (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -251,6 +265,7 @@ export function CompanySettings() {
               value={description}
               placeholder="Optional organization description"
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={generalAutosave.flush}
             />
           </Field>
         </div>
@@ -316,29 +331,6 @@ export function CompanySettings() {
           </div>
         </div>
       </div>
-
-      {/* Save button for General + Appearance */}
-      {generalDirty && (
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={handleSaveGeneral}
-            disabled={generalMutation.isPending || !companyName.trim()}
-          >
-            {generalMutation.isPending ? "Saving..." : "Save changes"}
-          </Button>
-          {generalMutation.isSuccess && (
-            <span className="text-xs text-muted-foreground">Saved</span>
-          )}
-          {generalMutation.isError && (
-            <span className="text-xs text-destructive">
-              {generalMutation.error instanceof Error
-                  ? generalMutation.error.message
-                  : "Failed to save"}
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Hiring */}
       <div className="max-w-2xl space-y-4 border-t border-border pt-8" data-testid="company-settings-team-section">

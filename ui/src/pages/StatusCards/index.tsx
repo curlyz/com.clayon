@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical, Loader2, Plus } from "lucide-react";
 
 import { statusCardsApi } from "@/api/statusCards";
+import { PageHeaderBand } from "@/components/PageHeaderBand";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useNavigate, useParams } from "@/lib/router";
@@ -112,37 +113,36 @@ export function StatusCards() {
   const showCostMeter = todayTotals.tokens > 0 || todayTotals.cents > 0;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Status</h1>
-          <Badge variant="secondary" className="gap-1">
-            <FlaskConical className="h-3 w-3" />
-            Experimental
-          </Badge>
-        </div>
-        <div className="flex items-center gap-4">
-          {showCostMeter ? (
-            <span className="text-xs text-muted-foreground">
-              Today: {formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
-            </span>
-          ) : null}
-          <Button onClick={() => setCreateOpen(true)} disabled={!selectedCompanyId}>
-            <Plus className="h-4 w-4" />
-            New card
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-col">
+      <PageHeaderBand
+        title="Status"
+        actions={(
+          <>
+            <Badge variant="secondary" className="gap-1">
+              <FlaskConical className="h-3 w-3" />
+              Experimental
+            </Badge>
+            {showCostMeter ? (
+              <span className="text-xs text-muted-foreground">
+                Today: {formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
+              </span>
+            ) : null}
+            <Button onClick={() => setCreateOpen(true)} disabled={!selectedCompanyId}>
+              <Plus className="h-4 w-4" />
+              New card
+            </Button>
+          </>
+        )}
+      />
 
-      {actionError ? <InlineBanner tone="warning" title="Heads up">{actionError}</InlineBanner> : null}
+      {actionError ? <InlineBanner tone="warning" title="Heads up" className="mx-4 my-4">{actionError}</InlineBanner> : null}
 
       {activeQuery.isLoading ? (
-        <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 px-4 py-12 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading cards…
         </div>
       ) : activeQuery.isError ? (
-        <InlineBanner tone="danger" title="Could not load status cards">
+        <InlineBanner tone="danger" title="Could not load status cards" className="mx-4 my-4">
           {activeQuery.error instanceof Error ? activeQuery.error.message : "Try again."}
         </InlineBanner>
       ) : activeCards.length === 0 ? (
@@ -154,7 +154,7 @@ export function StatusCards() {
           onAction={() => setCreateOpen(true)}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 py-4 sm:grid-cols-2">
           {activeCards.map((card) => (
             <StatusCardTile
               key={card.id}
@@ -178,7 +178,7 @@ export function StatusCards() {
           <button
             type="button"
             onClick={() => setShowArchived((prev) => !prev)}
-            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            className="px-4 pt-2 text-left text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
             {showArchived ? "Hide archived" : `Show archived (${archivedCards.length})`}
           </button>

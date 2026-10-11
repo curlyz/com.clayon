@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { SecretStatus, UserSecretDefinition } from "@paperclipai/shared";
+import type { SecretStatus, UserSecretDefinition } from "@clayon/shared";
 import { AlertCircle, Pencil, Plus, Trash2, UserRound, Users } from "lucide-react";
 import {
   Dialog,
@@ -27,6 +27,8 @@ import { ApiError } from "../../api/client";
 import { queryKeys } from "../../lib/queryKeys";
 import { cn } from "../../lib/utils";
 import { useToastActions } from "../../context/ToastContext";
+import { SaveStatus } from "@/components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "@/hooks/useAutosave";
 import {
   coverageSummaryLabel,
   secretStatusTone,
@@ -108,12 +110,6 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
         description: form.description.trim() || null,
         usageGuidance: form.usageGuidance.trim() || null,
       };
-      if (editing) {
-        return secretsApi.updateUserSecretDefinition(companyId, editing.id, {
-          ...sharedPayload,
-          status: form.status,
-        });
-      }
       return secretsApi.createUserSecretDefinition(companyId, {
         ...sharedPayload,
         key: form.key.trim(),
@@ -123,7 +119,7 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
     onSuccess: (definition) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.secrets.userDefinitions(companyId) });
       pushToast({
-        title: editing ? "Definition updated" : "Definition created",
+        title: "Definition created",
         body: definition.name,
         tone: "success",
       });
@@ -131,6 +127,56 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
     },
     onError: (err) =>
       setError(err instanceof ApiError || err instanceof Error ? err.message : "Failed to save"),
+  });
+
+  // Autosave the edited definition while the dialog is open (an empty name is
+  // not saveable); create keeps its explicit Create action.
+  const definitionAutosave = useAutosave({
+    value: editing
+      ? {
+          name: form.name,
+          description: form.description,
+          usageGuidance: form.usageGuidance,
+          status: form.status,
+        }
+      : null,
+    savedValue: editing
+      ? {
+          name: editing.name,
+          description: editing.description ?? "",
+          usageGuidance: editing.usageGuidance ?? "",
+          status: editing.status,
+        }
+      : null,
+    isEqual: (draft, saved) =>
+      draft === null ||
+      saved === null ||
+      (draft.name.trim() !== "" &&
+        autosaveJsonEqual(
+          {
+            name: draft.name.trim(),
+            description: draft.description.trim() || null,
+            usageGuidance: draft.usageGuidance.trim() || null,
+            status: draft.status,
+          },
+          {
+            name: saved.name.trim(),
+            description: saved.description.trim() || null,
+            usageGuidance: saved.usageGuidance.trim() || null,
+            status: saved.status,
+          },
+        )),
+    save: async (draft) => {
+      if (!editing || draft === null) return;
+      const updated = await secretsApi.updateUserSecretDefinition(companyId, editing.id, {
+        name: draft.name.trim(),
+        description: draft.description.trim() || null,
+        usageGuidance: draft.usageGuidance.trim() || null,
+        status: draft.status,
+      });
+      setEditing(updated);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.secrets.userDefinitions(companyId) });
+    },
   });
 
   const remove = useMutation({
@@ -321,14 +367,27 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
             {error ? <p className="text-xs text-destructive">{error}</p> : null}
           </div>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} disabled={save.isPending}>
-              Cancel
-            </Button>
-            <Button onClick={() => save.mutate()} disabled={!canSave || save.isPending}>
-              {save.isPending ? "Saving…" : editing ? "Save changes" : "Create"}
-            </Button>
-          </DialogFooter>
+          {editing ? (
+            <DialogFooter className="sm:justify-between">
+              <SaveStatus
+                status={definitionAutosave.status}
+                errorMessage={definitionAutosave.errorMessage}
+                onRetry={definitionAutosave.retry}
+              />
+              <Button variant="ghost" onClick={() => setDialogOpen(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          ) : (
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDialogOpen(false)} disabled={save.isPending}>
+                Cancel
+              </Button>
+              <Button onClick={() => save.mutate()} disabled={!canSave || save.isPending}>
+                {save.isPending ? "Creating…" : "Create"}
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 

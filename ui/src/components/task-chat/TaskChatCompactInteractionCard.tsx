@@ -21,11 +21,11 @@ import {
   Search,
   X,
 } from "lucide-react";
-import type { IssueDocument } from "@paperclipai/shared";
+import type { IssueDocument } from "@clayon/shared";
 import type {
-  PaperclipQuestionResponse,
-  PaperclipQuestionSet,
-} from "@paperclipai/adapter-utils";
+  ClayonQuestionResponse,
+  ClayonQuestionSet,
+} from "@clayon/adapter-utils";
 import { InteractionPreparationNotice } from "@/components/InteractionPreparationNotice";
 import { IssueThreadInteractionCard } from "@/components/IssueThreadInteractionCard";
 import { ConnectionIntentInteractionBody } from "@/features/connections/ConnectionIntentInteractionBody";
@@ -651,7 +651,7 @@ function ReceiptDisclosure({
 
 function questionSetForInteraction(
   interaction: AskUserQuestionsInteraction,
-): PaperclipQuestionSet {
+): ClayonQuestionSet {
   if (interaction.payload.questionSet) return interaction.payload.questionSet;
   return {
     schema: "paperclip.question_set.v1",
@@ -697,8 +697,8 @@ function questionSetForInteraction(
 
 function questionResponseForInteraction(
   interaction: AskUserQuestionsInteraction,
-  questionSet: PaperclipQuestionSet,
-): PaperclipQuestionResponse | null {
+  questionSet: ClayonQuestionSet,
+): ClayonQuestionResponse | null {
   if (!interaction.result?.answers) return null;
   return {
     schema: "paperclip.question_response.v1",

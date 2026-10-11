@@ -52,8 +52,8 @@ else {
  const prefix = args[args.indexOf("--prefix") + 1];
  const bin = path.join(prefix, "node_modules", ".bin");
  fs.mkdirSync(bin, {recursive:true});
- fs.writeFileSync(path.join(bin, "paperclipai"), ${JSON.stringify(cli).replaceAll('$','\$')});
- fs.chmodSync(path.join(bin, "paperclipai"), 0o755);
+ fs.writeFileSync(path.join(bin, "clayon"), ${JSON.stringify(cli).replaceAll('$','\$')});
+ fs.chmodSync(path.join(bin, "clayon"), 0o755);
 }
 `);
   chmodSync(npmFixture, 0o755);
@@ -81,7 +81,7 @@ export default {...original, testDir:${JSON.stringify(root)}, testMatch:"fixture
           : [driver], { cwd: repoRoot, env: {
         ...process.env, PATH: fixtureBin + path.delimiter + process.env.PATH,
         FIXTURE_MODE: mode, FIXTURE_ONBOARD: onboard, FIXTURE_CALLS: calls, FIXTURE_PORT: String(port),
-        PAPERCLIPAI_VERSION: "2026.1009.0-canary.1", PAPERCLIP_CANARY_SMOKE_BASE_URL: `http://127.0.0.1:${port}`, PAPERCLIP_CANARY_SMOKE_SERVER_LOG: path.join(root,"server.log"),
+        CLAYON_VERSION: "2026.1009.0-canary.1", CLAYON_CANARY_SMOKE_BASE_URL: `http://127.0.0.1:${port}`, CLAYON_CANARY_SMOKE_SERVER_LOG: path.join(root,"server.log"),
         npm_config_cache: path.join(root, "fresh-cache"),
       }, stdio: ["ignore", "pipe", "pipe"] });
       let output = "";

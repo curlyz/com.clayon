@@ -1,4 +1,4 @@
-import { buildSlackAppManifest } from "@paperclipai/shared";
+import { buildSlackAppManifest } from "@clayon/shared";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -10,7 +10,7 @@ describe("chat connector UI contract", () => {
   it("describes the close command as a conversation control rather than a task status change", () => {
     const setup = source("./ChatEndpointSetup.tsx");
     expect(setup).toContain("Close the active chat conversation");
-    expect(setup).not.toContain("Close the active Paperclip task");
+    expect(setup).not.toContain("Close the active Clayon task");
   });
 
   it("retries the selected failed run from every Board entry point", () => {
@@ -76,7 +76,7 @@ describe("chat connector UI contract", () => {
     expect(detail).toContain("People without linked accounts can start isolated tasks");
     expect(detail).toContain("Requests are refused when isolation is unavailable");
     expect(setup).toContain("Link the account you’re testing");
-    expect(setup).toContain("Paperclip does not replay the refused request");
+    expect(setup).toContain("Clayon does not replay the refused request");
     expect(setup).toContain("Review identity access");
     expect(setup).toContain("instanceSettingsApi.getExperimental()");
     expect(setup).toContain("chatEndpointsApi.listPrincipals(endpointId)");
@@ -124,7 +124,7 @@ describe("chat connector UI contract", () => {
       "does not reinstall the App or change repository access",
       "does not add or remove the bot from the server",
       "does not upload or reinstall the Teams app",
-      "automatically refreshes its Paperclip webhook and command menu",
+      "automatically refreshes its Clayon webhook and command menu",
     ]) {
       expect(detail).toContain(reconnectCopy);
       expect(setup).toContain(reconnectCopy);
@@ -135,7 +135,7 @@ describe("chat connector UI contract", () => {
       "It does not uninstall the bot",
       "It does not uninstall the Teams app",
       "queues durable removal of its Telegram webhook and command menu",
-      "After Telegram confirms that cleanup, Paperclip retires the saved token",
+      "After Telegram confirms that cleanup, Clayon retires the saved token",
       "BotFather bot and its chat memberships remain",
     ]) {
       expect(detail).toContain(removalCopy);
@@ -219,7 +219,7 @@ describe("chat connector UI contract", () => {
     expect(setup).toContain("not Microsoft Graph permissions in Entra");
     expect(setup).toContain("does not use Teams single sign-on");
     expect(setup).toContain("webApplicationInfo");
-    expect(setup).toContain('resource: "https://paperclip.ing"');
+    expect(setup).toContain('resource: "https://clayon.ing"');
     expect(setup).toContain("only associates the RSC");
     expect(setup).toContain("you do not need to register an Entra");
     expect(setup).toContain("receive every message");
@@ -228,7 +228,7 @@ describe("chat connector UI contract", () => {
     expect(setup).not.toContain(
       "does not require a <code>webApplicationInfo</code>",
     );
-    expect(setup).not.toContain("api://paperclip-chat/");
+    expect(setup).not.toContain("api://clayon-chat/");
     expect(setup).toContain("not private channels");
     expect(setup).toContain("native file receipt and consent-based sending");
     expect(setup).toContain("issue_comment");
@@ -244,7 +244,7 @@ describe("chat connector UI contract", () => {
     const manifest = buildSlackAppManifest({
       app: { appName: "Maya", botName: "maya", command: "/maya" },
       agentName: "Maya",
-      webhookUrl: "https://paperclip.example/api/chat-webhooks/test/slack",
+      webhookUrl: "https://clayon.example/api/chat-webhooks/test/slack",
     });
     expect(manifest.settings.event_subscriptions.bot_events).toEqual(expect.arrayContaining([
       "member_joined_channel", "member_left_channel", "channel_left", "group_left",
@@ -262,7 +262,7 @@ describe("chat connector UI contract", () => {
     expect(setup).not.toContain("managed Microsoft app");
     expect(setup).toContain("endpoint.providerAccountId && !repairing");
     expect(setup).not.toContain('field("webhookSecret"');
-    expect(setup).not.toContain("@paperclipai/teams-connect");
+    expect(setup).not.toContain("@clayon/teams-connect");
     expect(setup).not.toContain("Copy setup command");
     expect(setup).not.toContain("Add {agentName} to Slack");
     expect(setup).not.toContain("Create in GitHub");

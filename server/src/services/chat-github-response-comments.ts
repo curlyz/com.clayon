@@ -4,14 +4,14 @@ import {
   chatActions, chatConversations, chatDeliveries, chatEndpoints,
   chatEndpointResources, chatGitHubConfigurations, chatMessageLinks, heartbeatRuns, issues,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { conflict, forbidden, HttpError } from "../errors.js";
 import { githubChatPrincipalAccess } from "./chat-github-access.js";
 import { githubAutomaticAdmission } from "./chat-github-events.js";
 import { githubBotRepositoryToken, githubBotRequest } from "./chat-github-client.js";
 import { withGitHubPublicationLease } from "./chat-github-publication-lease.js";
 import { projectSafeChatPublicationText } from "./chat-publication-projection.js";
-import type { GitHubAutomaticEventContext } from "@paperclipai/shared";
+import type { GitHubAutomaticEventContext } from "@clayon/shared";
 import { githubRunReplyState } from "./chat-run-publications.js";
 import { logActivity } from "./activity-log.js";
 
@@ -28,7 +28,7 @@ type Source = {
 type Comment = { id: number; body?: string; html_url: string; user?: { login?: string } };
 const generation = (endpoint: Source["endpoint"]) => (endpoint.setup as { runtimeGeneration?: number }).runtimeGeneration ?? 0;
 const actionKey = (deliveryId: string) => `github_response:${deliveryId}`;
-const responseMarker = (source: Source) => `<!-- paperclip-response:${createHash("sha256")
+const responseMarker = (source: Source) => `<!-- clayon-response:${createHash("sha256")
   .update(`${source.endpoint.companyId}:${source.endpoint.id}:${source.delivery.id}`).digest("hex")} -->`;
 
 async function findResponseComment(source: Source, api: Api): Promise<Comment | null> {
@@ -92,8 +92,8 @@ export async function writeGitHubResponseComment(
     previous = await findResponseComment(source, api);
   }
   await assertCurrent();
-  const alreadyFinal = previous?.body?.includes("<!-- paperclip-response-state:final -->") === true;
-  const body = `${projectSafeChatPublicationText(input.body)}\n\n${marker}${input.final ? "\n<!-- paperclip-response-state:final -->" : ""}`;
+  const alreadyFinal = previous?.body?.includes("<!-- clayon-response-state:final -->") === true;
+  const body = `${projectSafeChatPublicationText(input.body)}\n\n${marker}${input.final ? "\n<!-- clayon-response-state:final -->" : ""}`;
   const posted = previous && (input.acknowledgement || (alreadyFinal && !input.final)) ? previous : await api.request<Comment>(
     previous ? `${item}/${previous.id}` : source.replyId
       ? `/pulls/${source.number}/comments/${source.replyId}/replies` : list,
@@ -174,8 +174,8 @@ export function githubResponseCommentService(db: Db, fetchImpl = fetch) {
           if (reply === "unsettled") throw conflict("GitHub reply is still being resolved");
           onlyExisting = reply === "confirmed" && !existing.result?.id;
           finalBody = reply === "confirmed" ? "This request has been handled. See the response in this conversation."
-            : run.heartbeat_runs.status === "succeeded" ? "This turn ended without publishing a final response. See the Paperclip task for details."
-            : "This turn stopped before completing. See the Paperclip task for details.";
+            : run.heartbeat_runs.status === "succeeded" ? "This turn ended without publishing a final response. See the Clayon task for details."
+            : "This turn stopped before completing. See the Clayon task for details.";
         } else if (existing.result?.id) return { id: String(existing.result.id), url: String(existing.result.url) };
       }
       const token = await githubBotRepositoryToken(db, source.endpoint.companyId, source.endpoint.id, source.repositoryId, lease.fetch);

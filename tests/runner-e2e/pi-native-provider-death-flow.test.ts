@@ -17,7 +17,7 @@ function fixture(fallback = true) {
       normalizedSessionId: "session", sourceInstanceId: "runner", sourceSeq, sourceEventId: `runner:run:${sourceSeq}`, payload } } });
   const state = { issue: { id: "issue", companyId: "company", status: "in_progress" }, runs: [{ id: "run", companyId: "company", nativeIssueId: "issue", runtimeMode: "native", status: "running", nativeSessionId: "session", runnerInstanceId: "runner" } as Row],
     interactions: [{ id: "original", companyId: "company", issueId: "issue", kind: "ask_user_questions", sourceRunId: "run", status: "pending", result: null,
-      continuationPolicy: "none", resolverPolicy: "human_only", idempotencyKey: "paperclip-runner-question:run:request", payload: { runtimeRequestId: "request", questionSet: question } } as Row] };
+      continuationPolicy: "none", resolverPolicy: "human_only", idempotencyKey: "clayon-runner-question:run:request", payload: { runtimeRequestId: "request", questionSet: question } } as Row] };
   const events = [wrap("turn.started", 1, {}), wrap("runtime_request.created", 2, { request })];
   const pending = observePiPendingNativeInput(state, events, "company", "Pi native provider death");
   const before = structuredClone({ state, events });
@@ -74,7 +74,7 @@ it.each([
 async function journey(staleStatus = 409, markerEffect = false) {
   const f = fixture(), evidence = new Map<string, unknown>(), posted: string[] = [];
   let lost = false, signals = 0, retired = false;
-  Object.assign(f.before.state.runs[0]!, { contextSnapshot: { executionWorkspaceId: "workspace", paperclipEnvironment: { leaseId: "lease" } },
+  Object.assign(f.before.state.runs[0]!, { contextSnapshot: { executionWorkspaceId: "workspace", clayonEnvironment: { leaseId: "lease" } },
     runnerProfileJson: { nativeExecutionInput: { binding: { executionWorkspaceId: "workspace" } } } });
   const root = { pid: 21, startTicks: "100", bootId: "boot" };
   const composer: any = { count: () => 1, filter: () => composer };

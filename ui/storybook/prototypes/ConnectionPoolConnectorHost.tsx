@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Route, Routes, useNavigate, useParams } from "@/lib/router";
-import { aiConnectionRouterAppDefinition, aiConnectionRouterSlug, getAppStoreDefinition, type AiConnectionList, type AiConnectionPool, type ToolApplication, type ToolConnection } from "@paperclipai/shared";
+import { Route, Routes, useNavigate } from "@/lib/router";
+import { aiConnectionRouterAppDefinition, aiConnectionRouterSlug, getAppStoreDefinition, type AiConnectionList, type AiConnectionPool, type ToolApplication, type ToolConnection } from "@clayon/shared";
 import { Browse } from "@/pages/apps/Browse";
 import { AppsConnect } from "@/pages/apps/AppsConnect";
 import { AppDetail } from "@/pages/apps/AppDetail";
-import { AppDetailSidebar } from "@/components/AppConnectionSidebar";
 import { BreadcrumbBar } from "@/components/BreadcrumbBar";
 
 export type PoolConnectorScenario = "catalog" | "setup" | "manage" | "empty" | "unavailable" | "permission" | "conflict" | "usage" | "exhausted" | "unknown" | "revoked";
@@ -84,6 +83,5 @@ export function ConnectionPoolConnectorHost({ pluginKey = "example.pool-router",
   </Routes></QueryClientProvider>;
 }
 function PoolDetailRoute() {
-  const { connectionId = "" } = useParams<{ connectionId: string }>();
-  return <div className="flex min-h-screen"><div className="hidden w-56 shrink-0 md:block"><AppDetailSidebar kind="connection" connectionId={connectionId} /></div><main className="min-w-0 flex-1 p-6"><BreadcrumbBar /><div className="mx-auto max-w-3xl pt-6"><AppDetail /></div></main></div>;
+  return <main className="min-w-0 flex-1 p-6"><BreadcrumbBar /><div className="mx-auto max-w-3xl pt-6"><AppDetail /></div></main>;
 }

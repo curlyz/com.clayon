@@ -1,4 +1,4 @@
-import type { ServerInfoSnapshot } from "@paperclipai/shared";
+import type { ServerInfoSnapshot } from "@clayon/shared";
 import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
 import { ApiError } from "./client";
 import { ApiUnavailableError, readApiJson } from "./response";
@@ -19,7 +19,7 @@ export type DevServerHealthStatus = {
 
 export type CloudInstanceHealthStatus = {
   managed: true;
-  managedBy: "paperclip-cloud";
+  managedBy: "clayon-cloud";
   stackSlug: string | null;
   stackDisplayName?: string;
   cloudBaseUrl: string | null;
@@ -33,6 +33,10 @@ export type HealthStatus = {
   deploymentMode?: "local_trusted" | "authenticated";
   deploymentExposure?: "private" | "public";
   localAiLoginSupported?: boolean;
+  /** Social sign-in provider ids the server has credentials for (e.g. "google"). */
+  authSocialProviders?: string[];
+  /** Passkey (WebAuthn) sign-in is registered on the server's auth instance. */
+  authPasskey?: boolean;
   authReady?: boolean;
   bootstrapStatus?: "ready" | "bootstrap_pending";
   bootstrapInviteActive?: boolean;

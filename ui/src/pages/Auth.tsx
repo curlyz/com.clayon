@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Fingerprint } from "lucide-react";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { authApi } from "../api/auth";
+import { authClient } from "../api/authClient";
 import { healthApi } from "../api/health";
 import { CloudSignIn } from "@/components/CloudSignIn";
 import { clearCloudSignInAttempt } from "@/lib/cloud-sign-in";
@@ -9,10 +11,10 @@ import { tenantSignInReturnPath } from "@/lib/cloudLinks";
 import { queryKeys } from "../lib/queryKeys";
 import { getRememberedInvitePath } from "../lib/invite-memory";
 import { Button } from "@/components/ui/button";
+import { GoogleMark } from "@/components/GoogleMark";
 import { AsciiArtAnimation } from "@/components/AsciiArtAnimation";
-import { PaperclipLoading } from "@/components/AnimatedPaperclipIcon";
+import { ClayonLockup } from "@/components/ClayonLockup";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { PaperclipLockup } from "../components/PaperclipLockup";
 
 type AuthMode = "sign_in" | "sign_up";
 
@@ -77,6 +79,43 @@ export function AuthPage() {
     },
   });
 
+  const googleEnabled = (healthQuery.data?.authSocialProviders ?? []).includes("google");
+  const [socialError, setSocialError] = useState<string | null>(null);
+  const socialErrorId = "auth-social-error";
+  const socialMutation = useMutation({
+    mutationFn: () => authApi.signInSocial({ provider: "google", callbackURL: nextPath }),
+    onError: (err) => {
+      setSocialError(String(err).replace(/^Error:\s*/, "") || "Google sign-in failed");
+    },
+  });
+
+  const passkeyEnabled = healthQuery.data?.authPasskey === true;
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const passkeyErrorId = "auth-passkey-error";
+  const passkeyMutation = useMutation({
+    mutationFn: async () => {
+      // Results always come back as a data object (throw never fires here).
+      const result = await authClient.signIn.passkey();
+      if (!result.data) {
+        throw new Error(result.error?.message || "Passkey sign-in did not return a session.");
+      }
+    },
+    onSuccess: async () => {
+      setPasskeyError(null);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+      navigate(nextPath, { replace: true });
+    },
+    onError: (err) => {
+      // WebAuthn aborts (user cancelled / timed out) are expected, not errors.
+      const message = err instanceof Error ? err.message : String(err);
+      setPasskeyError(
+        message.includes("NotAllowedError") || message.includes("abort")
+          ? null
+          : message || "Passkey sign-in failed",
+      );
+    },
+  });
+
   const canSubmit =
     email.trim().length > 0 &&
     password.trim().length > 0 &&
@@ -85,7 +124,7 @@ export function AuthPage() {
   if (healthQuery.isLoading || isSessionLoading || session) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <PaperclipLoading className="min-h-0" />
+        <ClayonLockup className="text-lg" />
       </div>
     );
   }
@@ -108,11 +147,11 @@ export function AuthPage() {
       <div className="w-full md:w-1/2 flex flex-col overflow-y-auto">
         <div className="w-full max-w-md mx-auto my-auto px-8 py-12">
           <div className="mb-8">
-            <PaperclipLockup className="h-5 w-auto" />
+            <ClayonLockup className="text-lg" />
           </div>
 
           <h1 className="text-xl font-semibold">
-            {mode === "sign_in" ? "Sign in to Paperclip" : "Create your Paperclip account"}
+            {mode === "sign_in" ? "Sign in to Clayon" : "Create your Clayon account"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "sign_in"
@@ -203,6 +242,47 @@ export function AuthPage() {
                   : "Create Account"}
             </Button>
           </form>
+
+          {googleEnabled || passkeyEnabled ? (
+            <div className="mt-6 space-y-2 border-t border-border pt-6">
+              {googleEnabled ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={socialMutation.isPending}
+                  aria-describedby={socialError ? socialErrorId : undefined}
+                  onClick={() => socialMutation.mutate()}
+                >
+                  <GoogleMark className="mr-2" />
+                  {socialMutation.isPending ? "Redirecting…" : "Continue with Google"}
+                </Button>
+              ) : null}
+              {passkeyEnabled ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={passkeyMutation.isPending}
+                  aria-describedby={passkeyError ? passkeyErrorId : undefined}
+                  onClick={() => passkeyMutation.mutate()}
+                >
+                  <Fingerprint className="mr-2 size-4" />
+                  {passkeyMutation.isPending ? "Waiting for your device…" : "Sign in with a passkey"}
+                </Button>
+              ) : null}
+              {socialError ? (
+                <p id={socialErrorId} role="alert" className="mt-2 text-xs text-destructive">
+                  {socialError}
+                </p>
+              ) : null}
+              {passkeyError ? (
+                <p id={passkeyErrorId} role="alert" className="mt-2 text-xs text-destructive">
+                  {passkeyError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="mt-5 text-sm text-muted-foreground">
             {mode === "sign_in" ? "Need an account?" : "Already have an account?"}{" "}

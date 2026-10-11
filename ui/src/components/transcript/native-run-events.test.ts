@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import type { HeartbeatRunEvent } from "@paperclipai/shared";
+import type { HeartbeatRunEvent } from "@clayon/shared";
 import { nativeRunEventsToTranscript } from "./native-run-events";
 
 const RUN_ID = "10000000-0000-4000-8000-000000000001";
@@ -275,7 +275,7 @@ describe("nativeRunEventsToTranscript", () => {
   it("projects the cross-language duplicate-delivery fixture exactly once", () => {
     const fixture = JSON.parse(readFileSync(
       new URL(
-        "../../../../packages/paperclip-runner/protocol/fixtures/replay/duplicate-event.json",
+        "../../../../packages/clayon-runner/protocol/fixtures/replay/duplicate-event.json",
         import.meta.url,
       ),
       "utf8",

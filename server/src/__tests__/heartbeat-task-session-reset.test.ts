@@ -8,7 +8,7 @@ import {
   companies,
   createDb,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -24,7 +24,7 @@ describePostgres("task-scoped runtime session reset", () => {
 
   beforeAll(async () => {
     database = await startEmbeddedPostgresTestDatabase(
-      "paperclip-task-session-reset-",
+      "clayon-task-session-reset-",
     );
     db = createDb(database.connectionString);
   }, 20_000);

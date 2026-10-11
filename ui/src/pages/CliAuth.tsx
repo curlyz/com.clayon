@@ -76,7 +76,7 @@ export function CliAuthPage() {
         <section className="border-t border-border">
           <h1 className="bg-muted/50 px-4 py-3 text-xl font-semibold">CLI access approved</h1>
           <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">
-            The Paperclip CLI can now finish authentication on the requesting machine.
+            The Clayon CLI can now finish authentication on the requesting machine.
           </p>
           <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">
             Command: <span className="font-mono text-foreground">{challenge.command}</span>
@@ -122,9 +122,9 @@ export function CliAuthPage() {
   return (
     <div className="mx-auto flex max-w-xl flex-col">
       <section className="border-t border-border">
-        <h1 className="bg-muted/50 px-4 py-3 text-xl font-semibold">Approve Paperclip CLI access</h1>
+        <h1 className="bg-muted/50 px-4 py-3 text-xl font-semibold">Approve Clayon CLI access</h1>
         <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">
-          A local Paperclip CLI process is requesting board access to this instance.
+          A local Clayon CLI process is requesting board access to this instance.
         </p>
 
         <dl className="grid text-sm md:grid-cols-2">
@@ -134,7 +134,7 @@ export function CliAuthPage() {
           </div>
           <div className="flex min-w-0 flex-col gap-1 border-t border-border">
             <dt className="px-4 pt-3 text-muted-foreground">Client</dt>
-            <dd className="break-words px-4 pb-3 text-foreground">{challenge.clientName ?? "paperclipai cli"}</dd>
+            <dd className="break-words px-4 pb-3 text-foreground">{challenge.clientName ?? "clayon cli"}</dd>
           </div>
           <div className="flex min-w-0 flex-col gap-1 border-t border-border">
             <dt className="px-4 pt-3 text-muted-foreground">Requested access</dt>

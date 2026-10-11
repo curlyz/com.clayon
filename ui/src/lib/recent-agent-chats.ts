@@ -1,11 +1,11 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { Agent } from "@paperclipai/shared";
-const eventName = "paperclip:recent-agent-chats";
+import type { Agent } from "@clayon/shared";
+const eventName = "clayon:recent-agent-chats";
 const key = (company: string, user?: string | null) =>
-  `paperclip.recentAgentChats:${company}:${user ?? "__local_board__"}`;
+  `clayon.recentAgentChats:${company}:${user ?? "__local_board__"}`;
 const memory = new Map<string, string>();
 const issueKey = (company: string, user: string | null | undefined, agentId: string) =>
-  `paperclip.recentAgentChatIssue:${company}:${user ?? "__local_board__"}:${agentId}`;
+  `clayon.recentAgentChatIssue:${company}:${user ?? "__local_board__"}:${agentId}`;
 const rememberedIssues = new Map<string, string>();
 function read(storageKey: string): string {
   try {

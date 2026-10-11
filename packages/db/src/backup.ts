@@ -4,8 +4,8 @@ import { formatDatabaseBackupResult, runDatabaseBackup } from "./backup-lib.js";
 import {
   expandHomePrefix,
   resolveDefaultBackupDir,
-  resolvePaperclipConfigPathForInstance,
-} from "@paperclipai/shared/home-paths";
+  resolveClayonConfigPathForInstance,
+} from "@clayon/shared/home-paths";
 
 type PartialConfig = {
   database?: {
@@ -49,7 +49,7 @@ function resolveConnectionString(config: PartialConfig | null): string {
   }
 
   const port = resolveEmbeddedPort(config);
-  return `postgres://paperclip:paperclip@127.0.0.1:${port}/paperclip`;
+  return `postgres://clayon:clayon@127.0.0.1:${port}/clayon`;
 }
 
 function resolveBackupDir(config: PartialConfig | null): string {
@@ -65,7 +65,7 @@ function resolveRetentionDays(config: PartialConfig | null): number {
 }
 
 async function main() {
-  const configPath = resolvePaperclipConfigPathForInstance();
+  const configPath = resolveClayonConfigPathForInstance();
   const config = readConfig(configPath);
   const connectionString = resolveConnectionString(config);
   const backupDir = resolveBackupDir(config);
@@ -80,7 +80,7 @@ async function main() {
       connectionString,
       backupDir,
       retention: { dailyDays: retentionDays, weeklyWeeks: 4, monthlyMonths: 1 },
-      filenamePrefix: "paperclip",
+      filenamePrefix: "clayon",
     });
 
     console.log(`Backup saved: ${formatDatabaseBackupResult(result)}`);

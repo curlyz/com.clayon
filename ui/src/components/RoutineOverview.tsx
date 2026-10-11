@@ -4,8 +4,8 @@ import type {
   IssueStatus,
   RoutineRunSummary,
   RoutineTrigger,
-} from "@paperclipai/shared";
-import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@paperclipai/shared";
+} from "@clayon/shared";
+import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "@clayon/shared";
 import { CalendarClock, Clock3, Play, Repeat, UserRound } from "lucide-react";
 import { IssueRow } from "@/components/IssueRow";
 import { MarkdownBody } from "@/components/MarkdownBody";
@@ -15,7 +15,7 @@ import { createIssueDetailLocationState } from "@/lib/issueDetailBreadcrumb";
 import { Link } from "@/lib/router";
 import {
   routineDetailHref,
-} from "./RoutineContextualSidebar";
+} from "../lib/routine-navigation";
 import { useRoutineDetail } from "./routine-sections/context";
 
 export type RoutineScheduleSummary = {

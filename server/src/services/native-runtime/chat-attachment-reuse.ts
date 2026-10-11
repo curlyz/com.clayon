@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   assets,
   agents,
@@ -19,7 +19,7 @@ import {
   issueComments,
   issues,
   issueWorkProducts,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import {
   isAllowedContentType,
@@ -375,7 +375,7 @@ async function principalAuthorized(
   const linkQuery = tx
     .select({
       status: chatIdentityLinks.status,
-      userId: chatIdentityLinks.paperclipUserId,
+      userId: chatIdentityLinks.clayonUserId,
     })
     .from(chatIdentityLinks)
     .where(
@@ -436,8 +436,8 @@ export async function authorizeChatConversationForBoundRun(
   const commentIds = wakeCommentIds(context);
   if (
     !provider ||
-    (context.paperclipHarnessCheckedOut !== true &&
-      context.paperclipExternalChatExecutionBound !== true) ||
+    (context.clayonHarnessCheckedOut !== true &&
+      context.clayonExternalChatExecutionBound !== true) ||
     commentIds.length === 0
   ) {
     throw new Error("paperclip_runner_chat_attachment_binding_denied");
@@ -555,7 +555,7 @@ function externalChatWaitCandidate(
   const source = typeof context.source === "string" ? context.source : "";
   const provider = boundExternalChatProvider(source);
   const commentIds = wakeCommentIds(context);
-  const wake = record(context.paperclipWake);
+  const wake = record(context.clayonWake);
   const wakeIssue = record(wake.issue);
   const payloadCommentIds = Array.isArray(wake.commentIds)
     ? wake.commentIds.filter(
@@ -566,9 +566,9 @@ function externalChatWaitCandidate(
   if (
     !provider ||
     !(
-      (context.paperclipHarnessCheckedOut === true &&
+      (context.clayonHarnessCheckedOut === true &&
         wake.checkedOutByHarness === true) ||
-      (context.paperclipExternalChatExecutionBound === true &&
+      (context.clayonExternalChatExecutionBound === true &&
         wake.externalChatExecutionBound === true)
     ) ||
     commentIds.length === 0 ||
@@ -643,7 +643,7 @@ export async function resolveExternalChatResponseWaitAuthorizationInTransaction(
   if (
     run &&
     record(run.contextSnapshot).source === "issue.interaction.respond" &&
-    record(run.contextSnapshot).paperclipExternalChatQuestionResponse &&
+    record(run.contextSnapshot).clayonExternalChatQuestionResponse &&
     !answerContext
   )
     return "revoked";

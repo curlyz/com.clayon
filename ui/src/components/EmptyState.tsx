@@ -26,9 +26,9 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="bg-muted/50 p-4 mb-4">
-        <Icon className="h-10 w-10 text-muted-foreground/50" />
-      </div>
+      {/* Plain icon, no fill tile (operator directive, 2026-10-11): the
+          filled square read as a mismatched grey block on band surfaces. */}
+      <Icon className="mb-4 h-10 w-10 text-muted-foreground/50" />
       {title ? (
         <>
           <p className="text-base font-semibold text-foreground mb-1.5">{title}</p>

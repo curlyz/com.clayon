@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import type { AiConnectionUsage, AiConnectionUsageLimit, AiManagedConnectionSummary } from "@paperclipai/shared";
-import { supportsAiConnectionUsage } from "@paperclipai/shared";
+import type { AiConnectionUsage, AiConnectionUsageLimit, AiManagedConnectionSummary } from "@clayon/shared";
+import { supportsAiConnectionUsage } from "@clayon/shared";
 import { aiConnectionsApi } from "@/api/ai-connections";
 import { Button } from "@/components/ui/button";
 import { QuotaBar } from "@/components/QuotaBar";

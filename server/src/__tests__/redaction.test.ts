@@ -23,15 +23,15 @@ import {
   sanitizeRecord,
 } from "../redaction.js";
 
-import { createCopilotToolEvidence } from "../../../packages/paperclip-runner/src/drivers/acpx/copilot-tool-evidence.js";
-import { appendSemanticToolReceipt } from "../../../packages/paperclip-runner/src/drivers/semantic-tool-receipt.js";
+import { createCopilotToolEvidence } from "../../../packages/clayon-runner/src/drivers/acpx/copilot-tool-evidence.js";
+import { appendSemanticToolReceipt } from "../../../packages/clayon-runner/src/drivers/semantic-tool-receipt.js";
 
 function receiptNotice(version: 1 | 2 = 1): Record<string, any> {
   return {
     schema: "paperclip.provider.notice.v1", noticeId: `copilot-evidence-${"a".repeat(24)}-1`,
     severity: "info", category: `paperclip_semantic_tool_receipt_v${version}`, scope: "turn",
-    recoverable: true, userActionable: false, summary: "Paperclip returned a semantic tool result.",
-    provenance: { method: "paperclip/semantic_tool_result", eventType: "semantic_result", sessionId: "session", turnId: "turn" },
+    recoverable: true, userActionable: false, summary: "Clayon returned a semantic tool result.",
+    provenance: { method: "clayon/semantic_tool_result", eventType: "semantic_result", sessionId: "session", turnId: "turn" },
     details: Object.entries({ stage: "semantic_result", schema: `paperclip.semantic_tool_receipt.v${version}`,
       operationId: "finish_task", callIdentitySha256: "a".repeat(64), inputSha256: "b".repeat(64),
       resultSha256: "c".repeat(64), outcome: "returned", ...(version === 2 ? { normalizedInputSha256: "d".repeat(64) } : {}),
@@ -89,7 +89,7 @@ describe("redaction", () => {
     const schema = JSON.parse(
       readFileSync(
         new URL(
-          "../../../packages/paperclip-runner/protocol/schemas/event.schema.json",
+          "../../../packages/clayon-runner/protocol/schemas/event.schema.json",
           import.meta.url,
         ),
         "utf8",
@@ -102,7 +102,7 @@ describe("redaction", () => {
     const v1 = JSON.parse(
       readFileSync(
         new URL(
-          "../../../packages/paperclip-runner/protocol/schemas/event.schema.json",
+          "../../../packages/clayon-runner/protocol/schemas/event.schema.json",
           import.meta.url,
         ),
         "utf8",
@@ -111,7 +111,7 @@ describe("redaction", () => {
     const v2 = JSON.parse(
       readFileSync(
         new URL(
-          "../../../packages/paperclip-runner/protocol/schemas/event-v2.schema.json",
+          "../../../packages/clayon-runner/protocol/schemas/event-v2.schema.json",
           import.meta.url,
         ),
         "utf8",
@@ -127,7 +127,7 @@ describe("redaction", () => {
     const fixture = JSON.parse(
       readFileSync(
         new URL(
-          "../../../packages/paperclip-runner/protocol/fixtures/replay/duplicate-event.json",
+          "../../../packages/clayon-runner/protocol/fixtures/replay/duplicate-event.json",
           import.meta.url,
         ),
         "utf8",
@@ -145,7 +145,7 @@ describe("redaction", () => {
 
   it("preserves current PRP v2 session discriminators", () => {
     const schema = JSON.parse(readFileSync(
-      new URL("../../../packages/paperclip-runner/protocol/schemas/event-v2.schema.json", import.meta.url),
+      new URL("../../../packages/clayon-runner/protocol/schemas/event-v2.schema.json", import.meta.url),
       "utf8",
     )) as { properties: { eventType: { enum: string[] } } };
     for (const eventType of schema.properties.eventType.enum) {
@@ -222,7 +222,7 @@ describe("redaction", () => {
           type: "plain",
           value: "sk-plain",
         },
-        PAPERCLIP_API_URL: "http://localhost:3100",
+        CLAYON_API_URL: "http://localhost:3100",
       },
     };
 
@@ -247,7 +247,7 @@ describe("redaction", () => {
         type: "plain",
         value: REDACTED_EVENT_VALUE,
       },
-      PAPERCLIP_API_URL: "http://localhost:3100",
+      CLAYON_API_URL: "http://localhost:3100",
     });
   });
 
@@ -267,7 +267,7 @@ describe("redaction", () => {
     expect(result.normal).toBe("plain");
   });
 
-  it("preserves Paperclip protocol schema identifiers", () => {
+  it("preserves Clayon protocol schema identifiers", () => {
     expect(
       sanitizeRecord({
         schema: "paperclip.question_set.v1",
@@ -520,9 +520,9 @@ describe("redaction", () => {
     const input = [
       "Authorization: Bearer live-bearer-token-value",
       `payload {"apiKey":"json-secret-value"}`,
-      `paperclip {"PAPERCLIP_API_KEY":"paperclip-json-secret"}`,
+      `clayon {"CLAYON_API_KEY":"clayon-json-secret"}`,
       `escaped {\\"apiKey\\":\\"escaped-json-secret\\"}`,
-      `export PAPERCLIP_API_KEY='paperclip-shell-secret'`,
+      `export CLAYON_API_KEY='clayon-shell-secret'`,
       `GITHUB_TOKEN=${githubToken}`,
       `session=${jwt}`,
     ].join("\n");
@@ -532,9 +532,9 @@ describe("redaction", () => {
     expect(result).toContain(REDACTED_EVENT_VALUE);
     expect(result).not.toContain("live-bearer-token-value");
     expect(result).not.toContain("json-secret-value");
-    expect(result).not.toContain("paperclip-json-secret");
+    expect(result).not.toContain("clayon-json-secret");
     expect(result).not.toContain("escaped-json-secret");
-    expect(result).not.toContain("paperclip-shell-secret");
+    expect(result).not.toContain("clayon-shell-secret");
     expect(result).not.toContain(githubToken);
     expect(result).not.toContain(jwt);
   });
@@ -759,7 +759,7 @@ second-line\" status=401`,
         "--api-key=sk-inline-example",
       ],
       env: {
-        PAPERCLIP_RESOLVED_COMMAND:
+        CLAYON_RESOLVED_COMMAND:
           "env OPENAI_API_KEY=sk-live-example custom-acp --token ghp_example_secret",
         SAFE_VALUE: "visible",
       },
@@ -778,7 +778,7 @@ second-line\" status=401`,
       `--api-key=${REDACTED_EVENT_VALUE}`,
     ]);
     expect(result?.env).toEqual({
-      PAPERCLIP_RESOLVED_COMMAND: `env OPENAI_API_KEY=${REDACTED_EVENT_VALUE} custom-acp --token ${REDACTED_EVENT_VALUE}`,
+      CLAYON_RESOLVED_COMMAND: `env OPENAI_API_KEY=${REDACTED_EVENT_VALUE} custom-acp --token ${REDACTED_EVENT_VALUE}`,
       SAFE_VALUE: "visible",
     });
   });

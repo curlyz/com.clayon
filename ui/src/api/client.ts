@@ -5,11 +5,11 @@ import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
 import { readApiJson } from "./response";
 
 /**
- * In the native shell the WebView origin (https://app.paperclip.curly.ng) is
+ * In the native shell the WebView origin (https://app.clayon.curly.ng) is
  * not the API origin, so API calls go to the deployed instance absolutely.
  * The origin is overridable at build time for other deployments.
  */
-const NATIVE_API_ORIGIN = import.meta.env.VITE_PAPERCLIP_API_ORIGIN || "https://paperclip.curly.ng";
+const NATIVE_API_ORIGIN = import.meta.env.VITE_CLAYON_API_ORIGIN || "https://clayon.curly.ng";
 const BASE = Capacitor.isNativePlatform() ? `${NATIVE_API_ORIGIN}/api` : "/api";
 
 export class ApiError extends Error {
@@ -43,11 +43,11 @@ function abortError(): DOMException {
  * these as scheduling/telemetry only and never as security signals.
  */
 function applyObservabilityHeaders(headers: Headers) {
-  if (headers.has("X-Paperclip-Tab-Visible")) return; // caller override wins
+  if (headers.has("X-Clayon-Tab-Visible")) return; // caller override wins
   const visibility = getPageVisibility();
-  headers.set("X-Paperclip-Tab-Visible", getVisibilityHeaderValue(visibility));
+  headers.set("X-Clayon-Tab-Visible", getVisibilityHeaderValue(visibility));
   if (typeof window !== "undefined" && window.location) {
-    headers.set("X-Paperclip-Route", window.location.pathname);
+    headers.set("X-Clayon-Route", window.location.pathname);
   }
 }
 

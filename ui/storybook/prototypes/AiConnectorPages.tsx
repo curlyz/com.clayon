@@ -4,7 +4,7 @@ import { AiConnectionAccountControls } from "@/components/ai-connections/AiConne
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Route, Routes, useNavigate, useSearchParams } from "@/lib/router";
-import { APP_DEFINITIONS, getAppStoreDefinition, type AppDefinition, type ToolApplication, type ToolConnection, type ConnectionGrantsResponse } from "@paperclipai/shared";
+import { APP_DEFINITIONS, getAppStoreDefinition, type AppDefinition, type ToolApplication, type ToolConnection, type ConnectionGrantsResponse } from "@clayon/shared";
 import { Browse } from "@/pages/apps/Browse";
 import { AppDetail } from "@/pages/apps/AppDetail";
 import { ConnectionSetupFlow } from "@/features/connections/ConnectionSetupFlow";
@@ -14,7 +14,7 @@ import { AiConnectionAuth, type AiAuthState } from "@/components/ai-connections/
 import { CredentialModeLink } from "@/components/onboarding/CredentialModeLink";
 import { AI_PROVIDERS, aiMethodLabel, type AiConnectionSummary, type AiProvider, type AiAuthMethod } from "@/components/ai-connections/model";
 import { AI_REVIEW_CONNECTIONS } from "../fixtures/aiConnections";
-import { storybookAgents } from "../fixtures/paperclipData";
+import { storybookAgents } from "../fixtures/clayonData";
 
 const companyId = "company-storybook";
 const date = new Date("2026-09-10T12:00:00Z");

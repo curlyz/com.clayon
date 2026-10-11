@@ -23,10 +23,10 @@ export const ChooseOrganization: Story = { play: async ({ canvasElement }) => {
   await expect(c.getByRole("checkbox")).toBeChecked();
   await expect(c.getByRole("button", { name: "Connect organization" })).toBeEnabled();
 } };
-export const Claude: Story = { parameters: { fixture: { request: { clientName: "Claude", clientOrigin: "https://claude.ai", redirectOrigin: "https://claude.ai", companies: [request.companies[0]], setupUrl: "https://my.paperclip.app/orgs/new" } } } };
+export const Claude: Story = { parameters: { fixture: { request: { clientName: "Claude", clientOrigin: "https://claude.ai", redirectOrigin: "https://claude.ai", companies: [request.companies[0]], setupUrl: "https://my.clayon.app/orgs/new" } } } };
 export const SeparateCallbackOrigin: Story = { parameters: { fixture: { request: { clientName: "Claude Code", clientOrigin: "https://claude.ai", redirectOrigin: "http://localhost:57843", companies: [request.companies[0]] } } } };
 export const UnknownAssistant: Story = { parameters: { fixture: { request: { clientName: "Assistant", clientOrigin: null, redirectOrigin: "https://assistant.example" } } } };
-export const OpenCodeOrganization: Story = { parameters: { fixture: { request: { clientName: "OpenCode", redirectOrigin: "http://127.0.0.1:19876", companies: [{ ...request.companies[0], name: "Paperclip Storybook" }] } } } };
+export const OpenCodeOrganization: Story = { parameters: { fixture: { request: { clientName: "OpenCode", redirectOrigin: "http://127.0.0.1:19876", companies: [{ ...request.companies[0], name: "Clayon Storybook" }] } } } };
 export const AllowDelegation: Story = { play: async context => {
   await chooseOrganization(context);
   const c = within(context.canvasElement);
@@ -48,7 +48,7 @@ export const SwitchingOrganizationsResetsConsent: Story = { play: async context 
 export const ReadOnlyRequest: Story = { parameters: { fixture: { request: { clientName: "Claude", redirectOrigin: "https://claude.ai", requestedWrite: false, offlineAccess: false } } } };
 export const SignInRequired: Story = { parameters: { fixture: { request: { requiresSignIn: true, companies: [] } } } };
 export const NoOrganizations: Story = { parameters: { fixture: { request: { companies: [] } } } };
-export const NoOrganizationsWithSetupUrl: Story = { parameters: { fixture: { request: { companies: [], setupUrl: "https://my.paperclip.app/orgs/new" } } }, play: async ({ canvasElement }) => {
+export const NoOrganizationsWithSetupUrl: Story = { parameters: { fixture: { request: { companies: [], setupUrl: "https://my.clayon.app/orgs/new" } } }, play: async ({ canvasElement }) => {
   const c = within(canvasElement);
   await c.findByText(/This account has no available organizations/);
   await expect(c.queryByRole("link", { name: "Create a hosted organization" })).not.toBeInTheDocument();
@@ -102,7 +102,7 @@ export const HostedReadOnly: Story = { parameters: { fixture: { request: { reque
   await expect(c.getByRole("checkbox")).not.toBeChecked();
   await expect(c.getByRole("button", { name: "Connect organization" })).toBeEnabled();
 } };
-export const HostedOrganizationUnavailable: Story = { parameters: { fixture: { request: { requestedCompanyId: request.companies[0].id, companies: [], setupUrl: "https://my.paperclip.app/orgs/new" } } }, play: async ({ canvasElement }) => {
+export const HostedOrganizationUnavailable: Story = { parameters: { fixture: { request: { requestedCompanyId: request.companies[0].id, companies: [], setupUrl: "https://my.clayon.app/orgs/new" } } }, play: async ({ canvasElement }) => {
   const c = within(canvasElement);
   await expect(await c.findByText(/selected organization is no longer available/)).toBeVisible();
   await expect(c.getByRole("button", { name: "Connect organization" })).toBeDisabled();
@@ -116,7 +116,7 @@ export const ConfigurationConsent: Story = {
   parameters: { fixture: { request: { requestedConfigure: true } } },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    const write = await c.findByRole("checkbox", { name: "Write all of your Paperclip data" });
+    const write = await c.findByRole("checkbox", { name: "Write all of your Clayon data" });
     await expect(c.getAllByRole("checkbox")).toHaveLength(1);
     await expect(write).toBeChecked();
     await userEvent.click(c.getByRole("button", { name: "Connect organization" }));
@@ -127,7 +127,7 @@ export const ConfigurationReadOnlyRole: Story = {
   parameters: { fixture: { request: { requestedConfigure: true, companies: [{ ...request.companies[0], canWrite: false }] } } },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await expect(await c.findByRole("checkbox", { name: "Write all of your Paperclip data" })).toBeDisabled();
+    await expect(await c.findByRole("checkbox", { name: "Write all of your Clayon data" })).toBeDisabled();
   },
 };
 
@@ -135,7 +135,7 @@ export const ConfigurationOptOut: Story = {
   parameters: { fixture: { request: { requestedConfigure: true } } },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await userEvent.click(await c.findByRole("checkbox", { name: "Write all of your Paperclip data" }));
+    await userEvent.click(await c.findByRole("checkbox", { name: "Write all of your Clayon data" }));
     await expect(c.getAllByRole("checkbox")).toHaveLength(1);
     await expect(c.getByRole("checkbox")).not.toBeChecked();
     await userEvent.click(c.getByRole("button", { name: "Connect organization" }));

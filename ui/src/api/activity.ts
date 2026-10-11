@@ -1,7 +1,7 @@
-import type { ActivityEvent, ExecutionProjection, RunLivenessState } from "@paperclipai/shared";
+import type { ActivityEvent, ExecutionProjection, RunLivenessState } from "@clayon/shared";
 import { api, type RequestOptions } from "./client";
 
-export type { RunLivenessState } from "@paperclipai/shared";
+export type { RunLivenessState } from "@clayon/shared";
 
 export interface RunForIssue {
   runId: string;

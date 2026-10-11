@@ -13,7 +13,7 @@ import {
   statusDecisionEffects,
   workAssessments,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { nativeSha256 } from "./canonical.js";
 import { isNativeRunnerOwnershipHeld } from "./native-runner-ownership.js";
 import { hasChatRunOwnedProviderInteraction } from "../chat-interaction-arbitration.js";
@@ -42,8 +42,8 @@ function presentationContextSha256(value: unknown): string {
   // finalization. They do not change the authenticated chat actor or wake.
   // Keep every other context field in the hash, including unknown fields.
   const {
-    paperclipRuntimeServices: _services,
-    paperclipRuntimePrimaryUrl: _url,
+    clayonRuntimeServices: _services,
+    clayonRuntimePrimaryUrl: _url,
     ...scope
   } = record(value);
   return nativeSha256(scope);

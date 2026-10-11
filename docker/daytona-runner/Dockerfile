@@ -5,12 +5,12 @@
 # digests are the reviewed linux/amd64 manifests; the tags are annotations.
 FROM rust:1.97-bookworm@sha256:408fe88047cef61a2087653b0c5255fa51c0f2d6d94ddedd7a2562a9b91a46f6 AS runnerd-build
 
-WORKDIR /workspace/packages/paperclip-runner/runner
-COPY packages/paperclip-runner/runner/Cargo.toml packages/paperclip-runner/runner/Cargo.lock ./
-COPY packages/paperclip-runner/runner/crates ./crates
-COPY packages/paperclip-runner/protocol ../protocol
-RUN cargo build --locked --release -j 2 -p paperclip-runner-core --bin paperclip-runnerd \
-    && strip /workspace/packages/paperclip-runner/runner/target/release/paperclip-runnerd
+WORKDIR /workspace/packages/clayon-runner/runner
+COPY packages/clayon-runner/runner/Cargo.toml packages/clayon-runner/runner/Cargo.lock ./
+COPY packages/clayon-runner/runner/crates ./crates
+COPY packages/clayon-runner/protocol ../protocol
+RUN cargo build --locked --release -j 2 -p clayon-runner-core --bin clayon-runnerd \
+    && strip /workspace/packages/clayon-runner/runner/target/release/clayon-runnerd
 
 FROM node:24.21.0-bookworm@sha256:5a750d3be5e5c80275f8c9a5367c3aed99c2875656590c8d0701c7ee687f5f0a AS provider-pack-build
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
@@ -33,33 +33,33 @@ COPY cli/package.json ./cli/package.json
 # The complete resolved lock (including transitive integrity hashes) is reviewed.
 # Reject registry-time drift BEFORE installing packages or running lifecycle code.
 # Refresh this digest together with source/provider dependency changes.
-ARG PAPERCLIP_RUNNER_LOCK_SHA256=440f0ccd8a383b32a576dc53b4191d73bb03a91ba0dabfa1c3d79c3039e01aa5
+ARG CLAYON_RUNNER_LOCK_SHA256=440f0ccd8a383b32a576dc53b4191d73bb03a91ba0dabfa1c3d79c3039e01aa5
 # pnpm 9 subtracts PNPM_WORKERS from available CPUs; it is not a worker count.
 # Subtract all available CPUs to select its minimum (one tarball worker).
 RUN export PNPM_WORKERS="$(node -p 'require("node:os").availableParallelism()')" \
-    && printf '%s  pnpm-lock.yaml\n' "${PAPERCLIP_RUNNER_LOCK_SHA256}" > /tmp/provider-lock.sha256 \
+    && printf '%s  pnpm-lock.yaml\n' "${CLAYON_RUNNER_LOCK_SHA256}" > /tmp/provider-lock.sha256 \
     && sha256sum -c /tmp/provider-lock.sha256 \
-    && pnpm install --frozen-lockfile --filter '@paperclipai/paperclip-runner...'
-ARG PAPERCLIP_RUNNER_SOURCE_REVISION
+    && pnpm install --frozen-lockfile --filter '@clayon/clayon-runner...'
+ARG CLAYON_RUNNER_SOURCE_REVISION
 # Optional qualification assets; this never promotes candidate profiles.
-ARG PAPERCLIP_RUNNER_CANDIDATE_PROVIDERS=
-RUN test -n "${PAPERCLIP_RUNNER_SOURCE_REVISION}"
+ARG CLAYON_RUNNER_CANDIDATE_PROVIDERS=
+RUN test -n "${CLAYON_RUNNER_SOURCE_REVISION}"
 RUN export PNPM_WORKERS="$(node -p 'require("node:os").availableParallelism()')" \
-    && pnpm --filter @paperclipai/paperclip-runner build:typescript \
-    && PAPERCLIP_RUNNER_SOURCE_REVISION="${PAPERCLIP_RUNNER_SOURCE_REVISION}" \
-      node packages/paperclip-runner/scripts/build-provider-pack.mjs /provider-pack \
-        "--candidate-providers=${PAPERCLIP_RUNNER_CANDIDATE_PROVIDERS}" \
+    && pnpm --filter @clayon/clayon-runner build:typescript \
+    && CLAYON_RUNNER_SOURCE_REVISION="${CLAYON_RUNNER_SOURCE_REVISION}" \
+      node packages/clayon-runner/scripts/build-provider-pack.mjs /provider-pack \
+        "--candidate-providers=${CLAYON_RUNNER_CANDIDATE_PROVIDERS}" \
     && chmod -R a+rX /provider-pack
 
 # Fleet sandbox base image. Keep this section aligned with
-# paperclipai/paperclip-cloud/fleet-sandbox-image/Dockerfile. The only Paperclip
-# runner-specific addition is /usr/local/bin/paperclip-runnerd below.
+# clayon/clayon-cloud/fleet-sandbox-image/Dockerfile. The only Clayon
+# runner-specific addition is /usr/local/bin/clayon-runnerd below.
 FROM daytonaio/sandbox:0.8.0@sha256:eadf88e4391072b7ad4bed27d9cadfc9fe9d8ed375d9219d34c2ccb518f213e3
 
 USER root
 
-ENV PAPERCLIP_RUNNER_PROVIDER_PACK_ROOT=/opt/paperclip-runner/provider-pack
-ENV PATH=${PAPERCLIP_RUNNER_PROVIDER_PACK_ROOT}/node_modules/.bin:/usr/local/share/nvm/current/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:${PATH}
+ENV CLAYON_RUNNER_PROVIDER_PACK_ROOT=/opt/clayon-runner/provider-pack
+ENV PATH=${CLAYON_RUNNER_PROVIDER_PACK_ROOT}/node_modules/.bin:/usr/local/share/nvm/current/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:${PATH}
 
 # Share the pack's latest stable Codex, Claude and OpenCode with every adapter.
 # Never add a second CLI version to work around a runner compatibility pin.
@@ -105,35 +105,35 @@ RUN set -eu; \
     install "/tmp/gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh; \
     rm -rf /tmp/gh.tgz /tmp/gh.sha256 "/tmp/gh_${GH_VERSION}_linux_amd64"
 
-COPY packages/paperclip-runner/scripts/provision-grok.mjs /tmp/grok-provision/scripts/provision-grok.mjs
-COPY packages/paperclip-runner/src/providers/grok/platforms.json /tmp/grok-provision/src/providers/grok/platforms.json
-RUN node /tmp/grok-provision/scripts/provision-grok.mjs /opt/paperclip/providers/grok/1.0.13/grok && rm -rf /tmp/grok-provision
+COPY packages/clayon-runner/scripts/provision-grok.mjs /tmp/grok-provision/scripts/provision-grok.mjs
+COPY packages/clayon-runner/src/providers/grok/platforms.json /tmp/grok-provision/src/providers/grok/platforms.json
+RUN node /tmp/grok-provision/scripts/provision-grok.mjs /opt/clayon/providers/grok/1.0.13/grok && rm -rf /tmp/grok-provision
 
-COPY --from=runnerd-build /workspace/packages/paperclip-runner/runner/target/release/paperclip-runnerd /usr/local/bin/paperclip-runnerd
-COPY --from=provider-pack-build /provider-pack /opt/paperclip-runner/provider-pack
+COPY --from=runnerd-build /workspace/packages/clayon-runner/runner/target/release/clayon-runnerd /usr/local/bin/clayon-runnerd
+COPY --from=provider-pack-build /provider-pack /opt/clayon-runner/provider-pack
 RUN set -eu; for cli in codex claude opencode; do \
-      printf '#!/bin/sh\nexec /opt/paperclip-runner/provider-pack/node_modules/.bin/%s "$@"\n' "$cli" > "/usr/local/bin/$cli"; \
+      printf '#!/bin/sh\nexec /opt/clayon-runner/provider-pack/node_modules/.bin/%s "$@"\n' "$cli" > "/usr/local/bin/$cli"; \
       chmod 755 "/usr/local/bin/$cli"; \
     done
 
 # Keep revision-dependent metadata below the stable agent CLI installation
 # layers. A source-only image miss can then reuse those expensive layers from
 # the trusted registry cache.
-ARG PAPERCLIP_RUNNER_CONTENT_ID
-ARG PAPERCLIP_RUNNER_SOURCE_REVISION
-RUN test -n "${PAPERCLIP_RUNNER_CONTENT_ID}" \
-    && test -n "${PAPERCLIP_RUNNER_SOURCE_REVISION}"
+ARG CLAYON_RUNNER_CONTENT_ID
+ARG CLAYON_RUNNER_SOURCE_REVISION
+RUN test -n "${CLAYON_RUNNER_CONTENT_ID}" \
+    && test -n "${CLAYON_RUNNER_SOURCE_REVISION}"
 
 RUN set -eu; \
-    printf '%s\n' 'export PATH=/opt/paperclip-runner/provider-pack/node_modules/.bin:$PATH' \
-      > /etc/profile.d/01-paperclip-runner-provider-pack.sh; \
-    chmod 0644 /etc/profile.d/01-paperclip-runner-provider-pack.sh; \
-    for command_name in acpx claude-agent-acp codex-acp claude codex grok gemini kimi opencode cursor-agent agent hermes gh paperclip-runnerd; do \
+    printf '%s\n' 'export PATH=/opt/clayon-runner/provider-pack/node_modules/.bin:$PATH' \
+      > /etc/profile.d/01-clayon-runner-provider-pack.sh; \
+    chmod 0644 /etc/profile.d/01-clayon-runner-provider-pack.sh; \
+    for command_name in acpx claude-agent-acp codex-acp claude codex grok gemini kimi opencode cursor-agent agent hermes gh clayon-runnerd; do \
       command -v "$command_name" >/dev/null || { echo "FATAL: $command_name not on PATH after build" >&2; exit 1; }; \
     done; \
-    metadata="$(paperclip-runnerd --build-metadata)"; \
-    /opt/paperclip-runner/provider-pack/node_modules/node/bin/node -e "const [major,minor,patch]=process.versions.node.split('.').map(Number); if (major<24 || (major===24 && (minor<11 || (minor===11 && patch<0)))) process.exit(1)"; \
-    test -f /opt/paperclip-runner/provider-pack/provider-pack.json; \
+    metadata="$(clayon-runnerd --build-metadata)"; \
+    /opt/clayon-runner/provider-pack/node_modules/node/bin/node -e "const [major,minor,patch]=process.versions.node.split('.').map(Number); if (major<24 || (major===24 && (minor<11 || (minor===11 && patch<0)))) process.exit(1)"; \
+    test -f /opt/clayon-runner/provider-pack/provider-pack.json; \
     printf '%s' "$metadata" | grep -q '"dial_ws_loopback"'; \
     printf '%s' "$metadata" | grep -q '"dial_wss"'; \
     printf '%s' "$metadata" | grep -q '"listen_ws"'; \
@@ -142,9 +142,9 @@ RUN set -eu; \
 USER daytona
 
 RUN /bin/sh -lc 'set -eu; \
-    test -r /opt/paperclip-runner/provider-pack/provider-pack.json; \
-    /opt/paperclip-runner/provider-pack/node_modules/node/bin/node -e \
-      "JSON.parse(require(\"node:fs\").readFileSync(\"/opt/paperclip-runner/provider-pack/provider-pack.json\", \"utf8\"))"; \
+    test -r /opt/clayon-runner/provider-pack/provider-pack.json; \
+    /opt/clayon-runner/provider-pack/node_modules/node/bin/node -e \
+      "JSON.parse(require(\"node:fs\").readFileSync(\"/opt/clayon-runner/provider-pack/provider-pack.json\", \"utf8\"))"; \
     for command_name in acpx claude-agent-acp codex-acp; do \
       command -v "$command_name" >/dev/null || { echo "FATAL: $command_name not on PATH for daytona user" >&2; exit 1; }; \
     done; \
@@ -155,5 +155,5 @@ RUN /bin/sh -lc 'set -eu; \
     test "$(claude-agent-acp --version)" = "0.73.0"; \
     test "$(codex-acp --version)" = "@agentclientprotocol/codex-acp 1.6.2"'
 
-LABEL io.paperclip.runner.content-id="${PAPERCLIP_RUNNER_CONTENT_ID}" \
-      org.opencontainers.image.revision="${PAPERCLIP_RUNNER_SOURCE_REVISION}"
+LABEL io.clayon.runner.content-id="${CLAYON_RUNNER_CONTENT_ID}" \
+      org.opencontainers.image.revision="${CLAYON_RUNNER_SOURCE_REVISION}"

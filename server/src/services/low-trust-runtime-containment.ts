@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { issues } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { issues } from "@clayon/db";
 import { unprocessable } from "../errors.js";
 import type { TrustPresetResolution } from "./trust-preset-resolver.js";
 import {

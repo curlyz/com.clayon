@@ -8,6 +8,7 @@ import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { cn } from "../lib/utils";
 import { PageTabBar } from "../components/PageTabBar";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { Tabs } from "@/components/ui/tabs";
 import { ShieldCheck } from "lucide-react";
 import { ApprovalCard } from "../components/ApprovalCard";
@@ -84,8 +85,8 @@ export function Approvals() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col">
+      <PageHeaderBand title="Approvals">
         <Tabs value={statusFilter} onValueChange={(v) => navigate(`/approvals/${v}`)}>
           <PageTabBar items={[
             { value: "pending", label: <>Pending{pendingCount > 0 && (
@@ -99,10 +100,10 @@ export function Approvals() {
             { value: "all", label: "All" },
           ]} />
         </Tabs>
-      </div>
+      </PageHeaderBand>
 
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
-      {actionError && <p className="text-sm text-destructive">{actionError}</p>}
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
+      {actionError && <p className="px-4 py-2 text-sm text-destructive">{actionError}</p>}
 
       {filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -116,7 +117,7 @@ export function Approvals() {
       {filtered.length > 0 && (
         // Grid audit: approvals are independent entity tiles — they tile into
         // a responsive grid of leaf cards (no wrapper nesting added).
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 border-t border-border py-4 md:grid-cols-2 xl:grid-cols-4">
           {filtered.map((approval) => (
             <ApprovalCard
               key={approval.id}

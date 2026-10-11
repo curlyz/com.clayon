@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import type { PaperclipPluginManifestV1 } from "@paperclipai/shared";
+import type { ClayonPluginManifestV1 } from "@clayon/shared";
 import { pluginCapabilityValidator } from "./plugin-capability-validator.js";
 
 const segment = z.string().regex(/^[a-z][a-z0-9.-]{0,99}$/);
@@ -31,7 +31,7 @@ function bundleEntrypoint(declared: unknown): string {
   return relative;
 }
 
-export function assertDistributionManifestCapabilities(manifest: PaperclipPluginManifestV1): void {
+export function assertDistributionManifestCapabilities(manifest: ClayonPluginManifestV1): void {
   const result = pluginCapabilityValidator().validateManifestCapabilities(manifest);
   if (!result.allowed) {
     throw new Error(`Distribution manifest is missing required capabilities: ${result.missing.join(", ")}`);
@@ -55,7 +55,7 @@ export function distributionPluginActivationGuard(
   selectedKeys: readonly string[] | null,
 ) {
   const root = distributionPluginsRoot(catalogRoot);
-  return (input: { pluginKey?: string; packageRoot: string; installedPackagePath?: string | null; manifest?: PaperclipPluginManifestV1; previousManifest?: PaperclipPluginManifestV1 }) => {
+  return (input: { pluginKey?: string; packageRoot: string; installedPackagePath?: string | null; manifest?: ClayonPluginManifestV1; previousManifest?: ClayonPluginManifestV1 }) => {
     let packageRoot: string;
     try { packageRoot = fs.realpathSync(input.packageRoot); }
     catch (error) {
@@ -149,17 +149,17 @@ export function readDistributionPluginCatalog(
     if (!info.isDirectory() || info.isSymbolicLink()) throw new Error("Invalid distribution bundle directory");
     if (distributionBundleDigest(localPath) !== entry.digest) throw new Error(`Distribution bundle digest mismatch: ${entry.key}`);
     const pkg = JSON.parse(fs.readFileSync(path.join(localPath, "package.json"), "utf8"));
-    if (pkg.version !== entry.version || !pkg.paperclipPlugin) throw new Error("Distribution package version or entrypoints missing");
+    if (pkg.version !== entry.version || !pkg.clayonPlugin) throw new Error("Distribution package version or entrypoints missing");
     for (const name of ["manifest", "worker", "ui"] as const) {
-      const declared = pkg.paperclipPlugin[name];
+      const declared = pkg.clayonPlugin[name];
       if (name === "ui" && declared === undefined) continue;
       const relative = bundleEntrypoint(declared);
       const target = fs.statSync(path.join(localPath, relative));
       if (name === "ui" ? !target.isDirectory() : !target.isFile()) throw new Error("Distribution entrypoint is not prebuilt");
     }
     return { ...entry, localPath, entrypoints: {
-      worker: bundleEntrypoint(pkg.paperclipPlugin.worker),
-      ...(pkg.paperclipPlugin.ui === undefined ? {} : { ui: bundleEntrypoint(pkg.paperclipPlugin.ui) }),
+      worker: bundleEntrypoint(pkg.clayonPlugin.worker),
+      ...(pkg.clayonPlugin.ui === undefined ? {} : { ui: bundleEntrypoint(pkg.clayonPlugin.ui) }),
     } };
   });
 }

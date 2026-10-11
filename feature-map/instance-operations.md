@@ -1,6 +1,6 @@
 # Installation, configuration, updates, and backups
 
-An operator can install and run Paperclip, diagnose the instance, configure supported deployment settings, manage its service, and produce a recoverable database backup.
+An operator can install and run Clayon, diagnose the instance, configure supported deployment settings, manage its service, and produce a recoverable database backup.
 
 Implementation: [CLI entry point](../cli/src/index.ts), [instance settings](../ui/src/pages/InstanceExperimentalSettings.tsx), [backup command](../cli/src/commands/db-backup.ts).
 
@@ -16,11 +16,11 @@ Implementation: [CLI entry point](../cli/src/index.ts), [instance settings](../u
 
 ### `operator-cli`
 
-Use `paperclipai install`, `run`, `service`, `doctor`, `configure`, `channels`, or `update --help` for the intended operation.
+Use `clayon install`, `run`, `service`, `doctor`, `configure`, `channels`, or `update --help` for the intended operation.
 
 ### `settings-backup`
 
-Use currently visible instance settings for experiments/access and `paperclipai db:backup --help` for one-off backup. Some legacy general-settings URLs redirect.
+Use currently visible instance settings for experiments/access and `clayon db:backup --help` for one-off backup. Some legacy general-settings URLs redirect.
 
 ## Driving it
 

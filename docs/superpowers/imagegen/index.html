@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>clayon image gallery</title>
+    <style>
+      html { font-family: "MonoLisa Nerd Font", "MonoLisa", monospace; font-size: 14px; line-height: 1.6; background: #0d110f; color: #e4e8dc; }
+      body { margin: 0; max-width: 960px; margin-inline: auto; }
+      a { color: #e6a830; }
+      h1 { font-size: 1rem; padding: 1rem 1.25rem; margin: 0; background: #141a16; }
+      article { padding: 1rem 1.25rem; border-top: 1px solid #26302a; display: flex; flex-direction: column; gap: 0.5rem; }
+      img { max-width: 100%; background: #07090a; }
+      .dim { color: #8b9686; }
+      pre { white-space: pre-wrap; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <h1>clayon image gallery (latest first)</h1>
+
+    <article>
+      <strong>crew character sheets, 2026-10-11 · claude (leader) via codex · gpt-5.6-terra · reference image: themes/lab/assets/lab-cast.webp</strong>
+      <span class="dim">Each character below has a turnaround and a rig-ready parts sheet in <a href="../../../doc/design/characters/">doc/design/characters/&lt;callsign&gt;/</a>. Magenta (#ff00ff) is keyed to transparent; files are lossless webp. Doc also has walk and action pilot strips (see the entry further down).</span>
+      <span>Prompt for every turnaround (each call prefixed with "generate an image: " and suffixed with "The character is &lt;who&gt; in the attached reference sheet; keep the exact same design, palette, proportions and pixel style. save it as /tmp/projects/clayon-chars/&lt;name&gt;.png and reply with only that path."):</span>
+      <pre>a character model sheet in crisp 32-bit pixel art, hard pixels, no anti-aliasing: four views of the same character in a row (front, three-quarter, side, back), identical scale, standing or hovering neutral pose, on a flat pure magenta (#ff00ff) background, no text, no shadows, no logos, 16:9.</pre>
+      <span>Prompt for every parts sheet (same prefix and suffix):</span>
+      <pre>a rig-ready exploded parts sheet in crisp 32-bit pixel art, hard pixels, no anti-aliasing: the same character taken apart into separate pieces laid out with clear gaps, side view facing right, each piece fully drawn including the hidden areas (head, torso, each arm in upper and lower pieces, held tool, each leg in upper and lower pieces, and any signature appendage such as tail, shell, cap, antennae or flame), no overlaps, identical scale to a 64-pixel-tall character, on a flat pure magenta (#ff00ff) background, no text, no shadows, no logos, 16:9.</pre>
+      <span>Who clauses: Doc = first from the left (human scientist, goggles, ponytail, clipboard); Quartz = second (crystalline blue-violet alien with a wrench); Legs = third (many-legged green alien, orange-tipped antennae, wrench); Orb = fourth (floating white drone, blue eyes, thruster, hand scanner); Spore = fifth (tall fungus alien, large purple cap, small torch); Shell = sixth (turtle-like alien, brown shell, screwdriver); Ribbon = seventh (blue and violet ribbon-like spirit, curling tail, soldering pen); Slate = eighth (rock-armoured golem, hammer).</span>
+      <span>purpose: character bible and rig kit for the locked pixel lab theme (DESIGN.md, doc/design/characters/BIBLE.md).</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/characters/doc/turnaround.webp" alt="Doc" /><img src="../../../doc/design/characters/doc/parts.webp" alt="Doc parts" />
+      <a href="../../../doc/design/characters/doc/parts.webp">doc/design/characters/doc/{turnaround,parts}.webp</a>
+      <span>Doc: human scientist</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/quartz/turnaround.webp" alt="Quartz" /><img src="../../../doc/design/characters/quartz/parts.webp" alt="Quartz parts" />
+      <a href="../../../doc/design/characters/quartz/parts.webp">doc/design/characters/quartz/{turnaround,parts}.webp</a>
+      <span>Quartz: crystalline engineer</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/legs/turnaround.webp" alt="Legs" /><img src="../../../doc/design/characters/legs/parts.webp" alt="Legs parts" />
+      <a href="../../../doc/design/characters/legs/parts.webp">doc/design/characters/legs/{turnaround,parts}.webp</a>
+      <span>Legs: many-legged scout</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/orb/turnaround.webp" alt="Orb" /><img src="../../../doc/design/characters/orb/parts.webp" alt="Orb parts" />
+      <a href="../../../doc/design/characters/orb/parts.webp">doc/design/characters/orb/{turnaround,parts}.webp</a>
+      <span>Orb: floating drone</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/spore/turnaround.webp" alt="Spore" /><img src="../../../doc/design/characters/spore/parts.webp" alt="Spore parts" />
+      <a href="../../../doc/design/characters/spore/parts.webp">doc/design/characters/spore/{turnaround,parts}.webp</a>
+      <span>Spore: fungus researcher</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/shell/turnaround.webp" alt="Shell" /><img src="../../../doc/design/characters/shell/parts.webp" alt="Shell parts" />
+      <a href="../../../doc/design/characters/shell/parts.webp">doc/design/characters/shell/{turnaround,parts}.webp</a>
+      <span>Shell: turtle ops</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/ribbon/turnaround.webp" alt="Ribbon" /><img src="../../../doc/design/characters/ribbon/parts.webp" alt="Ribbon parts" />
+      <a href="../../../doc/design/characters/ribbon/parts.webp">doc/design/characters/ribbon/{turnaround,parts}.webp</a>
+      <span>Ribbon: spirit messenger</span>
+    </article>
+    <article>
+      <img src="../../../doc/design/characters/slate/turnaround.webp" alt="Slate" /><img src="../../../doc/design/characters/slate/parts.webp" alt="Slate parts" />
+      <a href="../../../doc/design/characters/slate/parts.webp">doc/design/characters/slate/{turnaround,parts}.webp</a>
+      <span>Slate: rock builder</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/characters/doc/actions.webp" alt="Doc idle and working loops" />
+      <a href="../../../doc/design/characters/doc/actions.webp">doc/design/characters/doc/actions.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra · reference: lab-cast</span>
+      <pre>generate an image: a pixel-art animation sheet, crisp 32-bit hard pixels, no anti-aliasing: two rows of four evenly spaced frames, identical scale. Top row: idle loop (breathing, small blink, clipboard held). Bottom row: working loop (writing on the clipboard with the pencil, glancing up). Side view facing right, on a flat pure magenta (#ff00ff) background, no text, no shadows, no logos, 16:9. Use the leftmost character in the attached reference sheet as the exact character.</pre>
+      <span>purpose: pilot idle and working loops for the character Doc. Magenta keyed to transparent.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/characters/doc/walk.webp" alt="Doc walk cycle" />
+      <a href="../../../doc/design/characters/doc/walk.webp">doc/design/characters/doc/walk.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra · reference: lab-cast</span>
+      <pre>generate an image: a pixel-art walk cycle sprite strip, crisp 32-bit hard pixels, no anti-aliasing: eight frames in one row, side view facing right, identical scale and ground line, evenly spaced cells, smooth classic walk cycle (contact, down, passing, up for each leg), on a flat pure magenta (#ff00ff) background, no text, no shadows, no logos, 16:9. Use the leftmost character in the attached reference sheet as the exact character.</pre>
+      <span>purpose: pilot walk cycle for the character Doc. Magenta keyed to transparent.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/characters/doc/turnaround.webp" alt="Doc turnaround" />
+      <a href="../../../doc/design/characters/doc/turnaround.webp">doc/design/characters/doc/turnaround.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra · reference: lab-cast</span>
+      <pre>generate an image: a character model sheet in crisp 32-bit pixel art, hard pixels, no anti-aliasing: four views of the same character in a row (front, three-quarter, side, back), identical scale, standing neutral pose, on a flat pure magenta (#ff00ff) background, no text, no shadows, no logos, 16:9. Use the leftmost character in the attached reference sheet as the exact character.</pre>
+      <span>purpose: pilot turnaround for the character Doc. Magenta keyed to transparent.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/lab/assets/lab-cast.webp" alt="lab cast" />
+      <a href="../../../doc/design/themes/lab/assets/lab-cast.webp">doc/design/themes/lab/assets/lab-cast.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a sprite sheet of eight original pixel-art characters standing in a row, 32-bit style crisp hard pixels: one human scientist in a patched mission jumpsuit holding a clipboard, and seven original friendly alien engineers each with a clearly different body plan (crystalline, many-legged, floating orb, tall fungus, shelled, ribbon-like, rocky-armoured), each carrying a tool, idle pose, flat near-black background, no text, no logos, 16:9.</pre>
+      <span>purpose: character row of the locked pixel lab theme (DESIGN.md).</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/lab/assets/lab-hero.webp" alt="lab hero" />
+      <a href="../../../doc/design/themes/lab/assets/lab-hero.webp">doc/design/themes/lab/assets/lab-hero.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a cozy cramped pixel-art science spaceship lab interior, 16-bit style, crisp hard pixels with no anti-aliasing, whiteboards covered in diagrams, taped notes, instrument racks, a big round viewport showing a glowing amber-gold swirling cloud and a faint blue star, warm worn utilitarian palette of olive, cream and amber on deep navy, no text, no logos, calm and low contrast so interface text can sit on top, 21:9 aspect ratio.</pre>
+      <span>purpose: hero of the locked pixel lab theme (DESIGN.md).</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/imhigh/assets/imhigh-cast.webp" alt="imhigh cast" />
+      <a href="../../../doc/design/themes/imhigh/assets/imhigh-cast.webp">doc/design/themes/imhigh/assets/imhigh-cast.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a sprite sheet of eight original tiny soft characters for a calm mood app, chunky friendly pixel-art blobs and bubble creatures in pastel colours with big eyes, idle poses, flat warm charcoal background, no text, no logos, 16:9.</pre>
+      <span>purpose: character row of the imhigh theme draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/imhigh/assets/imhigh-hero.webp" alt="imhigh hero" />
+      <a href="../../../doc/design/themes/imhigh/assets/imhigh-hero.webp">doc/design/themes/imhigh/assets/imhigh-hero.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a soft dreamy pixel-art Universe room for a mood app, warm paper-cream and charcoal base with a pink heart glow, tiny pixel avatars floating among cushions and bubbles, gentle and uncluttered, no text, no logos, low contrast, 21:9 aspect ratio.</pre>
+      <span>purpose: hero of the imhigh theme draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/space/assets/space-cast.webp" alt="space cast" />
+      <a href="../../../doc/design/themes/space/assets/space-cast.webp">doc/design/themes/space/assets/space-cast.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a character sheet of six original sci-fi crew members for a starship, stylized flat illustration, sleek spacesuits with unique helmets and one accent colour each, standing in a row, flat near-black background, no text, no logos, 16:9.</pre>
+      <span>purpose: character row of the space theme draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/space/assets/space-hero.webp" alt="space hero" />
+      <a href="../../../doc/design/themes/space/assets/space-hero.webp">doc/design/themes/space/assets/space-hero.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a wide cinematic view out of a starship bridge window onto a vast nebula in deep violet and teal on near-black with a distant ringed planet, fine stars, soft glow, no text, no people, no logos, dark and calm, low contrast so interface text can sit on top, 21:9 aspect ratio.</pre>
+      <span>purpose: hero of the space theme draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/pixel/assets/pixel-cast.webp" alt="pixel cast" />
+      <a href="../../../doc/design/themes/pixel/assets/pixel-cast.webp">doc/design/themes/pixel/assets/pixel-cast.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a sprite sheet of eight original pixel-art characters standing in a row, 32-bit style crisp hard pixels, each a different cute robot or creature agent with distinct silhouette, colour and tool (wrench, scroll, lantern, antenna), idle pose, flat near-black background, no text, no logos, 16:9.</pre>
+      <span>purpose: character row of the pixel theme draft (operator's favourite).</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/themes/pixel/assets/pixel-hero.webp" alt="pixel hero" />
+      <a href="../../../doc/design/themes/pixel/assets/pixel-hero.webp">doc/design/themes/pixel/assets/pixel-hero.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a cozy pixel-art control room, 16-bit style, crisp hard pixels with no anti-aliasing, deep indigo night palette with warm amber and mint accents, a wide window onto a pixel city and stars, desks with tiny glowing monitors, no text, no logos, calm and low contrast so interface text can sit on top, 21:9 aspect ratio.</pre>
+      <span>purpose: hero of the pixel theme draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/halo-portal/assets/tactical.webp" alt="ringworld tactical map" />
+      <a href="../../../doc/design/halo-portal/assets/tactical.webp">doc/design/halo-portal/assets/tactical.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a UNSC-style tactical holographic map of a ringworld segment, thin cyan wireframe grid and glyph markers on near-black, military HUD feel, muted olive-grey frame corners, no readable text, no people, 16:9.</pre>
+      <span>purpose: installations (companies) map in the Halo-theme design draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/halo-portal/assets/emblem.webp" alt="ring clayon emblem" />
+      <a href="../../../doc/design/halo-portal/assets/emblem.webp">doc/design/halo-portal/assets/emblem.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a minimal emblem: a clayon bent into a perfect ring, Forerunner-inspired angular geometry, single thin amber-gold line art with a cold cyan inner glyph, precise, centered on a pure near-black background, no text, square 1:1.</pre>
+      <span>purpose: brand emblem in the Halo-theme design draft.</span>
+    </article>
+
+    <article>
+      <img src="../../../doc/design/halo-portal/assets/ring.webp" alt="ringworld over gas giant" />
+      <a href="../../../doc/design/halo-portal/assets/ring.webp">doc/design/halo-portal/assets/ring.webp</a>
+      <span class="dim">2026-10-11 · claude (leader) via codex · gpt-5.6-terra</span>
+      <pre>generate an image: a wide cinematic view of a vast Forerunner ringworld arcing across the sky over a pale gas giant, seen from a dark UNSC frigate hull in the foreground, muted olive-grey and steel palette with a thin cold cyan glow along the ring, fine stars, hazy atmosphere, no text, no people, no logos, dark and calm, low contrast so interface text can sit on top, 21:9 aspect ratio.</pre>
+      <span>purpose: hero backdrop of the Halo-theme design draft.</span>
+    </article>
+  </body>
+</html>

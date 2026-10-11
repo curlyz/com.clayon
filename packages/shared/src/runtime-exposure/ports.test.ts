@@ -8,7 +8,7 @@ import {
   buildRuntimeExposureHealthUrl,
   buildRuntimeExposureUrl,
   deriveViteHmrPort,
-  derivePaperclipViteHmrPort,
+  deriveClayonViteHmrPort,
   isAllowedRuntimeExposurePort,
   isRuntimeExposureAppPort,
   isRuntimeExposureHmrPort,
@@ -50,19 +50,19 @@ describe("runtime exposure port policy", () => {
     expect(() => deriveViteHmrPort(52000)).toThrow(RangeError);
   });
 
-  it("shares the generic Paperclip HMR derivation with high-port overflow fallback", () => {
-    expect(derivePaperclipViteHmrPort(3_100)).toBe(13_100);
-    expect(derivePaperclipViteHmrPort(55_535)).toBe(65_535);
-    expect(derivePaperclipViteHmrPort(55_536)).toBe(45_536);
-    expect(() => derivePaperclipViteHmrPort(0)).toThrow(/valid TCP port/);
+  it("shares the generic Clayon HMR derivation with high-port overflow fallback", () => {
+    expect(deriveClayonViteHmrPort(3_100)).toBe(13_100);
+    expect(deriveClayonViteHmrPort(55_535)).toBe(65_535);
+    expect(deriveClayonViteHmrPort(55_536)).toBe(45_536);
+    expect(() => deriveClayonViteHmrPort(0)).toThrow(/valid TCP port/);
   });
 
   it("builds https URLs on the non-standard port", () => {
-    expect(buildRuntimeExposureUrl("paperclip-dev.tail29c1aa.ts.net", 42010)).toBe(
-      "https://paperclip-dev.tail29c1aa.ts.net:42010",
+    expect(buildRuntimeExposureUrl("clayon-dev.tail29c1aa.ts.net", 42010)).toBe(
+      "https://clayon-dev.tail29c1aa.ts.net:42010",
     );
-    expect(buildRuntimeExposureHealthUrl("paperclip-dev.tail29c1aa.ts.net", 42010)).toBe(
-      "https://paperclip-dev.tail29c1aa.ts.net:42010/api/health",
+    expect(buildRuntimeExposureHealthUrl("clayon-dev.tail29c1aa.ts.net", 42010)).toBe(
+      "https://clayon-dev.tail29c1aa.ts.net:42010/api/health",
     );
   });
 

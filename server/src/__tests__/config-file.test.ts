@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readConfigFile } from "../config-file.js";
 
-const ORIGINAL_PAPERCLIP_CONFIG = process.env.PAPERCLIP_CONFIG;
+const ORIGINAL_CLAYON_CONFIG = process.env.CLAYON_CONFIG;
 
 function writeConfig(configPath: string, value: unknown): void {
   fs.writeFileSync(configPath, `${JSON.stringify(value, null, 2)}\n`);
@@ -36,17 +36,17 @@ describe("readConfigFile", () => {
   let configPath: string;
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-config-file-test-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "clayon-config-file-test-"));
     configPath = path.join(tempDir, "config.json");
-    process.env.PAPERCLIP_CONFIG = configPath;
+    process.env.CLAYON_CONFIG = configPath;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    if (ORIGINAL_PAPERCLIP_CONFIG === undefined) {
-      delete process.env.PAPERCLIP_CONFIG;
+    if (ORIGINAL_CLAYON_CONFIG === undefined) {
+      delete process.env.CLAYON_CONFIG;
     } else {
-      process.env.PAPERCLIP_CONFIG = ORIGINAL_PAPERCLIP_CONFIG;
+      process.env.CLAYON_CONFIG = ORIGINAL_CLAYON_CONFIG;
     }
 
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -60,7 +60,7 @@ describe("readConfigFile", () => {
     fs.writeFileSync(configPath, "{");
 
     expect(() => readConfigFile()).toThrow(
-      new RegExp(`Invalid Paperclip config at ${escapeRegExp(configPath)}: failed to read or parse JSON`),
+      new RegExp(`Invalid Clayon config at ${escapeRegExp(configPath)}: failed to read or parse JSON`),
     );
   });
 
@@ -72,7 +72,7 @@ describe("readConfigFile", () => {
 
     writeConfig(configPath, config);
 
-    expect(() => readConfigFile()).toThrow(/Invalid Paperclip config .* \$meta\.source:/);
+    expect(() => readConfigFile()).toThrow(/Invalid Clayon config .* \$meta\.source:/);
   });
 
   it("parses a valid config file", () => {

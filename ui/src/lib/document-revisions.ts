@@ -1,4 +1,4 @@
-import type { DocumentRevision, IssueDocument } from "@paperclipai/shared";
+import type { DocumentRevision, IssueDocument } from "@clayon/shared";
 
 type DocumentRevisionState = {
   currentRevision: DocumentRevision;

@@ -1,3 +1,6 @@
+// CLAYON_ env compat must run before any module that reads CLAYON_*
+// at init (config.js → paths.js reads CLAYON_CONFIG). Keep this first.
+import "./env-compat.js";
 import { subscribeAllCompanyLiveEvents } from "./services/live-events.js";
 import { DELIVERY_QUEUES } from "./services/delivery-work-notifications.js";
 import type { createDeliveryWorkCoordinator } from "./services/delivery-work-coordinator.js";
@@ -25,13 +28,13 @@ import { EXECUTION_RECONCILIATION_INTERVAL_MS } from "./services/execution-contr
 import { connectionIntentDeliveryService } from "./services/connection-intent-delivery.js";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import type { Server, RequestListener } from "node:http";
-import { createPaperclipHttpServer } from "./http/server.js";
+import { createClayonHttpServer } from "./http/server.js";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { pathToFileURL } from "node:url";
 import type { Request as ExpressRequest, RequestHandler } from "express";
-import { warnIfUnsupportedNodeVersion } from "@paperclipai/shared/node-version";
+import { warnIfUnsupportedNodeVersion } from "@clayon/shared/node-version";
 import { and, eq } from "drizzle-orm";
 import {
   createDb,
@@ -49,7 +52,7 @@ import {
   companies,
   companyMemberships,
   instanceUserRoles,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import detectPort from "detect-port";
 import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
@@ -224,14 +227,14 @@ async function startServerWithDatabaseTeardown(
   ensureDecisionSigningSecret();
   let config = loadConfig();
   initTelemetry({ enabled: config.telemetryEnabled });
-  if (process.env.PAPERCLIP_SECRETS_PROVIDER === undefined) {
-    process.env.PAPERCLIP_SECRETS_PROVIDER = config.secretsProvider;
+  if (process.env.CLAYON_SECRETS_PROVIDER === undefined) {
+    process.env.CLAYON_SECRETS_PROVIDER = config.secretsProvider;
   }
-  if (process.env.PAPERCLIP_SECRETS_STRICT_MODE === undefined) {
-    process.env.PAPERCLIP_SECRETS_STRICT_MODE = config.secretsStrictMode ? "true" : "false";
+  if (process.env.CLAYON_SECRETS_STRICT_MODE === undefined) {
+    process.env.CLAYON_SECRETS_STRICT_MODE = config.secretsStrictMode ? "true" : "false";
   }
-  if (process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE === undefined) {
-    process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE = config.secretsMasterKeyFilePath;
+  if (process.env.CLAYON_SECRETS_MASTER_KEY_FILE === undefined) {
+    process.env.CLAYON_SECRETS_MASTER_KEY_FILE = config.secretsMasterKeyFilePath;
   }
   
   type MigrationSummary =
@@ -248,8 +251,8 @@ async function startServerWithDatabaseTeardown(
   }
   
   async function promptApplyMigrations(migrations: string[]): Promise<boolean> {
-    if (process.env.PAPERCLIP_MIGRATION_AUTO_APPLY === "true") return true;
-    if (process.env.PAPERCLIP_MIGRATION_PROMPT === "never") return false;
+    if (process.env.CLAYON_MIGRATION_AUTO_APPLY === "true") return true;
+    if (process.env.CLAYON_MIGRATION_PROMPT === "never") return false;
     if (!stdin.isTTY || !stdout.isTTY) return true;
   
     const prompt = createInterface({ input: stdin, output: stdout });
@@ -295,7 +298,7 @@ async function startServerWithDatabaseTeardown(
       if (!apply) {
         throw new Error(
           `${label} has pending migrations (${formatPendingMigrationSummary(state.pendingMigrations)}). ` +
-            "Refusing to start against a stale schema. Run pnpm db:migrate or set PAPERCLIP_MIGRATION_AUTO_APPLY=true.",
+            "Refusing to start against a stale schema. Run pnpm db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
         );
       }
   
@@ -316,7 +319,7 @@ async function startServerWithDatabaseTeardown(
       throw migrationRefusalError(
         state,
         `${label} has pending migrations (${formatPendingMigrationSummary(state.pendingMigrations)}). ` +
-          "Refusing to start against a stale schema. Run pnpm db:migrate or set PAPERCLIP_MIGRATION_AUTO_APPLY=true.",
+          "Refusing to start against a stale schema. Run pnpm db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
       );
     }
 
@@ -357,7 +360,7 @@ async function startServerWithDatabaseTeardown(
   }
 
   const LOCAL_BOARD_USER_ID = "local-board";
-  const LOCAL_BOARD_USER_EMAIL = "local@paperclip.local";
+  const LOCAL_BOARD_USER_EMAIL = "local@clayon.local";
   const LOCAL_BOARD_USER_NAME = "Board";
   
   async function ensureLocalTrustedBoardPrincipal(db: any): Promise<void> {
@@ -443,7 +446,7 @@ async function startServerWithDatabaseTeardown(
     try {
       // embedded-postgres registers async-exit-hook handlers as an import side
       // effect. Those handlers stop PostgreSQL immediately on SIGINT/SIGTERM,
-      // racing Paperclip's later heartbeat snapshot query. Paperclip explicitly
+      // racing Clayon's later heartbeat snapshot query. Clayon explicitly
       // stops the managed cluster in its own ordered shutdown path instead.
       const mod = await loadWithoutCoordinatedShutdownSignalHooks(
         () => import(moduleName),
@@ -460,7 +463,7 @@ async function startServerWithDatabaseTeardown(
     const configuredPort = config.embeddedPostgresPort;
     let port = configuredPort;
     const logBuffer = createEmbeddedPostgresLogBuffer(120);
-    const verboseEmbeddedPostgresLogs = process.env.PAPERCLIP_EMBEDDED_POSTGRES_VERBOSE === "true";
+    const verboseEmbeddedPostgresLogs = process.env.CLAYON_EMBEDDED_POSTGRES_VERBOSE === "true";
     const appendEmbeddedPostgresLog = (message: unknown) => {
       logBuffer.append(message);
       if (!verboseEmbeddedPostgresLogs) {
@@ -523,13 +526,13 @@ async function startServerWithDatabaseTeardown(
     const runningPid = getRunningPid();
     if (runningPid) {
       port = embeddedPostgresOwnerPort(readFileSync(postmasterPidFile, "utf8"), dataDir, runningPid);
-      const actualDataDir = await getPostgresDataDirectory(`postgres://paperclip:paperclip@127.0.0.1:${port}/postgres`);
+      const actualDataDir = await getPostgresDataDirectory(`postgres://clayon:clayon@127.0.0.1:${port}/postgres`);
       if (typeof actualDataDir !== "string" || resolve(actualDataDir) !== resolve(dataDir)) {
         throw new Error("Refusing to reuse PostgreSQL: its data directory belongs to another instance.");
       }
       logger.warn(`Embedded PostgreSQL already running; reusing existing process (pid=${runningPid}, port=${port})`);
     } else {
-      const configuredAdminConnectionString = `postgres://paperclip:paperclip@127.0.0.1:${configuredPort}/postgres`;
+      const configuredAdminConnectionString = `postgres://clayon:clayon@127.0.0.1:${configuredPort}/postgres`;
       try {
         const actualDataDir = await getPostgresDataDirectory(configuredAdminConnectionString);
         if (
@@ -538,7 +541,7 @@ async function startServerWithDatabaseTeardown(
         ) {
           throw new Error("reachable postgres does not use the expected embedded data directory");
         }
-        await ensurePostgresDatabase(configuredAdminConnectionString, "paperclip");
+        await ensurePostgresDatabase(configuredAdminConnectionString, "clayon");
         logger.warn(
           `Embedded PostgreSQL appears to already be reachable without a pid file; reusing existing server on configured port ${configuredPort}`,
         );
@@ -551,8 +554,8 @@ async function startServerWithDatabaseTeardown(
         logger.info(`Using embedded PostgreSQL because no DATABASE_URL set (dataDir=${dataDir}, port=${port})`);
         const createEmbeddedPostgres = () => new EmbeddedPostgres({
           databaseDir: dataDir,
-          user: "paperclip",
-          password: "paperclip",
+          user: "clayon",
+          password: "clayon",
           port,
           persistent: true,
           initdbFlags: ["--encoding=UTF8", "--locale=C", "--lc-messages=C"],
@@ -622,13 +625,13 @@ async function startServerWithDatabaseTeardown(
       }
     }
   
-    const embeddedAdminConnectionString = `postgres://paperclip:paperclip@127.0.0.1:${port}/postgres`;
-    const dbStatus = await ensurePostgresDatabase(embeddedAdminConnectionString, "paperclip");
+    const embeddedAdminConnectionString = `postgres://clayon:clayon@127.0.0.1:${port}/postgres`;
+    const dbStatus = await ensurePostgresDatabase(embeddedAdminConnectionString, "clayon");
     if (dbStatus === "created") {
-      logger.info("Created embedded PostgreSQL database: paperclip");
+      logger.info("Created embedded PostgreSQL database: clayon");
     }
   
-    const embeddedConnectionString = `postgres://paperclip:paperclip@127.0.0.1:${port}/paperclip`;
+    const embeddedConnectionString = `postgres://clayon:clayon@127.0.0.1:${port}/clayon`;
     const shouldAutoApplyFirstRunMigrations = !clusterAlreadyInitialized || dbStatus === "created";
     if (shouldAutoApplyFirstRunMigrations) {
       logger.info("Detected first-run embedded PostgreSQL setup; applying pending migrations automatically");
@@ -760,7 +763,7 @@ async function startServerWithDatabaseTeardown(
     serverPort: listenPort,
     databasePort: resolvedEmbeddedPostgresPort,
   });
-  // Cloud managed-config contract (harness → app). Parse PAPERCLIP_MANAGED_CONFIG
+  // Cloud managed-config contract (harness → app). Parse CLAYON_MANAGED_CONFIG
   // once so a malformed document (blank value, bad JSON, unknown feature key,
   // unsupported v, missing section) refuses startup with a precise error instead
   // of silently running without the feature overlay. Absent env = self-hosted:
@@ -782,11 +785,11 @@ async function startServerWithDatabaseTeardown(
       );
     }
   } catch (err) {
-    logger.error({ err }, "invalid PAPERCLIP_MANAGED_CONFIG; refusing to start (fail closed)");
+    logger.error({ err }, "invalid CLAYON_MANAGED_CONFIG; refusing to start (fail closed)");
     throw err;
   }
 
-  // Operator setting defaults (PAPERCLIP_SETTING_DEFAULTS). Same fail-closed
+  // Operator setting defaults (CLAYON_SETTING_DEFAULTS). Same fail-closed
   // posture as the managed-config parse above: malformed JSON or an invalid
   // value for a known field refuses startup; unknown field names only warn.
   try {
@@ -798,7 +801,7 @@ async function startServerWithDatabaseTeardown(
       );
     }
   } catch (err) {
-    logger.error({ err }, "invalid PAPERCLIP_SETTING_DEFAULTS; refusing to start (fail closed)");
+    logger.error({ err }, "invalid CLAYON_SETTING_DEFAULTS; refusing to start (fail closed)");
     throw err;
   }
 
@@ -810,11 +813,11 @@ async function startServerWithDatabaseTeardown(
   const backupSettingsSvc = instanceSettingsService(db);
   const databaseBackupMaxAgeHours = Math.max(
     1,
-    Number(process.env.PAPERCLIP_DB_BACKUP_MAX_AGE_HOURS) ||
+    Number(process.env.CLAYON_DB_BACKUP_MAX_AGE_HOURS) ||
       Math.max(26, Math.ceil((config.databaseBackupIntervalMinutes / 60) * 2)),
   );
   const databaseBackupAlertFile =
-    process.env.PAPERCLIP_DB_BACKUP_ALERT_FILE ||
+    process.env.CLAYON_DB_BACKUP_ALERT_FILE ||
     resolve(config.databaseBackupDir, "..", "health", "db-backup-to-s3.failure");
   const databaseBackupAlertFiles = [
     databaseBackupAlertFile,
@@ -823,7 +826,7 @@ async function startServerWithDatabaseTeardown(
   ];
   let databaseBackupInFlight = false;
   const idleDatabaseBackupEnabled = config.databaseBackupEnabled
-    && process.env.PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED === "1";
+    && process.env.CLAYON_DB_BACKUP_IDLE_CHECKPOINT_ENABLED === "1";
   const runServerDatabaseBackup = async (
     trigger: InstanceDatabaseBackupTrigger,
   ): Promise<InstanceDatabaseBackupRunResult | null> => {
@@ -853,7 +856,7 @@ async function startServerWithDatabaseTeardown(
         connectionString: activeDatabaseConnectionString,
         backupDir: config.databaseBackupDir,
         retention,
-        filenamePrefix: "paperclip",
+        filenamePrefix: "clayon",
         verifyBeforePrune: verifyCheckpoint ? verifyIdleDatabaseBackup : undefined,
       });
       if (verifyCheckpoint) {
@@ -958,9 +961,9 @@ async function startServerWithDatabaseTeardown(
     bindHost: runtimeListenHost,
     port: listenPort,
   });
-  const configuredApiUrl = process.env.PAPERCLIP_API_URL?.trim() || runtimeApiUrl;
+  const configuredApiUrl = process.env.CLAYON_API_URL?.trim() || runtimeApiUrl;
   // Upgrade admission runs before every WebSocket listener, outside Express.
-  const server = createPaperclipHttpServer(app as unknown as RequestListener, {
+  const server = createClayonHttpServer(app as unknown as RequestListener, {
     apiUrl: configuredApiUrl,
     httpOptions: cloudWarmStandbyServerOptions(() => isWarmStandby() || isIdleTaskDrainActive()),
   });
@@ -974,11 +977,11 @@ async function startServerWithDatabaseTeardown(
     bindHost: runtimeListenHost,
     port: listenPort,
   });
-  process.env.PAPERCLIP_LISTEN_HOST = runtimeListenHost;
-  process.env.PAPERCLIP_LISTEN_PORT = String(listenPort);
-  process.env.PAPERCLIP_RUNTIME_API_URL = runtimeApiUrl;
-  process.env.PAPERCLIP_RUNTIME_API_CANDIDATES_JSON = JSON.stringify(runtimeApiCandidates);
-  process.env.PAPERCLIP_API_URL = configuredApiUrl;
+  process.env.CLAYON_LISTEN_HOST = runtimeListenHost;
+  process.env.CLAYON_LISTEN_PORT = String(listenPort);
+  process.env.CLAYON_RUNTIME_API_URL = runtimeApiUrl;
+  process.env.CLAYON_RUNTIME_API_CANDIDATES_JSON = JSON.stringify(runtimeApiCandidates);
+  process.env.CLAYON_API_URL = configuredApiUrl;
 
   let startupListenerBound = false;
   try {
@@ -988,10 +991,10 @@ async function startServerWithDatabaseTeardown(
   setupLiveEventsWebSocketServer(server, db as any, {
     deploymentMode: config.deploymentMode,
     resolveSessionFromHeaders,
-    // Cloud-proxied browsers carry trusted x-paperclip-cloud-* headers instead
+    // Cloud-proxied browsers carry trusted x-clayon-cloud-* headers instead
     // of a local Better Auth session; without this lane every live-events
     // upgrade behind the Cloud front door 403s forever. The resolver is
-    // self-gating: it returns null unless PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN
+    // self-gating: it returns null unless CLAYON_CLOUD_TENANT_SERVER_TOKEN
     // is configured and the request presents the matching trust token, so
     // self-hosted deployments never take this path.
     resolveCloudActor: async (req) => {
@@ -1110,9 +1113,9 @@ async function startServerWithDatabaseTeardown(
     }));
 
   // Force the instance onto the Kubernetes sandbox provider when configured via
-  // env (PAPERCLIP_EXECUTION_MODE=kubernetes). Runs BEFORE the heartbeat resumes
+  // env (CLAYON_EXECUTION_MODE=kubernetes). Runs BEFORE the heartbeat resumes
   // queued runs so the policy + managed k8s environments are in place. A bad
-  // PAPERCLIP_EXECUTION_MODE / PAPERCLIP_K8S_* value throws and fails startup
+  // CLAYON_EXECUTION_MODE / CLAYON_K8S_* value throws and fails startup
   // (fail-loud) rather than silently allowing local execution.
   try {
     const policyResult = await bootstrapExecutionPolicyFromEnv(db as any);
@@ -1134,7 +1137,7 @@ async function startServerWithDatabaseTeardown(
   // (`environments` section) before the heartbeat resumes queued runs. The
   // document already parsed fail-closed above; the ensure step itself is
   // fail-safe per entry (a degraded boot beats a fleet-wide crash loop), but
-  // a contradictory deployment that also forces PAPERCLIP_EXECUTION_MODE
+  // a contradictory deployment that also forces CLAYON_EXECUTION_MODE
   // throws here and fails startup. `pluginsReady` sequences the ensure after
   // the bundled-plugin install/load pass so a declared environment never
   // activates before its provider driver is registered; the worker manager
@@ -1301,8 +1304,8 @@ async function startServerWithDatabaseTeardown(
   const tools = toolAccessService(db as any, {
     deploymentMode: config.deploymentMode,
     deploymentExposure: config.deploymentExposure,
-    trustedLocalStdioRuntimeHost: process.env.PAPERCLIP_TRUSTED_MCP_RUNTIME_HOST
-      ?? process.env.PAPERCLIP_TOOL_RUNTIME_TRUSTED_HOST
+    trustedLocalStdioRuntimeHost: process.env.CLAYON_TRUSTED_MCP_RUNTIME_HOST
+      ?? process.env.CLAYON_TOOL_RUNTIME_TRUSTED_HOST
       ?? null,
   });
   const scheduleGitHubConnectionEventPoll = () => {
@@ -1896,14 +1899,14 @@ async function startServerWithDatabaseTeardown(
   await waitForExternalAdapters();
 
   // Reconcile the agent-creation picker to the declaratively-configured adapter
-  // set (PAPERCLIP_ADAPTERS). Must run after external adapters are loaded so the
+  // set (CLAYON_ADAPTERS). Must run after external adapters are loaded so the
   // known-adapter list is complete. Fail loud on misconfig (a declared adapter
   // with no implementation), consistent with the execution-policy bootstrap:
   // log the structured error, then rethrow to fail startup.
   try {
     reconcileAdapterAvailability(parseAdapterRegistryEnv());
   } catch (err) {
-    logger.error({ err }, "failed to reconcile adapter availability from PAPERCLIP_ADAPTERS");
+    logger.error({ err }, "failed to reconcile adapter availability from CLAYON_ADAPTERS");
     throw err;
   }
 
@@ -1911,9 +1914,9 @@ async function startServerWithDatabaseTeardown(
   setStartupRecoveryPhase("ready");
   logger.info(`Server startup recovery complete on ${config.host}:${listenPort}`);
   void systemdNotify(["--ready", `--status=Listening on ${config.host}:${listenPort}`]).then((notified) => {
-    if (notified) logger.info("Notified systemd that Paperclip is ready");
+    if (notified) logger.info("Notified systemd that Clayon is ready");
   });
-  if (process.env.PAPERCLIP_OPEN_ON_LISTEN === "true") {
+  if (process.env.CLAYON_OPEN_ON_LISTEN === "true") {
     const openHost = config.host === "0.0.0.0" || config.host === "::" ? "127.0.0.1" : config.host;
     const url = `http://${openHost}:${listenPort}`;
     void import("open")
@@ -2025,8 +2028,8 @@ async function startServerWithDatabaseTeardown(
       logger.error({ err, signal }, "run-log in-flight mirror flush failed");
     }
 
-    const appShutdown = (app as { locals?: { paperclipShutdown?: () => Promise<void> } }).locals
-      ?.paperclipShutdown;
+    const appShutdown = (app as { locals?: { clayonShutdown?: () => Promise<void> } }).locals
+      ?.clayonShutdown;
     const stopEmbeddedPostgres = embeddedPostgres && embeddedPostgresStartedByThisProcess
       ? () => embeddedPostgresSupervisor?.shutdown() ?? embeddedPostgres!.stop()
       : null;
@@ -2120,7 +2123,7 @@ function isMainModule(metaUrl: string): boolean {
 
 if (isMainModule(import.meta.url)) {
   void startServer().catch(async (err) => {
-    logger.error({ err }, "Paperclip server failed to start");
+    logger.error({ err }, "Clayon server failed to start");
     // Supervised-transient refusals in managed-cloud deployments are an
     // expected provisioning phase (see startup-refusals.ts) — they log
     // and exit nonzero but do not page Sentry.

@@ -24,7 +24,7 @@ import {
   GitHubAppBranding,
   GitHubBotMention,
 } from "@/pages/apps/chat/GitHubAppIdentity";
-import { resolveAgentAppearance } from "@paperclipai/shared";
+import { resolveAgentAppearance } from "@clayon/shared";
 import { agentAvatarUrl } from "@/lib/agent-avatar-url";
 import {
   endpoint,

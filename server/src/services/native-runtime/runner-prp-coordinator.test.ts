@@ -17,13 +17,13 @@ import {
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type {
   PrpEvent,
   PrpStructuredRunResult,
   PrpTerminalState,
-} from "@paperclipai/paperclip-runner";
-import { NativeSessionProtocolIntegrityError } from "../../vendor/paperclip-runner/index.js";
+} from "@clayon/clayon-runner";
+import { NativeSessionProtocolIntegrityError } from "../../vendor/clayon-runner/index.js";
 
 import {
   getEmbeddedPostgresTestSupport,
@@ -35,7 +35,7 @@ import {
 } from "../../realtime/runner-prp-ws.js";
 import { NativeRunCoordinatorStore } from "./native-run-coordinator-store.js";
 import { runnerPrpCoordinator } from "./runner-prp-coordinator.js";
-import { PaperclipRunnerSemanticAuthority } from "./runner-semantic-authority.js";
+import { ClayonRunnerSemanticAuthority } from "./runner-semantic-authority.js";
 import { nativeSha256 } from "./canonical.js";
 
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
@@ -111,7 +111,7 @@ describeEmbeddedPostgres("hidden runner PRP coordinator", () => {
 
   beforeAll(async () => {
     tempDb = await startEmbeddedPostgresTestDatabase(
-      "paperclip-runner-coordinator-",
+      "clayon-runner-coordinator-",
     );
     db = createDb(tempDb.connectionString);
   }, 20_000);
@@ -237,7 +237,7 @@ describeEmbeddedPostgres("hidden runner PRP coordinator", () => {
     const seed = await seedNativeRun();
     const server = createServer();
     setupRunnerPrpWebSocketServer(server, { apiUrl: "http://127.0.0.1:3213" });
-    const stateRoot = mkdtempSync(resolve(tmpdir(), "paperclip-runner-state-"));
+    const stateRoot = mkdtempSync(resolve(tmpdir(), "clayon-runner-state-"));
     scratchDirectories.push(stateRoot);
     const coordinator = runnerPrpCoordinator(db, { stateRoot });
     await expect(
@@ -302,7 +302,7 @@ describeEmbeddedPostgres("hidden runner PRP coordinator", () => {
 
   it("rechecks task ownership and returns semantic receipts", async () => {
     const seed = await seedNativeRun();
-    const authority = new PaperclipRunnerSemanticAuthority(db, {
+    const authority = new ClayonRunnerSemanticAuthority(db, {
       companyId: seed.companyId,
       issueId: seed.issueId,
       runId: seed.runId,

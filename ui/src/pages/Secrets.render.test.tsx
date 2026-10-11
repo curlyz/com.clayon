@@ -12,7 +12,7 @@ import type {
   SecretProviderDescriptor,
   UserSecretCoverageSummary,
   UserSecretDefinition,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProviderVaultsTab, Secrets } from "./Secrets";
 import { ApiError } from "../api/client";
@@ -211,7 +211,7 @@ function makeDiscoveryPreview(
     provider: "aws_secrets_manager",
     nextToken: null,
     sampledSecretCount: 2,
-    skippedForeignPaperclipSampleCount: 0,
+    skippedForeignClayonSampleCount: 0,
     warnings: [],
     candidates: [
       {
@@ -220,29 +220,29 @@ function makeDiscoveryPreview(
         config: {
           region: "us-east-1",
           namespace: "prod-use1",
-          secretNamePrefix: "paperclip",
-          kmsKeyId: "alias/paperclip-secrets",
+          secretNamePrefix: "clayon",
+          kmsKeyId: "alias/clayon-secrets",
           ownerTag: "platform",
           environmentTag: "production",
         },
         sampleCount: 2,
         samples: [
           {
-            name: "paperclip/prod-use1/company-1/openai",
+            name: "clayon/prod-use1/company-1/openai",
             hasKmsKey: true,
             tagKeys: ["owner", "environment"],
           },
         ],
         signals: {
           namespace: "prod-use1",
-          secretNamePrefix: "paperclip",
+          secretNamePrefix: "clayon",
           environmentTag: "production",
           ownerTag: "platform",
-          kmsKeyId: "alias/paperclip-secrets",
+          kmsKeyId: "alias/clayon-secrets",
           hasKmsKey: true,
           sampleCount: 2,
-          paperclipManagedSampleCount: 0,
-          skippedForeignPaperclipSampleCount: 0,
+          clayonManagedSampleCount: 0,
+          skippedForeignClayonSampleCount: 0,
         },
         warnings: [],
       },
@@ -510,7 +510,7 @@ describe("Secrets page layout", () => {
     });
   });
 
-  it("warns that removing a provider vault only removes Paperclip config", async () => {
+  it("warns that removing a provider vault only removes Clayon config", async () => {
     mockSecretsApi.removeProviderConfig.mockResolvedValueOnce(providerConfigs[1]);
     const root = createRoot(container);
     const queryClient = new QueryClient({
@@ -548,12 +548,12 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     expect(document.body.textContent).toContain("Remove provider vault");
-    expect(document.body.textContent).toContain("from Paperclip only");
+    expect(document.body.textContent).toContain("from Clayon only");
     expect(document.body.textContent).toContain("does not delete");
     expect(document.body.textContent).toContain("AWS Secrets Manager");
 
     const confirmButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.includes("Remove from Paperclip"),
+      (button) => button.textContent?.includes("Remove from Clayon"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       confirmButton?.click();
@@ -683,10 +683,10 @@ describe("Secrets page layout", () => {
     const externalSecret = makeCompanySecret({
       id: "secret-neon",
       key: "neon_admin_api_key",
-      name: "paperclip-cloud/prod/provider/neon/admin-api-key",
+      name: "clayon-cloud/prod/provider/neon/admin-api-key",
       provider: "aws_secrets_manager",
       managedMode: "external_reference",
-      externalRef: "arn:aws:secretsmanager:us-east-1:123456789012:secret:paperclip-cloud/prod/provider/neon/admin-api-key",
+      externalRef: "arn:aws:secretsmanager:us-east-1:123456789012:secret:clayon-cloud/prod/provider/neon/admin-api-key",
       providerConfigId: "vault-aws",
     });
     mockSecretsApi.list.mockResolvedValue([externalSecret]);
@@ -1030,7 +1030,7 @@ describe("Secrets page layout", () => {
 
   it("explains AWS managed secret creation failures with actionable safe details", async () => {
     const rawProviderMessage =
-      "AccessDeniedException: arn:aws:sts::123456789012:assumed-role/prod/Paperclip is not authorized";
+      "AccessDeniedException: arn:aws:sts::123456789012:assumed-role/prod/Clayon is not authorized";
     mockSecretsApi.create.mockRejectedValueOnce(
       new ApiError("AWS Secrets Manager denied the request. Check IAM permissions for this provider vault.", 403, {
         details: {
@@ -1039,12 +1039,12 @@ describe("Secrets page layout", () => {
           operation: "secret.create",
           providerConfigId: "vault-aws",
           region: "us-east-1",
-          credentialPath: "Paperclip server runtime/provider credential path",
+          credentialPath: "Clayon server runtime/provider credential path",
           requiredCapability: "secretsmanager:CreateSecret",
           actionableMessage:
             "AWS managed secret creation needs secretsmanager:CreateSecret in the selected region for this provider vault.",
           safeAlternative:
-            "If the secret already exists in AWS, link it as an external reference instead of creating a Paperclip-managed value.",
+            "If the secret already exists in AWS, link it as an external reference instead of creating a Clayon-managed value.",
         },
       }),
     );
@@ -1184,7 +1184,7 @@ describe("Secrets page layout", () => {
     expect(regionInput).not.toBeNull();
     await act(async () => {
       setInputValue(regionInput!, "us-east-1");
-      setInputValue(prefixInput!, "paperclip");
+      setInputValue(prefixInput!, "clayon");
     });
     await flushReact();
 
@@ -1200,12 +1200,12 @@ describe("Secrets page layout", () => {
       config: {
         region: "us-east-1",
         namespace: null,
-        secretNamePrefix: "paperclip",
+        secretNamePrefix: "clayon",
         kmsKeyId: null,
         ownerTag: null,
         environmentTag: null,
       },
-      query: "paperclip",
+      query: "clayon",
       pageSize: 25,
     });
     expect(document.body.textContent).toContain("AWS production");
@@ -1220,8 +1220,8 @@ describe("Secrets page layout", () => {
 
     expect((document.getElementById("vault-name") as HTMLInputElement).value).toBe("AWS production");
     expect((document.getElementById("provider-vault-namespace") as HTMLInputElement).value).toBe("prod-use1");
-    expect((document.getElementById("provider-vault-secret-name-prefix") as HTMLInputElement).value).toBe("paperclip");
-    expect((document.getElementById("provider-vault-kms-key-id") as HTMLInputElement).value).toBe("alias/paperclip-secrets");
+    expect((document.getElementById("provider-vault-secret-name-prefix") as HTMLInputElement).value).toBe("clayon");
+    expect((document.getElementById("provider-vault-kms-key-id") as HTMLInputElement).value).toBe("alias/clayon-secrets");
     expect((document.getElementById("provider-vault-owner-tag") as HTMLInputElement).value).toBe("platform");
     expect((document.getElementById("provider-vault-environment-tag") as HTMLInputElement).value).toBe("production");
     expect(mockSecretsApi.createProviderConfig).not.toHaveBeenCalled();
@@ -1233,7 +1233,7 @@ describe("Secrets page layout", () => {
 
   it("shows AWS discovery errors without replacing manual vault form values", async () => {
     const rawProviderMessage =
-      "AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/prod/Paperclip is not authorized";
+      "AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/prod/Clayon is not authorized";
     mockSecretsApi.providerConfigDiscoveryPreview.mockRejectedValueOnce(
       new ApiError("AWS Secrets Manager denied the request. Check IAM permissions for this provider vault.", 403, {
         details: {
@@ -1243,10 +1243,10 @@ describe("Secrets page layout", () => {
           providerConfigId: "discovery-preview",
           providerVaultContext: "draft_config",
           region: "us-west-2",
-          credentialPath: "Paperclip server runtime/provider credential path",
+          credentialPath: "Clayon server runtime/provider credential path",
           requiredCapability: "secretsmanager:ListSecrets",
           actionableMessage:
-            "AWS discovery preview needs secretsmanager:ListSecrets in the selected region for the Paperclip server runtime/provider credential path.",
+            "AWS discovery preview needs secretsmanager:ListSecrets in the selected region for the Clayon server runtime/provider credential path.",
           safeAlternative:
             "If the operator already knows the exact AWS Secrets Manager ARN, paste/link that ARN instead of using discovery. Exact-resource DescribeSecret and runtime read permissions are still required.",
         },
@@ -1291,7 +1291,7 @@ describe("Secrets page layout", () => {
     expect(errorBanner).not.toBeNull();
     expect(errorBanner?.textContent).toContain("AWS discovery needs ListSecrets permission");
     expect(errorBanner?.textContent).toContain("secretsmanager:ListSecrets");
-    expect(errorBanner?.textContent).toContain("Paperclip server runtime/provider credential path");
+    expect(errorBanner?.textContent).toContain("Clayon server runtime/provider credential path");
     expect(errorBanner?.textContent).toContain("paste/link that ARN");
     expect(errorBanner?.textContent).toContain("DescribeSecret");
     expect(errorBanner?.textContent).toContain("us-west-2");
@@ -1665,7 +1665,9 @@ describe("Secrets folder view (PAP-14698)", () => {
 
     const breadcrumb = container.querySelector('nav[aria-label="Breadcrumb"]');
     expect(breadcrumb).not.toBeNull();
-    const current = container.querySelector('[aria-current="page"]');
+    // Scope to the breadcrumb: the settings tab strip above also marks its
+    // active route link with aria-current="page".
+    const current = breadcrumb?.querySelector('[aria-current="page"]');
     expect(current?.textContent).toContain("oauth");
 
     const table = container.querySelector('[data-testid="secrets-table-view"]')!;

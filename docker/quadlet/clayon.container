@@ -1,0 +1,23 @@
+[Unit]
+Description=Clayon AI Agent Orchestrator
+Requires=clayon-db.service
+After=clayon-db.service
+
+[Container]
+Image=clayon-local
+ContainerName=clayon
+Pod=clayon.pod
+Volume=%h/.local/share/clayon:/clayon:Z
+Environment=HOST=0.0.0.0
+Environment=CLAYON_HOME=/clayon
+Environment=CLAYON_DEPLOYMENT_MODE=authenticated
+Environment=CLAYON_DEPLOYMENT_EXPOSURE=private
+Environment=CLAYON_PUBLIC_URL=http://localhost:3100
+EnvironmentFile=%h/.config/containers/systemd/clayon.env
+
+[Service]
+Restart=on-failure
+TimeoutStartSec=120
+
+[Install]
+WantedBy=default.target

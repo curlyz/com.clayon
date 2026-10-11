@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TranscriptEntry } from "@/adapters";
-import type { HeartbeatRunEvent } from "@paperclipai/shared";
+import type { HeartbeatRunEvent } from "@clayon/shared";
 import {
   assembleThreadItems,
   attachSettledTurns,
@@ -15,10 +15,10 @@ import {
   isNestableLiveChild,
   ISSUE_BRIEF_ITEM_ID,
   omitProgressRepeatedByResponseAcrossSegments,
-  paperclipRunnerActivityItems,
-  paperclipRunnerFinalResponse,
-  paperclipRunnerHistoryItems,
-  paperclipRunnerTimelineItems,
+  clayonRunnerActivityItems,
+  clayonRunnerFinalResponse,
+  clayonRunnerHistoryItems,
+  clayonRunnerTimelineItems,
   prependIssueBrief,
   settledRunChildren,
   splitTranscriptAtAnchors,
@@ -181,7 +181,7 @@ describe("accepted native response-wake answers", () => {
     "renders the exact accepted response-wake summary instead of commentary: %s",
     (mode) => {
       expect(
-        paperclipRunnerFinalResponse(fixture(mode), { runId }),
+        clayonRunnerFinalResponse(fixture(mode), { runId }),
       ).toMatchObject({
         text: summary,
         channel: "final",
@@ -201,16 +201,16 @@ describe("accepted native response-wake answers", () => {
     "failed_terminal",
   ])("keeps %s evidence out of the response-wake final exception", (mode) => {
     expect(
-      paperclipRunnerFinalResponse(fixture(mode), { runId }),
+      clayonRunnerFinalResponse(fixture(mode), { runId }),
     ).toBeUndefined();
   });
 
   it("does not grant the exception to another run or a live fallback", () => {
     expect(
-      paperclipRunnerFinalResponse(fixture(), { runId: "other-run" }),
+      clayonRunnerFinalResponse(fixture(), { runId: "other-run" }),
     ).toBeUndefined();
     expect(
-      paperclipRunnerFinalResponse(fixture(), { runId, allowFallback: false }),
+      clayonRunnerFinalResponse(fixture(), { runId, allowFallback: false }),
     ).toBeUndefined();
   });
 });
@@ -244,12 +244,12 @@ describe("completion tool feed visibility", () => {
       ];
       const parsed = transcriptToTaskChatItems(entries, { runId: "finish-visibility", running });
       expect(parsed).toHaveLength(4);
-      const activity = paperclipRunnerActivityItems(parsed);
+      const activity = clayonRunnerActivityItems(parsed);
       expect(activity).toHaveLength(2);
       expect(JSON.stringify(activity)).not.toContain("paperclip_finish");
       expect(JSON.stringify(activity)).toContain("search_tasks");
       expect(JSON.stringify(activity)).toContain("Repository is not trusted");
-      expect(paperclipRunnerTimelineItems(parsed)).toEqual(activity);
+      expect(clayonRunnerTimelineItems(parsed)).toEqual(activity);
     }
   });
 });
@@ -576,7 +576,7 @@ describe("transcriptToTaskChatItems protocol surfaces", () => {
           payload: {
             executionId: "exec-lifecycle",
             transport: "mcp",
-            namespace: "paperclip",
+            namespace: "clayon",
             name: "search_tasks",
             operation: "search",
             progress: "Searching the task index",
@@ -617,7 +617,7 @@ describe("transcriptToTaskChatItems protocol surfaces", () => {
     expect(item.details).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ label: "Name", value: "search_tasks" }),
-        expect.objectContaining({ label: "Namespace", value: "paperclip" }),
+        expect.objectContaining({ label: "Namespace", value: "clayon" }),
         expect.objectContaining({ label: "Operation", value: "search" }),
         expect.objectContaining({ label: "Target", value: "doc/plan.md" }),
         expect.objectContaining({
@@ -629,7 +629,7 @@ describe("transcriptToTaskChatItems protocol surfaces", () => {
     expect(providerActivityPresentation(item)).toMatchObject({
       runningLabel: "Searching tasks",
       completedLabel: "Searched tasks",
-      detail: "Searching the task index · Paperclip · search_tasks",
+      detail: "Searching the task index · Clayon · search_tasks",
     });
   });
 
@@ -937,7 +937,7 @@ describe("buildActivityPhases provider summaries", () => {
         {
           id: "finish",
           kind: "tool",
-          name: "Paperclip_finish",
+          name: "Clayon_finish",
           status: "completed",
         },
         provider("research-1", "research"),
@@ -1016,15 +1016,15 @@ describe("buildActivityPhases provider summaries", () => {
       ...Array.from({ length: 6 }, (_, index) =>
         providerTool(`search-${index}`, "ToolSearch", "search"),
       ),
-      providerTool("context", "get_task_context", "read", "paperclip"),
-      providerTool("documents", "list_documents", "list", "paperclip"),
-      providerTool("history", "get_task_history", "read", "paperclip"),
-      providerTool("tasks", "search_tasks", "search", "paperclip"),
-      providerTool("progress", "report_progress", "edit", "paperclip"),
-      providerTool("block", "paperclip_block", "edit", "paperclip"),
+      providerTool("context", "get_task_context", "read", "clayon"),
+      providerTool("documents", "list_documents", "list", "clayon"),
+      providerTool("history", "get_task_history", "read", "clayon"),
+      providerTool("tasks", "search_tasks", "search", "clayon"),
+      providerTool("progress", "report_progress", "edit", "clayon"),
+      providerTool("block", "paperclip_block", "edit", "clayon"),
     ];
     expect(buildActivityPhases(items, false)[0]?.summary).toBe(
-      "Searched available tools 6 times, read from Paperclip 3 times, used Paperclip 3 times",
+      "Searched available tools 6 times, read from Clayon 3 times, used Clayon 3 times",
     );
   });
 });
@@ -1157,10 +1157,10 @@ describe("buildTurnTimelineRows (DOT-217)", () => {
     ]);
   });
 
-  it("keeps runtime requests in the Paperclip Runner timeline input", () => {
+  it("keeps runtime requests in the Clayon Runner timeline input", () => {
     const pending = request("pending", "pending");
     expect(
-      paperclipRunnerTimelineItems([
+      clayonRunnerTimelineItems([
         commentary("commentary", "Checking."),
         pending,
         { id: "usage", kind: "usage", usage: { used: 1, size: 10 } },
@@ -1170,7 +1170,7 @@ describe("buildTurnTimelineRows (DOT-217)", () => {
 
   it("keeps aggregate workspace changes at the turn boundary outside activity", () => {
     const rows = buildTurnTimelineRows(
-      paperclipRunnerTimelineItems([tool("before"), workspace, tool("after")]),
+      clayonRunnerTimelineItems([tool("before"), workspace, tool("after")]),
       false,
     );
     expect(rows.map((row) => row.kind)).toEqual([
@@ -1193,15 +1193,15 @@ describe("buildTurnTimelineRows (DOT-217)", () => {
       status: "completed",
       diff: { path: "src/App.tsx", added: 2, removed: 1 },
     };
-    expect(paperclipRunnerActivityItems([fileChange])).toEqual([fileChange]);
-    expect(paperclipRunnerActivityItems([fileChange, workspace])).toEqual([
+    expect(clayonRunnerActivityItems([fileChange])).toEqual([fileChange]);
+    expect(clayonRunnerActivityItems([fileChange, workspace])).toEqual([
       workspace,
     ]);
   });
 
   it("keeps a yielded run-result and provider wait prose out of the durable final slot", () => {
     expect(
-      paperclipRunnerFinalResponse([
+      clayonRunnerFinalResponse([
         {
           id: "provider-wait",
           kind: "message",
@@ -1263,7 +1263,7 @@ describe("buildTurnTimelineRows (DOT-217)", () => {
     );
 
     const rows = buildTurnTimelineRows(
-      paperclipRunnerTimelineItems(embedded),
+      clayonRunnerTimelineItems(embedded),
       false,
     );
     expect(
@@ -2026,7 +2026,7 @@ describe("settledRunChildren (PAP-361)", () => {
   });
 });
 
-describe("paperclip runner semantic channels", () => {
+describe("clayon runner semantic channels", () => {
   it("concatenates fragmented reasoning deltas into logical lines", () => {
     const parsed = transcriptToTaskChatItems(
       [
@@ -2233,7 +2233,7 @@ describe("paperclip runner semantic channels", () => {
       {
         id: "tool",
         kind: "tool",
-        name: "Paperclip_finish",
+        name: "Clayon_finish",
         status: "completed",
         target: "done",
       },
@@ -2257,7 +2257,7 @@ describe("paperclip runner semantic channels", () => {
       },
     ];
 
-    expect(paperclipRunnerHistoryItems(items).map((item) => item.id)).toEqual([
+    expect(clayonRunnerHistoryItems(items).map((item) => item.id)).toEqual([
       "tool",
       "interrupt",
       "runner",
@@ -2303,7 +2303,7 @@ describe("paperclip runner semantic channels", () => {
       {
         id: "finish",
         kind: "tool",
-        name: "Paperclip_finish",
+        name: "Clayon_finish",
         rawName: "paperclip_finish",
         status: "completed",
       },
@@ -2355,7 +2355,7 @@ describe("paperclip runner semantic channels", () => {
       },
     ];
 
-    expect(paperclipRunnerActivityItems(items).map((item) => item.id)).toEqual([
+    expect(clayonRunnerActivityItems(items).map((item) => item.id)).toEqual([
       "progress",
       "thinking",
       "tool",

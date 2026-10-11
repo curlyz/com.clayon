@@ -201,7 +201,7 @@ function makeReflectionCoachAgent(overrides: Record<string, unknown> = {}) {
     id: "22222222-2222-4222-8222-222222222222",
     name: "Reflection Coach",
     metadata: {
-      paperclipBuiltInAgent: {
+      clayonBuiltInAgent: {
         key: "reflection-coach",
         featureKeys: ["reflection-coach"],
       },
@@ -320,7 +320,7 @@ describe("agent instructions bundle routes", () => {
       ...makeAgent(),
       adapterConfig: {
         instructionsBundleMode: "external",
-        instructionsRootPath: "/srv/paperclip/external-agent",
+        instructionsRootPath: "/srv/clayon/external-agent",
         instructionsEntryFile: "AGENTS.md",
       },
     });
@@ -391,7 +391,7 @@ describe("agent instructions bundle routes", () => {
       ...makeAgent(),
       adapterConfig: {
         instructionsBundleMode: "external",
-        instructionsRootPath: "/srv/paperclip/external-agent",
+        instructionsRootPath: "/srv/clayon/external-agent",
         instructionsEntryFile: "AGENTS.md",
       },
     });
@@ -418,7 +418,7 @@ describe("agent instructions bundle routes", () => {
     mockSyncInstructionsBundleConfigFromFilePath.mockImplementation((_agent, config) => ({
       ...config,
       instructionsBundleMode: "external",
-      instructionsRootPath: "/srv/paperclip/external-agent",
+      instructionsRootPath: "/srv/clayon/external-agent",
       instructionsEntryFile: "AGENTS.md",
     }));
     const app = await createApp({
@@ -432,12 +432,12 @@ describe("agent instructions bundle routes", () => {
 
     const compatibilityRes = await request(app)
       .patch("/api/agents/11111111-1111-4111-8111-111111111111/instructions-path")
-      .send({ path: "/srv/paperclip/external-agent/AGENTS.md" });
+      .send({ path: "/srv/clayon/external-agent/AGENTS.md" });
     expect(compatibilityRes.status, JSON.stringify(compatibilityRes.body)).toBe(403);
 
     const bundleRes = await request(app)
       .patch("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle")
-      .send({ mode: "external", rootPath: "/srv/paperclip/external-agent" });
+      .send({ mode: "external", rootPath: "/srv/clayon/external-agent" });
     expect(bundleRes.status, JSON.stringify(bundleRes.body)).toBe(403);
     expect(mockAgentService.update).not.toHaveBeenCalled();
     expect(mockAgentInstructionsService.updateBundle).not.toHaveBeenCalled();
@@ -459,7 +459,7 @@ describe("agent instructions bundle routes", () => {
       .send({
         adapterConfig: {
           instructionsBundleMode: "external",
-          instructionsRootPath: "/srv/paperclip/external-agent",
+          instructionsRootPath: "/srv/clayon/external-agent",
           instructionsEntryFile: "AGENTS.md",
         },
       });
@@ -494,7 +494,7 @@ describe("agent instructions bundle routes", () => {
       adapterType: "codex_local",
       adapterConfig: {
         instructionsBundleMode: "external",
-        instructionsRootPath: "/srv/paperclip/external-agent",
+        instructionsRootPath: "/srv/clayon/external-agent",
         instructionsEntryFile: "AGENTS.md",
       },
     };
@@ -735,9 +735,9 @@ describe("agent instructions bundle routes", () => {
     );
   });
 
-  it("preserves paperclip skill-sync selections when switching adapters", async () => {
+  it("preserves clayon skill-sync selections when switching adapters", async () => {
     // Desired skills live inside the per-adapter config under
-    // `paperclipSkillSync`, yet they are adapter-agnostic company-level
+    // `clayonSkillSync`, yet they are adapter-agnostic company-level
     // selections. Switching adapter type must not silently wipe them — the
     // server carries them over from the existing config the same way it
     // preserves env/cwd and the instructions bundle.
@@ -746,7 +746,7 @@ describe("agent instructions bundle routes", () => {
       adapterType: "claude_local",
       adapterConfig: {
         model: "claude-sonnet-4",
-        paperclipSkillSync: { desiredSkills: ["research", "code-review"] },
+        clayonSkillSync: { desiredSkills: ["research", "code-review"] },
       },
     });
 
@@ -767,7 +767,7 @@ describe("agent instructions bundle routes", () => {
         adapterType: "codex_local",
         adapterConfig: expect.objectContaining({
           model: "gpt-5.4",
-          paperclipSkillSync: { desiredSkills: ["research", "code-review"] },
+          clayonSkillSync: { desiredSkills: ["research", "code-review"] },
         }),
       }),
       expect.any(Object),

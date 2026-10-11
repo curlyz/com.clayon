@@ -1,6 +1,6 @@
 /** Synthetic local lab, not production admission or a real OpenAI Dot.
  * Uses real OAuth, MCP HTTP, database-backed events, HMAC verification and the
- * native runner backend. Never reads a user's existing Paperclip database. */
+ * native runner backend. Never reads a user's existing Clayon database. */
 import assert from "node:assert/strict";
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { once } from "node:events";
@@ -9,9 +9,9 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import express from "express";
-import { activityLog, authUsers, companies, companyMemberships, createDb, issues, startEmbeddedPostgresTestDatabase } from "@paperclipai/db";
-import { DotHarnessDriver } from "../../packages/paperclip-runner/src/drivers/dot/dot-harness-driver.js";
-import { HarnessDriverBackend } from "../../packages/paperclip-runner/src/backends/harness-driver-backend.js";
+import { activityLog, authUsers, companies, companyMemberships, createDb, issues, startEmbeddedPostgresTestDatabase } from "@clayon/db";
+import { DotHarnessDriver } from "../../packages/clayon-runner/src/drivers/dot/dot-harness-driver.js";
+import { HarnessDriverBackend } from "../../packages/clayon-runner/src/backends/harness-driver-backend.js";
 import { publicMcpIngressRoutes } from "../src/routes/public-mcp.js";
 import { createPublicMcpOAuth } from "../src/services/public-mcp/oauth.js";
 import { createPublicMcpEvents } from "../src/services/public-mcp/events.js";
@@ -28,11 +28,11 @@ async function close(server: Server) {
   server.closeAllConnections(); if (server.listening) await new Promise<void>(resolve => server.close(() => resolve()));
 }
 
-const scratch = await mkdtemp(join(tmpdir(), "paperclip-dot-demo-"));
+const scratch = await mkdtemp(join(tmpdir(), "clayon-dot-demo-"));
 // This process has its own ephemeral encryption key, never the instance key.
-process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE = join(scratch, "master.key");
-delete process.env.PAPERCLIP_SECRETS_MASTER_KEY;
-delete process.env.PAPERCLIP_CLOUD_API_ORIGIN;
+process.env.CLAYON_SECRETS_MASTER_KEY_FILE = join(scratch, "master.key");
+delete process.env.CLAYON_SECRETS_MASTER_KEY;
+delete process.env.CLAYON_CLOUD_API_ORIGIN;
 let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | undefined;
 const app = express(); app.use(express.json({ limit: "256kb" }));
 const http = createServer(app);
@@ -45,11 +45,11 @@ let service: ReturnType<typeof createPublicMcpEvents> | undefined;
 let unregister: (() => void) | undefined;
 let active = true;
 try {
-  database = await startEmbeddedPostgresTestDatabase("paperclip-dot-demo-");
+  database = await startEmbeddedPostgresTestDatabase("clayon-dot-demo-");
   const db = createDb(database.connectionString);
   const origin = await listen(http);
   const callbackOrigin = await listen(callback);
-  const oauth = createPublicMcpOAuth(db, { origin, resource: origin + "/mcp/paperclip" });
+  const oauth = createPublicMcpOAuth(db, { origin, resource: origin + "/mcp/clayon" });
   await instanceSettingsService(db).updateExperimental({ enablePublicMcp: true });
   const userId = randomUUID();
   await db.insert(authUsers).values({ id: userId, name: "Dot lab operator", email: `${userId}@example.test`, createdAt: new Date(), updatedAt: new Date() });
@@ -62,7 +62,7 @@ try {
   const client = await oauth.register({ client_name: "Synthetic Dot test peer", redirect_uris: [origin + "/callback"] });
   const verifier = randomBytes(32).toString("base64url");
   const authorization = await oauth.authorize({ client_id: client.client_id, redirect_uri: origin + "/callback", resource: oauth.config.resource,
-    scope: "paperclip:read paperclip:write", response_type: "code", code_challenge_method: "S256", code_challenge: createHash("sha256").update(verifier).digest("base64url") });
+    scope: "clayon:read clayon:write", response_type: "code", code_challenge_method: "S256", code_challenge: createHash("sha256").update(verifier).digest("base64url") });
   const consent = await oauth.consent(authorization.split("/").at(-1)!, actor, { decision: "approve", companyId: company.id, allowWrites: true });
   const tokens = await oauth.token({ grant_type: "authorization_code", client_id: client.client_id, redirect_uri: origin + "/callback",
     resource: oauth.config.resource, code: new URL(consent.redirectUrl).searchParams.get("code"), code_verifier: verifier });
@@ -82,7 +82,7 @@ try {
   });
   app.use(publicMcpIngressRoutes(oauth, createPublicMcpExecutor(db, oauth, api), service, bridge));
   const rpc = async (method: string, params: Record<string, unknown> = {}) => {
-    const response = await fetch(origin + "/mcp/paperclip", { method: "POST", signal: AbortSignal.timeout(10_000),
+    const response = await fetch(origin + "/mcp/clayon", { method: "POST", signal: AbortSignal.timeout(10_000),
       headers: { Authorization: `Bearer ${tokens.access_token}`, "Content-Type": "application/json", "MCP-Protocol-Version": "2026-07-28", "Mcp-Method": method, "Mcp-Name": String(params.name ?? "") },
       body: JSON.stringify({ jsonrpc: "2.0", id: randomUUID(), method, params: { ...params, _meta: {
         "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {},
@@ -135,11 +135,11 @@ try {
     res.sendStatus(204);
     if (receivedIds.has(id)) return;
     receivedIds.add(id);
-    assert.equal(body.name, "paperclip.dot.work_available");
+    assert.equal(body.name, "clayon.dot.work_available");
     assert(!JSON.stringify(body).includes("competitor"));
     void peer().catch(rejectWork);
   });
-  const subscription = { name: "paperclip.dot.work_available", arguments: { companyId: company.id, taskId: task.id },
+  const subscription = { name: "clayon.dot.work_available", arguments: { companyId: company.id, taskId: task.id },
     delivery: { mode: "webhook", url: "https://dot-demo.invalid/events", secret: webhookSecret } };
   await rpc("events/subscribe", subscription);
   console.log("✓ Real OAuth connection and signed webhook verification");
@@ -154,7 +154,7 @@ try {
   console.log("✓ MCP Event → Dot test peer → native runner acceptance, tool write, progress, structured completion");
   console.log("✓ Concurrent duplicate write produced one report; usage remains unknown");
   assert.equal((await tool("paperclip_connection", {})).companyId, company.id);
-  console.log("✓ Personal Paperclip tools remain available when no agent assignment is active");
+  console.log("✓ Personal Clayon tools remain available when no agent assignment is active");
   await rpc("events/unsubscribe", { ...subscription, delivery: { mode: "webhook", url: subscription.delivery.url } });
   await oauth.revokeConnection(principal.grant.id, userId);
   await assert.rejects(() => rpc("tools/list"));

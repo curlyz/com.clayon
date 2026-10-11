@@ -1,6 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { agentWakeupRequests, issueThreadInteractions, type Db } from "@paperclipai/db";
-import type { IssueComment, IssueQueuedCommentEntry } from "@paperclipai/shared";
+import { agentWakeupRequests, issueThreadInteractions, type Db } from "@clayon/db";
+import type { IssueComment, IssueQueuedCommentEntry } from "@clayon/shared";
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -43,7 +43,7 @@ export async function readQueuedInteractionResponse(db: Db, companyId: string, i
   };
   const source: NonNullable<IssueQueuedCommentEntry["source"]> = {
     kind: "interaction", interactionId: interaction.id, interactionKind: interaction.kind,
-    requiresFreshSession: record(record(payload)._paperclipWakeContext).forceFreshSession === true,
+    requiresFreshSession: record(record(payload)._clayonWakeContext).forceFreshSession === true,
   };
   return { comment, source };
 }

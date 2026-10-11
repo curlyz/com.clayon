@@ -94,7 +94,7 @@ export function SidebarShell({
   collapsed = false,
   peeking = false,
   resizable = false,
-  storageKey = "paperclip.sidebar.width",
+  storageKey = "clayon.sidebar.width",
   className,
   onPanelMouseEnter,
   onPanelMouseLeave,
@@ -226,8 +226,11 @@ export function SidebarShell({
             tabIndex={0}
             className={cn(
               "absolute inset-y-0 right-0 z-20 w-3 cursor-col-resize touch-none outline-none",
-              "before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-transparent before:transition-colors",
-              "hover:before:bg-border focus-visible:before:bg-ring",
+              // Always-visible 1px --border hairline; it colors to a --ring
+              // bar on hover, keyboard focus, and while dragging (operator
+              // directive 2026-10-11).
+              "before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-border before:transition-colors",
+              "hover:before:bg-ring focus-visible:before:bg-ring",
               isResizing && "before:bg-ring",
             )}
             onPointerDown={handlePointerDown}

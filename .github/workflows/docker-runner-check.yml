@@ -29,9 +29,9 @@ on:
       - Dockerfile
       - .dockerignore
       - scripts/check-docker-runner-cache.sh
-      - packages/paperclip-runner/rust-toolchain.toml
-      - packages/paperclip-runner/runner/**
-      - packages/paperclip-runner/protocol/**
+      - packages/clayon-runner/rust-toolchain.toml
+      - packages/clayon-runner/runner/**
+      - packages/clayon-runner/protocol/**
 
 permissions: {}
 
@@ -158,9 +158,9 @@ jobs:
           lock_sha="$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)"
           docker buildx build --platform linux/amd64 \
             --file docker/daytona-runner/Dockerfile \
-            --build-arg "PAPERCLIP_RUNNER_SOURCE_REVISION=$SOURCE_SHA" \
-            --build-arg "PAPERCLIP_RUNNER_CONTENT_ID=qualification-$SOURCE_SHA" \
-            --build-arg "PAPERCLIP_RUNNER_LOCK_SHA256=$lock_sha" \
+            --build-arg "CLAYON_RUNNER_SOURCE_REVISION=$SOURCE_SHA" \
+            --build-arg "CLAYON_RUNNER_CONTENT_ID=qualification-$SOURCE_SHA" \
+            --build-arg "CLAYON_RUNNER_LOCK_SHA256=$lock_sha" \
             --cache-from type=registry,ref=ghcr.io/paperclipai/paperclip-daytona-runner:e2e-buildcache-amd64 \
             --tag "$image" --metadata-file remote-verification/image.json --push .
           digest="$(jq -r '."containerimage.digest"' remote-verification/image.json)"
@@ -197,15 +197,15 @@ jobs:
           pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile > remote-verification/npm-setup.log 2>&1
           pnpm install --frozen-lockfile --ignore-scripts >> remote-verification/npm-setup.log 2>&1
           pnpm build > remote-verification/npm-build.log 2>&1
-          PAPERCLIP_RUNNER_QUALIFICATION_PACKAGES_DIR="$PWD/remote-verification/qualification-packages" \
+          CLAYON_RUNNER_QUALIFICATION_PACKAGES_DIR="$PWD/remote-verification/qualification-packages" \
             node scripts/verify-grok-npm-install.mjs > remote-verification/public-npm-install.log 2>&1
       - name: Build canonical eval report viewer
         if: always() && (inputs.verify_source || inputs.build_eval_viewer)
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile --ignore-scripts --filter '@paperclipai/paperclip-runner...'
-          pnpm --filter @paperclipai/paperclip-runner build:issue-thread > remote-verification/viewer-build.log 2>&1
-          tar -czf remote-verification/eval-viewer.tar.gz -C packages/paperclip-runner dist-issue-thread
+          pnpm install --frozen-lockfile --ignore-scripts --filter '@clayon/clayon-runner...'
+          pnpm --filter @clayon/clayon-runner build:issue-thread > remote-verification/viewer-build.log 2>&1
+          tar -czf remote-verification/eval-viewer.tar.gz -C packages/clayon-runner dist-issue-thread
           sha256sum remote-verification/eval-viewer.tar.gz > remote-verification/eval-viewer.sha256
       - name: Retain source, image and verification evidence
         if: always()

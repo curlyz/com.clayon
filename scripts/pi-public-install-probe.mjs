@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Run in a credential-free public npm consumer after `paperclipai runtime setup pi`.
+// Run in a credential-free public npm consumer after `clayon runtime setup pi`.
 // Use the server's normal packaged daemon resolver; never submit a prompt.
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
@@ -12,20 +12,20 @@ assert.ok(serverDirectory && extra.length === 0, 'Usage: pi-public-install-probe
 for (const key of Object.keys(process.env)) {
   assert.ok(!/(?:API_KEY|TOKEN|SECRET|PASSWORD)$/.test(key), `Unexpected credential variable: ${key}`);
 }
-assert.equal(process.env.PAPERCLIP_RUNNER_BINARY, undefined);
+assert.equal(process.env.CLAYON_RUNNER_BINARY, undefined);
 assert.equal(process.env.NODE_OPTIONS, undefined);
 assert.equal(process.env.NODE_PATH, undefined);
 const server = await realpath(serverDirectory);
-assert.equal(JSON.parse(await readFile(join(server, 'package.json'), 'utf8')).name, '@paperclipai/server');
-const { resolvePaperclipRunnerBinary } = await import(pathToFileURL(join(server, 'dist/services/native-runtime/native-codex-runner.js')));
-const { createCapabilityRunnerdCodexTransport } = await import(pathToFileURL(join(server, 'dist/vendor/paperclip-runner/live/runnerd-codex-transport.js')));
-const { QUALIFIED_ACPX_PROFILES } = await import(pathToFileURL(join(server, 'dist/vendor/paperclip-runner/drivers/acpx/qualified-profiles.js')));
+assert.equal(JSON.parse(await readFile(join(server, 'package.json'), 'utf8')).name, '@clayon/server');
+const { resolveClayonRunnerBinary } = await import(pathToFileURL(join(server, 'dist/services/native-runtime/native-codex-runner.js')));
+const { createCapabilityRunnerdCodexTransport } = await import(pathToFileURL(join(server, 'dist/vendor/clayon-runner/live/runnerd-codex-transport.js')));
+const { QUALIFIED_ACPX_PROFILES } = await import(pathToFileURL(join(server, 'dist/vendor/clayon-runner/drivers/acpx/qualified-profiles.js')));
 assert.equal(QUALIFIED_ACPX_PROFILES.pi.agentProfileVersion, 22);
 assert.equal(QUALIFIED_ACPX_PROFILES.pi.commandDigest, 'sha256:e92078bee3c23bec4100aa589013a44613d054cd686826534025d8019e9f39a9');
 assert.equal(Object.hasOwn(QUALIFIED_ACPX_PROFILES.pi, 'qualificationModel'), false);
 assert.equal(Object.hasOwn(QUALIFIED_ACPX_PROFILES.pi, 'reportedModelId'), false);
-const daemon = resolvePaperclipRunnerBinary();
-assert.equal(await realpath(daemon), join(server, 'dist/vendor/paperclip-runner/bin/paperclip-runnerd'));
+const daemon = resolveClayonRunnerBinary();
+assert.equal(await realpath(daemon), join(server, 'dist/vendor/clayon-runner/bin/clayon-runnerd'));
 const root = await mkdtemp(join(tmpdir(), 'pi-public-install-probe-'));
 const evidence = [];
 const started = performance.now();
@@ -46,7 +46,7 @@ try {
     await bundle.transport.request('thread/start', {
       cwd: workspace, model: 'openrouter/deepseek/deepseek-v4-flash-0731',
       baseInstructions: 'Credential-free admission probe. No prompt is submitted.',
-      permissions: 'paperclip-runner-workspace-read-only', dynamicTools: [],
+      permissions: 'clayon-runner-workspace-read-only', dynamicTools: [],
     });
   } catch (error) { failure = String(error); }
   settledMs = Math.round(performance.now() - started);

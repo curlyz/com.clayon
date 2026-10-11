@@ -12,7 +12,7 @@ import type {
   FinanceByKind,
   FinanceEvent,
   ProviderQuotaResult,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { api } from "./client";
 
 function dateParams(from?: string, to?: string): string {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { InstanceExperimentalSettings } from "@paperclipai/shared";
+import type { InstanceExperimentalSettings } from "@clayon/shared";
 import {
   applyExperimentalSettingsPatch,
   normalizeExperimentalSettings,
@@ -41,7 +41,7 @@ describe("instance settings service", () => {
       enableBuiltInAgents: true,
       enableGoalsSidebarLink: true,
       enableServerInfoDebugView: true,
-      enablePaperclipDeveloperMode: true,
+      enableClayonDeveloperMode: true,
       autoRestartDevServerWhenIdle: true,
       enableWorkspaceBranchReconcileForward: true,
       enableWorkspaceDirtyQuarantineRepair: false,
@@ -79,7 +79,7 @@ describe("instance settings service", () => {
       enableDecisions: false,
       enableGoalsSidebarLink: true,
       enableServerInfoDebugView: true,
-      enablePaperclipDeveloperMode: true,
+      enableClayonDeveloperMode: true,
       enableSimplifiedEnglishInteractions: false,
       enableFirstTaskPlanProposal: false,
       autoRestartDevServerWhenIdle: true,
@@ -169,12 +169,12 @@ describe("instance settings service", () => {
     ).toBe(false);
   });
 
-  it("defaults enablePaperclipDeveloperMode to false for empty and legacy settings", () => {
-    expect(normalizeExperimentalSettings(undefined).enablePaperclipDeveloperMode).toBe(false);
-    expect(normalizeExperimentalSettings({}).enablePaperclipDeveloperMode).toBe(false);
+  it("defaults enableClayonDeveloperMode to false for empty and legacy settings", () => {
+    expect(normalizeExperimentalSettings(undefined).enableClayonDeveloperMode).toBe(false);
+    expect(normalizeExperimentalSettings({}).enableClayonDeveloperMode).toBe(false);
     expect(
       normalizeExperimentalSettings({ enableServerInfoDebugView: true })
-        .enablePaperclipDeveloperMode,
+        .enableClayonDeveloperMode,
     ).toBe(false);
   });
 
@@ -249,8 +249,8 @@ describe("instance settings service", () => {
       {
         now: () => activatedAt,
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -270,8 +270,8 @@ describe("instance settings service", () => {
       { enableWorktreeRunExecution: false },
       {
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -288,8 +288,8 @@ describe("instance settings service", () => {
       {
         now: () => new Date("2026-07-10T12:00:00.000Z"),
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -298,8 +298,8 @@ describe("instance settings service", () => {
       { enableWorktreeRunExecution: false },
       {
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -310,8 +310,8 @@ describe("instance settings service", () => {
       {
         now: () => new Date("2026-07-10T12:05:00.000Z"),
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -332,8 +332,8 @@ describe("instance settings service", () => {
       },
       {
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       },
     );
@@ -353,8 +353,8 @@ describe("instance settings service", () => {
       resolveWorktreeRunExecutionActivationState({
         getExperimental: async () => experimental,
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       }),
     ).resolves.toEqual({
@@ -375,8 +375,8 @@ describe("instance settings service", () => {
       resolveWorktreeRunExecutionActivationState({
         getExperimental: async () => experimental,
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       }),
     ).resolves.toMatchObject({
@@ -397,8 +397,8 @@ describe("instance settings service", () => {
       resolveWorktreeRunExecutionActivationState({
         getExperimental: async () => experimental,
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "target-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "target-instance",
         },
       }),
     ).resolves.toMatchObject({
@@ -416,8 +416,8 @@ describe("instance settings service", () => {
           throw new Error("settings unavailable");
         },
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "true",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "true",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       }),
     ).resolves.toMatchObject({
@@ -431,8 +431,8 @@ describe("instance settings service", () => {
       resolveWorktreeRunExecutionActivationState({
         getExperimental,
         runtimeEnv: {
-          PAPERCLIP_IN_WORKTREE: "false",
-          PAPERCLIP_INSTANCE_ID: "worktree-instance",
+          CLAYON_IN_WORKTREE: "false",
+          CLAYON_INSTANCE_ID: "worktree-instance",
         },
       }),
     ).resolves.toMatchObject({

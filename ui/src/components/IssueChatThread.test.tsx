@@ -13,7 +13,7 @@ import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Agent } from "@paperclipai/shared";
+import type { Agent } from "@clayon/shared";
 import { CommentSubmissionUnknownError } from "../lib/comment-submit-result";
 import { loadDraft, preserveDraftInTab, settleDraftSubmission } from "../lib/composer-draft";
 import {
@@ -212,8 +212,8 @@ vi.mock("./IssueLinkQuicklook", () => ({
   ),
 }));
 
-vi.mock("../hooks/usePaperclipIssueRuntime", () => ({
-  usePaperclipIssueRuntime: () => ({}),
+vi.mock("../hooks/useClayonIssueRuntime", () => ({
+  useClayonIssueRuntime: () => ({}),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -504,7 +504,7 @@ describe("IssueChatThread", () => {
     expect(markdownBodyRenderMock).toHaveBeenCalledWith(
       expect.objectContaining({
         children: "1. **Readable** markdown on blue",
-        className: expect.stringContaining("paperclip-markdown-on-accent"),
+        className: expect.stringContaining("clayon-markdown-on-accent"),
       }),
     );
 
@@ -3082,7 +3082,7 @@ describe("IssueChatThread", () => {
     });
   });
 
-  it("renders the transcript directly from stable Paperclip messages", () => {
+  it("renders the transcript directly from stable Clayon messages", () => {
     const root = createRoot(container);
 
     act(() => {

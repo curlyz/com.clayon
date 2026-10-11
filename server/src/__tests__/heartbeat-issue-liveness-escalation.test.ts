@@ -24,7 +24,7 @@ import {
   projects,
   projectWorkspaces,
   workspaceOperations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -46,9 +46,9 @@ vi.mock("../telemetry.ts", () => ({
   getTelemetryClient: () => ({ track: vi.fn() }),
 }));
 
-vi.mock("@paperclipai/shared/telemetry", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/shared/telemetry")>(
-    "@paperclipai/shared/telemetry",
+vi.mock("@clayon/shared/telemetry", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/shared/telemetry")>(
+    "@clayon/shared/telemetry",
   );
   return {
     ...actual,
@@ -91,7 +91,7 @@ describeEmbeddedPostgres("heartbeat resolved dependency wake reconciliation", ()
   let db: ReturnType<typeof createDb>;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-heartbeat-issue-liveness-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-heartbeat-issue-liveness-");
     db = createDb(tempDb.connectionString);
   }, 30_000);
 
@@ -148,7 +148,7 @@ describeEmbeddedPostgres("heartbeat resolved dependency wake reconciliation", ()
 
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
     });
@@ -240,7 +240,7 @@ describeEmbeddedPostgres("heartbeat resolved dependency wake reconciliation", ()
 
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
     });

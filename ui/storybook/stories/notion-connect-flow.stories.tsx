@@ -7,7 +7,7 @@ import {
   type ConnectionGrant,
   type ConnectionGrantsResponse,
   type ToolConnection,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { queryKeys } from "@/lib/queryKeys";
 import { Browse } from "@/pages/apps/Browse";
 import { AppLogo } from "@/pages/apps/AppLogo";
@@ -320,7 +320,7 @@ function VercelConnectProvenanceHost() {
           externalCredential: {
             provider: "vercel_connect",
             connectorId: "scl_storybook",
-            connectorUid: "notion-paperclip",
+            connectorUid: "notion-clayon",
             service: "notion",
             connectorType: "oauth",
             principalMode: "user",
@@ -371,7 +371,7 @@ export const ConnectError: Story = {
   render: () => (
     <OAuthStateHost
       phase="error"
-      error="Paperclip couldn’t reach Notion’s authorization service. Check the connection and try again."
+      error="Clayon couldn’t reach Notion’s authorization service. Check the connection and try again."
     />
   ),
 };

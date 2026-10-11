@@ -55,7 +55,7 @@ function invoke(action: "accept" | "decline") {
 
 // Real pinned adapter HTTP bridge + Microsoft Teams App router. Only its
 // service-token validator is replaced. This is NOT live tenant/JWT proof or
-// Paperclip DB authorization. No request may contact any external service.
+// Clayon DB authorization. No request may contact any external service.
 describe("pinned Teams file-consent invoke boundary", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -128,7 +128,7 @@ describe("pinned Teams file-consent invoke boundary", () => {
       authorization = "Bearer synthetic-service-token",
     ) =>
       adapter.handleWebhook(
-        new Request("https://paperclip.test/chat-webhook", {
+        new Request("https://clayon.test/chat-webhook", {
           method: "POST",
           headers: { "content-type": "application/json", authorization },
           body: JSON.stringify(activity),

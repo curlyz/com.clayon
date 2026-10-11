@@ -9,7 +9,7 @@ import {
   goals,
   issues,
   projects,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { onboardingSeedRoutes } from "../routes/onboarding-seed.js";
 import { logActivity } from "../services/activity-log.js";
 import {
@@ -85,16 +85,16 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
     // The seed's free-text role is a job title; the structural role stays `ceo`.
     expect(companyAgents[0]?.title).toBe("Chief of Staff");
     expect(companyAgents[0]?.role).toBe("ceo");
-    // A seeded CEO arrives with the core paperclip skills enabled. Skills only
+    // A seeded CEO arrives with the core clayon skills enabled. Skills only
     // reach an agent's runtime through its own desired set, and the default
     // CEO instructions assume this toolkit.
     expect(companyAgents[0]?.adapterConfig).toMatchObject({
-      paperclipSkillSync: {
+      clayonSkillSync: {
         desiredSkills: expect.arrayContaining([
-          "paperclipai/paperclip/paperclip",
-          "paperclipai/paperclip/paperclip-board",
-          "paperclipai/paperclip/paperclip-converting-plans-to-tasks",
-          "paperclipai/paperclip/paperclip-create-agent",
+          "paperclipai/paperclip/clayon",
+          "paperclipai/paperclip/clayon-board",
+          "paperclipai/paperclip/clayon-converting-plans-to-tasks",
+          "paperclipai/paperclip/clayon-create-agent",
           "paperclipai/paperclip/para-memory-files",
         ]),
       },
@@ -123,8 +123,8 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
   });
 
   it("keeps server-seeded onboarding on a legacy adapter when native runner is requested", async () => {
-    const previous = process.env.PAPERCLIP_ONBOARDING_SEED_ADAPTER_TYPE;
-    process.env.PAPERCLIP_ONBOARDING_SEED_ADAPTER_TYPE = "paperclip_runner";
+    const previous = process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE;
+    process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE = "paperclip_runner";
     try {
       const { companyId, app } = await seedCompany();
 
@@ -136,9 +136,9 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
       expect(companyAgents[0]?.adapterType).toBe("claude_local");
     } finally {
       if (previous === undefined) {
-        delete process.env.PAPERCLIP_ONBOARDING_SEED_ADAPTER_TYPE;
+        delete process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE;
       } else {
-        process.env.PAPERCLIP_ONBOARDING_SEED_ADAPTER_TYPE = previous;
+        process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE = previous;
       }
     }
   });
@@ -340,13 +340,13 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
   it("never reads the seed from a trusted Cloud header", async () => {
     const { companyId, app } = await seedCompany();
 
-    // The `x-paperclip-cloud-*` set is the trusted identity channel, derived
+    // The `x-clayon-cloud-*` set is the trusted identity channel, derived
     // server-side. A mission planted there must be ignored entirely — only the
     // body is read.
     const response = await request(app)
       .post(`/api/companies/${companyId}/onboarding-seed`)
-      .set("x-paperclip-cloud-mission", "Header-supplied mission")
-      .set("x-paperclip-cloud-paperclip-company-name", "Header-supplied mission")
+      .set("x-clayon-cloud-mission", "Header-supplied mission")
+      .set("x-clayon-cloud-clayon-company-name", "Header-supplied mission")
       .send({ revision: "f".repeat(32), mission: "Body-supplied mission" });
 
     expect(response.status).toBe(200);

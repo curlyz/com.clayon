@@ -1,14 +1,14 @@
-import type { AskUserQuestionsAnswer, AskUserQuestionsPayload, PaperclipQuestionSetPayload } from "@paperclipai/shared";
-import { parsePaperclipQuestionResponse, type PaperclipQuestionResponse } from "../vendor/paperclip-runner/index.js";
+import type { AskUserQuestionsAnswer, AskUserQuestionsPayload, ClayonQuestionSetPayload } from "@clayon/shared";
+import { parseClayonQuestionResponse, type ClayonQuestionResponse } from "../vendor/clayon-runner/index.js";
 import { validateQuestionPatterns } from "./question-pattern-validation.js";
 
 function prepareQuestionInteractionAnswers(
-  questionSet: PaperclipQuestionSetPayload,
+  questionSet: ClayonQuestionSetPayload,
   answers: readonly AskUserQuestionsAnswer[],
   storageQuestions: AskUserQuestionsPayload["questions"],
 ) {
   const answerByQuestionId = new Map(answers.map((answer) => [answer.questionId, answer]));
-  const response: PaperclipQuestionResponse = {
+  const response: ClayonQuestionResponse = {
     schema: "paperclip.question_response.v1",
     answers: {},
   };
@@ -55,7 +55,7 @@ function prepareQuestionInteractionAnswers(
       return { ...question, textValidation };
     }),
   };
-  const parsed = parsePaperclipQuestionResponse(withoutPatterns, response);
+  const parsed = parseClayonQuestionResponse(withoutPatterns, response);
   const checks = answerableQuestionSet.questions.flatMap((question) => {
     const pattern = question.textValidation?.pattern;
     const answer = parsed.answers[question.id];
@@ -67,10 +67,10 @@ function prepareQuestionInteractionAnswers(
 
 /** Validate untrusted answers before persistence, including bounded patterns. */
 export async function parseQuestionInteractionAnswers(
-  questionSet: PaperclipQuestionSetPayload,
+  questionSet: ClayonQuestionSetPayload,
   answers: readonly AskUserQuestionsAnswer[],
   storageQuestions: AskUserQuestionsPayload["questions"],
-): Promise<PaperclipQuestionResponse> {
+): Promise<ClayonQuestionResponse> {
   const { parsed, checks } = prepareQuestionInteractionAnswers(questionSet, answers, storageQuestions);
   await validateQuestionPatterns(checks);
   return parsed;
@@ -78,9 +78,9 @@ export async function parseQuestionInteractionAnswers(
 
 /** Saved answers already passed pattern validation; delivery must not depend on worker capacity. */
 export function parseSavedQuestionInteractionAnswers(
-  questionSet: PaperclipQuestionSetPayload,
+  questionSet: ClayonQuestionSetPayload,
   answers: readonly AskUserQuestionsAnswer[],
   storageQuestions: AskUserQuestionsPayload["questions"],
-): PaperclipQuestionResponse {
+): ClayonQuestionResponse {
   return prepareQuestionInteractionAnswers(questionSet, answers, storageQuestions).parsed;
 }

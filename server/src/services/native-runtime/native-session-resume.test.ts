@@ -22,14 +22,14 @@ import {
   heartbeatRuns,
   issues,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { describe, expect, it, vi } from "vitest";
 import {
   CodexAppServerDriver,
   HarnessDriverBackend,
   createCodexTaskEnvelope,
   createRunnerdCodexTransport as createCapabilityRunnerdCodexTransport,
-} from "@paperclipai/paperclip-runner";
+} from "@clayon/clayon-runner";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -41,7 +41,7 @@ import {
   parseNativeExecutionInput,
   type NativeExecutionInput,
   type NativeSession,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import {
   runnerPrpWebSocketInternals,
   setupRunnerPrpWebSocketServer,
@@ -52,7 +52,7 @@ import {
   retainedNativeCleanupJournalMatches,
 } from "./native-session-executor.js";
 import * as publicationSignals from "../chat-publication-reconciliation.js";
-import { PaperclipControlPlanePort } from "./paperclip-control-plane-port.js";
+import { ClayonControlPlanePort } from "./clayon-control-plane-port.js";
 import {
   LIST_CHAT_ATTACHMENTS_TOOL_DEFINITION,
   REUSE_CHAT_ATTACHMENT_TOOL_DEFINITION,
@@ -480,7 +480,7 @@ it("wires exact-session recovery and guarded selected identity into heartbeat pe
 const embeddedSupport = await getEmbeddedPostgresTestSupport();
 const recoveryFakeCodex = resolve(
   import.meta.dirname,
-  "../../../../packages/paperclip-runner/test/fixtures/fake-final-burst-codex-app-server.mjs",
+  "../../../../packages/clayon-runner/test/fixtures/fake-final-burst-codex-app-server.mjs",
 );
 
 (embeddedSupport.supported && existsSync(defaultCapabilityRunnerdBinary())
@@ -595,7 +595,7 @@ const recoveryFakeCodex = resolve(
       });
       expect(normalized.sourceEventId).toBe(`${runnerInstanceId}:${runId}:1`);
       expect(normalized.payload).not.toHaveProperty("processId");
-      const port = new PaperclipControlPlanePort(db, {
+      const port = new ClayonControlPlanePort(db, {
         companyId,
         issueId,
         agentId,
@@ -731,7 +731,7 @@ const recoveryFakeCodex = resolve(
     const bin = join(scratch, "bin");
     const workspace = join(scratch, "workspace");
     const sourceHome = join(scratch, "source-home");
-    const previousStateBase = process.env.PAPERCLIP_RUNNER_STATE_DIR;
+    const previousStateBase = process.env.CLAYON_RUNNER_STATE_DIR;
     const server = createServer();
     let firstSession: NativeSession | undefined;
     const ownedSessions = new Set<NativeSession>();
@@ -743,7 +743,7 @@ const recoveryFakeCodex = resolve(
       runnerDiagnostics.push(chunk.slice(-4_096));
       if (runnerDiagnostics.length > 32) runnerDiagnostics.shift();
     };
-    process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+    process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
     try {
       await Promise.all(
         [bin, workspace, sourceHome].map((path) =>
@@ -912,7 +912,7 @@ const recoveryFakeCodex = resolve(
         },
       };
       const envelope = {
-        protocol: "paperclip.runner",
+        protocol: "clayon.runner",
         version: 1,
         kind: "event",
         runnerInstanceId: runner.runnerInstanceId,
@@ -1019,7 +1019,7 @@ const recoveryFakeCodex = resolve(
       });
       let continuity: Record<string, unknown> | undefined;
       const controlPlaneInstanceId = randomUUID();
-      const port = new PaperclipControlPlanePort(db, {
+      const port = new ClayonControlPlanePort(db, {
         companyId,
         issueId,
         runId: currentRunId,
@@ -1231,8 +1231,8 @@ const recoveryFakeCodex = resolve(
       server.closeAllConnections();
       await new Promise<void>((done) => server.close(() => done()));
       if (previousStateBase === undefined)
-        delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      else process.env.PAPERCLIP_RUNNER_STATE_DIR = previousStateBase;
+        delete process.env.CLAYON_RUNNER_STATE_DIR;
+      else process.env.CLAYON_RUNNER_STATE_DIR = previousStateBase;
       await database.cleanup();
       if (closeFailures.length) {
         // Retain exact fixture state if owned retirement cannot be proven.
@@ -1249,7 +1249,7 @@ const recoveryFakeCodex = resolve(
   () => {
     it("uses scoped latest checkpoints, preserves progress barriers, and guards bootstrap persistence after the row lock", async () => {
       const database = await startEmbeddedPostgresTestDatabase(
-        "paperclip-native-resume-selection-",
+        "clayon-native-resume-selection-",
       );
       const db = createDb(database.connectionString);
       try {
@@ -1825,7 +1825,7 @@ describe("rebindNativeSessionCheckpoint", () => {
       );
       expect(result.execution.task.prompt).toContain("Full task instructions");
       expect(result.execution.task.prompt).not.toContain(
-        "Paperclip Resume Delta",
+        "Clayon Resume Delta",
       );
       expect(result.execution.task.prompt).not.toContain("Compact context");
     },
@@ -1896,7 +1896,7 @@ describe("rebindNativeSessionCheckpoint", () => {
           task: {
             ...current.task,
             prompt: options.resumedSession
-              ? "Paperclip Resume Delta"
+              ? "Clayon Resume Delta"
               : "Full task instructions",
           },
         };
@@ -1941,7 +1941,7 @@ describe("rebindNativeSessionCheckpoint", () => {
         "sha256:b64efcd063a575925aa95dbd2a20953386eaa760f05b0e0e73b4ae04a97679b0",
     },
   ])(
-    "refreshes retained $contract without changing the Paperclip task or prior history",
+    "refreshes retained $contract without changing the Clayon task or prior history",
     ({ retainedFingerprint }) => {
       expect(NATIVE_TOOL_CONTRACT_FINGERPRINT).not.toBe(retainedFingerprint);
       const prior = previousRun({
@@ -1964,8 +1964,8 @@ describe("rebindNativeSessionCheckpoint", () => {
             task: {
               ...current.task,
               prompt: options.resumedSession
-                ? "Paperclip Resume Delta"
-                : "Full context for the same Paperclip task",
+                ? "Clayon Resume Delta"
+                : "Full context for the same Clayon task",
             },
           };
         },
@@ -1983,9 +1983,9 @@ describe("rebindNativeSessionCheckpoint", () => {
         execution(currentRunId).workspace,
       );
       expect(result.execution.task.prompt).toBe(
-        "Full context for the same Paperclip task",
+        "Full context for the same Clayon task",
       );
-      // No deletion/reset of the existing provider checkpoint or Paperclip history.
+      // No deletion/reset of the existing provider checkpoint or Clayon history.
       expect(prior).toEqual(priorSnapshot);
       expect(prior.runnerProfileJson.sessionCheckpoint.sessionId).toBe(
         "provider-thread-123",
@@ -2457,7 +2457,7 @@ describe("buildNativeExecutionInput wake projection", () => {
         workMode: "standard",
       },
       taskPrompt: [
-        "Paperclip task context:",
+        "Clayon task context:",
         `- Title: ${JSON.stringify(staleRootTitle)}`,
         "Latest wake comment:",
         "```text",
@@ -2619,7 +2619,7 @@ describe("buildNativeExecutionInput wake projection", () => {
           "arn:aws:bedrock-agentcore:us-east-1:123456789012:memory/m-1",
         memoryId: "m-1",
         invocationRoleArn: "arn:aws:iam::123456789012:role/invoke",
-        contextBucket: "paperclip-context",
+        contextBucket: "clayon-context",
         contextPrefix: "runner/",
         contextKmsKeyArn: "arn:aws:kms:us-east-1:123456789012:key/key-1",
         qualificationRevision: "aws-agentcore-harness-context-v2",
@@ -2687,7 +2687,7 @@ describe("buildNativeExecutionInput wake projection", () => {
     expect(
       JSON.stringify([codex, opencode, claudeManaged, agentCore, acpx]),
     ).not.toMatch(
-      /OPENAI_API_KEY|ANTHROPIC_API_KEY|AWS_SECRET_ACCESS_KEY|PAPERCLIP_API_KEY/,
+      /OPENAI_API_KEY|ANTHROPIC_API_KEY|AWS_SECRET_ACCESS_KEY|CLAYON_API_KEY/,
     );
   });
 
@@ -2702,7 +2702,7 @@ describe("buildNativeExecutionInput wake projection", () => {
         description: "Use the child result.",
         workMode: "standard",
       },
-      taskPrompt: "Paperclip task context:\n- Issue: DOT-146",
+      taskPrompt: "Clayon task context:\n- Issue: DOT-146",
       wakePayload: {
         reason: "issue_children_completed",
         issue: {
@@ -2757,14 +2757,14 @@ describe("buildNativeExecutionInput wake projection", () => {
     expect(input.task.prompt).not.toContain("Execution contract:");
     expect(input.task.prompt).not.toContain("Use child issues");
     // Full bootstrap stays available if provider recovery fails after admission.
-    expect(input.task.prompt).toContain("## Paperclip Wake Payload");
+    expect(input.task.prompt).toContain("## Clayon Wake Payload");
     expect(input.task.prompt).toContain("reason: issue_children_completed");
     expect(input.task.prompt).toContain("DOT-147 Build utility (done)");
     expect(input.task.prompt).toContain(
       "Created three files and passed 7/7 tests.",
     );
     expect(input.task.prompt).toContain(
-      "Paperclip task context:\n- Issue: DOT-146",
+      "Clayon task context:\n- Issue: DOT-146",
     );
     expect(input.task.prompt).not.toContain("Use the child result.");
   });

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DECISION_MODELS, type DecisionConnectionChoice, type DecisionModelSettings, type DecisionProvider, type DecisionResult, type UpdateDecisionModel } from "@paperclipai/shared";
+import { DECISION_MODELS, type DecisionConnectionChoice, type DecisionModelSettings, type DecisionProvider, type DecisionResult, type UpdateDecisionModel } from "@clayon/shared";
 import { Link } from "@/lib/router";
 import { decisionModelsApi } from "@/api/decision-models";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave } from "@/hooks/useAutosave";
 import { ToggleField } from "@/components/agent-config-primitives";
 import { ConnectionChoiceList } from "@/features/connections/ConnectionChoiceList";
 import { ConnectionSetupFlow } from "@/features/connections/ConnectionSetupFlow";
@@ -21,10 +23,10 @@ const failureMessages: Record<string, string> = {
   timeout: "The provider did not respond in time. Billing is unresolved; review Costs.",
   refused: "The model declined the test. Review the connection and try again.",
 };
-export function DecisionModelSettingsView({ settings, choices, saving, testing, error, result, newlyConnectedId, onSave, onTest, onAdd }: {
-  settings: DecisionModelSettings; choices: DecisionConnectionChoice[]; saving?: boolean; testing?: boolean;
+export function DecisionModelSettingsView({ settings, choices, testing, error, result, newlyConnectedId, onSave, onTest, onAdd }: {
+  settings: DecisionModelSettings; choices: DecisionConnectionChoice[]; testing?: boolean;
   error?: string | null; result?: DecisionResult | null; newlyConnectedId?: string | null;
-  onSave: (value: UpdateDecisionModel) => void; onTest: () => void; onAdd: () => void;
+  onSave: (value: UpdateDecisionModel) => unknown; onTest: () => void; onAdd: () => void;
 }) {
   const [draft, setDraft] = useState<Required<UpdateDecisionModel>>(settings);
   const appliedConnection = useRef<string | null>(null);
@@ -39,14 +41,25 @@ export function DecisionModelSettingsView({ settings, choices, saving, testing, 
     }
   }, [newlyConnectedId, choices]);
   const selected = choices.find(row => row.grantId === draft.grantId);
-  const dirty = draft.enabled !== settings.enabled || draft.allowBackground !== settings.allowBackground || draft.grantId !== settings.grantId;
+  const autosave = useAutosave({
+    value: { connectionId: draft.connectionId, grantId: draft.grantId, enabled: draft.enabled, allowBackground: draft.allowBackground },
+    savedValue: { connectionId: settings.connectionId, grantId: settings.grantId, enabled: settings.enabled, allowBackground: settings.allowBackground },
+    isEqual: (a, b) => a.connectionId === b.connectionId && a.grantId === b.grantId && a.enabled === b.enabled && a.allowBackground === b.allowBackground,
+    debounceMs: 0,
+    save: (value) => Promise.resolve(onSave(value)),
+  });
+  const pending = autosave.isDirty || autosave.status === "saving";
+  const saving = autosave.status === "saving";
   const unavailable = result && result.status !== "succeeded" ? failureMessages[result.status === "unavailable" ? result.reason : result.errorCode] ?? "The decision could not be completed. Review its entry in Costs." : null;
   return <section aria-labelledby="decision-model-heading" className="max-w-2xl space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 id="decision-model-heading" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Decision model</h2>
+      <div className="flex items-center gap-3">
+        <h2 id="decision-model-heading" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Decision model</h2>
+        <SaveStatus status={autosave.status} errorMessage={autosave.errorMessage} onRetry={autosave.retry} />
+      </div>
       <Link to="/activity/costs?tab=decisions" className="text-sm underline underline-offset-4">View usage</Link>
     </div>
-    <p className="text-sm text-muted-foreground">Choose the shared connection Paperclip uses for optional decision features. API usage is charged to this connection.</p>
+    <p className="text-sm text-muted-foreground">Choose the shared connection Clayon uses for optional decision features. API usage is charged to this connection.</p>
     <ConnectionChoiceList selectedId={draft.grantId ?? undefined} disabled={saving || testing}
       choices={choices.map(row => ({ id: row.grantId, name: row.name,
         description: `${row.decisionModel} · ${row.status === "connected" ? "Connected" : "Needs attention"}`,
@@ -63,12 +76,12 @@ export function DecisionModelSettingsView({ settings, choices, saving, testing, 
       <ToggleField label="Enable decisions" checked={draft.enabled} onChange={enabled => setDraft(value => ({ ...value, enabled }))} />
       <div className="space-y-2">
         <ToggleField label="Allow company-sponsored background decisions" checked={draft.allowBackground} onChange={allowBackground => setDraft(value => ({ ...value, allowBackground }))} />
-        <p className="text-xs text-muted-foreground">Background features can charge this connection without a responsible person. These requests appear as Paperclip services.</p>
+        <p className="text-xs text-muted-foreground">Background features can charge this connection without a responsible person. These requests appear as Clayon services.</p>
       </div>
     </fieldset>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    {!dirty && unavailable && <p role="alert" className="text-sm text-destructive">{unavailable}</p>}
-    {!dirty && result?.status === "succeeded" && <div role="status" className="space-y-2 text-sm">
+    {!pending && unavailable && <p role="alert" className="text-sm text-destructive">{unavailable}</p>}
+    {!pending && result?.status === "succeeded" && <div role="status" className="space-y-2 text-sm">
       <p className="font-medium">Decision model is working</p>
       <dl className="grid grid-cols-2 gap-2">{Object.entries(result.answers).map(([name, answer]) => <div key={name}>
         <dt className="text-muted-foreground">{name === "billing" ? "Billing problem" : name === "team" ? "Assigned team" : "Disruption score"}</dt>
@@ -78,10 +91,9 @@ export function DecisionModelSettingsView({ settings, choices, saving, testing, 
     </div>}
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="space-y-1">
-        <Button variant="outline" size="sm" disabled={!settings.enabled || dirty || saving || testing || selected?.status !== "connected"} onClick={onTest}>{testing ? "Running test…" : "Run test"}</Button>
-        <p className="text-xs text-muted-foreground">{dirty ? "Save changes before testing." : "Runs a small sample with an API charge."}</p>
+        <Button variant="outline" size="sm" disabled={!draft.enabled || pending || testing || selected?.status !== "connected"} onClick={onTest}>{testing ? "Running test…" : "Run test"}</Button>
+        <p className="text-xs text-muted-foreground">{pending ? "Saving changes…" : "Runs a small sample with an API charge."}</p>
       </div>
-      {dirty && <Button onClick={() => onSave(draft)} disabled={saving || testing || (draft.enabled && selected?.status !== "connected")}>{saving ? "Saving…" : "Save decision model"}</Button>}
     </div>
   </section>;
 }
@@ -104,10 +116,10 @@ export function DecisionModelSettingsSection({ companyId }: { companyId: string 
   if (query.error) return <div role="alert" className="space-y-2"><p className="text-sm text-destructive">Could not load decision settings.</p><Button variant="outline" onClick={() => void query.refetch()}>Try again</Button></div>;
   if (!query.data?.canManage || !query.data.settings) return null;
   return <>
-    <DecisionModelSettingsView settings={query.data.settings} choices={query.data.choices} saving={save.isPending} testing={test.isPending}
-      error={save.error?.message ?? (test.variables === settingsRevision ? test.error?.message : undefined)}
+    <DecisionModelSettingsView settings={query.data.settings} choices={query.data.choices} testing={test.isPending}
+      error={test.variables === settingsRevision ? test.error?.message : undefined}
       result={test.variables === settingsRevision ? test.data : null} newlyConnectedId={newlyConnectedId}
-      onSave={value => save.mutate(value)} onTest={() => test.mutate(settingsRevision)} onAdd={() => { setProvider(null); setAdding(true); }} />
+      onSave={value => save.mutateAsync(value)} onTest={() => test.mutate(settingsRevision)} onAdd={() => { setProvider(null); setAdding(true); }} />
     <Dialog open={adding} onOpenChange={setAdding}>
       <DialogContent className="sm:max-w-2xl max-h-(--sz-85vh) overflow-y-auto">
         <DialogHeader><DialogTitle>Add a decision connection</DialogTitle><DialogDescription>Use a shared API connection for company decisions.</DialogDescription></DialogHeader>

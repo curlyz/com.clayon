@@ -15,8 +15,8 @@ import type {
   IssueTreeControlPreview,
   IssueTreeHold,
   IssueWorkProduct,
-} from "@paperclipai/shared";
-import { ONBOARDING_FIRST_TASK_ORIGIN_KIND } from "@paperclipai/shared";
+} from "@clayon/shared";
+import { ONBOARDING_FIRST_TASK_ORIGIN_KIND } from "@clayon/shared";
 import type {
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
@@ -251,7 +251,7 @@ vi.mock("../context/CompanyContext", () => ({
     companies: [
       {
         id: "company-1",
-        name: "Paperclip",
+        name: "Clayon",
         issuePrefix: "PAP",
         status: "active",
       },
@@ -259,7 +259,7 @@ vi.mock("../context/CompanyContext", () => ({
     selectedCompanyId: "company-1",
     selectedCompany: {
       id: "company-1",
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix: "PAP",
       status: "active",
     },
@@ -907,7 +907,7 @@ function createArtifactWorkProduct(
     executionWorkspaceId: null,
     runtimeServiceId: null,
     type: "artifact",
-    provider: "paperclip",
+    provider: "clayon",
     externalId: null,
     title: overrides.title ?? originalFilename,
     url: null,
@@ -2474,7 +2474,7 @@ describe("IssueDetail", () => {
     const createdFrom: Issue["createdFrom"] = {
       issue: { id: "origin-task", identifier: "PAP-168", title: "Origin task", status: "in_progress" },
       run: { id: "run-1", agentId: "qa-agent" },
-      agent: { id: "qa-agent", name: "Paperclip QA" },
+      agent: { id: "qa-agent", name: "Clayon QA" },
     };
     const source = createIssue({ ancestors, createdFrom });
     const child = createIssue({ id: "manual-child", parentId: source.id, title: "Manual child" });
@@ -5509,7 +5509,7 @@ describe("IssueDetail", () => {
       },
     ]);
     localStorage.setItem(
-      "paperclip:issue-comment-draft:issue-1",
+      "clayon:issue-comment-draft:issue-1",
       "Draft follow-up message",
     );
     mockIssuesApi.update.mockResolvedValue(
@@ -5539,10 +5539,10 @@ describe("IssueDetail", () => {
     expect(mockIssuesApi.update).toHaveBeenCalledWith(issue.identifier, {
       workMode: "ask",
     });
-    expect(localStorage.getItem("paperclip:issue-comment-draft:issue-1")).toBe(
+    expect(localStorage.getItem("clayon:issue-comment-draft:issue-1")).toBe(
       "Draft follow-up message",
     );
-    localStorage.removeItem("paperclip:issue-comment-draft:issue-1");
+    localStorage.removeItem("clayon:issue-comment-draft:issue-1");
   });
 
   describe.each([false, true])("composer tree control (mobile=%s)", (isMobile) => {
@@ -5915,7 +5915,7 @@ describe("IssueDetail", () => {
     });
   });
 
-  it("keeps the authoritative Paperclip queue mounted after handoff promotion", async () => {
+  it("keeps the authoritative Clayon queue mounted after handoff promotion", async () => {
     mockIssuesApi.get.mockResolvedValue(
       createIssue({
         status: "in_progress",

@@ -4,8 +4,21 @@ import type {
   CompanySkillDetail,
   CompanySkillFileDetail,
   CompanySkillVersion,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { SkillDetailPage } from "@/pages/CompanySkills";
+import type { AutosaveController } from "@/hooks/useAutosave";
+
+/** Idle autosave controller stub for the story harness. */
+function stubAutosave(): AutosaveController {
+  return {
+    status: "idle",
+    isDirty: false,
+    errorMessage: null,
+    flush: () => {},
+    retry: () => {},
+    reset: () => {},
+  };
+}
 
 type DetailTab = "overview" | "files" | "versions" | "agents";
 
@@ -159,8 +172,7 @@ function SkillDetailHarness({ initialTab = "overview" as DetailTab }: { initialT
       setViewMode={setViewMode}
       setEditMode={setEditMode}
       setDraft={setDraft}
-      onSave={() => {}}
-      savePending={false}
+      autosave={stubAutosave()}
       versions={MOCK_VERSIONS}
       versionsLoading={false}
       attachAgents={MOCK_ATTACH_AGENTS}

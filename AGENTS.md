@@ -4,14 +4,14 @@ Guidance for human and AI contributors working in this repository.
 
 ## 1. Purpose
 
-Paperclip is a control plane for AI-agent companies.
+Clayon is a control plane for AI-agent companies.
 The current implementation target is V1 and is defined in `doc/SPEC-implementation.md`.
 
-**Production runs on the antl VPS (2026-10-10):** Dokploy stack `paperclip`
+**Production runs on the antl VPS (2026-10-10):** Dokploy stack `clayon`
 (project `server`, composeId `CSdiym07Up7Q1AjvEop7j`) on `contabo-eu-vps6`,
-live at https://paperclip.curly.ng with its own Postgres 17 service.
+live at https://clayon.curly.ng with its own Postgres 17 service.
 Runbook, compose file and bootstrap gotchas:
-[`servers/contabo-eu-vps6/README.md`](../servers/contabo-eu-vps6/README.md) § Paperclip.
+[`servers/contabo-eu-vps6/README.md`](../servers/contabo-eu-vps6/README.md) § Clayon.
 Deploy through Dokploy (panel or authenticated API) — never SSH into the host.
 
 ## 2. Read This First
@@ -42,10 +42,10 @@ submission.
 - `packages/adapters/`: agent adapter implementations (Claude, Codex, Cursor, etc.)
 - `packages/adapter-utils/`: shared adapter utilities
 - `packages/plugins/`: plugin system packages
-- `packages/skills-catalog/`: app-shipped skills catalog (`@paperclipai/skills-catalog`)
-- `packages/teams-catalog/`: app-shipped teams catalog (`@paperclipai/teams-catalog`)
-- `cli/`: `paperclipai` CLI package (published bin, agent-facing commands)
-- `skills/`: Paperclip runtime/operational skills (not part of the app catalog)
+- `packages/skills-catalog/`: app-shipped skills catalog (`@clayon/skills-catalog`)
+- `packages/teams-catalog/`: app-shipped teams catalog (`@clayon/teams-catalog`)
+- `cli/`: `clayon` CLI package (published bin, agent-facing commands)
+- `skills/`: Clayon runtime/operational skills (not part of the app catalog)
 - `doc/`: operational and product docs
 
 ## 4. Dev Setup (Auto DB)
@@ -76,6 +76,21 @@ rm -rf data/pglite
 pnpm dev
 ```
 
+### Dev UI against the production backend (operator, 2026-10-11)
+
+"Dev clayon" is the working-tree UI served by Vite on **http://localhost:10000**
+with `/api` proxied to the production backend `https://clayon.curly.ng`.
+No local server, database or native runner build runs.
+
+```sh
+pnpm --dir ui dev:remote   # from com.clayon; strict port 10000
+```
+
+- The proxy lives in `ui/src/lib/vite-api-proxy.ts` (`createRemoteApiProxy`) and is chosen in `ui/vite.config.ts` when `CLAYON_DEV_API_TARGET` is set. It sends the production origin upstream (the server's origin guard expects it) and strips the cookie `Domain` so the session sticks to localhost.
+- Sign in through the dev UI at `localhost:10000`; Chrome accepts the `Secure` session cookie on localhost.
+- **Writes hit production data.** Autosave saves within a second, so edits in the dev UI change the real company.
+- A port above 65535 does not exist: the operator's "100000" was taken as 10000.
+
 ## 5. Core Engineering Rules
 
 1. Keep changes company-scoped.
@@ -104,23 +119,24 @@ If you change schema/API behavior, update all impacted layers:
 Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
 
 5. Keep repo plan docs dated and centralized.
-When you are creating a plan file in the repository itself, new plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames. This does not replace Paperclip issue planning: if a Paperclip issue asks for a plan, update the issue `plan` document per the `paperclip` skill instead of creating a repo markdown file.
+When you are creating a plan file in the repository itself, new plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames. This does not replace Clayon issue planning: if a Clayon issue asks for a plan, update the issue `plan` document per the `clayon` skill instead of creating a repo markdown file.
 
 6. Attach inspectable generated artifacts.
-When your task produces a user-inspectable deliverable file, follow the Paperclip skill's "Generated Artifacts and Work Products" workflow before final disposition. In this repo, prefer the self-contained skill helper at `skills/paperclip/scripts/paperclip-upload-artifact.sh` so the file is available through the Paperclip API, create/update an artifact work product when the file is the deliverable, link the uploaded artifact in the final issue comment, and then set status. Do not rely on local filesystem paths as the only access path. If an important file intentionally remains workspace-only, create/update a work product with `metadata.resourceRef.kind: "workspace_file"` and a workspace-relative path, then name that work product and path in the final comment. Treat browse/search as a fallback for recovering workspace files, not the preferred deliverable path. See `doc/AGENT-ARTIFACTS.md` for details and `.mp4`/`.webm` examples.
+When your task produces a user-inspectable deliverable file, follow the Clayon skill's "Generated Artifacts and Work Products" workflow before final disposition. In this repo, prefer the self-contained skill helper at `skills/clayon/scripts/clayon-upload-artifact.sh` so the file is available through the Clayon API, create/update an artifact work product when the file is the deliverable, link the uploaded artifact in the final issue comment, and then set status. Do not rely on local filesystem paths as the only access path. If an important file intentionally remains workspace-only, create/update a work product with `metadata.resourceRef.kind: "workspace_file"` and a workspace-relative path, then name that work product and path in the final comment. Treat browse/search as a fallback for recovering workspace files, not the preferred deliverable path. See `doc/AGENT-ARTIFACTS.md` for details and `.mp4`/`.webm` examples.
 
 7. Name the three data paths correctly.
 This repo has three separate data paths. Do not confuse them. Match a change to a path by its file path, not by the word "observability" or "telemetry" alone.
 
-- **Telemetry** is the Paperclip first-party event system. It is opt-out and it sends data to a Paperclip endpoint by default. Its paths are:
+- **Telemetry** is the Clayon first-party event system. It is opt-out and it sends data to a Clayon endpoint by default. Its paths are:
   - `packages/shared/src/telemetry/`
-  - the generated contract `packages/shared/src/telemetry/generated/paperclip-telemetry.ts`
+  - the generated contract `packages/shared/src/telemetry/generated/clayon-telemetry.ts`
   - each caller of `packages/shared/src/telemetry/events.ts` or `packages/shared/src/telemetry/client.ts`
 - **Observability** is the OpenTelemetry trace path. An operator must set an OTLP endpoint. Until an operator sets the endpoint, the tracer is a no-operation. Its paths are:
   - `server/src/instrumentation.ts`
   - `doc/observability.md`
   - `packages/adapter-utils/src/duplex-observability.ts`
   - `server/src/services/duplex-observability-recorder.ts`
+  - `server/src/services/issue-read-timing.ts`
   - the span attributes in `packages/adapter-utils/src/acpx-engine/startup-timing.ts`
 - **The run log** holds rows in the local `heartbeat_run_events` table. The data stays in the instance database. Its paths are:
   - `doc/run-log-events.md`
@@ -129,7 +145,7 @@ This repo has three separate data paths. Do not confuse them. Match a change to 
 
 Apply a review level that matches the path:
 
-- **Telemetry change (strict review).** The author updates the generated contract first. The author updates `packages/shared/src/telemetry/README.md` in the same pull request. The author requests a privacy review. Reason: a Telemetry event goes to a Paperclip endpoint by default, so a mistake sends data immediately.
+- **Telemetry change (strict review).** The author updates the generated contract first. The author updates `packages/shared/src/telemetry/README.md` in the same pull request. The author requests a privacy review. Reason: a Telemetry event goes to a Clayon endpoint by default, so a mistake sends data immediately.
 - **Observability change (lighter review).** The operator endpoint gate stays in place. The no-operation behaviour stays when no endpoint is set. A privacy review is not necessary while the change stays inside the closed span-attribute allowlist.
 - **Run-log change (no extra review).** A run-log change needs neither review level above, because the data stays in the instance database.
 

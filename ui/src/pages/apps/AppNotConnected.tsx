@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { ToolConnection } from "@paperclipai/shared";
-import { isConnectableAppSlug } from "@paperclipai/shared";
+import type { ToolConnection } from "@clayon/shared";
+import { isConnectableAppSlug } from "@clayon/shared";
 import { Navigate, useNavigate, useParams } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -19,6 +19,7 @@ import {
   type AppGalleryDisplayEntry,
 } from "./app-definition-display";
 import { connectionAddress } from "./AppDetail";
+import { AppDetailPageTabs } from "@/components/AppDetailPageTabs";
 import { ReviewPanel } from "./app-detail/ReviewPanel";
 import { appApplicationTabHref, appTabHref, appTabLabel, isAppTabKey, type AppTabKey } from "./app-tabs";
 
@@ -172,6 +173,8 @@ export function AppNotConnected() {
         darkLogoUrl={darkLogoUrl}
         connectedCount={activeConnections.length}
       />
+
+      <AppDetailPageTabs applicationId={applicationId} />
 
       <ConnectionCallout
         applicationName={application.name}

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { bootstrapReadExecutionId, withoutProvenBootstrapReads, type BootstrapReadNotice } from "./native-bootstrap-read-proof.js";
-const actionFile = `.paperclip-eval-action-${"a".repeat(36)}.txt`;
+const actionFile = `.clayon-eval-action-${"a".repeat(36)}.txt`;
 const origin: BootstrapReadNotice = { runId: "run", sessionId: "session", turnId: "turn", toolCallId: "tested", stage: "tool", operation: "execute", status: "pending", seq: 20 };
 function read(status = "completed", seq = 1): BootstrapReadNotice { return { ...origin, toolCallId: "bootstrap", operation: "read", readTargetSha256: `sha256:${createHash("sha256").update(actionFile).digest("hex")}`, status, seq }; }
 function receipt(type = "completed", status = "completed", seq = 2) {
@@ -82,8 +82,8 @@ it("accepts omitted terminal path/kind only with the retained single-path origin
 });
 
 it.each(["cursor", "copilot"] as const)("correlates actual %s passive notices through the public reader and canonical omitted-field updates", async provider => {
-  const { createCursorToolEvidence } = await import("../../packages/paperclip-runner/src/drivers/acpx/cursor-tool-evidence.js");
-  const { createCopilotToolEvidence } = await import("../../packages/paperclip-runner/src/drivers/acpx/copilot-tool-evidence.js");
+  const { createCursorToolEvidence } = await import("../../packages/clayon-runner/src/drivers/acpx/cursor-tool-evidence.js");
+  const { createCopilotToolEvidence } = await import("../../packages/clayon-runner/src/drivers/acpx/copilot-tool-evidence.js");
   const { readCursorToolEvidence } = await import("./cursor-native-evidence.js");
   const { readCopilotToolEvidence } = await import("./copilot-evidence.js");
   const create = provider === "cursor" ? createCursorToolEvidence : createCopilotToolEvidence;

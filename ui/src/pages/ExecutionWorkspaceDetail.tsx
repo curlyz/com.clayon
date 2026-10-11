@@ -2,7 +2,7 @@ import { useWorkspaceIsolationControls } from "@/hooks/useWorkspaceIsolationCont
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ExecutionWorkspace, Issue, Project, ProjectWorkspace, RoutineListItem, WorkspaceOperation } from "@paperclipai/shared";
+import type { ExecutionWorkspace, Issue, Project, ProjectWorkspace, RoutineListItem, WorkspaceOperation } from "@clayon/shared";
 import { Copy, ExternalLink, Loader2, Play, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardAction } from "@/components/ui/card";
@@ -36,6 +36,8 @@ import {
   type WorkspaceRuntimeControlRequest,
 } from "../components/WorkspaceRuntimeControls";
 import { WorkspaceServiceControlBar } from "../components/WorkspaceServiceControlBar";
+import { SaveStatus } from "@/components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "@/hooks/useAutosave";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useCompany } from "../context/CompanyContext";
 import { useManagedSandboxOnly } from "../hooks/useManagedSandboxOnly";
@@ -122,7 +124,7 @@ function executionWorkspaceTabPath(workspaceId: string, tab: ExecutionWorkspaceB
 function LegacyWorkspaceTabRedirect({ workspaceId }: { workspaceId: string }) {
   useEffect(() => {
     try {
-      localStorage.removeItem(`paperclip:execution-workspace-tab:${workspaceId}`);
+      localStorage.removeItem(`clayon:execution-workspace-tab:${workspaceId}`);
     } catch {}
   }, [workspaceId]);
 
@@ -584,7 +586,7 @@ function ExecutionWorkspaceIssuesList({
       projects={projectOptions}
       liveIssueIds={liveIssueIds}
       projectId={project?.id}
-      viewStateKey="paperclip:execution-workspace-issues-view"
+      viewStateKey="clayon:execution-workspace-issues-view"
       baseCreateIssueDefaults={createIssueDefaults}
       onUpdateIssue={(id, data) => updateIssue.mutate({ id, data })}
     />
@@ -695,7 +697,7 @@ function ExecutionWorkspaceRoutinesList({
       ]);
       pushToast({
         title: "Routine started",
-        body: "Paperclip created a run using this execution workspace.",
+        body: "Clayon created a run using this execution workspace.",
         tone: "success",
       });
     },
@@ -705,7 +707,7 @@ function ExecutionWorkspaceRoutinesList({
     onError: (mutationError) => {
       pushToast({
         title: "Routine run failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not start the routine run.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not start the routine run.",
         tone: "error",
       });
     },
@@ -888,7 +890,6 @@ export function ExecutionWorkspaceDetail() {
   );
 
   const initialState = useMemo(() => (workspace ? formStateFromWorkspace(workspace) : null), [workspace]);
-  const isDirty = Boolean(form && initialState && JSON.stringify(form) !== JSON.stringify(initialState));
   const projectRef = project ? projectRouteRef(project) : workspace?.projectId ?? "";
 
   useEffect(() => {
@@ -915,9 +916,22 @@ export function ExecutionWorkspaceDetail() {
     setBreadcrumbs(crumbs);
   }, [setBreadcrumbs, workspace, project, projectRef]);
 
-  const updateWorkspace = useMutation({
-    mutationFn: (patch: Record<string, unknown>) => executionWorkspacesApi.update(workspace!.id, patch),
-    onSuccess: (nextWorkspace) => {
+  // Autosave: a valid draft persists on its own; an invalid one is not
+  // saveable (matching the old disabled Save button). buildWorkspacePatch
+  // throwing (bad runtime JSON) surfaces as the inline error + Retry.
+  const workspaceAutosave = useAutosave({
+    value: form,
+    savedValue: initialState,
+    isEqual: (draft, saved) =>
+      draft === null ||
+      saved === null ||
+      validateForm(draft) !== null ||
+      autosaveJsonEqual(draft, saved),
+    save: async (draft) => {
+      if (!workspace || !initialState || draft === null) return;
+      const patch = buildWorkspacePatch(initialState, draft);
+      if (Object.keys(patch).length === 0) return;
+      const nextWorkspace = await executionWorkspacesApi.update(workspace.id, patch);
       queryClient.setQueryData(queryKeys.executionWorkspaces.detail(nextWorkspace.id), nextWorkspace);
       queryClient.invalidateQueries({ queryKey: queryKeys.executionWorkspaces.closeReadiness(nextWorkspace.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.executionWorkspaces.workspaceOperations(nextWorkspace.id) });
@@ -929,9 +943,6 @@ export function ExecutionWorkspaceDetail() {
         queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(sourceIssue.id) });
       }
       setErrorMessage(null);
-    },
-    onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save execution workspace.");
     },
   });
   const workspaceOperationsQuery = useQuery({
@@ -1028,25 +1039,6 @@ export function ExecutionWorkspaceDetail() {
     navigate(executionWorkspaceTabPath(workspace.id, tab));
   };
 
-  const saveChanges = () => {
-    const validationError = validateForm(form);
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
-
-    let patch: Record<string, unknown>;
-    try {
-      patch = buildWorkspacePatch(initialState, form);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to build workspace update.");
-      return;
-    }
-
-    if (Object.keys(patch).length === 0) return;
-    updateWorkspace.mutate(patch);
-  };
-
   const runRuntimeControlRequests = (requests: WorkspaceRuntimeControlRequest[]) => {
     if (requests.length === 0) return;
     setPendingRuntimeActions((current) => [...current, ...requests]);
@@ -1119,7 +1111,7 @@ export function ExecutionWorkspaceDetail() {
               <CardHeader>
                 <CardTitle>Workspace settings</CardTitle>
                 <CardDescription>
-                  Edit the concrete path, repo, branch, provisioning, teardown, and runtime overrides attached to this execution workspace. Saved changes affect future runs; Paperclip may refresh or replace a reused workspace when config changes.
+                  Edit the concrete path, repo, branch, provisioning, teardown, and runtime overrides attached to this execution workspace. Saved changes affect future runs; Clayon may refresh or replace a reused workspace when config changes.
                 </CardDescription>
                 <CardAction>
                   <Button
@@ -1228,7 +1220,7 @@ export function ExecutionWorkspaceDetail() {
                   <>
                     <div className="space-y-4">
                       <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Lifecycle commands</div>
-                      <Field label="Provision command" hint="Runs when Paperclip prepares this execution workspace">
+                      <Field label="Provision command" hint="Runs when Clayon prepares this execution workspace">
                         <Textarea
                           className="min-h-20 font-mono"
                           value={form.provisionCommand}
@@ -1388,33 +1380,20 @@ export function ExecutionWorkspaceDetail() {
                         </div>
                       ) : null}
                       <p className="text-sm text-muted-foreground">
-                        Paperclip checks fixed ports again when a service starts and rejects cross-workspace conflicts.
+                        Clayon checks fixed ports again when a service starts and rejects cross-workspace conflicts.
                       </p>
                     </div>
                   ) : null}
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
-                  {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Save changes
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                  disabled={!isDirty || updateWorkspace.isPending}
-                  onClick={() => {
-                    setForm(initialState);
-                    setErrorMessage(null);
-                    setRuntimeActionErrorMessage(null);
-                    setRuntimeActionMessage(null);
-                  }}
-                >
-                  Reset
-                </Button>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <SaveStatus
+                  status={workspaceAutosave.status}
+                  errorMessage={workspaceAutosave.errorMessage}
+                  onRetry={workspaceAutosave.retry}
+                />
                 {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-                {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">No unsaved changes.</p> : null}
               </div>
               </CardContent>
             </Card>

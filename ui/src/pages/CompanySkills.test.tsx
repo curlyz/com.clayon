@@ -2,7 +2,7 @@
 
 import { act as reactAct, type ComponentProps, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import type { CatalogSkill, CompanySkillDetail, CompanySkillListItem, CompanySkillVersion, FolderListResult } from "@paperclipai/shared";
+import type { CatalogSkill, CompanySkillDetail, CompanySkillListItem, CompanySkillVersion, FolderListResult } from "@clayon/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DiscoveryGrid,
@@ -16,6 +16,7 @@ import {
   skillDetailBreadcrumbs,
 } from "./CompanySkills";
 import { skillStudioNewRoute } from "../lib/company-skill-routes";
+import type { AutosaveController } from "../hooks/useAutosave";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ children, to, ...props }: { children: ReactNode; to: string }) => (
@@ -138,6 +139,18 @@ function makeVersion(revisionNumber: number, content: string): CompanySkillVersi
   };
 }
 
+/** Idle autosave controller stub for SkillDetailPage renders. */
+function stubAutosave(): AutosaveController {
+  return {
+    status: "idle",
+    isDirty: false,
+    errorMessage: null,
+    flush: () => {},
+    retry: () => {},
+    reset: () => {},
+  };
+}
+
 function makeDetail(currentVersion: CompanySkillVersion, overrides: Partial<CompanySkillDetail> = {}): CompanySkillDetail {
   return {
     id: "skill-1",
@@ -209,8 +222,7 @@ async function renderSkillDetail(
         setViewMode={vi.fn()}
         setEditMode={vi.fn()}
         setDraft={vi.fn()}
-        onSave={vi.fn()}
-        savePending={false}
+        autosave={stubAutosave()}
         versions={versions}
         versionsLoading={false}
         attachAgents={[]}
@@ -394,7 +406,7 @@ describe("DiscoveryGrid IA presentation", () => {
       catalogRef: null,
       name: "Installed Skill",
       slug: "installed",
-      author: "Paperclip",
+      author: "Clayon",
       version: null,
       tagline: null,
       description: null,
@@ -420,7 +432,7 @@ describe("DiscoveryGrid IA presentation", () => {
       slug: "available",
       installed: false,
       sourceBadge: "catalog" as const,
-      sourceLabel: "Paperclip catalog",
+      sourceLabel: "Clayon catalog",
     };
     const node = await renderDiscoveryGrid({
       tab: "discover",
@@ -431,7 +443,7 @@ describe("DiscoveryGrid IA presentation", () => {
     expect(node.textContent).toContain("Not enabled for any agents");
     expect(node.textContent).toContain("Available to install");
     expect(node.textContent).toContain("Local workspace");
-    expect(node.textContent).toContain("Paperclip catalog");
+    expect(node.textContent).toContain("Clayon catalog");
   });
 
   it("uses the create callback from the New menu and empty state", async () => {
@@ -536,7 +548,7 @@ describe("DiscoveryGrid IA presentation", () => {
       catalogRef: null,
       name: "Demo Skill",
       slug: "demo-skill",
-      author: "Paperclip",
+      author: "Clayon",
       version: null,
       tagline: null,
       description: null,
@@ -576,7 +588,7 @@ describe("DiscoveryGrid IA presentation", () => {
       catalogRef: null,
       name: "Bundled Skill",
       slug: "bundled-skill",
-      author: "Paperclip",
+      author: "Clayon",
       version: null,
       tagline: null,
       description: null,
@@ -648,12 +660,12 @@ describe("skills discovery card reconciliation", () => {
   it("renders one installed card when installed and catalog data share a key", () => {
     const installed = {
       id: "installed-new",
-      key: "PaperclipAI/Review",
+      key: "Clayon/Review",
       name: "Review",
       slug: "review",
       updatedAt: new Date("2026-08-30T00:00:00Z"),
       folderId: null,
-      authorName: "Paperclip",
+      authorName: "Clayon",
       packageVersion: "2.0.0",
       sourceRef: null,
       tagline: null,
@@ -667,23 +679,23 @@ describe("skills discovery card reconciliation", () => {
       catalogKind: "optional",
       forkedFromSkillId: null,
       sourceBadge: "catalog",
-      sourceLabel: "Paperclip",
+      sourceLabel: "Clayon",
     } as unknown as CompanySkillListItem;
     const olderDuplicate = {
       ...installed,
       id: "installed-old",
-      key: "paperclipai/review",
+      key: "clayon/review",
       updatedAt: new Date("2026-08-01T00:00:00Z"),
     } as CompanySkillListItem;
     const catalog = {
       id: "catalog-review",
-      key: "paperclipai/review",
+      key: "clayon/review",
       name: "Review",
       slug: "review",
       kind: "optional",
       category: "quality",
       description: "Catalog copy",
-      packageName: "Paperclip",
+      packageName: "Clayon",
       packageVersion: "2.0.0",
       tags: [],
     } as unknown as CatalogSkill;
@@ -826,7 +838,7 @@ describe("SkillDetailPage settings", () => {
 
   it("renders long source paths in full so they can wrap inside the sidebar", async () => {
     const v1 = makeVersion(1, "# Demo Skill");
-    const longSourcePath = "/srv/paperclip/home/paperclipai/paperclip/.agents/skills/prepare-pr/SKILL.md";
+    const longSourcePath = "/srv/clayon/home/paperclipai/paperclip/.agents/skills/prepare-pr/SKILL.md";
     const node = await renderSkillDetail([v1], {
       activeTab: "agents",
       detail: makeDetail(v1, {
@@ -950,8 +962,7 @@ describe("SkillDetailPage settings", () => {
           setViewMode={vi.fn()}
           setEditMode={vi.fn()}
           setDraft={vi.fn()}
-          onSave={vi.fn()}
-          savePending={false}
+          autosave={stubAutosave()}
           versions={[v1]}
           versionsLoading={false}
           attachAgents={[]}
@@ -992,7 +1003,7 @@ describe("install-time agent enablement", () => {
   function makeCatalogSkill(): CatalogSkill {
     return {
       id: "catalog-1",
-      key: "paperclipai/bundled/product/wireframe",
+      key: "clayon/bundled/product/wireframe",
       kind: "bundled",
       category: "product",
       slug: "wireframe",

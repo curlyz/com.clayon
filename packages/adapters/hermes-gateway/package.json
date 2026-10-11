@@ -1,10 +1,10 @@
 {
-  "name": "@paperclipai/adapter-hermes-gateway",
+  "name": "@clayon/adapter-hermes-gateway",
   "version": "0.1.0",
-  "description": "Deprecated compatibility shim for Hermes Gateway; use @paperclipai/hermes-paperclip-adapter/gateway",
+  "description": "Deprecated compatibility shim for Hermes Gateway; use @clayon/hermes-clayon-adapter/gateway",
   "type": "module",
   "license": "MIT",
-  "author": "Paperclip",
+  "author": "Clayon",
   "repository": {
     "type": "git",
     "url": "https://github.com/paperclipai/paperclip",
@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/paperclipai/paperclip/tree/master/packages/adapters/hermes#readme",
   "keywords": [
-    "paperclip",
+    "clayon",
     "hermes",
     "gateway",
     "adapter",
@@ -28,7 +28,7 @@
     "./cli": "./src/cli/index.ts",
     "./ui-parser": "./ui-parser.cjs"
   },
-  "paperclip": {
+  "clayon": {
     "adapterUiParser": "1.0.0"
   },
   "publishConfig": {
@@ -68,7 +68,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@paperclipai/hermes-paperclip-adapter": "workspace:*"
+    "@clayon/hermes-clayon-adapter": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

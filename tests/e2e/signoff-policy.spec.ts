@@ -21,7 +21,7 @@ import { test, expect, request as pwRequest, type APIRequestContext } from "@pla
  *     the in_review state the signoff policy requires).
  */
 
-const PORT = Number(process.env.PAPERCLIP_E2E_PORT ?? 3199);
+const PORT = Number(process.env.CLAYON_E2E_PORT ?? 3199);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const COMPANY_NAME = `E2E-Signoff-${Date.now()}`;
 
@@ -287,7 +287,7 @@ async function retryAgentPatchWithCurrentLockOnConflict(
 
     const lockedRunId = issueRunLock.checkoutRunId ?? issueRunLock.executionRunId ?? fallbackRunId;
     res = await agent.request.patch(`${BASE_URL}/api/issues/${issueId}`, {
-      headers: { "X-Paperclip-Run-Id": lockedRunId },
+      headers: { "X-Clayon-Run-Id": lockedRunId },
       data: patchData,
     });
   }
@@ -327,7 +327,7 @@ async function agentPatch(
   const runId = await invokeHeartbeat(board, agent.agentId, issueId);
   const patchWith = (patchRunId: string) =>
     agent.request.patch(`${BASE_URL}/api/issues/${issueId}`, {
-      headers: { "X-Paperclip-Run-Id": patchRunId },
+      headers: { "X-Clayon-Run-Id": patchRunId },
       data,
     });
 
@@ -354,14 +354,14 @@ async function agentCheckoutAndPatch(
 ) {
   const runId = await invokeHeartbeat(board, agent.agentId, issueId);
   const directPatchRes = await agent.request.patch(`${BASE_URL}/api/issues/${issueId}`, {
-    headers: { "X-Paperclip-Run-Id": runId },
+    headers: { "X-Clayon-Run-Id": runId },
     data: patchData,
   });
   if (directPatchRes.ok()) return directPatchRes;
 
   // Checkout (sets executionRunId so PATCH is allowed)
   const checkoutRes = await agent.request.post(`${BASE_URL}/api/issues/${issueId}/checkout`, {
-    headers: { "X-Paperclip-Run-Id": runId },
+    headers: { "X-Clayon-Run-Id": runId },
     data: { agentId: agent.agentId, expectedStatuses },
   });
   if (!checkoutRes.ok()) {
@@ -394,7 +394,7 @@ async function agentCheckoutAndPatch(
   }
   // PATCH with agent identity
   const res = await agent.request.patch(`${BASE_URL}/api/issues/${issueId}`, {
-    headers: { "X-Paperclip-Run-Id": runId },
+    headers: { "X-Clayon-Run-Id": runId },
     data: patchData,
   });
   const retried = await retryAgentPatchWithCurrentLockOnConflict(
@@ -425,7 +425,7 @@ async function setupCompany(boardRequest: APIRequestContext): Promise<TestContex
     throw new Error(
       `Signoff e2e tests require local_trusted deployment mode, ` +
         `but server is in "${health.deploymentMode}" mode. ` +
-        `Set PAPERCLIP_DEPLOYMENT_MODE=local_trusted or use the webServer config.`,
+        `Set CLAYON_DEPLOYMENT_MODE=local_trusted or use the webServer config.`,
     );
   }
 

@@ -4,8 +4,8 @@ import {
   createDb,
   heartbeatRuns,
   nativeRunFinalizations,
-} from "@paperclipai/db";
-import { resolveMigrationConnection } from "@paperclipai/db/migration-runtime";
+} from "@clayon/db";
+import { resolveMigrationConnection } from "@clayon/db/migration-runtime";
 
 import { instanceSettingsService } from "./services/instance-settings.js";
 

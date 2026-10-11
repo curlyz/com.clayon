@@ -6,7 +6,7 @@ import {
   chatMessageLinks,
   heartbeatRuns,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   parseGitHubReceiptIdentity,
   type GitHubReceiptIdentity,

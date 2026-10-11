@@ -2,7 +2,7 @@ import type {
   AdapterEnvironmentCheck,
   AdapterEnvironmentTestContext,
   AdapterEnvironmentTestResult,
-} from "@paperclipai/adapter-utils";
+} from "@clayon/adapter-utils";
 import {
   asString,
   asBoolean,
@@ -10,14 +10,14 @@ import {
   asStringArray,
   parseObject,
   ensurePathInEnv,
-} from "@paperclipai/adapter-utils/server-utils";
+} from "@clayon/adapter-utils/server-utils";
 import {
   ensureAdapterExecutionTargetCommandResolvable,
   ensureAdapterExecutionTargetDirectory,
   runAdapterExecutionTargetProcess,
   resolveAdapterExecutionTargetCwd,
   resolveAdapterExecutionTargetCommandForLogs,
-} from "@paperclipai/adapter-utils/execution-target";
+} from "@clayon/adapter-utils/execution-target";
 import {
   detectClaudeLoginRequired,
   isClaudeProviderQuotaError,
@@ -174,7 +174,7 @@ export async function testEnvironment(
     });
   }
 
-  // When probing a remote target, the Paperclip host's process.env does not
+  // When probing a remote target, the Clayon host's process.env does not
   // reflect what the agent will actually see at runtime. Only consider env
   // vars from the adapter config in that case; the probe itself will surface
   // any auth issues on the remote box.
@@ -315,8 +315,8 @@ export async function testEnvironment(
       checks.push({
         code: "claude_hello_probe_skipped_unresolved_command",
         level: "warn",
-        message: "Skipped the Claude hello probe because `claude` is not installed on the Paperclip host.",
-        hint: "Install the `claude` CLI on the Paperclip host, then retry the Test.",
+        message: "Skipped the Claude hello probe because `claude` is not installed on the Clayon host.",
+        hint: "Install the `claude` CLI on the Clayon host, then retry the Test.",
       });
     } else {
       const model = configuredModel;

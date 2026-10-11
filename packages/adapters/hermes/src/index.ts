@@ -1,8 +1,8 @@
 /**
- * Hermes Agent adapter for Paperclip.
+ * Hermes Agent adapter for Clayon.
  *
  * Runs Hermes Agent (https://github.com/NousResearch/hermes-agent)
- * as a managed employee in a Paperclip company. Hermes Agent is a
+ * as a managed employee in a Clayon company. Hermes Agent is a
  * full-featured AI agent with 30+ native tools, persistent memory,
  * skills, session persistence, and MCP support.
  *
@@ -13,7 +13,7 @@ import type {
   AdapterRuntimeCommandSpec,
   AdapterSessionManagement,
   ServerAdapterModule,
-} from "@paperclipai/adapter-utils";
+} from "@clayon/adapter-utils";
 
 import { ADAPTER_TYPE, ADAPTER_LABEL } from "./shared/constants.js";
 import {
@@ -40,7 +40,7 @@ export {
 /**
  * Models available through Hermes Agent.
  *
- * Hermes supports any model via any provider. The Paperclip UI should
+ * Hermes supports any model via any provider. The Clayon UI should
  * prefer detectModel() plus manual entry over curated placeholder models,
  * since Hermes availability depends on the user's local configuration.
  */
@@ -67,7 +67,7 @@ function getRuntimeCommandSpec(config: Record<string, unknown>): AdapterRuntimeC
 }
 
 /**
- * Documentation shown in the Paperclip UI when configuring a Hermes agent.
+ * Documentation shown in the Clayon UI when configuring a Hermes agent.
  */
 export const agentConfigurationDoc = `# Hermes Agent Configuration
 
@@ -99,7 +99,7 @@ tools, persistent memory, session persistence, skills, and MCP support.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| cwd | string | (assigned task workspace) | Absolute working directory override; otherwise use Paperclip's resolved task workspace |
+| cwd | string | (assigned task workspace) | Absolute working directory override; otherwise use Clayon's resolved task workspace |
 | persistSession | boolean | true | Resume sessions across heartbeats |
 | worktreeMode | boolean | false | Use git worktree for isolated changes |
 | checkpoints | boolean | false | Enable filesystem checkpoints |
@@ -114,7 +114,7 @@ tools, persistent memory, session persistence, skills, and MCP support.
 | env | object | {} | Extra environment variables |
 | promptTemplate | string | (default) | Custom prompt template with {{variable}} placeholders |
 
-Managed \`instructionsFilePath\` bundles and standard Paperclip API guidance use
+Managed \`instructionsFilePath\` bundles and standard Clayon API guidance use
 Hermes's native \`HERMES_EPHEMERAL_SYSTEM_PROMPT\` overlay on every run, including
 resume and reset. They are applied at request time and are not appended to user
 history. The query keeps current runtime identity, wake/task content, and custom
@@ -122,34 +122,34 @@ templates. Use a Hermes CLI that supports this environment hook. An explicit
 overlay in \`env\` is preserved; the hook takes precedence over Hermes's configured
 profile personality/system prompt.
 
-## Hermes-Originated Paperclip Tasks
+## Hermes-Originated Clayon Tasks
 
-This adapter package also ships a Hermes-facing Paperclip task bridge skill:
-\`paperclip-task-bridge\`. Use it when a user starts in Hermes and asks Hermes
-to create, comment on, update, or list Paperclip tasks.
+This adapter package also ships a Hermes-facing Clayon task bridge skill:
+\`clayon-task-bridge\`. Use it when a user starts in Hermes and asks Hermes
+to create, comment on, update, or list Clayon tasks.
 
 Configure credentials through Hermes env/profile secrets, never in prompt text:
 
-- \`PAPERCLIP_API_URL\` - Paperclip base URL, with or without \`/api\`
-- \`PAPERCLIP_BRIDGE_API_KEY\` - Paperclip agent API key created with \`scope.kind = "task_bridge"\`
-- optional fallback \`PAPERCLIP_API_KEY\` - must still be a task_bridge key, never a normal claimed agent key
-- optional \`PAPERCLIP_COMPANY_ID\`, \`PAPERCLIP_AGENT_ID\`, and \`PAPERCLIP_RUN_ID\`
+- \`CLAYON_API_URL\` - Clayon base URL, with or without \`/api\`
+- \`CLAYON_BRIDGE_API_KEY\` - Clayon agent API key created with \`scope.kind = "task_bridge"\`
+- optional fallback \`CLAYON_API_KEY\` - must still be a task_bridge key, never a normal claimed agent key
+- optional \`CLAYON_COMPANY_ID\`, \`CLAYON_AGENT_ID\`, and \`CLAYON_RUN_ID\`
 
 The bridge is separate from adapter execution:
 
-- \`hermes_local\` means Paperclip shells out to local \`hermes chat\`.
-- \`hermes_gateway\` means Paperclip wakes remote Hermes through Hermes's API server.
-- \`paperclip-task-bridge\` means Hermes calls Paperclip's REST API to manage tasks.
+- \`hermes_local\` means Clayon shells out to local \`hermes chat\`.
+- \`hermes_gateway\` means Clayon wakes remote Hermes through Hermes's API server.
+- \`clayon-task-bridge\` means Hermes calls Clayon's REST API to manage tasks.
 
 Create task bridge keys with a parent issue or project boundary. Do not expose
-normal claimed Paperclip agent API keys to internet-facing Hermes chat/webhook
+normal claimed Clayon agent API keys to internet-facing Hermes chat/webhook
 task-bridge surfaces.
 
 ## Available Template Variables
 
-- \`{{agentId}}\` — Paperclip agent ID
+- \`{{agentId}}\` — Clayon agent ID
 - \`{{agentName}}\` — Agent display name
-- \`{{companyId}}\` — Paperclip company ID
+- \`{{companyId}}\` — Clayon company ID
 - \`{{companyName}}\` — Company display name
 - \`{{runId}}\` — Current heartbeat run ID
 - \`{{taskId}}\` — Current task/issue ID (if assigned)
@@ -159,7 +159,7 @@ task-bridge surfaces.
 `;
 
 /**
- * External adapter plugin entrypoint expected by Paperclip's adapter manager.
+ * External adapter plugin entrypoint expected by Clayon's adapter manager.
  */
 export function createServerAdapter(): ServerAdapterModule {
   return {

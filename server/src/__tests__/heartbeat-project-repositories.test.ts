@@ -6,9 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { agents, companies, createDb, environments, executionWorkspaces, heartbeatRuns, issues, projects, projectWorkspaces } from "@paperclipai/db";
-import { setExpensiveWorkspaceGitExecutor } from "@paperclipai/adapter-utils/git-workspace-sync";
-import { buildProjectMentionHref } from "@paperclipai/shared";
+import { agents, companies, createDb, environments, executionWorkspaces, heartbeatRuns, issues, projects, projectWorkspaces } from "@clayon/db";
+import { setExpensiveWorkspaceGitExecutor } from "@clayon/adapter-utils/git-workspace-sync";
+import { buildProjectMentionHref } from "@clayon/shared";
 import { createWorkspaceGitOperationScheduler, WorkspaceGitScanError } from "../services/workspace-git-operation-scheduler.js";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { heartbeatService } from "../services/heartbeat.ts";
@@ -31,9 +31,9 @@ suite("task project repository provisioning", () => {
   let root: string;
   let heartbeat: ReturnType<typeof heartbeatService>;
   beforeAll(async () => {
-    root = await mkdtemp(path.join(os.tmpdir(), "paperclip-project-repos-"));
-    vi.stubEnv("PAPERCLIP_HOME", path.join(root, "home"));
-    vi.stubEnv("PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC", "false");
+    root = await mkdtemp(path.join(os.tmpdir(), "clayon-project-repos-"));
+    vi.stubEnv("CLAYON_HOME", path.join(root, "home"));
+    vi.stubEnv("CLAYON_MULTI_PROJECT_WORKSPACE_SYNC", "false");
     database = await startEmbeddedPostgresTestDatabase("project-repositories");
     db = createDb(database.connectionString);
     heartbeat = heartbeatService(db);
@@ -52,7 +52,7 @@ suite("task project repository provisioning", () => {
   afterEach(async () => {
     await drainHeartbeatRunsToQuiescence(db, heartbeat);
     setExpensiveWorkspaceGitExecutor(null);
-    vi.stubEnv("PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC", "false");
+    vi.stubEnv("CLAYON_MULTI_PROJECT_WORKSPACE_SYNC", "false");
     await instanceSettingsService(db).updateExperimental({
       enableIsolatedWorkspaces: false,
       enableIsolatedWorkspacesByDefault: false,
@@ -62,7 +62,7 @@ suite("task project repository provisioning", () => {
   it("isolates repository-free low-trust tasks while preserving reassignment and authorized referenced projects", async () => {
     const companyId = randomUUID(), projectId = randomUUID(), agentId = randomUUID(), environmentId = randomUUID();
     const referencedProjectId = randomUUID(), deniedProjectId = randomUUID();
-    vi.stubEnv("PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC", "true");
+    vi.stubEnv("CLAYON_MULTI_PROJECT_WORKSPACE_SYNC", "true");
     await instanceSettingsService(db).updateExperimental({ enableIsolatedWorkspaces: true });
     await db.insert(companies).values({ id: companyId, name: "Email company", issuePrefix: `E${companyId.slice(0, 6)}`, defaultResponsibleUserId: "responsible-user" });
     await db.insert(projects).values({ id: projectId, companyId, name: "Onboarding" });
@@ -113,8 +113,8 @@ suite("task project repository provisioning", () => {
       expect(workspace.cwd).toContain(`/isolated-workspaces/${companyId}/${issueId}`);
       expect(execute.mock.calls.filter(([input]) => input.runId === run!.id)).toHaveLength(1);
       const call = execute.mock.calls.find(([input]) => input.runId === run!.id)![0];
-      expect(call.context.paperclipEnvironment.driver).toBe("sandbox");
-      expect(call.context.paperclipWorkspaces.map((workspace: { projectId: string }) => workspace.projectId)).toEqual([referencedProjectId]);
+      expect(call.context.clayonEnvironment.driver).toBe("sandbox");
+      expect(call.context.clayonWorkspaces.map((workspace: { projectId: string }) => workspace.projectId)).toEqual([referencedProjectId]);
       directories.push(workspace.cwd!);
       await writeFile(path.join(workspace.cwd!, "email.txt"), `private email ${index}`);
     }
@@ -131,7 +131,7 @@ suite("task project repository provisioning", () => {
     }, { timeout: 15_000 });
     await drainHeartbeatRunsToQuiescence(db, sandboxHeartbeat);
     const reassignedCall = execute.mock.calls.find(([input]) => input.runId === reassignedRun!.id)![0];
-    expect(reassignedCall.context.paperclipWorkspace.cwd).toBe(directories[0]);
+    expect(reassignedCall.context.clayonWorkspace.cwd).toBe(directories[0]);
     expect(await readFile(path.join(directories[0], "email.txt"), "utf8")).toBe("private email 0");
   }, 40_000);
 
@@ -180,7 +180,7 @@ suite("task project repository provisioning", () => {
     const calls = execute.mock.calls.filter(([input]) => input.runId === run!.id);
     expect(calls).toHaveLength(explicitIsolation ? 0 : 1);
     if (!explicitIsolation) {
-      const workspace = calls[0]![0].context.paperclipWorkspace;
+      const workspace = calls[0]![0].context.clayonWorkspace;
       expect(workspace.mode).toBe(configuredWorkspace ? "isolated_workspace" : "shared_workspace");
       if (configuredWorkspace) {
         expect(workspace.strategy).toBe("git_worktree");
@@ -289,7 +289,7 @@ suite("task project repository provisioning", () => {
     expect(execute.mock.calls.filter(([input]) => input.runId === retry!.id)).toHaveLength(1);
     const [task] = await db.select().from(issues).where(and(eq(issues.companyId, companyId), eq(issues.id, issueId)));
     expect(task).toMatchObject({ status: "done", assigneeAgentId: agentId });
-    const copies = (execute.mock.calls.find(([input]) => input.runId === retry!.id)![0].context.paperclipWorkspaces as Array<{ cwd: string }>).filter((hint) => hint.cwd.includes(".paperclip-repositories"));
+    const copies = (execute.mock.calls.find(([input]) => input.runId === retry!.id)![0].context.clayonWorkspaces as Array<{ cwd: string }>).filter((hint) => hint.cwd.includes(".clayon-repositories"));
     expect(copies.length).toBeGreaterThan(0);
     expect(await readFile(path.join(copies[0]!.cwd, "README.md"), "utf8")).toBe("preserved dirty work");
     await expect(readFile(path.join(copies[0]!.cwd, "private.secret"))).rejects.toMatchObject({ code: "ENOENT" });
@@ -324,7 +324,7 @@ suite("task project repository provisioning", () => {
       expect({ status: latest?.status, error: latest?.error }).toEqual({ status: "succeeded", error: null });
     }, { timeout: 15_000 });
     const input = execute.mock.calls.find(([ctx]) => ctx.runId === run!.id)![0];
-    const hints = input.context.paperclipWorkspaces as Array<{ workspaceId: string; cwd: string }>;
+    const hints = input.context.clayonWorkspaces as Array<{ workspaceId: string; cwd: string }>;
     for (let index = 0; index < count; index++) {
       const hint = hints.find((entry) => entry.workspaceId === repositoryRows[index]!.id);
       expect(hint?.cwd).toBeTruthy();

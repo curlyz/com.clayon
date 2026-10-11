@@ -14,18 +14,18 @@ import {
   statusDecisions,
   workAssessments,
   workspaceOperations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   CONTROL_PLANE_CONFORMANCE_OPEN,
   CONTROL_PLANE_CONFORMANCE_RESULT,
   CONTROL_PLANE_CONFORMANCE_TERMINAL,
-} from "../vendor/paperclip-runner/testing.js";
+} from "../vendor/clayon-runner/testing.js";
 import { startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import {
   reconcileNativeFinalizations,
   reconcileRetainedNativeSessionCleanups,
 } from "../services/native-runtime/native-finalization-reconciler.js";
-import { PaperclipControlPlanePort } from "../services/native-runtime/paperclip-control-plane-port.js";
+import { ClayonControlPlanePort } from "../services/native-runtime/clayon-control-plane-port.js";
 import { assertRetainedNativeSourceArchiveSettled } from "../services/native-runtime/native-session-executor.js";
 
 describe("P6-16/P6-25/P6-28 native finalization recovery", () => {
@@ -41,7 +41,7 @@ describe("P6-16/P6-25/P6-28 native finalization recovery", () => {
   const staleRunId = "72000000-0000-4000-8000-000000000015";
 
   beforeAll(async () => {
-    temporary = await startEmbeddedPostgresTestDatabase("paperclip-native-recovery-");
+    temporary = await startEmbeddedPostgresTestDatabase("clayon-native-recovery-");
     db = createDb(temporary.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Native recovery", issuePrefix: "NRC" });
     await db.insert(agents).values({
@@ -92,7 +92,7 @@ describe("P6-16/P6-25/P6-28 native finalization recovery", () => {
       completionContractSha256: "native-recovery-contract",
       contextSnapshot: { issueId },
     });
-    const port = new PaperclipControlPlanePort(db, {
+    const port = new ClayonControlPlanePort(db, {
       companyId,
       issueId,
       runId,
@@ -170,7 +170,7 @@ describe("P6-16/P6-25/P6-28 native finalization recovery", () => {
       completionContractSha256: "stale-finalizer-contract",
       contextSnapshot: { issueId: staleIssueId },
     });
-    const stalePort = new PaperclipControlPlanePort(db, {
+    const stalePort = new ClayonControlPlanePort(db, {
       companyId,
       issueId: staleIssueId,
       runId: staleRunId,
@@ -356,7 +356,7 @@ describe("retained native cleanup discovery", () => {
 
   beforeAll(async () => {
     temporary = await startEmbeddedPostgresTestDatabase(
-      "paperclip-native-cleanup-sweep-",
+      "clayon-native-cleanup-sweep-",
     );
     db = createDb(temporary.connectionString);
     await db

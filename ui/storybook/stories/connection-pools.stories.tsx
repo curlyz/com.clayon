@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Agent, AiConnectionList, AiConnectionPool, AiConnectionRouterSelection, AiRuntimeConnectionBinding, Issue } from "@paperclipai/shared";
+import type { Agent, AiConnectionList, AiConnectionPool, AiConnectionRouterSelection, AiRuntimeConnectionBinding, Issue } from "@clayon/shared";
 import { AiConnectionField } from "@/components/ai-connections/AiConnectionField";
 import { AiConnectionPoolRunDetails } from "@/components/ai-connections/AiConnectionPoolRunDetails";
 import { IssueMonitorBanner, IssueMonitorComposerStrip } from "@/components/IssueMonitorBanner";
@@ -10,12 +10,12 @@ import { ComposerRunSettingsPicker } from "@/components/task-chat/ComposerRunSet
 import type { ComposerRunSettings } from "@/components/task-chat/composer-run-settings";
 import { RunRetryDetails } from "@/components/RunRetryDetails";
 import { queryKeys } from "@/lib/queryKeys";
-import { storybookAgents, storybookIssues } from "../fixtures/paperclipData";
+import { storybookAgents, storybookIssues } from "../fixtures/clayonData";
 
 const companyId = "company-storybook", agentId = "agent-codex";
 const poolId = "10000000-0000-4000-8000-000000000001";
 const pool: AiConnectionPool = {
-  id: poolId, companyId, pluginKey: "paperclip-cloud.plugin-connection-pool", revision: 3,
+  id: poolId, companyId, pluginKey: "clayon-cloud.plugin-connection-pool", revision: 3,
   name: "Research accounts", enabled: true, mode: "round_robin", thresholdPercent: 90,
   members: [
     { id: "20000000-0000-4000-8000-000000000001", binding: { mode: "delegated", provider: "openai", method: "subscription", connectionId: "30000000-0000-4000-8000-000000000001", grantId: "40000000-0000-4000-8000-000000000001" }, profile: { provider: "codex", model: "gpt-5.6-sol", effort: "high" } },

@@ -16,7 +16,7 @@ import {
   approvals, issueApprovals, issueThreadInteractions, chatConversations, chatEndpoints, toolApplications, toolConnections,
   agentWakeupRequests, agents, companies, createDb, heartbeatRunEvents, heartbeatRuns, issueComments, issueRecoveryActions,
   issues, nativeRunFinalizations, nativeRunResults, completionContracts, environmentLeases, environments, issueRelations, issueTreeHolds, issueTreeHoldMembers,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { startEmbeddedPostgresTestDatabase, getEmbeddedPostgresTestSupport } from "../__tests__/helpers/embedded-postgres.js";
 import { admitExplicitNativeContinuation } from "./explicit-native-continuation.js";
 import { adapterExecutionControls, createAdapterExecutionControl } from "./adapter-execution-control.js";
@@ -69,7 +69,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", reason: "issue_execution_deferred", status: "deferred_issue_execution",
       requestedByActorType: "user", requestedByActorId: "board", idempotencyKey: kind === "chat" ? "chat-inbound:handoff-test" : null,
-      payload: { issueId: f.issueId, commentId: secondId, _paperclipWakeContext: { issueId: f.issueId,
+      payload: { issueId: f.issueId, commentId: secondId, _clayonWakeContext: { issueId: f.issueId,
         wakeReason: kind === "mention" ? "issue_comment_mentioned" : "issue_commented", wakeCommentIds: [f.commentId, secondId],
         ...(kind === "interaction" ? { interactionId: randomUUID(), wakeReason: "connection_intent.resolved" } : {}),
       } },
@@ -128,7 +128,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", triggerDetail: "system", reason: "issue_execution_deferred", status: "deferred_issue_execution",
       requestedByActorType: "user", requestedByActorId: "board", payload: {
-        issueId: f.issueId, commentId: queuedIds.at(-1), _paperclipWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentId: queuedIds.at(-1), wakeCommentIds: queuedIds },
+        issueId: f.issueId, commentId: queuedIds.at(-1), _clayonWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentId: queuedIds.at(-1), wakeCommentIds: queuedIds },
       },
     });
     if (gate.startsWith("remote_")) {
@@ -168,7 +168,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", reason: "issue_commented", status: "deferred_issue_execution",
       requestedByActorType: "system", payload: { issueId: f.issueId, commentId: f.commentId,
-        _paperclipWakeContext: { wakeCommentIds: [f.commentId] },
+        _clayonWakeContext: { wakeCommentIds: [f.commentId] },
         queuedCommentInterrupt: { actorId: "board", requestedAt: new Date().toISOString() } },
     });
     const identities = [f, other].map(fixture => ({ id: randomUUID(), companyId: fixture.companyId,
@@ -225,7 +225,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "on_demand", reason: "issue_commented", status: "deferred_issue_execution",
       requestedByActorType: "user", requestedByActorId: "original-author",
-      payload: { issueId: f.issueId, _paperclipWakeContext: { wakeCommentIds: [f.commentId] },
+      payload: { issueId: f.issueId, _clayonWakeContext: { wakeCommentIds: [f.commentId] },
         queuedCommentInterrupt: { actorId: "board", requestedAt: new Date().toISOString() } },
     });
     const attempt = (queue = queueId) => db.transaction(async tx => {
@@ -257,7 +257,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", reason: "issue_commented", status: "deferred_issue_execution",
       requestedByActorType: "system", payload: { issueId: f.issueId, commentId: f.commentId,
-        _paperclipWakeContext: { wakeCommentIds: [f.commentId] },
+        _clayonWakeContext: { wakeCommentIds: [f.commentId] },
         queuedCommentInterrupt: { actorId: "board", requestedAt: new Date().toISOString() } },
     });
     await heartbeatService(db).resumeQueuedCommentInterrupt(f.companyId, queueId);
@@ -276,7 +276,7 @@ const support = await getEmbeddedPostgresTestSupport();
       { status: "cancelled" }, { runId: f.sourceRunId },
       { payload: { ...receipt.payload, issueId: randomUUID() } },
       { payload: { ...receipt.payload, queuedCommentInterrupt: { actorId: "someone-else" } } },
-      { payload: { ...receipt.payload, _paperclipWakeContext: { wakeCommentIds: [] }, commentId: undefined } },
+      { payload: { ...receipt.payload, _clayonWakeContext: { wakeCommentIds: [] }, commentId: undefined } },
     ]) {
       await db.update(agentWakeupRequests).set(patch).where(eq(agentWakeupRequests.id, queueId));
       await expect(dispatch()).rejects.toThrow("continuation_user_authorization_missing");
@@ -303,7 +303,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(heartbeatRuns).values({ companyId: f.companyId, agentId: f.agentId,
       status: "running", contextSnapshot: { issueId: randomUUID() } });
     const queueId = randomUUID();
-    const payload = { issueId: f.issueId, _paperclipWakeContext: { wakeCommentIds: [f.commentId] },
+    const payload = { issueId: f.issueId, _clayonWakeContext: { wakeCommentIds: [f.commentId] },
       queuedCommentInterrupt: { actorId: "board", requestedAt: new Date().toISOString() } };
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", reason: "issue_commented", status: "deferred_issue_execution",
@@ -352,7 +352,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
       source: "automation", reason: "issue_commented", status: kind === "consumed" ? "coalesced" : "deferred_issue_execution",
       requestedByActorType: "system", payload: { issueId: kind === "foreign_queue" ? randomUUID() : f.issueId,
-        _paperclipWakeContext: { wakeCommentIds: [f.commentId] } },
+        _clayonWakeContext: { wakeCommentIds: [f.commentId] } },
     });
     if (kind.startsWith("unstarted_cancelled")) {
       await db.insert(heartbeatRuns).values({ companyId: f.companyId, agentId: f.agentId,
@@ -368,7 +368,7 @@ const support = await getEmbeddedPostgresTestSupport();
       await db.update(heartbeatRuns).set({ contextSnapshot: { issueId: f.issueId, wakeCommentIds: [earlierId] } })
         .where(eq(heartbeatRuns.id, f.sourceRunId));
       await db.update(agentWakeupRequests).set({ payload: { issueId: f.issueId,
-        _paperclipWakeContext: { wakeCommentIds: [earlierId, f.commentId] } } })
+        _clayonWakeContext: { wakeCommentIds: [earlierId, f.commentId] } } })
         .where(eq(agentWakeupRequests.id, queueId));
     }
     const result = await db.transaction(async tx => {
@@ -435,7 +435,7 @@ const support = await getEmbeddedPostgresTestSupport();
       await db.insert(agentWakeupRequests).values({ id: queueId, companyId: f.companyId, agentId: f.agentId,
         source: "automation", reason: "issue_execution_deferred", status: "deferred_issue_execution",
         requestedByActorType: "user", requestedByActorId: gate === "wrong_actor" ? "other-user" : "board",
-        payload: { issueId: f.issueId, commentId: f.commentId, _paperclipWakeContext: {
+        payload: { issueId: f.issueId, commentId: f.commentId, _clayonWakeContext: {
           issueId: f.issueId, wakeReason: "issue_commented", wakeCommentId: f.commentId, wakeCommentIds: [f.commentId] } },
       });
       const result = await db.transaction(async tx => {
@@ -689,7 +689,7 @@ const support = await getEmbeddedPostgresTestSupport();
       source: "automation", reason: "issue_commented", status: "deferred_issue_execution",
       requestedByActorType: "user", requestedByActorId: f.actorId, updatedAt: new Date(0),
       payload: { issueId: f.issueId, commentId: f.commentId, executionWait: { reason: "execution_recovery" },
-        _paperclipWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentIds: [f.commentId], wakeCommentId: f.commentId } },
+        _clayonWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentIds: [f.commentId], wakeCommentId: f.commentId } },
     });
     expect(await getExecutionBlocker(db, f.companyId, f.issueId)).toMatchObject({ savedMessageCount: 1, canContinue: true });
     await Promise.all([heartbeatService(db).resumeExecutionWaitComments(), heartbeatService(db).resumeExecutionWaitComments()]);
@@ -734,8 +734,8 @@ const support = await getEmbeddedPostgresTestSupport();
     "recovers a historical run without process metadata only from exact suspended state (%s)", async kind => {
       const f = await seed();
       const stateBase = await mkdtemp(join(tmpdir(), "historical-native-followup-"));
-      const previous = process.env.PAPERCLIP_RUNNER_STATE_DIR;
-      process.env.PAPERCLIP_RUNNER_STATE_DIR = stateBase;
+      const previous = process.env.CLAYON_RUNNER_STATE_DIR;
+      process.env.CLAYON_RUNNER_STATE_DIR = stateBase;
       try {
         const nativeSessionId = randomUUID(), runnerInstanceId = randomUUID();
         const execution = {
@@ -802,8 +802,8 @@ const support = await getEmbeddedPostgresTestSupport();
         expect(action.evidence.automaticRecovery).toMatchObject({ actionOutcome: "unknown", replay: "explicit_user_continuation" });
         expect(await hasNativeLocalProcessStop(db, f.companyId, f.sourceRunId)).toBe(false);
       } finally {
-        if (previous === undefined) delete process.env.PAPERCLIP_RUNNER_STATE_DIR;
-        else process.env.PAPERCLIP_RUNNER_STATE_DIR = previous;
+        if (previous === undefined) delete process.env.CLAYON_RUNNER_STATE_DIR;
+        else process.env.CLAYON_RUNNER_STATE_DIR = previous;
         await rm(stateBase, { recursive: true, force: true });
       }
     },
@@ -1001,7 +1001,7 @@ const support = await getEmbeddedPostgresTestSupport();
         startedAt: new Date("2026-09-11T12:00:00Z"), finishedAt: new Date("2026-09-11T12:01:00Z"),
         contextSnapshot: { issueId: f.issueId, wakeCommentIds: [deliveredId] } });
       await db.update(agentWakeupRequests).set({ payload: { ...waiting.payload,
-        _paperclipWakeContext: { wakeCommentIds: kind === "earlier_delivered" ? [deliveredId, f.commentId] : [f.commentId, deliveredId] } },
+        _clayonWakeContext: { wakeCommentIds: kind === "earlier_delivered" ? [deliveredId, f.commentId] : [f.commentId, deliveredId] } },
       }).where(eq(agentWakeupRequests.id, waiting.id));
     }
     await db.update(heartbeatRuns).set({ controllerLeaseExpiresAt: new Date(0) })
@@ -1560,7 +1560,7 @@ const support = await getEmbeddedPostgresTestSupport();
       source: "automation", status: "deferred_issue_execution", reason: "issue_commented",
       requestedByActorType: "user", requestedByActorId: "board", updatedAt: new Date(0),
       payload: { issueId: f.issueId, commentId: queuedIds.at(-1), executionWait: { reason: "execution_recovery" },
-        _paperclipWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentIds: queuedIds, wakeCommentId: queuedIds.at(-1) } },
+        _clayonWakeContext: { issueId: f.issueId, wakeReason: "issue_commented", wakeCommentIds: queuedIds, wakeCommentId: queuedIds.at(-1) } },
     });
     const service = heartbeatService(db);
     await service.resumeExecutionWaitComments();
@@ -1709,7 +1709,7 @@ const support = await getEmbeddedPostgresTestSupport();
           source: "on_demand", triggerDetail: "manual", reason: "issue_commented", status: "deferred_issue_execution",
           requestedByActorType: "user", requestedByActorId: "board", payload: {
             issueId: f.issueId, commentId: nextCommentId,
-            _paperclipWakeContext: { source: "issue.comment", issueId: f.issueId, wakeCommentId: nextCommentId, wakeReason: "issue_commented" },
+            _clayonWakeContext: { source: "issue.comment", issueId: f.issueId, wakeCommentId: nextCommentId, wakeReason: "issue_commented" },
           },
         });
       }
@@ -1774,7 +1774,7 @@ const support = await getEmbeddedPostgresTestSupport();
     await db.insert(environmentLeases).values({ ...lease, status: "active", leasePolicy: "ephemeral" });
     const [run] = await db.select().from(heartbeatRuns).where(eq(heartbeatRuns.id, f.sourceRunId));
     await db.update(heartbeatRuns).set({ runnerProfileJson: { ...run.runnerProfileJson,
-      nativeWorkspaceSync: { schema: "paperclip.native-workspace-sync/v1", state: "prepared",
+      nativeWorkspaceSync: { schema: "clayon.native-workspace-sync/v1", state: "prepared",
         descriptorSha256: "a".repeat(64), baselineSha256: "b".repeat(64), finalHostSha256: null,
         workspaceId: randomUUID(), leaseId: lease.id, providerLeaseId: lease.providerLeaseId,
         remoteCwd: "/work", resourceDisposition: "destroy" },

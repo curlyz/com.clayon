@@ -1,7 +1,7 @@
 import type {
   RunPresentationDecision,
   RunPresentationSource,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 
 export const HEARTBEAT_RUN_RESULT_SUMMARY_MAX_CHARS = 500;
 export const HEARTBEAT_RUN_RESULT_OUTPUT_MAX_CHARS = 4_096;
@@ -135,7 +135,7 @@ export const CHAT_RUN_PRESENTATION_AUTHORIZATION_REASON =
   "allow_chat_run_presentation";
 
 export type RunPresentationCommentAction = "reuse" | "create" | "none";
-export type { RunPresentationDecision } from "@paperclipai/shared";
+export type { RunPresentationDecision } from "@clayon/shared";
 
 export interface ResolvedHeartbeatRunResponse {
   text: string | null;
@@ -197,7 +197,7 @@ export function isExternalChatPresentationContext(
   verifiedToolReviewChatOrigin = false,
 ): boolean {
   const context = record(contextSnapshot);
-  const wake = record(context.paperclipWake);
+  const wake = record(context.clayonWake);
   const source =
     typeof context.source === "string" ? context.source.trim() : "";
   // Approvals and Board comments also resume ordinary internal tasks. Only

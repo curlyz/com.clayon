@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pixel lab-ship theme design draft</title>
+    <style>
+      @font-face { font-family: "MonoLisa Nerd Font"; src: local("MonoLisa Nerd Font"), url("../fonts/MonoLisaNerdFont-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+      @font-face { font-family: "MonoLisa Nerd Font"; src: local("MonoLisa Nerd Font Bold"), url("../fonts/MonoLisaNerdFont-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+      /* Warm analog lab-ship: brown-black surfaces, cream ink, one amber accent, cyan only for live agent activity. Square corners everywhere. */
+      :root {
+        --void: #120d09; --hull: #1a130e; --band: #241a13; --line: #3a2b20;
+        --ink: #f1e6cf; --dim: #b09c80; --accent: #f2a93b; --live: #5fd3e0; --ok: #9bbf6a; --bad: #e0715a;
+      }
+      * { box-sizing: border-box; }
+      html { font-family: "MonoLisa Nerd Font", "MonoLisa", monospace; font-size: 14px; line-height: 1.6; color: var(--ink); background: var(--void); scroll-behavior: smooth; }
+      body { margin: 0; padding-bottom: 7rem; }
+      main { max-width: 960px; margin: 0 auto; border-inline: 2px solid var(--line); background: var(--hull); }
+      a { color: var(--accent); text-decoration: none; }
+      h1, h2, p { margin: 0; }
+      .band { padding: 1rem 1.25rem; border-top: 2px solid var(--line); }
+      .band.head { background: var(--band); border-top: 0; display: flex; justify-content: space-between; }
+      .band.head h2 { font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+      .band.head h2::before { content: "> "; color: var(--accent); }
+      .dim { color: var(--dim); } .ok { color: var(--ok); } .bad { color: var(--bad); } .amber { color: var(--accent); }
+      .hero { position: relative; min-height: 16rem; display: flex; align-items: flex-end; background: var(--void) url("assets/lab-hero.webp") center / cover no-repeat; image-rendering: pixelated; }
+      .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hull), transparent 55%); }
+      .hero .copy { position: relative; z-index: 1; padding: 1.25rem; }
+      .hero h1 { font-size: 1.6rem; letter-spacing: 0.08em; text-transform: uppercase; }
+      .cast { display: grid; grid-template-columns: repeat(8, 1fr); border-top: 2px solid var(--line); }
+      .cell { position: relative; aspect-ratio: 1 / 1.5; border: 0; border-right: 2px solid var(--line); background: var(--void) url("assets/lab-cast.webp") no-repeat; background-size: 800% auto; background-position-y: 50%; image-rendering: pixelated; cursor: pointer; padding: 0; transition: transform 0.12s steps(3); }
+      .cell:last-child { border-right: 0; }
+      .cell:hover { transform: translateY(-6px); background-color: var(--band); }
+      .cell.pop { transform: translateY(-14px) scale(1.08); }
+      .cell .say { position: absolute; left: 50%; top: 0.25rem; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: var(--void); padding: 0 0.5rem; font-size: 0.75rem; opacity: 0; pointer-events: none; }
+      .cell.pop .say { opacity: 1; }
+      .row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 1.25rem; border-top: 2px solid var(--line); }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 0.5rem 1.25rem; border-top: 2px solid var(--line); vertical-align: top; }
+      th { color: var(--dim); font-weight: 400; background: var(--band); border-top: 0; text-transform: uppercase; font-size: 0.8rem; }
+      .bar { height: 0.5rem; background: var(--line); } .bar i { display: block; height: 100%; background: var(--accent); }
+      .tabs { display: flex; gap: 1.25rem; padding: 0.5rem 1.25rem; border-top: 2px solid var(--line); position: sticky; top: 0; background: var(--hull); z-index: 5; overflow-x: auto; }
+      .tabs a { color: var(--dim); text-transform: uppercase; font-size: 0.8rem; white-space: nowrap; } .tabs a:hover { color: var(--accent); }
+      nav.dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0.75rem; z-index: 10; display: flex; gap: 0.25rem; padding: 0.25rem; background: var(--hull); border: 2px solid var(--line); box-shadow: 4px 4px 0 var(--void); }
+      nav.dock a { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; color: var(--dim); font-size: 0.7rem; text-transform: uppercase; }
+      nav.dock a.on { color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
+      nav.dock a.act { background: var(--accent); color: var(--void); font-weight: 700; }
+
+      /* Crew overlay: one fixed click-through layer; only each sprite takes pointer events. */
+      #crew-layer { position: fixed; inset: 0; z-index: 8; pointer-events: none; overflow: hidden; }
+      .walker { position: absolute; left: 0; top: 0; width: 56px; height: 112px; border: 0; padding: 0; background: url("assets/lab-cast.webp") no-repeat; background-size: 800% auto; background-position-y: 50%; image-rendering: pixelated; pointer-events: auto; cursor: pointer; will-change: transform; }
+      .walker .say { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; background: var(--ink); color: var(--void); padding: 0 0.5rem; font-size: 0.75rem; opacity: 0; pointer-events: none; }
+      .walker.talk .say { opacity: 1; }
+      .legend { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--line); }
+      .legend div { padding: 0.5rem 1.25rem; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); }
+      .legend div:nth-child(4n) { border-right: 0; }
+      .toggle { background: var(--band); color: var(--ink); border: 2px solid var(--line); padding: 0 0.75rem; font: inherit; cursor: pointer; }
+      @media (prefers-reduced-motion: reduce) { .walker { transition: none; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero"><div class="copy"><h1>the lab</h1><p class="dim">one ship, one crew, one long shot · <span style="color: var(--live)">3 running</span> · 8 crew aboard</p></div></section>
+
+      <nav class="tabs"><a href="#crew">crew</a><a href="#experiments">experiments</a><a href="#rations">rations</a><a href="#notebook">notebook</a><a href="#rive">rive contract</a><a href="#map">term map</a><a href="#decisions">decisions</a></nav>
+
+      <section id="crew">
+        <div class="band head"><h2>crew · say hello</h2><span class="dim">hover to wake, click to talk</span></div>
+        <div class="cast" id="cast"></div>
+      </section>
+
+      <section id="roam">
+        <div class="band head"><h2>crew overlay · live</h2><button class="toggle" id="roam-toggle" type="button">roaming: on</button></div>
+        <div class="legend" id="legend"></div>
+        <div class="band"><p class="dim">The crew walks the header band, the top of the dock and the bottom of the screen. Working crew stay near the dock, a stalled one sleeps, a happy one hops. Click anyone to hear from them. They never take clicks from the page.</p></div>
+      </section>
+
+      <section id="experiments">
+        <div class="band head"><h2>experiments</h2><a href="#experiments">see all</a></div>
+        <div class="row"><span>measure the billing cloud</span><span class="ok">running</span></div>
+        <div class="row"><span>connect the Google airlock</span><span class="amber">needs a sign-off</span></div>
+        <div class="row"><span>protocol: nightly sweep</span><span class="dim">02:00</span></div>
+      </section>
+
+      <section id="rations">
+        <div class="band head"><h2>rations</h2></div>
+        <div class="row"><span>monthly supply</span><span>$400</span></div>
+        <div class="row"><span>used</span><span>$244</span></div>
+        <div class="band"><div class="bar"><i style="width: 61%"></i></div></div>
+      </section>
+
+      <section id="notebook">
+        <div class="band head"><h2>lab notebook</h2><a href="#notebook">see all</a></div>
+        <div class="row"><span class="dim">11:02</span><span>Doc finished step 4 of "measure the billing cloud"</span></div>
+        <div class="row"><span class="dim">10:31</span><span class="bad">Ribbon went quiet mid-run</span></div>
+      </section>
+
+      <section id="rive">
+        <div class="band head"><h2>rive contract (every character)</h2></div>
+        <table>
+          <thead><tr><th>part</th><th>value</th></tr></thead>
+          <tbody>
+            <tr><td>file</td><td>one <code>.riv</code> per character, named after its callsign</td></tr>
+            <tr><td>artboard</td><td>one square artboard, transparent background</td></tr>
+            <tr><td>state machine</td><td><code>main</code></td></tr>
+            <tr><td>inputs</td><td><code>hover</code> boolean · <code>press</code> trigger · <code>mood</code> number 0 idle, 1 working, 2 stalled, 3 happy</td></tr>
+            <tr><td>runtime</td><td><code>@rive-app/react-canvas</code>, paused when off screen; still sprite fallback</td></tr>
+          </tbody>
+        </table>
+        <div class="band"><p class="dim">The row above is a CSS and script stand-in. Real animation comes from files authored in the Rive editor.</p></div>
+      </section>
+
+      <section id="map">
+        <div class="band head"><h2>term map</h2></div>
+        <table>
+          <thead><tr><th>clayon today</th><th>in the lab</th></tr></thead>
+          <tbody>
+            <tr><td>company</td><td>ship</td></tr>
+            <tr><td>agents</td><td>crew</td></tr>
+            <tr><td>tasks</td><td>experiments</td></tr>
+            <tr><td>routines</td><td>protocols</td></tr>
+            <tr><td>runs</td><td>lab notes</td></tr>
+            <tr><td>budgets</td><td>rations</td></tr>
+            <tr><td>approvals</td><td>sign-offs</td></tr>
+            <tr><td>apps, connectors</td><td>airlocks</td></tr>
+            <tr><td>audit</td><td>lab notebook</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="decisions">
+        <div class="band head"><h2>decisions for you</h2></div>
+        <table>
+          <thead><tr><th>#</th><th>decide</th><th>my pick</th><th>if yes</th><th>if no</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>whiteboard-and-taped-notes look on work pages</td><td>hero and empty states only</td><td>work pages stay clean</td><td>paper notes everywhere</td></tr>
+            <tr><td>2</td><td>lab words in nav labels only</td><td>yes</td><td>data pages keep plain terms</td><td>full vocabulary everywhere</td></tr>
+            <tr><td>3</td><td>original characters only, nothing from the film</td><td>yes</td><td>no copyright risk</td><td>tell me what you want</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+    <nav class="dock"><a class="on" href="#crew">lab</a><a href="#experiments">tests</a><a class="act" href="#experiments">new</a><a href="#rations">food</a><a href="#notebook">notes</a></nav>
+    <div id="crew-layer" aria-hidden="true"></div>
+    <script>
+      // Stand-in for Rive: JS moves the sprite (as DESIGN.md says movement lives in the app); stepped bob = a few frames.
+      const crew = [
+        { name: "Doc", mood: "working", line: "reviewing the plan" },
+        { name: "Quartz", mood: "happy", line: "build is green" },
+        { name: "Legs", mood: "working", line: "scouting the repo" },
+        { name: "Orb", mood: "idle", line: "all systems nominal" },
+        { name: "Spore", mood: "idle", line: "reading the paper" },
+        { name: "Shell", mood: "stalled", line: "zzz" },
+        { name: "Ribbon", mood: "idle", line: "message for you" },
+        { name: "Slate", mood: "working", line: "lifting the migration" },
+      ];
+      const SPRITE_W = 56;
+      const SPRITE_H = 112;
+      const layer = document.getElementById("crew-layer");
+      const legend = document.getElementById("legend");
+      const toggle = document.getElementById("roam-toggle");
+      const dock = document.querySelector("nav.dock");
+      const tabs = document.querySelector(".tabs");
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const phone = window.matchMedia("(max-width: 640px)").matches;
+      let roaming = !reduced;
+
+      const walkers = crew.slice(0, phone ? 3 : 8).map((c, i) => {
+        const el = document.createElement("button");
+        el.className = "walker";
+        el.setAttribute("aria-label", c.name);
+        el.style.backgroundPositionX = (crew.indexOf(c) * 100) / 7 + "%";
+        const say = document.createElement("span");
+        say.className = "say";
+        say.textContent = c.name + ": " + c.line;
+        el.appendChild(say);
+        layer.appendChild(el);
+        const w = { c, el, x: 40 + i * 110, ledge: c.mood === "working" ? "dock" : ["bottom", "dock", "header"][i % 3], dir: 1, pause: 0, hop: 0, step: 0 };
+        el.addEventListener("click", () => { el.classList.add("talk"); setTimeout(() => el.classList.remove("talk"), 1800); w.hop = 1; });
+        return w;
+      });
+
+      crew.forEach((c) => {
+        const row = document.createElement("div");
+        row.innerHTML = '<span>' + c.name + '</span> <span class="' + (c.mood === "working" ? "ok" : c.mood === "stalled" ? "bad" : "dim") + '">' + c.mood + '</span>';
+        legend.appendChild(row);
+      });
+
+      function ledgeRange(ledge) {
+        const d = dock.getBoundingClientRect();
+        if (ledge === "dock") return { min: d.left, max: d.right - SPRITE_W, y: d.top - SPRITE_H };
+        if (ledge === "header") return { min: 0, max: innerWidth - SPRITE_W, y: tabs.getBoundingClientRect().bottom - 2 };
+        return { min: 0, max: innerWidth - SPRITE_W, y: innerHeight - SPRITE_H };
+      }
+
+      let last = performance.now();
+      function frame(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        walkers.forEach((w) => {
+          const r = ledgeRange(w.ledge);
+          const asleep = w.c.mood === "stalled";
+          if (roaming && !asleep) {
+            if (w.pause > 0) w.pause -= dt;
+            else {
+              w.x += w.dir * (w.c.mood === "working" ? 22 : 36) * dt;
+              if (w.x >= r.max) { w.x = r.max; w.dir = -1; w.pause = 0.6; }
+              if (w.x <= r.min) { w.x = r.min; w.dir = 1; w.pause = 0.6; }
+              if (Math.random() < dt * 0.15) w.pause = 0.8 + Math.random() * 1.5;
+              if (Math.random() < dt * 0.04 && w.c.mood !== "working") { w.ledge = ["bottom", "dock", "header"][Math.floor(Math.random() * 3)]; }
+            }
+          }
+          w.x = Math.min(Math.max(w.x, r.min), r.max);
+          w.step += dt * 8;
+          const walking = roaming && !asleep && w.pause <= 0;
+          let bob = walking ? (Math.floor(w.step) % 2 === 0 ? 0 : -3) : 0;
+          if (w.c.mood === "happy" && roaming) bob = -Math.abs(Math.sin(now / 220)) * 12;
+          if (w.hop > 0) { w.hop = Math.max(0, w.hop - dt * 2); bob -= Math.sin(w.hop * Math.PI) * 18; }
+          if (asleep) bob = 8;
+          const flip = w.dir < 0 ? " scaleX(-1)" : "";
+          w.el.style.transform = "translate(" + Math.round(w.x) + "px," + Math.round(r.y + bob) + "px)" + flip;
+        });
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      toggle.addEventListener("click", () => { roaming = !roaming; toggle.textContent = "roaming: " + (roaming ? "on" : "off"); });
+
+      const names = ["Doc", "Quartz", "Legs", "Orb", "Spore", "Shell", "Ribbon", "Slate"];
+      const lines = ["checking", "resonating", "scuttling", "glowing", "growing", "tucked in", "drifting", "heavy lifting"];
+      const cast = document.getElementById("cast");
+      names.forEach((name, i) => {
+        const cell = document.createElement("button");
+        cell.className = "cell";
+        cell.style.backgroundPositionX = (i * 100) / 7 + "%";
+        cell.setAttribute("aria-label", name);
+        const say = document.createElement("span");
+        say.className = "say";
+        say.textContent = name + ": " + lines[i];
+        cell.appendChild(say);
+        cell.addEventListener("click", () => {
+          cell.classList.add("pop");
+          setTimeout(() => cell.classList.remove("pop"), 900);
+        });
+        cast.appendChild(cell);
+      });
+    </script>
+  </body>
+</html>

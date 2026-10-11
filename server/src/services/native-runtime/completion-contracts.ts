@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-import type { Db } from "@paperclipai/db";
-import { completionContracts } from "@paperclipai/db";
-import type { NativeCompletionSource, StrictCompletionContractInput } from "../../vendor/paperclip-runner/index.js";
+import type { Db } from "@clayon/db";
+import { completionContracts } from "@clayon/db";
+import type { NativeCompletionSource, StrictCompletionContractInput } from "../../vendor/clayon-runner/index.js";
 
 import { nativeSha256 } from "./canonical.js";
 
@@ -152,7 +152,7 @@ export async function ensureNativeCompletionContract(input: {
 }) {
   return input.db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${[
-      "paperclip:native-completion-contract",
+      "clayon:native-completion-contract",
       input.companyId,
       input.issue.id,
     ].join(":")}, 0))`);

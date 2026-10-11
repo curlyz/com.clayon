@@ -9,14 +9,14 @@ import {
   chatIdentityLinks,
   companyMemberships,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   githubCommitSchema,
   githubIdSchema,
   type GitHubReviewEventContext,
   type GitHubIssueEventContext,
   type GitHubAutomaticEventContext,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   effectiveGitHubReviewPolicy,
   githubReviewSchedulingDecision,
@@ -252,7 +252,7 @@ export async function githubAutomaticAdmission(
     );
   const [link] = await db
     .select({
-      userId: chatIdentityLinks.paperclipUserId,
+      userId: chatIdentityLinks.clayonUserId,
       status: chatIdentityLinks.status,
     })
     .from(chatExternalPrincipals)

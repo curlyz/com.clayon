@@ -30,10 +30,10 @@ import {
 } from "./prepare-bundled-package.mjs";
 
 const rootPackage = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-const profileData = JSON.parse(await readFile(new URL("../packages/paperclip-runner/acpx-profiles.json", import.meta.url), "utf8"));
+const profileData = JSON.parse(await readFile(new URL("../packages/clayon-runner/acpx-profiles.json", import.meta.url), "utf8"));
 const nativeTargets = ["linux-x64", "darwin-arm64", "darwin-x64"];
 function esbuildFixture(t) {
-  const directory = realpathSync(mkdtempSync(join(tmpdir(), "paperclip-bundled-esbuild-")));
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "clayon-bundled-esbuild-")));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const graph = join(directory, "node_modules");
   const writePackage = (location, metadata) => {
@@ -50,14 +50,14 @@ function esbuildFixture(t) {
     name: "@esbuild/linux-x64", version: "0.28.2", os: ["linux"], cpu: ["x64"],
   });
   writePackage(join(graph, "unrelated-linux-x64"), { name: "unrelated-linux-x64", version: "1.0.0" });
-  const publish = { name: "@paperclipai/adapter-utils", version: "0.3.1", bundleDependencies: ["acpx"],
+  const publish = { name: "@clayon/adapter-utils", version: "0.3.1", bundleDependencies: ["acpx"],
     dependencies: { acpx: "0.13.1" }, optionalDependencies: { unrelated: "1.0.0" } };
   return { directory, graph, esbuild, producerBinary, publish, writePackage };
 }
 const codexTargets = ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64", "win32-x64", "win32-arm64"];
 const codexOptional = Object.fromEntries(codexTargets.map(target => [`@openai/codex-${target}`, `npm:@openai/codex@0.160.0-${target}`]));
 function codexFixture(t) {
-  const directory = realpathSync(mkdtempSync(join(tmpdir(), "paperclip-bundled-codex-")));
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), "clayon-bundled-codex-")));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const graph = join(directory, "node_modules");
   const writePackage = (location, metadata) => {
@@ -73,14 +73,14 @@ function codexFixture(t) {
   const nested = writePackage(join(bridge, "node_modules/@openai/codex-darwin-arm64"), { name: "@openai/codex", version: "0.160.0-darwin-arm64", os: ["darwin"], cpu: ["arm64"] });
   writePackage(join(graph, "unrelated-linux-x64"), { name: "unrelated-linux-x64", version: "1.0.0" });
   const profiles = [{ agent: "codex", ...profileData.profiles.codex }];
-  const publish = { name: "paperclip-codex-pack-fixture", version: "1.0.0", dependencies: { "@agentclientprotocol/codex-acp": "1.6.2" }, bundleDependencies: ["@agentclientprotocol/codex-acp"] };
+  const publish = { name: "clayon-codex-pack-fixture", version: "1.0.0", dependencies: { "@agentclientprotocol/codex-acp": "1.6.2" }, bundleDependencies: ["@agentclientprotocol/codex-acp"] };
   return { directory, graph, bridge, runtime, producer, nested, profiles, publish, writePackage };
 }
 const adapterUtilsPackage = JSON.parse(
   await readFile(new URL("../packages/adapter-utils/package.json", import.meta.url), "utf8"),
 );
 const runnerPackage = JSON.parse(
-  await readFile(new URL("../packages/paperclip-runner/package.json", import.meta.url), "utf8"),
+  await readFile(new URL("../packages/clayon-runner/package.json", import.meta.url), "utf8"),
 );
 const serverPackage = JSON.parse(
   await readFile(new URL("../server/package.json", import.meta.url), "utf8"),
@@ -207,7 +207,7 @@ test("Codex bundles retain pinned JavaScript and delegate official consumer plat
   const staged = stageBundledProviderOptionalDependencies(directory, publish, profiles);
   assert.deepEqual(staged.optionalDependencies, codexOptional);
   assert.deepEqual(staged.bundleDependencies, publish.bundleDependencies);
-  assert.equal(staged.paperclipProviderArtifacts, undefined);
+  assert.equal(staged.clayonProviderArtifacts, undefined);
   assert.equal(existsSync(producer), false);
   assert.equal(existsSync(nested), false, "Transitive producer platform packages must also be removed");
   assert.equal(existsSync(join(runtime, "vendor")), false, "Wrapper fallback native payload must be removed");
@@ -319,7 +319,7 @@ test("bundled esbuild cannot follow a platform payload or package namespace outs
   assert.throws(() => stageBundledEsbuildOptionalDependencies(directory, publish), /escapes its producer graph/);
 });
 
-test("Paperclip Runner pins the qualified ACPX host callbacks", () => {
+test("Clayon Runner pins the qualified ACPX host callbacks", () => {
   assert.equal(rootPackage.pnpm.patchedDependencies["acpx@0.13.1"], "patches/acpx@0.13.1.patch");
   assert.equal(
     rootPackage.pnpm.patchedDependencies["@agentclientprotocol/claude-agent-acp@0.73.0"],
@@ -358,7 +358,7 @@ test("bundled package staging materializes publishConfig entrypoints", () => {
 
 test("bundled package staging materializes workspace dependency versions", () => {
   const staged = materializePublishManifest({
-    name: "@paperclipai/example",
+    name: "@clayon/example",
     version: "2026.723.0",
     dependencies: { exact: "workspace:*", caret: "workspace:^", tilde: "workspace:~" },
   });
@@ -372,15 +372,15 @@ test("bundled package staging materializes workspace dependency versions", () =>
 
 test("bundled package staging installs only dependencies included in the tarball", () => {
   const publishManifest = {
-    name: "@paperclipai/db",
+    name: "@clayon/db",
     version: "2026.723.0-canary.8",
     dependencies: {
-      "@paperclipai/shared": "2026.723.0-canary.8",
+      "@clayon/shared": "2026.723.0-canary.8",
       "drizzle-orm": "^0.45.2",
       "embedded-postgres": "^18.1.0-beta.16",
     },
     devDependencies: {
-      "@paperclipai/paperclip-runner": "2026.723.0-canary.8",
+      "@clayon/clayon-runner": "2026.723.0-canary.8",
     },
     bundleDependencies: ["embedded-postgres"],
   };
@@ -391,13 +391,13 @@ test("bundled package staging installs only dependencies included in the tarball
   });
   assert.equal(installManifest.devDependencies, undefined);
   assert.deepEqual(publishManifest.devDependencies, {
-    "@paperclipai/paperclip-runner": "2026.723.0-canary.8",
+    "@clayon/clayon-runner": "2026.723.0-canary.8",
   });
   assert.deepEqual(installManifest.bundleDependencies, ["embedded-postgres"]);
 });
 
 test("bundled package staging selects only the installed dependency version's patch", (t) => {
-  const destinationDir = mkdtempSync(join(tmpdir(), "paperclip-bundled-patch-selection-"));
+  const destinationDir = mkdtempSync(join(tmpdir(), "clayon-bundled-patch-selection-"));
   const installedPackageDir = join(destinationDir, "node_modules", "acpx");
   mkdirSync(installedPackageDir, { recursive: true });
   writeFileSync(
@@ -422,7 +422,7 @@ test("bundled package staging selects only the installed dependency version's pa
 });
 
 test("bundled package patch selection handles scoped package names", (t) => {
-  const destinationDir = mkdtempSync(join(tmpdir(), "paperclip-scoped-patch-selection-"));
+  const destinationDir = mkdtempSync(join(tmpdir(), "clayon-scoped-patch-selection-"));
   const installedPackageDir = join(destinationDir, "node_modules", "@example", "runtime");
   mkdirSync(installedPackageDir, { recursive: true });
   writeFileSync(
@@ -447,7 +447,7 @@ test("bundled package patch selection handles scoped package names", (t) => {
 });
 
 test("bundled package patch selection reports missing installed metadata", (t) => {
-  const destinationDir = mkdtempSync(join(tmpdir(), "paperclip-missing-patch-metadata-"));
+  const destinationDir = mkdtempSync(join(tmpdir(), "clayon-missing-patch-metadata-"));
   t.after(() => rmSync(destinationDir, { recursive: true, force: true }));
 
   assert.throws(
@@ -460,7 +460,7 @@ test("bundled package patch selection reports missing installed metadata", (t) =
 });
 
 test("bundled package patch selection rejects an unpatched installed version", (t) => {
-  const destinationDir = mkdtempSync(join(tmpdir(), "paperclip-unmatched-patch-version-"));
+  const destinationDir = mkdtempSync(join(tmpdir(), "clayon-unmatched-patch-version-"));
   const installedPackageDir = join(destinationDir, "node_modules", "acpx");
   mkdirSync(installedPackageDir, { recursive: true });
   writeFileSync(
@@ -480,7 +480,7 @@ test("bundled package patch selection rejects an unpatched installed version", (
 });
 
 test("server package staging applies every bundled runtime patch and preserves the vendored runner", (t) => {
-  const fixtureDir = realpathSync(mkdtempSync(join(tmpdir(), "paperclip-bundled-stage-")));
+  const fixtureDir = realpathSync(mkdtempSync(join(tmpdir(), "clayon-bundled-stage-")));
   const sourceDir = join(fixtureDir, "source");
   const destinationDir = join(fixtureDir, "destination");
   const binDir = join(fixtureDir, "bin");
@@ -502,9 +502,9 @@ test("server package staging applies every bundled runtime patch and preserves t
   mkdirSync(join(nativePackage, "vendor"), { recursive: true });
   writeFileSync(join(nativePackage, "package.json"), JSON.stringify({ name: "@openai/codex", version: "0.160.0-linux-x64", os: ["linux"], cpu: ["x64"] }));
   writeFileSync(join(nativePackage, "vendor/codex"), "producer host fixture; never executed");
-  mkdirSync(join(fixtureSourceRoot, "packages/paperclip-runner/src/drivers/acpx"), { recursive: true });
+  mkdirSync(join(fixtureSourceRoot, "packages/clayon-runner/src/drivers/acpx"), { recursive: true });
   writeFileSync(join(fixtureSourceRoot, "package.json"), JSON.stringify(rootPackage));
-  writeFileSync(join(fixtureSourceRoot, "packages/paperclip-runner/acpx-profiles.json"), JSON.stringify(profileData));
+  writeFileSync(join(fixtureSourceRoot, "packages/clayon-runner/acpx-profiles.json"), JSON.stringify(profileData));
   mkdirSync(join(fixtureSourceRoot, "patches"));
   for (const patchPath of Object.values(rootPackage.pnpm.patchedDependencies)) {
     writeFileSync(join(fixtureSourceRoot, patchPath), readFileSync(new URL(`../${patchPath}`, import.meta.url)));
@@ -596,7 +596,7 @@ printf 'patched spawnEnvironment runtime\\n' > "$target/dist/runtime.js"
     assert.equal(stagedManifest.bundleDependencies.includes(name), false);
   }
   assert.equal(existsSync(join(destinationDir, "node_modules/@openai/codex/vendor")), false);
-  assert.equal(stagedManifest.paperclipProviderArtifacts, undefined);
+  assert.equal(stagedManifest.clayonProviderArtifacts, undefined);
   assert.equal(JSON.parse(readFileSync(join(destinationDir, "node_modules/@openai/codex/package.json"), "utf8")).optionalDependencies, undefined);
   assert.equal(stagedManifest.optionalDependencies["@esbuild/darwin-arm64"], "0.28.2");
   assert.equal(stagedManifest.optionalDependencies["@esbuild/darwin-x64"], "0.28.2");
@@ -655,7 +655,7 @@ test("npm builds use corepack instead of requiring a global pnpm", () => {
 
 
 test("installed ACPX runtime persists and restores optional goal capabilities", () => {
-  const requireRunner = createRequire(new URL("../packages/paperclip-runner/package.json", import.meta.url));
+  const requireRunner = createRequire(new URL("../packages/clayon-runner/package.json", import.meta.url));
   const runtimeSource = readFileSync(requireRunner.resolve("acpx/runtime"), "utf8");
   const start = runtimeSource.indexOf("function persistedGoalCapability(");
   const end = runtimeSource.indexOf("function planUpdateEvent(", start);

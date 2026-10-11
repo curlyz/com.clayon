@@ -4,7 +4,7 @@ import {
   HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS,
   hidesCompanyPage,
   type Agent,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { Trash2, UserPlus } from "lucide-react";
 import { accessApi, type CompanyMember } from "@/api/access";
 import { agentsApi } from "@/api/agents";
@@ -43,6 +43,7 @@ import { PageTabBar } from "@/components/PageTabBar";
 import { useHiddenSettings } from "@/hooks/useHiddenSettings";
 import { useCloudInstance } from "@/hooks/useCloudInstance";
 import { InvitesSection } from "@/components/access/InvitesSection";
+import { SettingsPageTabs } from "@/components/SettingsPageTabs";
 
 const reassignmentIssueStatuses = "backlog,todo,in_progress,in_review,blocked,failed,timed_out";
 type EditableMemberStatus = "pending" | "active" | "suspended";
@@ -291,6 +292,7 @@ export function CompanyAccess() {
   // Members stay in a table so operators can compare aligned roles, status, and actions.
   return (
     <div className="flex max-w-6xl flex-col">
+      <SettingsPageTabs />
       <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/50 px-3 py-3">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">Organization Members</h1>
@@ -644,7 +646,7 @@ export function CompanyAccessLegacyRoute() {
         <div className="flex flex-col">
           <h2 className="bg-muted/50 px-4 py-3 text-sm font-semibold">Advanced permissions unavailable</h2>
           <p className="px-4 py-3 text-sm text-muted-foreground">
-            Core Paperclip keeps enforcing organization boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.
+            Core Clayon keeps enforcing organization boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.
           </p>
           {errorMessage ? (
             <p className="px-4 py-3 text-sm text-destructive">Plugin extensions unavailable: {errorMessage}</p>

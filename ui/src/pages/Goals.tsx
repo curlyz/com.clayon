@@ -7,6 +7,7 @@ import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { GoalTree } from "../components/GoalTree";
 import { EmptyState } from "../components/EmptyState";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Target, Plus } from "lucide-react";
@@ -35,8 +36,17 @@ export function Goals() {
   }
 
   return (
-    <div className="space-y-4">
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+    <div className="flex flex-col">
+      <PageHeaderBand
+        title="Goals"
+        actions={goals && goals.length > 0 ? (
+          <Button size="sm" variant="outline" onClick={() => openNewGoal()}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            New Goal
+          </Button>
+        ) : undefined}
+      />
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
 
       {goals && goals.length === 0 && (
         <EmptyState
@@ -47,17 +57,7 @@ export function Goals() {
         />
       )}
 
-      {goals && goals.length > 0 && (
-        <>
-          <div className="flex items-center justify-start">
-            <Button size="sm" variant="outline" onClick={() => openNewGoal()}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              New Goal
-            </Button>
-          </div>
-          <GoalTree goals={goals} goalLink={(goal) => `/goals/${goal.id}`} />
-        </>
-      )}
+      {goals && goals.length > 0 && <GoalTree goals={goals} goalLink={(goal) => `/goals/${goal.id}`} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # Database
 
-Paperclip uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team/). There are three ways to run the database, from simplest to most production-ready.
+Clayon uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team/). There are three ways to run the database, from simplest to most production-ready.
 
 ## 1. Embedded PostgreSQL — zero config
 
@@ -12,12 +12,12 @@ pnpm dev
 
 That's it. On first start the server:
 
-1. Creates a `~/.paperclip/instances/default/db/` directory for storage
-2. Ensures the `paperclip` database exists
+1. Creates a `~/.clayon/instances/default/db/` directory for storage
+2. Ensures the `clayon` database exists
 3. Runs migrations automatically for empty databases
 4. Starts serving requests
 
-Data persists across restarts in `~/.paperclip/instances/default/db/`. To reset local dev data, delete that directory.
+Data persists across restarts in `~/.clayon/instances/default/db/`. To reset local dev data, delete that directory.
 
 Subscription reporting adds `ai_subscriptions` (company-scoped account identity),
 `ai_subscription_prices` (immutable price revisions), and
@@ -36,7 +36,7 @@ If you need to apply pending migrations manually, run:
 pnpm db:migrate
 ```
 
-When `DATABASE_URL` is unset, this command targets the current embedded PostgreSQL instance for your active Paperclip config/instance.
+When `DATABASE_URL` is unset, this command targets the current embedded PostgreSQL instance for your active Clayon config/instance.
 
 Issue reference mentions follow the normal migration path: the schema migration creates the tracking table, but it does not backfill historical issue titles, descriptions, comments, or documents automatically.
 
@@ -52,7 +52,7 @@ Future issue, comment, and document writes sync references automatically without
 
 This mode is ideal for local development and one-command installs.
 
-Docker note: the Docker quickstart image also uses embedded PostgreSQL by default. Persist `/paperclip` to keep DB state across container restarts (see `doc/DOCKER.md`).
+Docker note: the Docker quickstart image also uses embedded PostgreSQL by default. Persist `/clayon` to keep DB state across container restarts (see `doc/DOCKER.md`).
 
 ## 2. Local PostgreSQL (Docker)
 
@@ -67,13 +67,13 @@ This starts PostgreSQL 17 on `localhost:5432`. Then set the connection string:
 ```sh
 cp .env.example .env
 # .env already contains:
-# DATABASE_URL=postgres://paperclip:paperclip@localhost:5432/paperclip
+# DATABASE_URL=postgres://clayon:clayon@localhost:5432/clayon
 ```
 
 Run migrations:
 
 ```sh
-DATABASE_URL=postgres://paperclip:paperclip@localhost:5432/paperclip \
+DATABASE_URL=postgres://clayon:clayon@localhost:5432/clayon \
   pnpm db:migrate
 ```
 
@@ -117,7 +117,7 @@ For the application runtime, use a direct PostgreSQL connection unless the datab
 DATABASE_URL=postgres://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres
 ```
 
-If you later run the app with a pooled runtime URL, set `DATABASE_MIGRATION_URL` to the direct connection URL. Paperclip uses it for startup schema checks/migrations and plugin namespace migrations, while the app continues to use `DATABASE_URL` for runtime queries:
+If you later run the app with a pooled runtime URL, set `DATABASE_MIGRATION_URL` to the direct connection URL. Clayon uses it for startup schema checks/migrations and plugin namespace migrations, while the app continues to use `DATABASE_URL` for runtime queries:
 
 ```sh
 DATABASE_URL=postgres://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
@@ -136,7 +136,7 @@ DATABASE_POOL_MAX=25                 # connection pool size; default: 10
 DATABASE_IDLE_TIMEOUT_SECONDS=60     # close idle pooled connections; default: 60 (0 = keep open)
 DATABASE_CONNECT_TIMEOUT_SECONDS=10  # default: 30
 DATABASE_MAX_LIFETIME_SECONDS=1800   # recycle a pooled connection after this long; default: 30-60 min (random)
-DATABASE_APPLICATION_NAME=paperclip  # application_name in pg_stat_activity; default: paperclip
+DATABASE_APPLICATION_NAME=clayon  # application_name in pg_stat_activity; default: clayon
 ```
 
 ### Push the schema
@@ -169,7 +169,7 @@ pool. Callers may retry only when the complete operation is idempotent or has
 a durable receipt that prevents duplicate effects. Some transient statement
 failures therefore reach the caller instead of being retried automatically.
 
-When a database connection closes, its transaction fails. Paperclip does not
+When a database connection closes, its transaction fails. Clayon does not
 replay that transaction. New requests can use a fresh connection from the pool.
 Queries from the failed transaction must keep failing, even after the pool
 reconnects.
@@ -218,7 +218,7 @@ The database mode is controlled by `DATABASE_URL`:
 
 | `DATABASE_URL` | Mode |
 |---|---|
-| Not set | Embedded PostgreSQL (`~/.paperclip/instances/default/db/`) |
+| Not set | Embedded PostgreSQL (`~/.clayon/instances/default/db/`) |
 | `postgres://...localhost...` | Local Docker PostgreSQL |
 | `postgres://...supabase.com...` | Hosted Supabase |
 
@@ -238,7 +238,7 @@ When authoring migrations or one-time backfills:
 - Treat the `check:migrations` CI gate as the enforcement backstop for these rules. If it flags a migration, rewrite the migration or add a suppression comment with the indexed predicate, batch bound, and reason the remaining scan is safe.
 
 Private-task migrations `0313` and `0314` are explicitly allowlisted in the
-Paperclip executor to run outside a file-wide transaction. Their idempotent
+Clayon executor to run outside a file-wide transaction. Their idempotent
 keyset batches commit every 1,000 rows, and migration history is recorded only
 when all batches finish. The executor repairs invalid concurrent indexes on
 retry. A reserved connection holds a session advisory lock across all batch
@@ -252,7 +252,7 @@ connection, before enabling the new server and UI.
 
 `drizzle-kit generate` diffs `packages/db/src/schema/` against the newest snapshot in `packages/db/src/migrations/meta/`. That snapshot must describe the schema that every migration produces when they run in order. A snapshot that drifts from the schema makes the *next* migration wrong, because `generate` folds the drift into it. The drift can add a column that an earlier migration already created, which makes that migration fail on a fresh database. It can also drop a column that the schema still uses.
 
-- Create every migration with `pnpm --filter @paperclipai/db generate`. Do not hand-write a snapshot.
+- Create every migration with `pnpm --filter @clayon/db generate`. Do not hand-write a snapshot.
 - Do not hand-edit a snapshot to resolve a merge conflict. Renumber your migration and run `generate` again, as `packages/db/.gitattributes` describes.
 - The repo keeps only the newest 5 snapshots. `generate` runs `prune:snapshots` afterwards to delete older ones. Drizzle only reads the newest snapshot, and each snapshot is a full copy of the schema (over 1 MB each). Older snapshots are still in git history.
 - `packages/db/src/migration-snapshot-drift.test.ts` is the enforcement backstop. It repeats the diff that `generate` performs and fails when the newest snapshot no longer matches `packages/db/src/schema/`.
@@ -271,7 +271,7 @@ constructing URL-dependent runtime services on every boot.
 
 ### Unclaimed Cloud warm standby
 
-`PAPERCLIP_CLOUD_WARM_STANDBY=1` is an opt-in control-plane marker for an
+`CLAYON_CLOUD_WARM_STANDBY=1` is an opt-in control-plane marker for an
 unclaimed warm application. It requires Cloud configuration, a stack identity,
 and runtime identity verification keys. After restoring the durable identity,
 startup checks once for company data. Existing companies or a persisted claim
@@ -303,7 +303,7 @@ scheduler for their background work.
 
 ## Resource membership tables
 
-Paperclip stores current-user sidebar membership state in:
+Clayon stores current-user sidebar membership state in:
 
 - `project_memberships`
 - `agent_memberships`
@@ -398,7 +398,7 @@ endpoint has no additional instructions.
 
 `chat_telegram_draft_ids` is a content-free, instance-wide PostgreSQL sequence,
 not a company-owned record. Telegram's native Stop callback carries a draft ID
-but no actor or Paperclip generation. IDs therefore must not be recycled when
+but no actor or Clayon generation. IDs therefore must not be recycled when
 a transaction rolls back or an endpoint/company is deleted and its bot is
 connected again. The sequence allocates positive 31-bit IDs without cycling;
 exhaustion refuses new draft allocation rather than wrapping or falling back to
@@ -439,10 +439,10 @@ The plugin runtime tracks plugin-owned database namespaces and migrations in `pl
 
 ## Backups
 
-Paperclip supports automatic and manual logical database backups. These dumps include
+Clayon supports automatic and manual logical database backups. These dumps include
 non-system database schemas such as `public`, the Drizzle migration journal, and
 plugin-owned database schemas. See `doc/DEVELOPING.md` for the current
-`paperclipai db:backup` / `pnpm db:backup` commands and backup retention
+`clayon db:backup` / `pnpm db:backup` commands and backup retention
 configuration.
 
 Database backups do not include non-database instance files such as local-disk
@@ -451,7 +451,7 @@ up separately when you need full instance disaster recovery.
 
 ## Secret storage
 
-Paperclip stores secret metadata and versions in:
+Clayon stores secret metadata and versions in:
 
 - `user_secret_definitions`
 - `user_secret_declarations`
@@ -473,8 +473,8 @@ Secret-aware env bindings are supported by agents, projects, and routines. Routi
 For local/default installs, the active provider is `local_encrypted`:
 
 - Secret material is encrypted at rest with a local master key.
-- Default key file: `~/.paperclip/instances/default/secrets/master.key` (auto-created if missing).
-- CLI config location: `~/.paperclip/instances/default/config.json` under `secrets.localEncrypted.keyFilePath`.
+- Default key file: `~/.clayon/instances/default/secrets/master.key` (auto-created if missing).
+- CLI config location: `~/.clayon/instances/default/config.json` under `secrets.localEncrypted.keyFilePath`.
 - Backup/restore requires both the database metadata and the local master key file; either artifact alone is insufficient.
 - The server best-effort enforces `0600` key file permissions and provider health reports permission warnings.
 - User-scoped values use the same local encrypted provider path. Database
@@ -484,25 +484,25 @@ For local/default installs, the active provider is `local_encrypted`:
 
 Optional overrides:
 
-- `PAPERCLIP_SECRETS_MASTER_KEY` (32-byte key as base64, hex, or raw 32-char string)
-- `PAPERCLIP_SECRETS_MASTER_KEY_FILE` (custom key file path)
+- `CLAYON_SECRETS_MASTER_KEY` (32-byte key as base64, hex, or raw 32-char string)
+- `CLAYON_SECRETS_MASTER_KEY_FILE` (custom key file path)
 
 Strict mode to block new inline sensitive env values:
 
 ```sh
-PAPERCLIP_SECRETS_STRICT_MODE=true
+CLAYON_SECRETS_STRICT_MODE=true
 ```
 
 You can set strict mode and provider defaults via:
 
 ```sh
-pnpm paperclipai configure --section secrets
+pnpm clayon configure --section secrets
 ```
 
 Inline secret migration command:
 
 ```sh
-npx paperclipai secrets migrate-inline-env --company-id <company-id> --apply
+npx clayon secrets migrate-inline-env --company-id <company-id> --apply
 
 # direct database maintenance fallback
 pnpm secrets:migrate-inline-env --apply
@@ -667,7 +667,7 @@ bound before icon upload; an interrupted upload never triggers another app
 creation. This JSON state stores no token, image URL, or provider error payload.
 
 `chat_endpoints.setup.slackAccount` stores the OAuth installer’s Slack ID, the
-initiating Paperclip user ID, pending/linked status, durable welcome-DM and
+initiating Clayon user ID, pending/linked status, durable welcome-DM and
 optional verification-DM status, and the returned DM channel ID. It stores no
 user OAuth token or provider payload.
 The account uses the existing company-scoped `chat_identity_links` table; it
@@ -681,7 +681,7 @@ in setup state, and the fingerprint is excluded from endpoint responses.
 For automatically registered apps, `webhookVerifiedAt` also records successful
 delivery of an authenticated message/app-mention event to the current callback
 URL. The current signing secret, saved app/workspace/bot binding, active connection,
-and runtime generation are checked before recording it. This is Paperclip's
+and runtime generation are checked before recording it. This is Clayon's
 connection evidence, not Slack's settings-page URL-verification flag. Activity
 identifies this evidence as `authenticated_event`; no message body is recorded.
 

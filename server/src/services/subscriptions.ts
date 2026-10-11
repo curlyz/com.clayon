@@ -1,6 +1,6 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { aiSubscriptions, aiSubscriptionPrices, aiSubscriptionConnections, connectionGrants, toolConnections, type Db } from "@paperclipai/db";
-import { aiConnectionMetadataSchema, normalizeCents, subscriptionPlan, type AiProvider, type UpdateSubscriptionPrice } from "@paperclipai/shared";
+import { aiSubscriptions, aiSubscriptionPrices, aiSubscriptionConnections, connectionGrants, toolConnections, type Db } from "@clayon/db";
+import { aiConnectionMetadataSchema, normalizeCents, subscriptionPlan, type AiProvider, type UpdateSubscriptionPrice } from "@clayon/shared";
 import { conflict, forbidden, notFound } from "../errors.js";
 import { logActivity, type ActivityPublication } from "./activity-log.js";
 import { publishAccountingActivities } from "./accounting-transaction.js";

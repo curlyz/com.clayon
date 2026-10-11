@@ -16,7 +16,7 @@ function normalizeOptionalEnvValue(value: string | undefined): string | null {
 }
 
 /**
- * The canonical Paperclip Cloud instance predicate.
+ * The canonical Clayon Cloud instance predicate.
  *
  * The tenant token is the signal injected on live cloud stacks. The managed
  * config document is the legacy/bootstrap signal used by managed feature and
@@ -27,13 +27,13 @@ export function isCloudManagedInstance(
   env: CloudInstanceEnv = process.env,
 ): boolean {
   return (
-    normalizeOptionalEnvValue(env.PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN) !== null ||
-    env.PAPERCLIP_MANAGED_CONFIG !== undefined
+    normalizeOptionalEnvValue(env.CLAYON_CLOUD_TENANT_SERVER_TOKEN) !== null ||
+    env.CLAYON_MANAGED_CONFIG !== undefined
   );
 }
 
 /**
- * Public stack metadata injected by the Paperclip Cloud provisioner.
+ * Public stack metadata injected by the Clayon Cloud provisioner.
  *
  * A managed signal can exist briefly before every metadata value is available,
  * so absent or blank values are represented as null rather than making health
@@ -45,11 +45,11 @@ export function getCloudStackContext(
   if (!isCloudManagedInstance(env)) return null;
 
   return {
-    stackId: normalizeOptionalEnvValue(env.PAPERCLIP_CLOUD_STACK_ID),
-    stackSlug: normalizeOptionalEnvValue(env.PAPERCLIP_STACK_SLUG),
-    accountGroupId: normalizeOptionalEnvValue(env.PAPERCLIP_CLOUD_ACCOUNT_GROUP_ID),
-    primaryHost: normalizeOptionalEnvValue(env.PAPERCLIP_PRIMARY_HOST),
-    cloudOrigin: normalizeOptionalEnvValue(env.PAPERCLIP_CLOUD_API_ORIGIN),
+    stackId: normalizeOptionalEnvValue(env.CLAYON_CLOUD_STACK_ID),
+    stackSlug: normalizeOptionalEnvValue(env.CLAYON_STACK_SLUG),
+    accountGroupId: normalizeOptionalEnvValue(env.CLAYON_CLOUD_ACCOUNT_GROUP_ID),
+    primaryHost: normalizeOptionalEnvValue(env.CLAYON_PRIMARY_HOST),
+    cloudOrigin: normalizeOptionalEnvValue(env.CLAYON_CLOUD_API_ORIGIN),
   };
 }
 
@@ -60,7 +60,7 @@ export function getCloudStackContext(
  * these ids. middleware/auth.ts delegates here; this is the one definition.
  */
 export function cloudTenantPrimaryCompanyId(stackId: string): string {
-  const bytes = createHash("sha256").update(`paperclip-cloud-tenant-company:${stackId}`).digest();
+  const bytes = createHash("sha256").update(`clayon-cloud-tenant-company:${stackId}`).digest();
   bytes[6] = (bytes[6]! & 0x0f) | 0x50;
   bytes[8] = (bytes[8]! & 0x3f) | 0x80;
   const hex = bytes.subarray(0, 16).toString("hex");

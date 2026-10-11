@@ -3,8 +3,8 @@ import express, { type Router } from "express";
 import { inject } from "light-my-request";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { type Db, mcpMutationReceipts } from "@paperclipai/db";
-import { ISSUE_STATUSES } from "@paperclipai/shared";
+import { type Db, mcpMutationReceipts } from "@clayon/db";
+import { ISSUE_STATUSES } from "@clayon/shared";
 import { errorHandler } from "../../middleware/error-handler.js";
 import { DEFAULT_JSON_BODY_LIMIT } from "../../http/body-limits.js";
 import { logActivity } from "../activity-log.js";
@@ -60,7 +60,7 @@ export const publicMcpCapabilities: Capability[] = [
     run: async (p, _a, _api, origin) => ({
       user: { id: p.actor.userId, name: p.actor.userName }, companyId: p.grant.companyId, company: p.company,
       scopes: p.grant.scopes, connectionId: p.grant.id, manageUrl: origin + "/assistant-connections",
-      execution: "Tasks run through Paperclip scheduling, budgets and approvals. The assistant subscription does not provide agent execution capacity.",
+      execution: "Tasks run through Clayon scheduling, budgets and approvals. The assistant subscription does not provide agent execution capacity.",
     }),
   },
   {
@@ -99,7 +99,7 @@ export const publicMcpCapabilities: Capability[] = [
   },
   {
     name: "paperclip_create_task", write: true,
-    description: "Delegate work by creating one durable task assigned to a Paperclip agent. This may schedule autonomous execution and consume the company's configured model budget. Normal permissions, approval gates and agent availability apply. Returns immediately; retrieve progress later. Never retry with a new requestId after an uncertain result.",
+    description: "Delegate work by creating one durable task assigned to a Clayon agent. This may schedule autonomous execution and consume the company's configured model budget. Normal permissions, approval gates and agent availability apply. Returns immediately; retrieve progress later. Never retry with a new requestId after an uncertain result.",
     schema: z.object({ ...company, requestId, title: z.string().trim().min(1).max(200), description: z.string().max(50000), assigneeAgentId: z.uuid(), projectId: z.uuid().optional() }).strict(),
     run: async (p, a, api, origin) => {
       const result = await api(p, "POST", `/companies/${a.companyId}/issues`, {
@@ -108,7 +108,7 @@ export const publicMcpCapabilities: Capability[] = [
         idempotencyKey: `mcp:${hashMcpSecret(p.grant.companyId + ":" + p.grant.userId)}:${a.requestId}`,
       });
       return { task: pick(result, taskFields), url: origin + "/" + pathId(p.company.issuePrefix) + "/issues/" + pathId(object(result).identifier ?? object(result).id),
-        scheduling: "Submitted to normal Paperclip scheduling. Creation does not guarantee execution has started." };
+        scheduling: "Submitted to normal Clayon scheduling. Creation does not guarantee execution has started." };
     },
   },
   {
@@ -133,7 +133,7 @@ export const publicMcpCapabilities: Capability[] = [
     run: async (p, a, api) => ({ document: pick(await api(p, "GET", `/issues/${pathId(a.taskId)}/documents/${pathId(a.key)}`), documentFields) }),
   },
   {
-    name: "paperclip_pending_approvals", description: "List pending approvals and link to Paperclip's decision interface. Approval decisions must be made there; this connection cannot approve them.",
+    name: "paperclip_pending_approvals", description: "List pending approvals and link to Clayon's decision interface. Approval decisions must be made there; this connection cannot approve them.",
     schema: z.object(company).strict(),
     run: async (p, a, api, origin) => ({ approvals: rows(await api(p, "GET", `/companies/${a.companyId}/approvals?status=pending`)).map((v) => ({
       ...pick(v, ["id", "type", "status", "requestedByAgentId", "requestedByUserId", "createdAt"]),
@@ -144,9 +144,9 @@ export const publicMcpCapabilities: Capability[] = [
 ];
 
 publicMcpCapabilities.push({
-  name: "paperclip_search_api", description: "Search the allowed Paperclip work and configuration API operations and their exact argument schemas. These are the same authorized operations as the named tools; other REST endpoints are not callable.",
+  name: "paperclip_search_api", description: "Search the allowed Clayon work and configuration API operations and their exact argument schemas. These are the same authorized operations as the named tools; other REST endpoints are not callable.",
   schema: z.object({ ...company, query: z.string().max(200).default("") }).strict(),
-  run: async (_p, a) => ({ operations: publicMcpCapabilities.filter(c => !["paperclip_search_api", "paperclip_call_api"].includes(c.name) && String(a.query).toLowerCase().split(/\s+/).every(word => (c.name + " " + c.description).toLowerCase().includes(word))).slice(0, 40).map(c => ({ operationId: c.name, description: c.description, scope: c.configure ? "paperclip:configure" : c.write ? "paperclip:write" : "paperclip:read", inputSchema: z.toJSONSchema(c.schema) })) }),
+  run: async (_p, a) => ({ operations: publicMcpCapabilities.filter(c => !["paperclip_search_api", "paperclip_call_api"].includes(c.name) && String(a.query).toLowerCase().split(/\s+/).every(word => (c.name + " " + c.description).toLowerCase().includes(word))).slice(0, 40).map(c => ({ operationId: c.name, description: c.description, scope: c.configure ? "clayon:configure" : c.write ? "clayon:write" : "clayon:read", inputSchema: z.toJSONSchema(c.schema) })) }),
 }, {
   name: "paperclip_call_api", write: true, destructive: true, description: "Call an operation returned by paperclip_search_api using its exact arguments, including companyId and requestId for writes. Same permissions, company checks and retry identity as the named tool. No arbitrary URLs, headers or additional REST operations.",
   schema: z.object({ ...company, operationId: z.string().min(1).max(100), arguments: z.record(z.string(), z.unknown()) }).strict(),
@@ -165,12 +165,12 @@ export function createPublicMcpExecutor(db: Db, oauth: PublicMcpOAuth, api: ApiD
       input = envelope.arguments;
     }
     const capability = publicMcpCapabilities.find((c) => c.name === name);
-    if (!capability) throw new McpCapabilityError("Unknown Paperclip operation.");
+    if (!capability) throw new McpCapabilityError("Unknown Clayon operation.");
     const args = capability.schema.parse(input);
     if (args.companyId !== undefined && args.companyId !== principal.grant.companyId) throw new McpCapabilityError("Company does not match the authorized connection.");
-    if (!principal.grant.scopes.includes("paperclip:read")) throw new McpCapabilityError("Read permission is required.");
+    if (!principal.grant.scopes.includes("clayon:read")) throw new McpCapabilityError("Read permission is required.");
     if (!capability.write && !capability.configure) return capability.run(principal, args, api, oauth.config.origin, transfers);
-    const scope = capability.configure ? "paperclip:configure" : "paperclip:write";
+    const scope = capability.configure ? "clayon:configure" : "clayon:write";
     if (!principal.grant.scopes.includes(scope) || principal.actor.memberships?.[0]?.membershipRole === "viewer") throw new McpCapabilityError(`${scope} permission is required. Reconnect and approve this permission.`);
     if (capability.ephemeral) return capability.run(principal, args, api, oauth.config.origin, transfers);
 
@@ -181,7 +181,7 @@ export function createPublicMcpExecutor(db: Db, oauth: PublicMcpOAuth, api: ApiD
       const [existing] = await db.select().from(mcpMutationReceipts).where(and(eq(mcpMutationReceipts.companyId, principal.grant.companyId), eq(mcpMutationReceipts.userId, principal.grant.userId), eq(mcpMutationReceipts.operation, name), eq(mcpMutationReceipts.requestId, key.requestId)));
       if (!existing || existing.argumentsHash !== argumentsHash) throw new McpCapabilityError("requestId was already used with different arguments.");
       if (existing.status === "completed" && existing.result) return existing.result;
-      return { outcome: "unknown", requestId: key.requestId, message: "This action is in progress or its outcome is unknown. Inspect tasks/comments in Paperclip before taking another action. Do not retry with a new requestId." };
+      return { outcome: "unknown", requestId: key.requestId, message: "This action is in progress or its outcome is unknown. Inspect tasks/comments in Clayon before taking another action. Do not retry with a new requestId." };
     }
     try {
       await logActivity(db, { companyId: principal.grant.companyId, actorType: "user", actorId: principal.grant.userId,
@@ -196,7 +196,7 @@ export function createPublicMcpExecutor(db: Db, oauth: PublicMcpOAuth, api: ApiD
         return result;
       }
       await db.update(mcpMutationReceipts).set({ status: "unknown" }).where(eq(mcpMutationReceipts.id, receipt.id));
-      return { outcome: "unknown", requestId: key.requestId, message: "Paperclip did not confirm this action. Inspect the task and comments before another action; do not retry with a new requestId." };
+      return { outcome: "unknown", requestId: key.requestId, message: "Clayon did not confirm this action. Inspect the task and comments before another action; do not retry with a new requestId." };
     }
   };
 }

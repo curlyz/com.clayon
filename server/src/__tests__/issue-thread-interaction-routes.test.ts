@@ -138,7 +138,7 @@ const mockDb = vi.hoisted(() => ({
   transaction: mockDbTransaction,
 }));
 
-vi.mock("@paperclipai/shared/telemetry", () => ({
+vi.mock("@clayon/shared/telemetry", () => ({
   trackAgentTaskCompleted: vi.fn(),
   trackErrorHandlerCrash: vi.fn(),
 }));
@@ -841,19 +841,19 @@ describe("issue thread interaction routes", () => {
     );
   });
 
-  it.each(["paperclip-id:chat-owner", "chat-owner", "paperclip-id:another-user"])("keeps chat response delivery limited to the exact owner: %s", async (userId) => {
-    const issue = createIssue({ conversationAgentId: ASSIGNEE_AGENT_ID, conversationUserId: "paperclip-id:chat-owner" });
+  it.each(["clayon-id:chat-owner", "chat-owner", "clayon-id:another-user"])("keeps chat response delivery limited to the exact owner: %s", async (userId) => {
+    const issue = createIssue({ conversationAgentId: ASSIGNEE_AGENT_ID, conversationUserId: "clayon-id:chat-owner" });
     mockIssueService.getById.mockResolvedValue(issue);
     mockInteractionService.getForIssue.mockResolvedValue({
       id: "interaction-2", kind: "ask_user_questions", status: "pending",
       requestedResolverPolicy: "human_only", effectiveResolverPolicy: "human_only",
-      addresseeUserId: "paperclip-id:chat-owner", continuationPolicy: "wake_assignee",
+      addresseeUserId: "clayon-id:chat-owner", continuationPolicy: "wake_assignee",
       payload: { version: 1, questions: [] },
     });
     const app = await createApp({ type: "board", userId, source: "cloud_tenant", companyIds: ["company-1"] });
     const response = await request(app).post(`/api/issues/${ISSUE_ID}/interactions/interaction-2/respond`)
       .send({ answers: [{ questionId: "scope", optionIds: ["phase-1"] }] });
-    if (userId === "paperclip-id:chat-owner") {
+    if (userId === "clayon-id:chat-owner") {
       expect(response.status).toBe(200);
       expect(mockInteractionService.answerQuestions).toHaveBeenCalledWith(expect.anything(), "interaction-2", expect.anything(), expect.objectContaining({ userId }));
       expect(mockQuestionResponseDeliveries.deliver).toHaveBeenCalledWith("interaction-2");
@@ -2130,14 +2130,14 @@ describe("issue thread interaction routes", () => {
       ASSIGNEE_AGENT_ID,
       expect.objectContaining({
         payload: expect.objectContaining({
-          paperclipAgentMessage: {
+          clayonAgentMessage: {
             text: "Read T1, append T2, and verify both lines.",
             source: "interaction_rejection",
             sessionId: "interaction-warm-turn",
           },
         }),
         contextSnapshot: expect.objectContaining({
-          paperclipAgentMessage: expect.objectContaining({
+          clayonAgentMessage: expect.objectContaining({
             text: "Read T1, append T2, and verify both lines.",
           }),
         }),

@@ -31,13 +31,13 @@ import {
   agentBubbleDateLabel,
 } from "../components/AgentBubbleActionRow";
 import { cn, formatDateTime } from "../lib/utils";
-import type { FeedbackVoteValue } from "@paperclipai/shared";
+import type { FeedbackVoteValue } from "@clayon/shared";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 /**
  * Board Concierge Chat — a chat interface powered by the board-member skill.
  * Uses /board/chat/stream to invoke Claude with the board skill as system prompt.
- * The user manages their Paperclip company through natural conversation.
+ * The user manages their Clayon company through natural conversation.
  */
 /** Hit zone to the right of the 1px line (line sits on chat pane’s right edge). */
 const SPLIT_DIVIDER_PX = 12;
@@ -235,7 +235,7 @@ export function BoardChat() {
     if (loadedDraftCompanyRef.current === selectedCompanyId) return;
     try {
       const saved = sessionStorage.getItem(
-        `paperclip.boardChat.draft.${selectedCompanyId}`,
+        `clayon.boardChat.draft.${selectedCompanyId}`,
       );
       setInput(saved ?? "");
     } catch {
@@ -251,7 +251,7 @@ export function BoardChat() {
     if (!selectedCompanyId) return;
     if (loadedDraftCompanyRef.current !== selectedCompanyId) return;
     try {
-      const key = `paperclip.boardChat.draft.${selectedCompanyId}`;
+      const key = `clayon.boardChat.draft.${selectedCompanyId}`;
       if (input) {
         sessionStorage.setItem(key, input);
       } else {
@@ -447,7 +447,7 @@ export function BoardChat() {
     if (!container) return;
 
     try {
-      const saved = sessionStorage.getItem("paperclip.boardChat.scrollTop");
+      const saved = sessionStorage.getItem("clayon.boardChat.scrollTop");
       if (saved != null) {
         const parsed = Number(saved);
         if (Number.isFinite(parsed)) {
@@ -498,7 +498,7 @@ export function BoardChat() {
         rafId = null;
         try {
           sessionStorage.setItem(
-            "paperclip.boardChat.scrollTop",
+            "clayon.boardChat.scrollTop",
             String(container.scrollTop),
           );
         } catch { /* sessionStorage unavailable */ }
@@ -890,7 +890,7 @@ export function BoardChat() {
               {/* Status bar — always visible while sending, independent from the chat bubble */}
               {sending && (
                 <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
-                  <img src="/paperclip-thinking.svg" alt="" className="inline-block size-3.5 shrink-0" />
+                  <img src="/clayon-thinking.svg" alt="" className="inline-block size-3.5 shrink-0" />
                   <span>{statusText || "Thinking..."}</span>
                   {elapsedSec > 0 && (
                     <span className="font-mono opacity-50">{elapsedSec.toFixed(1)}s</span>

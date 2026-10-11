@@ -20,7 +20,7 @@ interface ReadingFontContextValue {
   setFont: (font: ReadingFont) => void;
 }
 
-export const READING_FONT_STORAGE_KEY = "paperclip.readerFont";
+export const READING_FONT_STORAGE_KEY = "clayon.readerFont";
 
 const ReadingFontContext = createContext<ReadingFontContextValue | undefined>(undefined);
 

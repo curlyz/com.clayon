@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>clayon command deck — Halo theme design draft</title>
+    <style>
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src: local("MonoLisa Nerd Font"), url("fonts/MonoLisaNerdFont-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src: local("MonoLisa Nerd Font Italic"), url("fonts/MonoLisaNerdFont-Italic.woff2") format("woff2");
+        font-weight: 400;
+        font-style: italic;
+      }
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src: local("MonoLisa Nerd Font Bold"), url("fonts/MonoLisaNerdFont-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src: local("MonoLisa Nerd Font Bold Italic"), url("fonts/MonoLisaNerdFont-BoldItalic.woff2") format("woff2");
+        font-weight: 700;
+        font-style: italic;
+      }
+      /* Halo: UNSC olive-steel hull, amber visor accent, Cortana cyan reserved for live AI activity. */
+      :root {
+        --void: #07090a;
+        --hull: #0d110f;
+        --band: #141a16;
+        --line: #26302a;
+        --ink: #e4e8dc;
+        --dim: #8b9686;
+        --accent: #e6a830;
+        --ai: #4fd6f2;
+        --ok: #8fc27a;
+        --warn: #e6a830;
+        --bad: #e0705a;
+        --cut: 0.6rem;
+      }
+      * { box-sizing: border-box; }
+      html {
+        font-family: "MonoLisa Nerd Font", "MonoLisa", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink);
+        background: var(--void);
+        scroll-behavior: smooth;
+      }
+      body { margin: 0; padding-bottom: 7rem; }
+      main { max-width: 960px; margin: 0 auto; border-inline: 1px solid var(--line); background: var(--hull); }
+      a { color: var(--accent); text-decoration: none; }
+      h1, h2, h3, p { margin: 0; }
+      .band { padding: 1rem 1.25rem; border-top: 1px solid var(--line); }
+      .band.head { background: var(--band); border-top: 0; display: flex; justify-content: space-between; }
+      .band.head h2 { font-size: 0.85rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); font-weight: 700; }
+      .band.head h2::before { content: "// "; color: var(--accent); }
+      .stack { display: flex; flex-direction: column; gap: 0.5rem; }
+      .dim { color: var(--dim); }
+      .ai { color: var(--ai); } .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+      .hero {
+        position: relative;
+        min-height: 26rem;
+        display: flex;
+        align-items: flex-end;
+        background: var(--void) url("assets/ring.webp") center / cover no-repeat;
+        border-bottom: 1px solid var(--line);
+      }
+      .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hull), transparent 55%); }
+      .hero .copy { position: relative; z-index: 1; padding: 1.25rem; display: flex; gap: 1rem; align-items: center; }
+      .hero img { width: 5.5rem; height: 5.5rem; background: var(--void); border: 1px solid var(--line); clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); }
+      .hero h1 { font-size: 1.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
+      .tag { color: var(--ai); }
+
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 0.5rem 1.25rem; border-top: 1px solid var(--line); vertical-align: top; }
+      th { color: var(--dim); font-weight: 400; background: var(--band); border-top: 0; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; }
+      .map { width: 100%; display: block; border-top: 1px solid var(--line); }
+      .mood { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
+      .mood img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: var(--void); }
+      .row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.5rem 1.25rem; border-top: 1px solid var(--line); }
+      .bar { height: 0.25rem; background: var(--line); }
+      .bar i { display: block; height: 100%; background: var(--accent); }
+
+      nav.dock {
+        position: fixed; left: 50%; transform: translateX(-50%); bottom: 0.75rem; z-index: 10;
+        display: flex; gap: 0.25rem; padding: 0.25rem;
+        background: rgba(13, 17, 15, 0.92); border: 1px solid var(--line);
+        clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+        backdrop-filter: blur(8px);
+      }
+      nav.dock a { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; color: var(--dim); font-size: 0.7rem; text-transform: uppercase; }
+      nav.dock a.on { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+      nav.dock a.act { background: var(--accent); color: var(--void); font-weight: 700; }
+      .tabs { display: flex; gap: 1.25rem; padding: 0.5rem 1.25rem; border-top: 1px solid var(--line); position: sticky; top: 0; background: var(--hull); z-index: 5; overflow-x: auto; }
+      .tabs a { color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; white-space: nowrap; }
+      .tabs a:hover { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="copy">
+          <img src="assets/emblem.webp" alt="clayon ring emblem" />
+          <div class="stack">
+            <h1>clayon command deck</h1>
+            <p class="dim">central portal for every AI in this world · <span class="tag">Cortana online</span> · 3 installations · 14 fireteam members</p>
+          </div>
+        </div>
+      </section>
+
+      <nav class="tabs">
+        <a href="#deck">deck</a>
+        <a href="#installations">installations</a>
+        <a href="#fireteam">fireteam</a>
+        <a href="#ops">operations</a>
+        <a href="#supply">supply</a>
+        <a href="#logs">ONI logs</a>
+        <a href="#map">term map</a>
+        <a href="#decisions">decisions</a>
+      </nav>
+
+      <section id="deck">
+        <div class="band head"><h2>command deck</h2></div>
+        <div class="row"><span>operations underway</span><span class="ai">23</span></div>
+        <div class="row"><span>authorizations waiting</span><span class="warn">4</span></div>
+        <div class="row"><span>supply used this cycle</span><span>61%</span></div>
+        <div class="row"><span>last alert</span><span class="bad">ANA-3 lost contact 12m ago</span></div>
+        <div class="band"><p class="dim"><span class="tag">Cortana</span> · three authorizations are low risk and match standing orders. Approve all?</p></div>
+      </section>
+
+      <section id="installations">
+        <div class="band head"><h2>installations</h2><a href="#installations">see all</a></div>
+        <img class="map" src="assets/tactical.webp" alt="tactical map, one marker per company" />
+        <div class="row"><span>ANA</span><span class="dim">9 members · 14 ops</span></div>
+        <div class="row"><span>Curly</span><span class="dim">4 members · 6 ops</span></div>
+        <div class="row"><span>Sassani</span><span class="dim">1 member · 3 ops</span></div>
+      </section>
+
+      <section id="fireteam">
+        <div class="band head"><h2>fireteam</h2><a href="#fireteam">see all</a></div>
+        <table>
+          <thead><tr><th>callsign</th><th>role</th><th>state</th><th>supply</th></tr></thead>
+          <tbody>
+            <tr><td>ANA-1</td><td>navigator</td><td class="ok">in the field</td><td><div class="bar"><i style="width: 40%"></i></div></td></tr>
+            <tr><td>ANA-2</td><td>engineer</td><td class="dim">standby</td><td><div class="bar"><i style="width: 12%"></i></div></td></tr>
+            <tr><td>ANA-3</td><td>scout</td><td class="bad">lost contact</td><td><div class="bar"><i style="width: 88%"></i></div></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="ops">
+        <div class="band head"><h2>operations</h2><a href="#ops">see all</a></div>
+        <div class="row"><span>chart the billing sector</span><span class="ok">underway</span></div>
+        <div class="row"><span>land the Google connector</span><span class="warn">awaiting authorization</span></div>
+        <div class="row"><span>standing order: nightly audit sweep</span><span class="dim">02:00</span></div>
+      </section>
+
+      <section id="supply">
+        <div class="band head"><h2>supply</h2></div>
+        <div class="row"><span>monthly budget</span><span>$400</span></div>
+        <div class="row"><span>spent</span><span>$244</span></div>
+        <div class="band"><div class="bar"><i style="width: 61%"></i></div></div>
+      </section>
+
+      <section id="logs">
+        <div class="band head"><h2>ONI logs</h2><a href="#logs">see all</a></div>
+        <div class="row"><span class="dim">11:02</span><span>ANA-1 completed step 4 of "chart the billing sector"</span></div>
+        <div class="row"><span class="dim">10:48</span><span>authorization requested: land Google connector</span></div>
+        <div class="row"><span class="dim">10:31</span><span>ANA-3 lost contact</span></div>
+      </section>
+
+      <section id="mood">
+        <div class="band head"><h2>mood references</h2></div>
+        <div class="band"><p class="dim">Hotlinked from halo.fandom.com for taste only. Never copied into the repo and never shipped; the app uses only the generated images above.</p></div>
+        <div class="mood">
+          <img referrerpolicy="no-referrer" alt="Halo Array" src="https://static.wikia.nocookie.net/halo/images/6/6e/Array.png/revision/latest?cb=20100208221515" />
+          <img referrerpolicy="no-referrer" alt="control room" src="https://static.wikia.nocookie.net/halo/images/3/3a/Control_Room2.jpg/revision/latest?cb=20060725092555" />
+          <img referrerpolicy="no-referrer" alt="Halo Array hologram" src="https://static.wikia.nocookie.net/halo/images/b/bd/H2A_Cutscene_HaloArrayHologram.png/revision/latest/scale-to-width-down/1280?cb=20150621075038" />
+          <img referrerpolicy="no-referrer" alt="Delta Halo" src="https://static.wikia.nocookie.net/halo/images/7/7a/H2A_Mission_DeltaHalo.jpg/revision/latest/scale-to-width-down/1280?cb=20141118013250" />
+        </div>
+      </section>
+
+      <section id="map">
+        <div class="band head"><h2>term map</h2></div>
+        <table>
+          <thead><tr><th>clayon today</th><th>in Halo</th></tr></thead>
+          <tbody>
+            <tr><td>the app, its assistant</td><td>command deck, Cortana</td></tr>
+            <tr><td>company</td><td>installation</td></tr>
+            <tr><td>agents</td><td>fireteam members, callsigns</td></tr>
+            <tr><td>tasks</td><td>operations</td></tr>
+            <tr><td>routines</td><td>standing orders</td></tr>
+            <tr><td>runs</td><td>mission recordings</td></tr>
+            <tr><td>budgets</td><td>supply</td></tr>
+            <tr><td>approvals</td><td>command authorization</td></tr>
+            <tr><td>apps, connectors</td><td>landing zones</td></tr>
+            <tr><td>audit</td><td>ONI logs</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="decisions">
+        <div class="band head"><h2>decisions for you</h2></div>
+        <table>
+          <thead><tr><th>#</th><th>decide</th><th>my pick</th><th>if yes</th><th>if no</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>ring backdrop on every page, or only the deck home</td><td>deck home only</td><td>work pages stay flat and fast</td><td>faint ring behind every page</td></tr>
+            <tr><td>2</td><td>Halo words in UI text</td><td>nav labels only</td><td>fireteam, operations, supply in nav; data pages keep plain terms</td><td>full vocabulary everywhere</td></tr>
+            <tr><td>3</td><td>amber primary, cyan only for live AI activity</td><td>yes</td><td>one colour per meaning</td><td>single cyan accent</td></tr>
+            <tr><td>4</td><td>the assistant speaks as "Cortana"</td><td>use a neutral name</td><td>no trademark clash</td><td>name it Cortana in the mock only</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <nav class="dock">
+      <a class="on" href="#deck">deck</a>
+      <a href="#fireteam">team</a>
+      <a class="act" href="#ops">new</a>
+      <a href="#supply">supply</a>
+      <a href="#logs">logs</a>
+    </nav>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-# Paperclip feature map
+# Clayon feature map
 
 Start here when reproducing a user-facing bug, verifying a change, or deciding
 which surfaces a fix must cover. Each recipe describes what a person can do,
@@ -114,8 +114,8 @@ fixture integration. Record executed results separately from the map.
    evidence; creating state through the API does not prove the creation UI.
 
 For agent-driven acceptance work, the existing
-[dev-workspace run/verify skill](../.agents/skills/paperclip-dev-workspace-run-verify-fix/SKILL.md)
-and [evaluation skill](../.agents/skills/paperclip-evals/SKILL.md) describe runtime
+[dev-workspace run/verify skill](../.agents/skills/clayon-dev-workspace-run-verify-fix/SKILL.md)
+and [evaluation skill](../.agents/skills/clayon-evals/SKILL.md) describe runtime
 ownership and evidence handling. Reuse them; this map introduces no environment
 launcher, credentials, scheduled job, or second test framework.
 
@@ -130,7 +130,7 @@ discriminating result. Include task/run/request IDs when relevant, without secre
 A fix is verified across its affected surfaces only when each has evidence or
 an explicit reason it does not apply. Shared code alone does not prove parity.
 Keep product regressions visible; do not change the recipe to bless a failure.
-For Paperclip-assigned work, attach evidence through the
+For Clayon-assigned work, attach evidence through the
 [artifact workflow](../doc/AGENT-ARTIFACTS.md).
 
 ## Inventory and remaining depth
@@ -174,4 +174,4 @@ Each recipe starts with an H1 and a user-visible description, then exactly:
 
 The format is inspired by
 [Omnigent's feature map](https://github.com/omnigent-ai/omnigent/tree/91acfbbb59f6fc210ff95a9e9428aadd62e06582/feature-map).
-Paperclip's recipes and checks follow its own task model and test infrastructure.
+Clayon's recipes and checks follow its own task model and test infrastructure.

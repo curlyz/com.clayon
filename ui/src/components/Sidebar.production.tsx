@@ -1,8 +1,5 @@
 import {
   Inbox,
-  ListChecks,
-  CircleDot,
-  Target,
   LayoutDashboard,
   DollarSign,
   History,
@@ -10,21 +7,19 @@ import {
   SquarePen,
   Network,
   Boxes,
-  Repeat,
-  Layers,
-  GitBranch,
-  Package,
   Settings,
-  FolderOpen,
   Unplug,
-  MessagesSquare,
   GanttChartSquare,
-  LayoutGrid,
 } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "@/lib/router";
+import { buildWorkDestinations } from "../lib/nav-destinations";
 import { SidebarSection } from "./SidebarSection";
 import { SidebarNavItem } from "./SidebarNavItem.production";
+import { SidebarSubNav } from "./SidebarSubNav";
+import { buildRoutineSectionTabs } from "../lib/section-tabs/routineSectionTabs";
+import { SKILLS_SECTION_TABS } from "../lib/section-tabs/skillsSectionTabs";
 import { SidebarAgents } from "./SidebarAgents.production";
 import { SidebarProjects } from "./SidebarProjects";
 import { SidebarStarredProjects } from "./SidebarStarredProjects.production";
@@ -43,6 +38,7 @@ import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { SidebarCompanyMenu } from "./SidebarCompanyMenu.production";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 
 export function Sidebar() {
   const { openNewIssue } = useDialogActions();
@@ -51,6 +47,13 @@ export function Sidebar() {
   const [workOpen, setWorkOpen] = useState(true);
   const [companyOpen, setCompanyOpen] = useState(true);
   const { selectedCompanyId, selectedCompany } = useCompany();
+  const location = useLocation();
+  // Sidebar-layout nested sub-nav (redesign ADDENDUM 2/3): the section list
+  // renders under the active primary item, rows hash-anchor into the long
+  // page at that item's base route. The company prefix (e.g. `/ANA/`) is
+  // optional in the pattern, mirroring the agent match in SidebarAgents.
+  const activeRoutineId = location.pathname.match(/^\/(?:[^/]+\/)?routines\/([^/]+)/)?.[1] ?? null;
+  const skillsBaseActive = /^\/(?:[^/]+\/)?skills\/?$/.test(location.pathname);
   const { collapsed, peeking } = useSidebar();
   const rail = collapsed && !peeking;
   const inboxBadge = useInboxBadge(selectedCompanyId);
@@ -78,7 +81,6 @@ export function Sidebar() {
   });
   usePublishSharedQueryData(sharedLiveRuns, liveRuns, liveRunsUpdatedAt);
   const liveRunCount = liveRuns?.length ?? 0;
-  const showWorkspacesLink = experimentalSettings?.enableIsolatedWorkspaces === true;
   const showApps = experimentalSettings?.enableApps === true;
   const showPipelines = experimentalSettings?.enablePipelines === true;
   const showStatusCards = experimentalSettings?.enableStatusCards === true;
@@ -112,6 +114,37 @@ export function Sidebar() {
     companyPrefix: selectedCompany?.issuePrefix ?? null,
   };
 
+  // One shared destination list (lib/nav-destinations): membership, gates and
+  // order come from there — the dock's Work/Org popovers and the dev-world
+  // sidebar render the same rows — so this surface only places rows and
+  // attaches its own badges. The top group owns the capsule-slot equivalents
+  // (Search/Dashboard/Inbox); the Work section owns Tasks, the collections,
+  // and this world's Skills entry.
+  const workDestinations = buildWorkDestinations({
+    agentChatEnabled: false,
+    streamlinedUiEnabled: streamlined,
+    enableIsolatedWorkspaces: experimentalSettings?.enableIsolatedWorkspaces,
+    enablePipelines: showPipelines,
+    enableStatusCards: showStatusCards,
+    enableGoalsSidebarLink: experimentalSettings?.enableGoalsSidebarLink,
+    enableDecisions: showDecisions,
+    enableCases: showCases,
+    enableConferenceRoomChat: conferenceRoomChatEnabled,
+  });
+  const topGroupDestinations = workDestinations.filter(
+    (destination) =>
+      destination.group === "work"
+      && destination.to !== "/search"
+      && destination.to !== "/issues"
+      && destination.to !== "/chats",
+  );
+  const workSectionDestinations = workDestinations.filter(
+    (destination) =>
+      destination.group === "collections"
+      || destination.to === "/issues"
+      || destination.to === "/chats",
+  );
+
   return (
     <aside className="w-full h-full min-h-0 border-r border-border bg-background flex flex-col">
       {/* Top bar: company name, aligned with top sections and borderless.
@@ -123,7 +156,7 @@ export function Sidebar() {
         <SidebarCompanyMenu />
       </div>
 
-      <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-auto-hide flex flex-col gap-4 pointer-coarse:gap-3 px-3 py-2">
+      <nav className={primarySidebarStyles.nav}>
         <div className="flex flex-col gap-0.5">
           {/* New Task button aligned with nav items */}
           {(() => {
@@ -132,7 +165,13 @@ export function Sidebar() {
                 onClick={() => openNewIssue()}
                 data-slot="icon-button"
                 aria-label={rail ? "New Task" : undefined}
-                className="flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-foreground/80 hover:bg-accent/50 hover:text-foreground transition-colors"
+                className={cn(
+                  // The one confident accent role (operator directive
+                  // 2026-10-11): New Task is the sidebar's only solid
+                  // primary action — a leaf that pads itself, full-bleed.
+                  "flex items-center gap-2.5 rounded-md px-3 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
+                )}
               >
                 <SquarePen className="h-4 w-4 shrink-0" />
                 <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>New Task</span>
@@ -162,51 +201,88 @@ export function Sidebar() {
             badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
             alert={inboxBadge.failedRuns > 0}
           />
-          {showDecisions ? (
-            <SidebarNavItem
-              to="/decisions"
-              label="Decisions"
-              icon={ListChecks}
-              badge={attentionCount}
-              badgeLabel="decisions"
-            />
-          ) : null}
-          {showStatusCards ? (
-            <SidebarNavItem to="/status" label="Status" icon={LayoutGrid} textBadge="beta" />
-          ) : null}
-          {conferenceRoomChatEnabled ? (
-            <SidebarNavItem to="/board-chat" label="Conference Room" icon={MessagesSquare} />
-          ) : null}
+          {topGroupDestinations.map((destination) =>
+            destination.to === "/decisions" ? (
+              <SidebarNavItem
+                key={destination.to}
+                to={destination.to}
+                label={destination.label}
+                icon={destination.icon}
+                badge={attentionCount}
+                badgeLabel="decisions"
+              />
+            ) : destination.to === "/status" ? (
+              <SidebarNavItem
+                key={destination.to}
+                to={destination.to}
+                label={destination.label}
+                icon={destination.icon}
+                textBadge="beta"
+              />
+            ) : (
+              <SidebarNavItem
+                key={destination.to}
+                to={destination.to}
+                label={destination.label}
+                icon={destination.icon}
+              />
+            ),
+          )}
         </div>
 
         <SidebarSection label="Work" collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}>
-          <SidebarNavItem to="/issues" label="Tasks" icon={CircleDot} />
-          {showCases ? (
-            <SidebarNavItem to="/cases" label="Cases" icon={Layers} textBadge="beta" />
-          ) : null}
-          <SidebarNavItem to="/routines" label="Routines" icon={Repeat} />
-          {showPipelines ? (
-            <SidebarNavItem to="/pipelines" label="Pipelines" icon={GitBranch} />
-          ) : null}
-          {showGoalsLink ? (
-            <SidebarNavItem to="/goals" label="Goals" icon={Target} />
-          ) : goalsLinkPending ? (
+          {workSectionDestinations.map((destination) => {
+            if (destination.to === "/projects") {
+              return (
+                <Fragment key={destination.to}>
+                  <SidebarNavItem to={destination.to} label={destination.label} icon={destination.icon} />
+                  {streamlined ? <SidebarStarredProjects /> : null}
+                </Fragment>
+              );
+            }
+            // The routines sub-nav anchors into the open routine's long page.
+            if (destination.to === "/routines") {
+              return (
+                <Fragment key={destination.to}>
+                  <SidebarNavItem to={destination.to} label={destination.label} icon={destination.icon} />
+                  {activeRoutineId ? (
+                    <SidebarSubNav
+                      basePath={`/routines/${activeRoutineId}`}
+                      sections={buildRoutineSectionTabs(activeRoutineId)}
+                    />
+                  ) : null}
+                </Fragment>
+              );
+            }
+            if (destination.to === "/cases") {
+              return (
+                <SidebarNavItem
+                  key={destination.to}
+                  to={destination.to}
+                  label={destination.label}
+                  icon={destination.icon}
+                  textBadge="beta"
+                />
+              );
+            }
+            return <SidebarNavItem key={destination.to} to={destination.to} label={destination.label} icon={destination.icon} />;
+          })}
+          {/* Goals reserves its slot while the experimental settings load
+              (the destination itself is not in the list until the flag
+              resolves, so the placeholder renders beside the map). */}
+          {goalsLinkPending && !showGoalsLink ? (
             <div
               data-testid="sidebar-goals-placeholder"
               className="h-8 pointer-coarse:h-7"
               aria-hidden="true"
             />
           ) : null}
-          <SidebarNavItem to="/artifacts" label="Artifacts" icon={Package} />
+          {/* This world keeps its Skills entry inside Work (the dev world's
+              Org section and the dock's Org popover own it there); the skills
+              sub-nav anchors into the skills long page. */}
           <SidebarNavItem to="/skills" label="Skills" icon={Boxes} />
-          {showWorkspacesLink ? (
-            <SidebarNavItem to="/workspaces" label="Workspaces" icon={GitBranch} />
-          ) : null}
-          {streamlined ? (
-            <>
-              <SidebarNavItem to="/projects" label="Projects" icon={FolderOpen} />
-              <SidebarStarredProjects />
-            </>
+          {skillsBaseActive ? (
+            <SidebarSubNav basePath="/skills" sections={SKILLS_SECTION_TABS} />
           ) : null}
           <PluginSlotOutlet
             errorBehavior="hidden"
@@ -244,8 +320,8 @@ export function Sidebar() {
           errorBehavior="hidden"
           slotTypes={["sidebarPanel"]}
           context={pluginContext}
-          className="flex flex-col gap-3"
-          itemClassName="rounded-lg border border-border p-3"
+          className={cn(primarySidebarStyles.band, "flex flex-col gap-3")}
+          itemClassName="rounded-md border border-border p-3"
           missingBehavior="placeholder"
         />
       </nav>

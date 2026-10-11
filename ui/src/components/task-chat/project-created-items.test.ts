@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ActivityEvent } from "@paperclipai/shared";
+import type { ActivityEvent } from "@clayon/shared";
 import { projectCreatedItems } from "./project-created-items";
 const event = (overrides: Partial<ActivityEvent> = {}): ActivityEvent =>
   ({
@@ -75,7 +75,7 @@ describe("project creation repository hydration", () => {
         repoUrl: "https://github.com/org/docs",
       },
     ],
-  } as import("@paperclipai/shared").Project;
+  } as import("@clayon/shared").Project;
 
   it("includes repositories added after creation without adding another card", () => {
     const receipt = event({

@@ -2,7 +2,7 @@ import { usePrimaryAgentPresentation } from "./primary-agent/PrimaryAgentPresent
 import { useWorkspaceIsolationControls } from "@/hooks/useWorkspaceIsolationControls";
 import { useState, useEffect, useRef, useCallback, useMemo, type CSSProperties, type DragEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { AgentEnvConfig, EnvBinding, IssueWorkMode } from "@paperclipai/shared";
+import type { AgentEnvConfig, EnvBinding, IssueWorkMode } from "@clayon/shared";
 import { useDialog } from "../context/DialogContext";
 import { useCompany } from "../context/CompanyContext";
 import { executionWorkspacesApi } from "../api/execution-workspaces";
@@ -46,7 +46,7 @@ import { InlineBanner } from "./InlineBanner";
 import { InlineEntitySelector, type InlineEntityOption } from "./InlineEntitySelector";
 import { getTrustPreset } from "../lib/trust-policy-ui";
 
-const DRAFT_KEY = "paperclip:issue-draft";
+const DRAFT_KEY = "clayon:issue-draft";
 const DEBOUNCE_MS = 800;
 
 type VisualViewportLayout = {
@@ -1130,7 +1130,7 @@ export function NewIssueDialog() {
           const target = event.detail.originalEvent.target as HTMLElement | null;
           if (
             createIssue.isPending ||
-            target?.closest("[data-radix-popper-content-wrapper], [data-paperclip-floating-ui]")
+            target?.closest("[data-radix-popper-content-wrapper], [data-clayon-floating-ui]")
           ) {
             event.preventDefault();
           }

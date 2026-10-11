@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The sole allowed simulator for this app (workspace law): Paperclip —
+// The sole allowed simulator for this app (workspace law): Clayon —
 // iPhone 17. Never point this app at another brand's simulator.
 const SIMULATOR_ID = "D19907FE-5D32-4548-91E3-66DF7DBDF44B";
 // Curlyz's iPhone (same UDID `cap run ios --list` reports). The dedicated
@@ -61,7 +61,7 @@ dev = spawn("vite", ["dev", "--port", String(port)], {
    * credentialed): the local loopback dev server only serves the web bundle,
    * and the instance allowlists the shell origin for exactly this loop.
    */
-  env: { ...process.env, VITE_PAPERCLIP_API_ORIGIN: "https://paperclip.curly.ng" },
+  env: { ...process.env, VITE_CLAYON_API_ORIGIN: "https://clayon.curly.ng" },
   stdio: "inherit",
   detached: true,
 });

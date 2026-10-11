@@ -128,7 +128,7 @@ export function aiRoutingModel(
   model: string,
 ): string {
   if (!model || harness !== "opencode_local") return model;
-  const prefix = route.kind === "openrouter" ? "openrouter" : "paperclip";
+  const prefix = route.kind === "openrouter" ? "openrouter" : "clayon";
   return model.startsWith(`${prefix}/`) ? model : `${prefix}/${model}`;
 }
 

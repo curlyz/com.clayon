@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "@/context/CompanyContext";
 import { ReviewQueueCard } from "./ReviewQueueCard";
+import { AppsPageTabs } from "@/components/AppsPageTabs";
 
 /**
  * Review — the "decisions waiting on you" inbox (PAP-12371, Finding B).
@@ -31,6 +32,7 @@ export function AppsReview() {
 
   return (
     <div className="max-w-3xl space-y-6 pb-12">
+      <AppsPageTabs />
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Review</h1>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import type { agents, Db, projectWorkspaces } from "@paperclipai/db";
+import type { agents, Db, projectWorkspaces } from "@clayon/db";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ensureManagedProjectWorkspace as legacyEnsureManagedProjectWorkspace,
@@ -20,10 +20,10 @@ const runGit = promisify(execFile);
 let testRoot: string;
 
 beforeEach(async () => {
-  testRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-workspace-module-"));
-  vi.stubEnv("PAPERCLIP_HOME", testRoot);
-  vi.stubEnv("PAPERCLIP_INSTANCE_ID", "workspace-test");
-  vi.stubEnv("PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC", "false");
+  testRoot = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-workspace-module-"));
+  vi.stubEnv("CLAYON_HOME", testRoot);
+  vi.stubEnv("CLAYON_INSTANCE_ID", "workspace-test");
+  vi.stubEnv("CLAYON_MULTI_PROJECT_WORKSPACE_SYNC", "false");
 });
 
 afterEach(async () => {

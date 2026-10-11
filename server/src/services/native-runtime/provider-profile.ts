@@ -1,17 +1,17 @@
-import { resolveQualifiedAcpxProfile } from "../../vendor/paperclip-runner/index.js";
+import { resolveQualifiedAcpxProfile } from "../../vendor/clayon-runner/index.js";
 import {
-  isPaperclipRunnerProvider,
-  PAPERCLIP_RUNNER_PERMISSION_CAPABILITIES,
-  PAPERCLIP_RUNNER_ACPX_PROFILES,
-  resolvePaperclipRunnerPermissionMode,
-  resolvePaperclipRunnerCursorMode,
-  resolvePaperclipRunnerPiThinkingLevel,
-  type PaperclipRunnerProvider,
-} from "@paperclipai/adapter-utils";
+  isClayonRunnerProvider,
+  CLAYON_RUNNER_PERMISSION_CAPABILITIES,
+  CLAYON_RUNNER_ACPX_PROFILES,
+  resolveClayonRunnerPermissionMode,
+  resolveClayonRunnerCursorMode,
+  resolveClayonRunnerPiThinkingLevel,
+  type ClayonRunnerProvider,
+} from "@clayon/adapter-utils";
 import {
   codexLocalReasoningEffortsForModel,
   isCodexLocalKnownModel,
-} from "@paperclipai/adapter-codex-local";
+} from "@clayon/adapter-codex-local";
 import {
   AGENTCORE_QUALIFIED_MODEL,
   CLAUDE_MANAGED_QUALIFIED_MODEL,
@@ -33,11 +33,11 @@ export const DEFAULT_ACPX_RUNNER_MODELS = {
   pi: null,
 } as const;
 
-export type QualifiedPaperclipRunnerAcpxAgent =
+export type QualifiedClayonRunnerAcpxAgent =
   keyof typeof DEFAULT_ACPX_RUNNER_MODELS;
-type AdmittedPaperclipRunnerAcpxAgent = QualifiedPaperclipRunnerAcpxAgent | AcpxQualificationCandidate;
+type AdmittedClayonRunnerAcpxAgent = QualifiedClayonRunnerAcpxAgent | AcpxQualificationCandidate;
 
-export type PaperclipRunnerProviderProfile =
+export type ClayonRunnerProviderProfile =
   | { provider: "openai_dot"; backend: "openai_dot_mcp"; model: null; dotBindingId: string }
   | {
       provider: "codex";
@@ -67,11 +67,11 @@ export type PaperclipRunnerProviderProfile =
       provider: "acpx";
       backend: "acpx_runtime";
       model: string;
-      acpxAgent: AdmittedPaperclipRunnerAcpxAgent;
+      acpxAgent: AdmittedClayonRunnerAcpxAgent;
     };
 
-export type PaperclipRunnerNativeProviderInput =
-  | { provider: "openai_dot"; model: null; dotBinding: import("../../vendor/paperclip-runner/index.js").DotBindingSnapshot }
+export type ClayonRunnerNativeProviderInput =
+  | { provider: "openai_dot"; model: null; dotBinding: import("../../vendor/clayon-runner/index.js").DotBindingSnapshot }
   | {
       provider: "codex";
       model: string | null;
@@ -126,19 +126,19 @@ export type PaperclipRunnerNativeProviderInput =
   | {
       provider: "acpx";
       model: string;
-      acpxAgent: AdmittedPaperclipRunnerAcpxAgent;
-      acpxPermissionMode: "approve-all" | "approve-paperclip" | "approve-reads" | "deny-all";
+      acpxAgent: AdmittedClayonRunnerAcpxAgent;
+      acpxPermissionMode: "approve-all" | "approve-clayon" | "approve-reads" | "deny-all";
       acpxSessionMode?: "agent" | "plan" | "ask";
       piThinkingLevel?: "off" | "low" | "high" | "max";
     };
 
-export class PaperclipRunnerProviderProfileError extends Error {
+export class ClayonRunnerProviderProfileError extends Error {
   constructor(
     readonly code: string,
     message: string,
   ) {
     super(message);
-    this.name = "PaperclipRunnerProviderProfileError";
+    this.name = "ClayonRunnerProviderProfileError";
   }
 }
 
@@ -155,18 +155,18 @@ function optionalString(value: unknown): string | null {
 }
 
 /** Configuration can be saved before pairing; task admission requires a binding. */
-export function validatePaperclipRunnerDotConfig(config: Record<string, unknown>, requireBinding = true): string | null {
+export function validateClayonRunnerDotConfig(config: Record<string, unknown>, requireBinding = true): string | null {
   const bindingId = optionalString(config.dotBindingId);
   if ((requireBinding && !bindingId) || (bindingId && !/^[0-9a-f-]{36}$/i.test(bindingId))
       || config.allowUnmeteredProvider !== true || (config.lifecycleMode && config.lifecycleMode !== "per_turn")
       || optionalString(config.model)) {
-    throw new PaperclipRunnerProviderProfileError("paperclip_runner_dot_config_invalid", "Dot requires per-turn lifecycle and explicit externally billed, unmetered-provider acknowledgement. Pair a binding before assigning work.");
+    throw new ClayonRunnerProviderProfileError("paperclip_runner_dot_config_invalid", "Dot requires per-turn lifecycle and explicit externally billed, unmetered-provider acknowledgement. Pair a binding before assigning work.");
   }
   return bindingId;
 }
 
 /** A task may change a local Runner model (and Codex effort), but not provider identity. */
-export function projectPaperclipRunnerTaskConfig(
+export function projectClayonRunnerTaskConfig(
   backend: "codex_app_server" | "opencode_server",
   agentConfig: unknown,
   taskOverrides: unknown,
@@ -199,7 +199,7 @@ function positiveNumberOrNull(
   if (value === undefined || value === null || value === "") return null;
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new PaperclipRunnerProviderProfileError(code, message);
+    throw new ClayonRunnerProviderProfileError(code, message);
   }
   return parsed;
 }
@@ -218,7 +218,7 @@ function boundedPositiveInteger(
     || value <= 0
     || value > maximum
   ) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       code,
       `${label} must be an integer between 1 and ${maximum}.`,
     );
@@ -227,23 +227,23 @@ function boundedPositiveInteger(
 }
 
 function assertPermissionMode(
-  provider: PaperclipRunnerProvider,
+  provider: ClayonRunnerProvider,
   config: Record<string, unknown>,
 ): void {
-  const capability = PAPERCLIP_RUNNER_PERMISSION_CAPABILITIES[provider];
+  const capability = CLAYON_RUNNER_PERMISSION_CAPABILITIES[provider];
   if (!capability.configurable) return;
   const configured = config[capability.configKey];
   if (
     configured !== undefined
-    && resolvePaperclipRunnerPermissionMode(provider, configured) !== configured
+    && resolveClayonRunnerPermissionMode(provider, configured) !== configured
   ) {
     if (provider === "codex") {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_codex_permission_mode_unqualified",
-        "Paperclip Runner currently supports Codex only with codexPermissionMode set to never. Update the agent configuration before starting a new native run.",
+        "Clayon Runner currently supports Codex only with codexPermissionMode set to never. Update the agent configuration before starting a new native run.",
       );
     }
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "runner_permission_mode_invalid",
       `${capability.configKey} is not supported by ${provider}.`,
     );
@@ -282,7 +282,7 @@ export function assertManagedProfileRecoveryBinding(input: {
     || snapshot.environmentId !== stored.environmentId
     || snapshot.betaVersion !== stored.betaVersion
   ) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_claude_managed_recovery_identity_mismatch",
       "The persisted Claude Managed identity no longer matches its qualified profile.",
     );
@@ -290,7 +290,7 @@ export function assertManagedProfileRecoveryBinding(input: {
   const rawBinding = asRecord(asRecord(input.adapterConfig).env).ANTHROPIC_API_KEY;
   const boundSecretId = asRecord(rawBinding).secretId;
   if (boundSecretId !== stored.apiKeySecretId) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_claude_managed_recovery_secret_mismatch",
       "The persisted Claude Managed run is not bound to its profile's current API-key secret.",
     );
@@ -345,7 +345,7 @@ export function assertAgentCoreProfileRecoveryBinding(input: {
     snapshot.profileId !== stored.id
     || fields.some((field) => snapshot[field] !== configuration[field])
   ) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_aws_agentcore_recovery_identity_mismatch",
       "The persisted AWS AgentCore identity no longer matches its qualified profile.",
     );
@@ -353,38 +353,38 @@ export function assertAgentCoreProfileRecoveryBinding(input: {
 }
 
 /**
- * Resolve the immutable provider identity used for a fresh Paperclip Runner
+ * Resolve the immutable provider identity used for a fresh Clayon Runner
  * selection. The persisted adapterConfig is the authority; runtimeConfig is
  * deliberately not consulted so model-profile or migration metadata cannot
  * silently switch the harness selected for a run.
  */
-export function resolvePaperclipRunnerProviderProfile(
+export function resolveClayonRunnerProviderProfile(
   adapterConfig: unknown,
-): PaperclipRunnerProviderProfile {
+): ClayonRunnerProviderProfile {
   const config = asRecord(adapterConfig);
   const candidate = config.provider ?? "codex";
-  if (!isPaperclipRunnerProvider(candidate)) {
-    throw new PaperclipRunnerProviderProfileError(
+  if (!isClayonRunnerProvider(candidate)) {
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_provider_unsupported",
-      "Paperclip Runner provider must be Codex, OpenCode, Claude Managed, AWS AgentCore, or ACPX.",
+      "Clayon Runner provider must be Codex, OpenCode, Claude Managed, AWS AgentCore, or ACPX.",
     );
   }
 
   if (candidate === "openai_dot") {
-    const bindingId = validatePaperclipRunnerDotConfig(config)!;
+    const bindingId = validateClayonRunnerDotConfig(config)!;
     return { provider: "openai_dot", backend: "openai_dot_mcp", model: null, dotBindingId: bindingId };
   }
   assertPermissionMode(candidate, config);
   try {
-    resolvePaperclipRunnerCursorMode(candidate, config.acpxAgent, config.acpxSessionMode);
+    resolveClayonRunnerCursorMode(candidate, config.acpxAgent, config.acpxSessionMode);
   } catch (error) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_mode_invalid",
       error instanceof Error ? error.message : "Invalid Cursor session mode",
     );
   }
-  try { resolvePaperclipRunnerPiThinkingLevel(candidate, config.acpxAgent, config.piThinkingLevel); } catch (error) {
-    throw new PaperclipRunnerProviderProfileError("paperclip_runner_pi_thinking_invalid", error instanceof Error ? error.message : "Invalid Pi thinking level");
+  try { resolveClayonRunnerPiThinkingLevel(candidate, config.acpxAgent, config.piThinkingLevel); } catch (error) {
+    throw new ClayonRunnerProviderProfileError("paperclip_runner_pi_thinking_invalid", error instanceof Error ? error.message : "Invalid Pi thinking level");
   }
   const model = optionalString(config.model);
   if (candidate === "codex") {
@@ -397,9 +397,9 @@ export function resolvePaperclipRunnerProviderProfile(
 
   if (candidate === "opencode") {
     if (!model || !model.includes("/") || model.endsWith("/")) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_opencode_model_invalid",
-        "Paperclip Runner OpenCode requires model in provider/model form.",
+        "Clayon Runner OpenCode requires model in provider/model form.",
       );
     }
     return {
@@ -412,19 +412,19 @@ export function resolvePaperclipRunnerProviderProfile(
   if (candidate === "claude_managed") {
     const managedProfileId = optionalString(config.managedProfileId);
     if (!managedProfileId) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_profile_required",
-        "Paperclip Runner Claude Managed requires a company managed-agent profile.",
+        "Clayon Runner Claude Managed requires a company managed-agent profile.",
       );
     }
     if (config.managedAgentsRetentionAcknowledged !== true) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_retention_required",
-        "Paperclip Runner Claude Managed requires acknowledgement of stateful beta retention.",
+        "Clayon Runner Claude Managed requires acknowledgement of stateful beta retention.",
       );
     }
     if (model !== null && model !== CLAUDE_MANAGED_QUALIFIED_MODEL) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_model_unqualified",
         `The Claude Managed profile requires exact model ${CLAUDE_MANAGED_QUALIFIED_MODEL}.`,
       );
@@ -437,7 +437,7 @@ export function resolvePaperclipRunnerProviderProfile(
       maxSessionListCostUsd: positiveNumberOrNull(
         config.maxSessionListCostUsd,
         "paperclip_runner_claude_managed_spend_cap_invalid",
-        "Paperclip Runner Claude Managed requires a positive session spend ceiling when overridden.",
+        "Clayon Runner Claude Managed requires a positive session spend ceiling when overridden.",
       ),
     };
   }
@@ -445,19 +445,19 @@ export function resolvePaperclipRunnerProviderProfile(
   if (candidate === "aws_agentcore") {
     const agentCoreProfileId = optionalString(config.agentCoreProfileId);
     if (!agentCoreProfileId) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_profile_required",
-        "Paperclip Runner AWS AgentCore requires a company remote-agent profile.",
+        "Clayon Runner AWS AgentCore requires a company remote-agent profile.",
       );
     }
     if (config.agentCoreRetentionAcknowledged !== true) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_retention_required",
-        "Paperclip Runner AWS AgentCore requires acknowledgement of 90-day Memory retention.",
+        "Clayon Runner AWS AgentCore requires acknowledgement of 90-day Memory retention.",
       );
     }
     if (model !== null && model !== AGENTCORE_QUALIFIED_MODEL) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_model_unqualified",
         `The AWS AgentCore profile requires exact model ${AGENTCORE_QUALIFIED_MODEL}.`,
       );
@@ -470,44 +470,44 @@ export function resolvePaperclipRunnerProviderProfile(
       maxEstimatedSessionCostUsd: positiveNumberOrNull(
         config.maxEstimatedSessionCostUsd,
         "paperclip_runner_aws_agentcore_spend_cap_invalid",
-        "Paperclip Runner AWS AgentCore requires a positive estimated session spend ceiling when overridden.",
+        "Clayon Runner AWS AgentCore requires a positive estimated session spend ceiling when overridden.",
       ),
     };
   }
 
   const acpxAgent = config.acpxAgent ?? "claude";
-  const pendingAcpxProfile = PAPERCLIP_RUNNER_ACPX_PROFILES.find(profile => profile.value === acpxAgent && !profile.qualified);
+  const pendingAcpxProfile = CLAYON_RUNNER_ACPX_PROFILES.find(profile => profile.value === acpxAgent && !profile.qualified);
   if (pendingAcpxProfile) {
-    if (!model) throw new PaperclipRunnerProviderProfileError("paperclip_runner_acpx_model_required", `${pendingAcpxProfile.label} requires an explicit model ID; there is no default model.`);
+    if (!model) throw new ClayonRunnerProviderProfileError("paperclip_runner_acpx_model_required", `${pendingAcpxProfile.label} requires an explicit model ID; there is no default model.`);
     // Qualification authority belongs to the isolated server operator. Never
     // read this allowlist from adapter config, credential refs, or run env.
     let qualification: AcpxQualificationCandidate | undefined;
     try {
       qualification = resolveAcpxQualification({ kind: "acpx", agent: pendingAcpxProfile.value, model }, process.env);
     } catch {
-      throw new PaperclipRunnerProviderProfileError("paperclip_runner_acpx_qualification_invalid", "ACPX qualification requires an exact host-authorized candidate and model.");
+      throw new ClayonRunnerProviderProfileError("paperclip_runner_acpx_qualification_invalid", "ACPX qualification requires an exact host-authorized candidate and model.");
     }
     if (qualification) {
       return { provider: "acpx", backend: "acpx_runtime", model, acpxAgent: qualification };
     }
-    throw new PaperclipRunnerProviderProfileError("paperclip_runner_acpx_agent_unavailable", `${pendingAcpxProfile.label} is awaiting local and Daytona qualification. Its profile is not enabled for production runs.`);
+    throw new ClayonRunnerProviderProfileError("paperclip_runner_acpx_agent_unavailable", `${pendingAcpxProfile.label} is awaiting local and Daytona qualification. Its profile is not enabled for production runs.`);
   }
   if ((acpxAgent === "cursor" || acpxAgent === "pi") && !model) {
-    throw new PaperclipRunnerProviderProfileError("paperclip_runner_acpx_model_required", "This ACPX agent requires an explicit model ID; there is no default model.");
+    throw new ClayonRunnerProviderProfileError("paperclip_runner_acpx_model_required", "This ACPX agent requires an explicit model ID; there is no default model.");
   }
   if (acpxAgent !== "claude" && acpxAgent !== "codex" && acpxAgent !== "grok" && acpxAgent !== "cursor" && acpxAgent !== "pi") {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_acpx_agent_unavailable",
-      "Paperclip Runner ACPX requires a qualified agent profile.",
+      "Clayon Runner ACPX requires a qualified agent profile.",
     );
   }
   const selectedModel = model || DEFAULT_ACPX_RUNNER_MODELS[acpxAgent] || "";
   try {
     resolveQualifiedAcpxProfile(acpxAgent, selectedModel);
   } catch (error) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_acpx_model_unqualified",
-      error instanceof Error ? error.message : "Paperclip Runner ACPX requires an admitted model.",
+      error instanceof Error ? error.message : "Clayon Runner ACPX requires an admitted model.",
     );
   }
   return {
@@ -524,12 +524,12 @@ export function resolvePaperclipRunnerProviderProfile(
  * configuration can select a stored profile, but it cannot replace that
  * profile's immutable remote resource identity.
  */
-export function resolvePaperclipRunnerNativeProviderInput(input: {
-  backend: PaperclipRunnerProviderProfile["backend"];
+export function resolveClayonRunnerNativeProviderInput(input: {
+  backend: ClayonRunnerProviderProfile["backend"];
   adapterConfig: unknown;
   /** Verified image CLI version for a fresh remote Codex run only. */
   codexCliVersion?: string | null;
-  dotBinding?: import("../../vendor/paperclip-runner/index.js").DotBindingSnapshot;
+  dotBinding?: import("../../vendor/clayon-runner/index.js").DotBindingSnapshot;
   managedProfile?: {
     id: string;
     profileKey: string;
@@ -545,24 +545,24 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
     profileKey: string;
     configuration: Record<string, unknown>;
   } | null;
-}): PaperclipRunnerNativeProviderInput {
+}): ClayonRunnerNativeProviderInput {
   const config = asRecord(input.adapterConfig);
-  const profile = resolvePaperclipRunnerProviderProfile(config);
+  const profile = resolveClayonRunnerProviderProfile(config);
   if (profile.backend !== input.backend) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_provider_changed",
-      "Paperclip Runner provider changed after this run selected its native backend.",
+      "Clayon Runner provider changed after this run selected its native backend.",
     );
   }
   if (profile.provider === "openai_dot") {
-    if (!input.dotBinding || input.dotBinding.bindingId !== profile.dotBindingId) throw new PaperclipRunnerProviderProfileError("paperclip_runner_dot_binding_unavailable", "Dot binding must be resolved by the server after normal admission.");
+    if (!input.dotBinding || input.dotBinding.bindingId !== profile.dotBindingId) throw new ClayonRunnerProviderProfileError("paperclip_runner_dot_binding_unavailable", "Dot binding must be resolved by the server after normal admission.");
     return { provider: "openai_dot", model: null, dotBinding: input.dotBinding };
   }
   if (profile.provider === "opencode") {
     return {
       provider: "opencode",
       model: profile.model,
-      opencodePermissionMode: resolvePaperclipRunnerPermissionMode(
+      opencodePermissionMode: resolveClayonRunnerPermissionMode(
         "opencode",
         config.opencodePermissionMode,
       ) as "allow" | "ask" | "deny",
@@ -573,14 +573,14 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
       provider: "acpx",
       model: profile.model,
       acpxAgent: profile.acpxAgent,
-      ...(profile.acpxAgent === "pi" ? { piThinkingLevel: resolvePaperclipRunnerPiThinkingLevel("acpx", "pi", config.piThinkingLevel) } : {}),
+      ...(profile.acpxAgent === "pi" ? { piThinkingLevel: resolveClayonRunnerPiThinkingLevel("acpx", "pi", config.piThinkingLevel) } : {}),
       ...(profile.acpxAgent === "cursor" ? {
-        acpxSessionMode: resolvePaperclipRunnerCursorMode("acpx", "cursor", config.acpxSessionMode),
+        acpxSessionMode: resolveClayonRunnerCursorMode("acpx", "cursor", config.acpxSessionMode),
       } : {}),
-      acpxPermissionMode: resolvePaperclipRunnerPermissionMode(
+      acpxPermissionMode: resolveClayonRunnerPermissionMode(
         "acpx",
         config.acpxPermissionMode,
-      ) as "approve-all" | "approve-paperclip" | "approve-reads" | "deny-all",
+      ) as "approve-all" | "approve-clayon" | "approve-reads" | "deny-all",
     };
   }
   if (profile.provider === "claude_managed") {
@@ -592,13 +592,13 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
         && profile.managedProfileId !== stored.profileKey
       )
     ) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_profile_mismatch",
         "The qualified Claude Managed profile does not match the adapter selection.",
       );
     }
     if (stored.betaVersion !== CLAUDE_MANAGED_BETA_VERSION) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_beta_unqualified",
         "The Claude Managed profile beta version is not qualified.",
       );
@@ -607,19 +607,19 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
     const maxSessionListCostUsd = profile.maxSessionListCostUsd
       ?? stored.defaultMaxListCostCents / 100;
     if (!model) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_model_invalid",
         "The Claude Managed profile requires a model.",
       );
     }
     if (model !== CLAUDE_MANAGED_QUALIFIED_MODEL) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_model_unqualified",
         `The Claude Managed profile requires exact model ${CLAUDE_MANAGED_QUALIFIED_MODEL}.`,
       );
     }
     if (!Number.isFinite(maxSessionListCostUsd) || maxSessionListCostUsd <= 0) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_claude_managed_spend_cap_invalid",
         "The Claude Managed profile requires a positive session spend ceiling.",
       );
@@ -646,7 +646,7 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
         && profile.agentCoreProfileId !== stored.profileKey
       )
     ) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_profile_mismatch",
         "The qualified AWS AgentCore profile does not match the adapter selection.",
       );
@@ -655,7 +655,7 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
     const required = (key: string): string => {
       const value = optionalString(remote[key]);
       if (!value) {
-        throw new PaperclipRunnerProviderProfileError(
+        throw new ClayonRunnerProviderProfileError(
           "paperclip_runner_aws_agentcore_profile_invalid",
           `The qualified AWS AgentCore profile is missing ${key}.`,
         );
@@ -663,7 +663,7 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
       return value;
     };
     if (remote.eventExpiryDays !== 90) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_retention_unqualified",
         "The qualified AWS AgentCore profile must retain Memory events for exactly 90 days.",
       );
@@ -675,14 +675,14 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
         "The AWS AgentCore profile requires a positive estimated session spend ceiling.",
       );
     if (maxEstimatedSessionCostUsd === null) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_spend_cap_invalid",
         "The AWS AgentCore profile requires a positive estimated session spend ceiling.",
       );
     }
     const model = profile.model ?? required("defaultModel");
     if (model !== AGENTCORE_QUALIFIED_MODEL) {
-      throw new PaperclipRunnerProviderProfileError(
+      throw new ClayonRunnerProviderProfileError(
         "paperclip_runner_aws_agentcore_model_unqualified",
         `The AWS AgentCore profile requires exact model ${AGENTCORE_QUALIFIED_MODEL}.`,
       );
@@ -741,15 +741,15 @@ export function resolvePaperclipRunnerNativeProviderInput(input: {
     || (profile.model && isCodexLocalKnownModel(profile.model)
       && !codexLocalReasoningEffortsForModel(profile.model).includes(effort as "minimal" | "low" | "medium" | "high" | "xhigh" | "max" | "ultra"))
   )) {
-    throw new PaperclipRunnerProviderProfileError(
+    throw new ClayonRunnerProviderProfileError(
       "paperclip_runner_codex_effort_invalid",
-      "Paperclip Runner Codex reasoning effort is not supported for this model.",
+      "Clayon Runner Codex reasoning effort is not supported for this model.",
     );
   }
   return {
     provider: "codex",
     model: compatibleCodexModel(profile.model, input.codexCliVersion ?? null),
-    codexApprovalPolicy: resolvePaperclipRunnerPermissionMode(
+    codexApprovalPolicy: resolveClayonRunnerPermissionMode(
       "codex",
       config.codexPermissionMode,
     ) as "never" | "on-request" | "untrusted",

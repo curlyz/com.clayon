@@ -109,7 +109,9 @@ describe("SidebarNavItem", () => {
   it("uses the legible sidebar accent surface for hover", () => {
     render(<SidebarNavItem to="/issues" label="Tasks" icon={Inbox} />);
 
-    expect(classTokens(link())).toContain("hover:bg-sidebar-accent");
+    // Leaf-row hover (operator directive 2026-10-11): full-bleed rows hover
+    // with the quieter 60% sidebar-accent wash.
+    expect(classTokens(link())).toContain("hover:bg-sidebar-accent/60");
     expect(classTokens(link())).toContain("hover:text-sidebar-accent-foreground");
     expect(classTokens(link())).not.toContain("hover:bg-background");
   });

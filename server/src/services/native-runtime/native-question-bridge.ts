@@ -1,19 +1,19 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 
-import type { Db } from "@paperclipai/db";
-import { heartbeatRuns, issueThreadInteractions } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { heartbeatRuns, issueThreadInteractions } from "@clayon/db";
 import type {
   AskUserQuestionsInteraction,
   RespondIssueThreadInteraction,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 
-import { questionSetToAskUserQuestionsPayload } from "@paperclipai/shared";
+import { questionSetToAskUserQuestionsPayload } from "@clayon/shared";
 
-import type { PrpEvent } from "../../vendor/paperclip-runner/index.js";
+import type { PrpEvent } from "../../vendor/clayon-runner/index.js";
 import {
-  parsePaperclipQuestionSet,
-  type PaperclipQuestionSet,
-} from "../../vendor/paperclip-runner/index.js";
+  parseClayonQuestionSet,
+  type ClayonQuestionSet,
+} from "../../vendor/clayon-runner/index.js";
 import { logger } from "../../middleware/logger.js";
 import { unprocessable } from "../../errors.js";
 import { logActivity } from "../activity-log.js";
@@ -23,7 +23,7 @@ import type { NativeRunStoreBinding } from "./native-run-coordinator-store.js";
 
 import { parseQuestionInteractionAnswers, parseSavedQuestionInteractionAnswers } from "../question-interaction-answers.js";
 
-const QUESTION_KEY_PREFIX = "paperclip-runner-question:";
+const QUESTION_KEY_PREFIX = "clayon-runner-question:";
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/;
 export const NATIVE_QUESTION_CANCELLATION_CONTEXT_KEY = "nativeQuestionCancellation";
 
@@ -80,7 +80,7 @@ function requestIdForInteraction(
     : requestId;
 }
 
-function toInteractionPayload(questionSet: PaperclipQuestionSet, runtimeRequestId: string) {
+function toInteractionPayload(questionSet: ClayonQuestionSet, runtimeRequestId: string) {
   return {
     ...questionSetToAskUserQuestionsPayload(questionSet),
     runtimeRequestId,
@@ -167,7 +167,7 @@ export async function projectNativeRuntimeRequest(input: {
   if (request.requestKind !== "runtime" || request.type !== "input") {
     throw new Error("native_runtime_request_invalid");
   }
-  const questionSet = parsePaperclipQuestionSet(request.input);
+  const questionSet = parseClayonQuestionSet(request.input);
   if (questionSet.questions.some((question) => question.textValidation?.pattern !== undefined)) {
     // JavaScript regular expressions have no execution budget. Provider-authored
     // patterns therefore stay fail-closed until the runner contract supplies a

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { ExecutionProjection } from "@paperclipai/shared";
+import type { ExecutionProjection } from "@clayon/shared";
 import { useSecondTick } from "@/hooks/useSecondTick";
 import { cn } from "@/lib/utils";
 import type {
@@ -18,8 +18,8 @@ import {
   buildTurnTimelineRows,
   isTerminalRunStatus,
   omitProgressRepeatedByResponse,
-  paperclipRunnerFinalResponse,
-  paperclipRunnerTimelineItems,
+  clayonRunnerFinalResponse,
+  clayonRunnerTimelineItems,
 } from "./transcript-adapter";
 
 function currentActivityStatusItems(
@@ -157,7 +157,7 @@ export function TaskChatRunnerTurn({
   );
   const observedFinal = suppressFinal
     ? undefined
-    : paperclipRunnerFinalResponse(items, {
+    : clayonRunnerFinalResponse(items, {
         allowFallback: terminal,
       });
   const observedProviderText = Boolean(
@@ -194,7 +194,7 @@ export function TaskChatRunnerTurn({
     finalRef.current.providerText = observedProviderText;
   }
   const final = finalRef.current.item;
-  const timelineItems = paperclipRunnerTimelineItems(items);
+  const timelineItems = clayonRunnerTimelineItems(items);
   const currentActivityItems = currentActivityStatusItems(timelineItems);
   const timelineRows = buildTurnTimelineRows(
     omitProgressRepeatedByResponse(timelineItems, final?.text),

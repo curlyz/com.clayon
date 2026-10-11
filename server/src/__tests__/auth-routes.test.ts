@@ -89,7 +89,7 @@ describe("auth routes", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       session: {
-        id: "paperclip:session:user-1",
+        id: "clayon:session:user-1",
         userId: "user-1",
       },
       user: baseUser,
@@ -290,7 +290,7 @@ describe("auth routes", () => {
     });
   });
 
-  it("accepts Paperclip asset paths for avatars", async () => {
+  it("accepts Clayon asset paths for avatars", async () => {
     const app = await createApp(
       {
         type: "board",

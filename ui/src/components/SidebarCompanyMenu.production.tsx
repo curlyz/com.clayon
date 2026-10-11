@@ -20,7 +20,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { hidesCompanyPage, type Company } from "@paperclipai/shared";
+import { hidesCompanyPage, type Company } from "@clayon/shared";
 import { Link, useLocation, useNavigate } from "@/lib/router";
 import { authApi } from "@/api/auth";
 import { Button } from "@/components/ui/button";
@@ -257,15 +257,17 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          // The nav icon column sits at nav px-3 + item mx-2 + item px-2.
-          // Match that inset with wrapper px-3 + trigger px-4. Override the
-          // Button's direct-SVG padding too so the expanded chevron cannot pull
-          // the avatar four pixels left of the nav icons.
+          // Leaf rows now pad themselves full-bleed with px-3 (operator
+          // directive 2026-10-11), so the nav icon column sits at px-3 = 12px.
+          // The header band's px-3 wrapper plus this trigger's zero inset
+          // keeps the avatar aligned with the nav icons below. Override the
+          // Button's direct-SVG padding too so the expanded chevron cannot
+          // pull the avatar left of the nav icons.
           // `min-w-0` on every link of the flex chain (button → label row → label)
           // is what lets the name truncate: a flex item's default `min-width:auto`
           // floors it at its content width, so without it a long name widens the
           // trigger past the sidebar and pushes the chevron out of bounds.
-          className="h-9 min-w-0 flex-1 justify-start gap-2 px-4 text-left hover:bg-accent/50 hover:text-foreground has-[>svg]:px-4 dark:hover:bg-accent/50"
+          className="h-9 min-w-0 flex-1 justify-start gap-2 px-0 text-left hover:bg-accent/50 hover:text-foreground has-[>svg]:px-0 dark:hover:bg-accent/50"
           aria-label={
             currentName
               ? `Open ${currentName} ${switcherNoun} switcher`

@@ -1,6 +1,6 @@
 import { createAgentLifecycle } from "./agent-lifecycle.js";
 import { and, eq, isNull, ne } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents,
   companies,
@@ -8,14 +8,14 @@ import {
   pluginManagedResources,
   plugins,
   activityLog,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type {
   Agent,
-  PaperclipPluginManifestV1,
+  ClayonPluginManifestV1,
   PluginManagedAgentDeclaration,
   PluginManagedAgentResolution,
-} from "@paperclipai/shared";
-import { isUuidLike } from "@paperclipai/shared";
+} from "@clayon/shared";
+import { isUuidLike } from "@clayon/shared";
 import { conflict, forbidden, notFound } from "../errors.js";
 import { agentService } from "./agents.js";
 import { approvalService } from "./approvals.js";
@@ -33,7 +33,7 @@ function managedAgentPauseReason(pluginKey: string) {
 interface PluginManagedAgentServiceOptions {
   pluginId: string;
   pluginKey: string;
-  manifest?: PaperclipPluginManifestV1 | null;
+  manifest?: ClayonPluginManifestV1 | null;
   instructionTemplateVariables?: (companyId: string) => Promise<Record<string, string | null | undefined>>;
 }
 
@@ -49,7 +49,7 @@ function managedMetadata(
 ) {
   return {
     ...(existing ?? {}),
-    paperclipManagedResource: {
+    clayonManagedResource: {
       pluginId,
       pluginKey,
       resourceKind: "agent",
@@ -169,7 +169,7 @@ function rowIsManagedAgent(
 ) {
   const metadata = row.metadata;
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false;
-  const marker = (metadata as Record<string, unknown>).paperclipManagedResource;
+  const marker = (metadata as Record<string, unknown>).clayonManagedResource;
   if (!marker || typeof marker !== "object" || Array.isArray(marker)) return false;
   const record = marker as Record<string, unknown>;
   return (
@@ -328,7 +328,7 @@ export function pluginManagedAgentService(
         || !plugin.manifestJson.agents?.some((entry) => entry.agentKey === declaration.agentKey)) {
         throw forbidden("Plugin relink is limited to its registered managed agent declaration");
       }
-      const marker = agent.metadata!.paperclipManagedResource as Record<string, unknown>;
+      const marker = agent.metadata!.clayonManagedResource as Record<string, unknown>;
       const previousPluginId = marker.pluginId;
       if (typeof previousPluginId !== "string" || !isUuidLike(previousPluginId)) throw forbidden("Managed agent has no plugin owner");
       if (previousPluginId !== options.pluginId) {

@@ -56,8 +56,8 @@ import {
 } from "@/components/InlineEntitySelector";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { MentionOption } from "@/components/MarkdownEditor";
-import type { IssueAttachment, IssueWorkMode } from "@paperclipai/shared";
-import type { RunnerGoalCapability } from "@paperclipai/shared";
+import type { IssueAttachment, IssueWorkMode } from "@clayon/shared";
+import type { RunnerGoalCapability } from "@clayon/shared";
 import type { ActionCommandOption } from "@/context/EditorAutocompleteContext";
 import { TaskChatComposerTakeoverActionsContext } from "./TaskChatComposerTakeoverContext";
 
@@ -66,7 +66,7 @@ import { ComposerRunSettingsPicker } from "./ComposerRunSettingsPicker";
 import { TaskChatComposerBar } from "./TaskChatComposerBar";
 import { ComposerAddMenu, ComposerModeChip, ComposerPrivacyChip } from "./ComposerAddMenu";
 import type { ComposerRunSettings } from "./composer-run-settings";
-import type { Agent, IssueAssigneeAdapterOverrides } from "@paperclipai/shared";
+import type { Agent, IssueAssigneeAdapterOverrides } from "@clayon/shared";
 
 /** Structurally identical to IssueChatThread's module-private CommentReassignment. */
 export interface CommentReassignment {
@@ -1264,8 +1264,8 @@ export function TaskChatComposer({
       <div
         className={cn(
         streamlined
-          ? "paperclip-task-chat-composer rounded-(--radius-task-composer) border border-border bg-card p-(--sz-18px) shadow-(--shadow-task-composer) dark:border-0 dark:bg-muted dark:shadow-none"
-          : "paperclip-task-chat-composer rounded-xl bg-card p-(--sz-18px)",
+          ? "clayon-task-chat-composer rounded-(--radius-task-composer) border border-border bg-card p-(--sz-18px) shadow-(--shadow-task-composer) dark:border-0 dark:bg-muted dark:shadow-none"
+          : "clayon-task-chat-composer rounded-xl bg-card p-(--sz-18px)",
         mobile && "p-3",
       )}
         onKeyDownCapture={(e) => {

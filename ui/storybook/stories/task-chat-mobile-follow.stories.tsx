@@ -1,6 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TaskChatComposer } from "@/components/task-chat/TaskChatComposer";
 import { TaskChatComposerDock } from "@/components/task-chat/TaskChatComposerDock";
 import { TaskChatThreadView } from "@/components/task-chat/TaskChatThreadView";
@@ -39,7 +38,10 @@ function MobileFollow() {
         </TaskChatComposerDock>
       </div>
     </main>
-    <MobileBottomNav visible />
+    {/* Stand-in for the bottom dock (the real Dock needs the app's
+        providers); reserves the same bottom chrome so the composer's
+        nav-offset clearance stays honest. */}
+    <div className="h-16 shrink-0 bg-muted" aria-hidden="true" />
   </div>;
 }
 

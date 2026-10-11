@@ -28,8 +28,8 @@ import {
   principalPermissionGrants,
   routines,
   routineTriggers,
-} from "@paperclipai/db";
-import { readPaperclipSkillSyncPreference } from "@paperclipai/adapter-utils/server-utils";
+} from "@clayon/db";
+import { readClayonSkillSyncPreference } from "@clayon/adapter-utils/server-utils";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -57,8 +57,8 @@ const BUILT_IN_MARKER_UNIQUE_INDEX = "agents_company_built_in_agent_key_unique_i
 // test needs to simulate legacy duplicates that predate the constraint.
 const BUILT_IN_MARKER_UNIQUE_INDEX_DDL = `
   CREATE UNIQUE INDEX IF NOT EXISTS "${BUILT_IN_MARKER_UNIQUE_INDEX}"
-    ON "agents" ("company_id", ((metadata -> 'paperclipBuiltInAgent' ->> 'key')))
-    WHERE (metadata -> 'paperclipBuiltInAgent' ->> 'key') IS NOT NULL
+    ON "agents" ("company_id", ((metadata -> 'clayonBuiltInAgent' ->> 'key')))
+    WHERE (metadata -> 'clayonBuiltInAgent' ->> 'key') IS NOT NULL
       AND status <> 'terminated'
 `;
 
@@ -74,7 +74,7 @@ if (!embeddedPostgresSupport.supported) {
 
 describe("built-in agent asset loading", () => {
   it("uses the first readable candidate path", () => {
-    const dir = mkdtempSync(path.join(tmpdir(), "paperclip-built-in-agent-"));
+    const dir = mkdtempSync(path.join(tmpdir(), "clayon-built-in-agent-"));
     try {
       const first = path.join(dir, "missing.md");
       const second = path.join(dir, "asset.md");
@@ -102,7 +102,7 @@ describe("built-in agent asset loading", () => {
 
   it("warns about non-missing read errors before falling back", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const dir = mkdtempSync(path.join(tmpdir(), "paperclip-built-in-agent-"));
+    const dir = mkdtempSync(path.join(tmpdir(), "clayon-built-in-agent-"));
     const label = "unreadable:" + randomUUID();
 
     try {
@@ -152,7 +152,7 @@ describeEmbeddedPostgres("built-in agents", () => {
 
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-built-in-agents-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-built-in-agents-");
     db = createDb(tempDb.connectionString);
     lifecycleWorker = configureAgentLifecycle(db, { requiredPluginIds: async () => [], runPlugin: async () => "complete", runHost: async () => "complete" });
   }, 20_000);
@@ -196,7 +196,7 @@ describeEmbeddedPostgres("built-in agents", () => {
     const companyId = randomUUID();
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix: issuePrefix(companyId),
       defaultResponsibleUserId: "responsible-user",
       requireBoardApprovalForNewAgents: options.requireApproval ?? true,
@@ -670,13 +670,13 @@ describeEmbeddedPostgres("built-in agents", () => {
     const [skill] = await db
       .select()
       .from(companySkills)
-      .where(eq(companySkills.key, "paperclipai/bundled/paperclip-operations/reflection-coach"));
+      .where(eq(companySkills.key, "clayon/bundled/clayon-operations/reflection-coach"));
     expect(skill).toMatchObject({
-      key: "paperclipai/bundled/paperclip-operations/reflection-coach",
+      key: "clayon/bundled/clayon-operations/reflection-coach",
       slug: "reflection-coach",
     });
-    expect(readPaperclipSkillSyncPreference(state.agent!.adapterConfig as Record<string, unknown>).desiredSkills).toContain(
-      "paperclipai/bundled/paperclip-operations/reflection-coach",
+    expect(readClayonSkillSyncPreference(state.agent!.adapterConfig as Record<string, unknown>).desiredSkills).toContain(
+      "clayon/bundled/clayon-operations/reflection-coach",
     );
 
     const [routine] = await db.select().from(routines).where(eq(routines.companyId, companyId));
@@ -1021,7 +1021,7 @@ describeEmbeddedPostgres("built-in agents", () => {
       id: builtIn.agentId,
       metadata: {
         note: "allowed",
-        paperclipBuiltInAgent: { key: "briefs", featureKeys: ["briefs"] },
+        clayonBuiltInAgent: { key: "briefs", featureKeys: ["briefs"] },
       },
     });
   });
@@ -1288,12 +1288,12 @@ describeEmbeddedPostgres("built-in agents", () => {
     const [skill] = await db
       .select()
       .from(companySkills)
-      .where(eq(companySkills.key, "paperclipai/bundled/paperclip-operations/reflection-coach"));
+      .where(eq(companySkills.key, "clayon/bundled/clayon-operations/reflection-coach"));
     expect(skill).toMatchObject({
-      key: "paperclipai/bundled/paperclip-operations/reflection-coach",
+      key: "clayon/bundled/clayon-operations/reflection-coach",
       slug: "reflection-coach",
     });
-    expect(readPaperclipSkillSyncPreference(state.agent!.adapterConfig).desiredSkills).toContain(skill!.key);
+    expect(readClayonSkillSyncPreference(state.agent!.adapterConfig).desiredSkills).toContain(skill!.key);
 
     const [routine] = await db.select().from(routines).where(eq(routines.companyId, companyId));
     expect(routine).toMatchObject({
@@ -1359,12 +1359,12 @@ describeEmbeddedPostgres("built-in agents", () => {
     const [skill] = await db
       .select()
       .from(companySkills)
-      .where(eq(companySkills.key, "paperclipai/bundled/paperclip-operations/summarize-status"));
+      .where(eq(companySkills.key, "clayon/bundled/clayon-operations/summarize-status"));
     expect(skill).toMatchObject({
-      key: "paperclipai/bundled/paperclip-operations/summarize-status",
+      key: "clayon/bundled/clayon-operations/summarize-status",
       slug: "summarize-status",
     });
-    expect(readPaperclipSkillSyncPreference(state.agent!.adapterConfig).desiredSkills).toContain(skill!.key);
+    expect(readClayonSkillSyncPreference(state.agent!.adapterConfig).desiredSkills).toContain(skill!.key);
 
     const [routine] = await db
       .select()

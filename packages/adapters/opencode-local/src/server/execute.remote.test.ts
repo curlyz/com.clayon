@@ -11,7 +11,7 @@ const {
   restoreWorkspaceFromSshExecution,
   runSshCommand,
   syncDirectoryToSsh,
-  startAdapterExecutionTargetPaperclipBridge,
+  startAdapterExecutionTargetClayonBridge,
 } = vi.hoisted(() => ({
   runChildProcess: vi.fn(async (_runId: string, _command: string, args: string[]) => {
     if (args.includes("models")) {
@@ -53,19 +53,19 @@ const {
     exitCode: 0,
   })),
   syncDirectoryToSsh: vi.fn(async () => undefined),
-  startAdapterExecutionTargetPaperclipBridge: vi.fn(async () => ({
+  startAdapterExecutionTargetClayonBridge: vi.fn(async () => ({
     env: {
-      PAPERCLIP_API_URL: "http://127.0.0.1:4310",
-      PAPERCLIP_API_KEY: "bridge-token",
-      PAPERCLIP_API_BRIDGE_MODE: "queue_v1",
+      CLAYON_API_URL: "http://127.0.0.1:4310",
+      CLAYON_API_KEY: "bridge-token",
+      CLAYON_API_BRIDGE_MODE: "queue_v1",
     },
     stop: async () => {},
   })),
 }));
 
-vi.mock("@paperclipai/adapter-utils/server-utils", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/adapter-utils/server-utils")>(
-    "@paperclipai/adapter-utils/server-utils",
+vi.mock("@clayon/adapter-utils/server-utils", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/adapter-utils/server-utils")>(
+    "@clayon/adapter-utils/server-utils",
   );
   return {
     ...actual,
@@ -75,9 +75,9 @@ vi.mock("@paperclipai/adapter-utils/server-utils", async () => {
   };
 });
 
-vi.mock("@paperclipai/adapter-utils/ssh", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/adapter-utils/ssh")>(
-    "@paperclipai/adapter-utils/ssh",
+vi.mock("@clayon/adapter-utils/ssh", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/adapter-utils/ssh")>(
+    "@clayon/adapter-utils/ssh",
   );
   return {
     ...actual,
@@ -88,13 +88,13 @@ vi.mock("@paperclipai/adapter-utils/ssh", async () => {
   };
 });
 
-vi.mock("@paperclipai/adapter-utils/execution-target", async () => {
-  const actual = await vi.importActual<typeof import("@paperclipai/adapter-utils/execution-target")>(
-    "@paperclipai/adapter-utils/execution-target",
+vi.mock("@clayon/adapter-utils/execution-target", async () => {
+  const actual = await vi.importActual<typeof import("@clayon/adapter-utils/execution-target")>(
+    "@clayon/adapter-utils/execution-target",
   );
   return {
     ...actual,
-    startAdapterExecutionTargetPaperclipBridge,
+    startAdapterExecutionTargetClayonBridge,
   };
 });
 
@@ -105,7 +105,7 @@ describe("opencode remote execution", () => {
   const originalOpenCodeAllowAllModels = process.env.OPENCODE_ALLOW_ALL_MODELS;
 
   beforeEach(async () => {
-    const configHome = await mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-test-config-"));
+    const configHome = await mkdtemp(path.join(os.tmpdir(), "clayon-opencode-test-config-"));
     cleanupDirs.push(configHome);
     vi.stubEnv("XDG_CONFIG_HOME", configHome);
     delete process.env.OPENCODE_ALLOW_ALL_MODELS;
@@ -127,11 +127,11 @@ describe("opencode remote execution", () => {
   });
 
   it.each([false, true])("prepares the workspace, syncs OpenCode skills, and restores workspace changes for remote SSH execution (managed=%s)", async (managed) => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-remote-"));
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "clayon-opencode-remote-"));
     cleanupDirs.push(rootDir);
     const workspaceDir = path.join(rootDir, "workspace");
     const alternateWorkspaceDir = path.join(rootDir, "workspace-other");
-    const managedRemoteWorkspace = "/remote/workspace/.paperclip-runtime/runs/run-1/workspace";
+    const managedRemoteWorkspace = "/remote/workspace/.clayon-runtime/runs/run-1/workspace";
     await mkdir(workspaceDir, { recursive: true });
     await mkdir(alternateWorkspaceDir, { recursive: true });
 
@@ -162,11 +162,11 @@ describe("opencode remote execution", () => {
         },
       },
       context: {
-        paperclipWorkspace: {
+        clayonWorkspace: {
           cwd: workspaceDir,
           source: "project_primary",
         },
-        paperclipWorkspaces: [
+        clayonWorkspaces: [
           {
             workspaceId: "workspace-1",
             cwd: workspaceDir,
@@ -210,10 +210,10 @@ describe("opencode remote execution", () => {
     expect(prepareWorkspaceForSshExecution).toHaveBeenCalledTimes(1);
     expect(syncDirectoryToSsh).toHaveBeenCalledTimes(2);
     expect(syncDirectoryToSsh).toHaveBeenCalledWith(expect.objectContaining({
-      remoteDir: `${managedRemoteWorkspace}/.paperclip-runtime/opencode/xdgConfig`,
+      remoteDir: `${managedRemoteWorkspace}/.clayon-runtime/opencode/xdgConfig`,
     }));
     expect(syncDirectoryToSsh).toHaveBeenCalledWith(expect.objectContaining({
-      remoteDir: `${managedRemoteWorkspace}/.paperclip-runtime/opencode/skills`,
+      remoteDir: `${managedRemoteWorkspace}/.clayon-runtime/opencode/skills`,
       followSymlinks: true,
     }));
     expect(runSshCommand).toHaveBeenCalledWith(
@@ -233,15 +233,15 @@ describe("opencode remote execution", () => {
     // original target remoteCwd — the per-run subdirectory is layered
     // underneath via XDG/runtime config rather than by switching the cwd.
     expect(modelProbeCall?.[3].env.XDG_CONFIG_HOME).toBe(
-      `${managedRemoteWorkspace}/.paperclip-runtime/opencode/xdgConfig`,
+      `${managedRemoteWorkspace}/.clayon-runtime/opencode/xdgConfig`,
     );
     expect(modelProbeCall?.[3].remoteExecution?.remoteCwd).toBe("/remote/workspace");
     const call = runCall as
       | [string, string, string[], { env: Record<string, string>; remoteExecution?: { remoteCwd: string } | null }]
       | undefined;
-    expect(call?.[3].env.PAPERCLIP_WORKSPACE_CWD).toBe(managedRemoteWorkspace);
+    expect(call?.[3].env.CLAYON_WORKSPACE_CWD).toBe(managedRemoteWorkspace);
     if (managed) {
-      const home = `${managedRemoteWorkspace}/.paperclip-runtime/opencode/managed-auth/run-1`;
+      const home = `${managedRemoteWorkspace}/.clayon-runtime/opencode/managed-auth/run-1`;
       expect(call?.[3].env.HOME).toBe(home);
       expect(call?.[3].env.XDG_DATA_HOME).toBe(`${home}/data`);
       expect(modelProbeCall?.[3].env.XDG_DATA_HOME).toBe(`${home}/data`);
@@ -251,7 +251,7 @@ describe("opencode remote execution", () => {
         expect.anything(),
       );
     }
-    expect(JSON.parse(call?.[3].env.PAPERCLIP_WORKSPACES_JSON ?? "[]")).toEqual([
+    expect(JSON.parse(call?.[3].env.CLAYON_WORKSPACES_JSON ?? "[]")).toEqual([
       {
         workspaceId: "workspace-1",
         cwd: managedRemoteWorkspace,
@@ -264,11 +264,11 @@ describe("opencode remote execution", () => {
         repoRef: "feature/other",
       },
     ]);
-    expect(call?.[3].env.PAPERCLIP_API_URL).toBe("http://127.0.0.1:4310");
-    expect(call?.[3].env.PAPERCLIP_API_BRIDGE_MODE).toBe("queue_v1");
-    expect(call?.[3].env.XDG_CONFIG_HOME).toBe(`${managedRemoteWorkspace}/.paperclip-runtime/opencode/xdgConfig`);
+    expect(call?.[3].env.CLAYON_API_URL).toBe("http://127.0.0.1:4310");
+    expect(call?.[3].env.CLAYON_API_BRIDGE_MODE).toBe("queue_v1");
+    expect(call?.[3].env.XDG_CONFIG_HOME).toBe(`${managedRemoteWorkspace}/.clayon-runtime/opencode/xdgConfig`);
     expect(call?.[3].remoteExecution?.remoteCwd).toBe(managedRemoteWorkspace);
-    expect(startAdapterExecutionTargetPaperclipBridge).toHaveBeenCalledTimes(1);
+    expect(startAdapterExecutionTargetClayonBridge).toHaveBeenCalledTimes(1);
     expect(restoreWorkspaceFromSshExecution).toHaveBeenCalledTimes(1);
   });
 
@@ -283,7 +283,7 @@ describe("opencode remote execution", () => {
       startedAt: new Date().toISOString(),
     }));
 
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-remote-model-"));
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "clayon-opencode-remote-model-"));
     cleanupDirs.push(rootDir);
     const workspaceDir = path.join(rootDir, "workspace");
     await mkdir(workspaceDir, { recursive: true });
@@ -309,7 +309,7 @@ describe("opencode remote execution", () => {
           model: "opencode/gpt-5-nano",
         },
         context: {
-          paperclipWorkspace: {
+          clayonWorkspace: {
             cwd: workspaceDir,
             source: "project_primary",
           },
@@ -332,14 +332,14 @@ describe("opencode remote execution", () => {
 
     expect(runChildProcess).toHaveBeenCalledTimes(1);
     expect((runChildProcess.mock.calls[0]?.[2] as string[] | undefined) ?? []).toEqual(["models"]);
-    expect(startAdapterExecutionTargetPaperclipBridge).not.toHaveBeenCalled();
+    expect(startAdapterExecutionTargetClayonBridge).not.toHaveBeenCalled();
   });
 
   it("resumes saved OpenCode sessions for remote SSH execution only when the identity matches", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-remote-resume-"));
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "clayon-opencode-remote-resume-"));
     cleanupDirs.push(rootDir);
     const workspaceDir = path.join(rootDir, "workspace");
-    const managedRemoteWorkspace = "/remote/workspace/.paperclip-runtime/runs/run-ssh-resume/workspace";
+    const managedRemoteWorkspace = "/remote/workspace/.clayon-runtime/runs/run-ssh-resume/workspace";
     await mkdir(workspaceDir, { recursive: true });
 
     await execute({
@@ -372,7 +372,7 @@ describe("opencode remote execution", () => {
         model: "opencode/gpt-5-nano",
       },
       context: {
-        paperclipWorkspace: {
+        clayonWorkspace: {
           cwd: workspaceDir,
           source: "project_primary",
         },

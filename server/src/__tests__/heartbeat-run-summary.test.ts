@@ -886,13 +886,13 @@ describe("resolveHeartbeatRunResponse", () => {
     ).toBe(true);
     expect(
       isExternalChatPresentationContext({
-        paperclipWake: { externalInteractionContinuation: true },
+        clayonWake: { externalInteractionContinuation: true },
       }),
     ).toBe(true);
     expect(
       isExternalChatPresentationContext({
         externalChatContinuation: false,
-        paperclipWake: { externalInteractionContinuation: false },
+        clayonWake: { externalInteractionContinuation: false },
       }),
     ).toBe(false);
     expect(isExternalChatPresentationContext({ source: "chatty:github" })).toBe(
@@ -957,8 +957,8 @@ describe("findHeartbeatRunCompletionComment", () => {
     expect(resolveHeartbeatRunResponse({
       resultJson,
       existingComment,
-      finalAgentMessage: { text: "PAPERCLIP_E2E_WARM_T3", sourceEventId: "final-event", channel: "final" },
-    })).toMatchObject({ text: "PAPERCLIP_E2E_WARM_T3", decision: { commentAction: "create" } });
+      finalAgentMessage: { text: "CLAYON_E2E_WARM_T3", sourceEventId: "final-event", channel: "final" },
+    })).toMatchObject({ text: "CLAYON_E2E_WARM_T3", decision: { commentAction: "create" } });
     // A final reply already materialized on a retry keeps precedence.
     expect(findHeartbeatRunCompletionComment([prepared, explicit], resultJson)).toEqual(explicit);
     // The body alone does not mark an ordinary agent comment as generated.

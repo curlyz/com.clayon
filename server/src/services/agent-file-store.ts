@@ -5,8 +5,8 @@ import { constants } from "node:fs";
 import { Readable } from "node:stream";
 import path from "node:path";
 import { and, eq } from "drizzle-orm";
-import { agents, activityLog, agentInstructionHeads, agentInstructionRevisions, type Db } from "@paperclipai/db";
-import { captureDirectorySnapshot, mergeDirectoryWithBaseline, type DirectorySnapshot } from "@paperclipai/adapter-utils/workspace-restore-merge";
+import { agents, activityLog, agentInstructionHeads, agentInstructionRevisions, type Db } from "@clayon/db";
+import { captureDirectorySnapshot, mergeDirectoryWithBaseline, type DirectorySnapshot } from "@clayon/adapter-utils/workspace-restore-merge";
 import { HttpError, conflict, notFound, unprocessable } from "../errors.js";
 import { authorizeInstructionCommit, authorizeInstructionRead } from "./agent-instruction-authorization.js";
 import { assertInstructionPathSafe, instructionPath, instructionBytes, materializeInstructionBytes, readInstructionBytes, MAX_INSTRUCTION_BYTES } from "./agent-instruction-files.js";
@@ -45,7 +45,7 @@ function storageWarning(size: number, count: number, fullFile?: string) {
 
 export function agentFilePath(value: string): string {
   const relative = instructionPath(value);
-  if (relative.split("/").includes(".paperclip-runtime") || relative === "promptTemplate.legacy.md") {
+  if (relative.split("/").includes(".clayon-runtime") || relative === "promptTemplate.legacy.md") {
     throw unprocessable(`${relative} is reserved and cannot be used for agent files`);
   }
   return relative;

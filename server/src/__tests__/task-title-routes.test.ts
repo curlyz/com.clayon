@@ -11,8 +11,8 @@ vi.mock("chat", async importOriginal => {
   };
 });
 import { and, eq } from "drizzle-orm";
-import { activityLog, externalObjectMentions, heartbeatRuns, issues } from "@paperclipai/db";
-import { createChildIssueSchema, createIssueSchema, setIssueTitleSchema } from "@paperclipai/shared";
+import { activityLog, externalObjectMentions, heartbeatRuns, issues } from "@clayon/db";
+import { createChildIssueSchema, createIssueSchema, setIssueTitleSchema } from "@clayon/shared";
 import { createLocalAgentJwt } from "../agent-auth-jwt.js";
 import { issueService } from "../services/issues.js";
 import { externalObjectService } from "../services/external-objects.js";
@@ -22,15 +22,15 @@ import { startRunnerApiTestServer } from "./helpers/runner-api-server.js";
 
 describe("task titles", () => {
   let server: Awaited<ReturnType<typeof startRunnerApiTestServer>>;
-  const originalSecret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
+  const originalSecret = process.env.CLAYON_AGENT_JWT_SECRET;
   beforeAll(async () => {
-    process.env.PAPERCLIP_AGENT_JWT_SECRET = randomUUID();
+    process.env.CLAYON_AGENT_JWT_SECRET = randomUUID();
     server = await startRunnerApiTestServer();
   }, 60_000);
   afterAll(async () => {
     await server?.close();
-    if (originalSecret === undefined) delete process.env.PAPERCLIP_AGENT_JWT_SECRET;
-    else process.env.PAPERCLIP_AGENT_JWT_SECRET = originalSecret;
+    if (originalSecret === undefined) delete process.env.CLAYON_AGENT_JWT_SECRET;
+    else process.env.CLAYON_AGENT_JWT_SECRET = originalSecret;
   });
   type Fixture = Awaited<ReturnType<typeof server.fixture>>;
   const token = (f: Fixture) => createLocalAgentJwt(f.agentId, f.companyId, "paperclip_runner", f.runId, f.responsibleUserId)!;

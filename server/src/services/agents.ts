@@ -1,9 +1,9 @@
 import { type BudgetServiceHooks } from "./budgets.js";
 
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { agents, agentConfigRevisions, agentApiKeys, heartbeatRuns } from "@paperclipai/db";
-import { isUuidLike, normalizeAgentApiKeyScope, normalizeAgentUrlKey, type AgentApiKeyScope } from "@paperclipai/shared";
+import type { Db } from "@clayon/db";
+import { agents, agentConfigRevisions, agentApiKeys, heartbeatRuns } from "@clayon/db";
+import { isUuidLike, normalizeAgentApiKeyScope, normalizeAgentUrlKey, type AgentApiKeyScope } from "@clayon/shared";
 
 import { conflict, notFound, unprocessable } from "../errors.js";
 

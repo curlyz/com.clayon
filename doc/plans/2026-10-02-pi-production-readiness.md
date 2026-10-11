@@ -68,7 +68,7 @@ The production correction exposes native question field types at the schema
 root and preserves every method-specific constraint and runtime validator.
 Empty arguments, stringified options and cross-method fields remain invalid.
 All three previous closure hashes are reproduced from the retained full
-manifest and reviewed Node pins; only `extensions/paperclip.js` changes.
+manifest and reviewed Node pins; only `extensions/clayon.js` changes.
 Historical Pi profile-18 decoding retains its exact stored identity; current
 launch admission still rejects it. Later changes are tests, harness and docs.
 Shipping packages and image stay frozen at the source above.
@@ -143,7 +143,7 @@ writes the requested 33 bytes, performs one complete native read with the exact
 nonce plus LF, receives the expected cross-root denial, saves the exact bytes
 through the public managed-file API, and retires cleanly. The grader wrongly
 requires a null projected target for cloud agent files. The remote projection
-correctly names `.paperclip-runtime/agent-files/<agent-id>/<run-id>/memory/pi-native.txt`;
+correctly names `.clayon-runtime/agent-files/<agent-id>/<run-id>/memory/pi-native.txt`;
 local private-root reads remain withheld. This is a grader-authority mismatch,
 not evidence of wrong file content. Restart and the fresh task were not reached.
 
@@ -665,7 +665,7 @@ remains deferred and no prior-source live result transfers to this candidate.
 This branch merges `origin/master` through `a9a20fb5c6c080884ced7ee0a4e3b04f9cbf3a6e`.
 The original integration point was `a6306ba606eb87c89b9ef0344e9fe8e0025580f9`;
 two additional master commits are included in the final merge.
-Pi accepts the operator's explicit provider/model ID without a Paperclip model
+Pi accepts the operator's explicit provider/model ID without a Clayon model
 allowlist. Catalog discovery does not gate selection. Exact native model
 acknowledgment remains required before prompting. API credentials for built-in
 providers and explicit native custom-provider configurations remain session-bound.
@@ -1087,7 +1087,7 @@ qualify changed shipping inputs. Keep rollout held and do not merge or release.
 ## Sandbox GitHub housekeeping correction — 2026-10-06
 
 The shipping correction moves sandbox GitHub launchers, upload locks and
-per-command configuration below `.paperclip-runtime/paperclip-runner/github`.
+per-command configuration below `.clayon-runtime/clayon-runner/github`.
 One shared path now binds staging, the native callback bridge and cleanup.
 Local and SSH locations keep their existing behavior. The native watcher,
 excluded subtree, exact byte grades, timeouts and lifecycle assertions do not
@@ -1191,7 +1191,7 @@ Build and recursive typecheck pass at the shipping source. Fixture head
 `6c09e4c87` has 53 successful GitHub checks, two skips, Greptile 5/5 and no
 unresolved review threads. The first full local workspace run retains 15,042
 passes, 87 skips and five plugin auto-build failures. Its launcher globally set
-`PAPERCLIP_DISABLE_PLUGIN_AUTOBUILD=1`. Removing that test-environment flag makes
+`CLAYON_DISABLE_PLUGIN_AUTOBUILD=1`. Removing that test-environment flag makes
 all 11 affected tests pass with unchanged source and assertions. The corrected
 full `pnpm test:run` child reaches terminal failure after its launcher was
 interrupted: 12,920 passes, 2,210 skips, four failed tests and 36 failed files.
@@ -1243,7 +1243,7 @@ Product 0/26 and Runner 0/7.
 
 A credential-free regression reproduces the fallback restore defect after
 controller recovery: file bytes survive, but transfer creates a reserved
-`.paperclip-runtime/agent-files` directory inside native `AGENT_HOME`. The
+`.clayon-runtime/agent-files` directory inside native `AGENT_HOME`. The
 product's complete agent-directory probe rejects that directory. Transfer
 scratch now lives in the original materialization's host runtime area, outside
 native memory. Both staging and recovery use the same lease-confined path.
@@ -1946,7 +1946,7 @@ is claimed. No automatic paid retry, fallback key, model change, workflow edit,
 or lockfile commit occurs.
 
 Normal installed Mac-to-Linux authority now passes the documented
-`paperclipai runtime import-remote` path. The companion comes from immutable
+`clayon runtime import-remote` path. The companion comes from immutable
 image `sha256:342f1fd5cb8cabfa2242f38f4f686608b28b6536aa879c54b0cb0da6fba9ef47`,
 contains 24,352 inventoried entries, and has manifest SHA256
 `2c9d337c7d3753db6b8c44c5b347e195a2544b574670af7f32e5dfaffc0b4017`.
@@ -2633,9 +2633,9 @@ the database status. Drain or recover recorded cleanup before rolling back to
 a release that cannot interpret its metadata, and preserve the provider handle
 and receipts throughout that operation.
 
-1. Record `paperclipai --version`, the prior CLI/server package versions, the
+1. Record `clayon --version`, the prior CLI/server package versions, the
    current company configuration and the exact retained package set. Run
-   `paperclipai db:backup --json` against the intended instance. Retain the
+   `clayon db:backup --json` against the intended instance. Retain the
    reported backup path and size. Record the backup file SHA256 before updating.
    Drain active native runs on every platform before updating. On Linux, also
    drain before crossing between ctime-based and kernel-birth receipts. Never
@@ -2647,9 +2647,9 @@ and receipts throughout that operation.
    separately reviewed install procedure rather than this npm version command.
 
    ```sh
-   paperclipai update --version "$PI_RELEASE_VERSION" --dry-run --json
-   paperclipai update --version "$PI_RELEASE_VERSION"
-   paperclipai runtime setup pi
+   clayon update --version "$PI_RELEASE_VERSION" --dry-run --json
+   clayon update --version "$PI_RELEASE_VERSION"
+   clayon runtime setup pi
    ```
 
 3. For Daytona, select the exact image in the completed release qualification
@@ -2662,7 +2662,7 @@ and receipts throughout that operation.
    platform-specific manifest digests are evidence, not published release assets.
 
    ```sh
-   paperclipai runtime import-remote "$PI_RELEASE_COMPANION" --sha256 "$PI_RELEASE_COMPANION_SHA256"
+   clayon runtime import-remote "$PI_RELEASE_COMPANION" --sha256 "$PI_RELEASE_COMPANION_SHA256"
    ```
 
 4. After all release gates pass, begin with one operator-owned Linux Pi company using profile 18,
@@ -2690,8 +2690,8 @@ platform. On Linux, also drain before crossing the process-birth format change.
 Preserve terminal and cleanup evidence.
 
 ```sh
-paperclipai update --rollback --dry-run --json
-paperclipai update --rollback
+clayon update --rollback --dry-run --json
+clayon update --rollback
 ```
 
 The CLI restores the retained prior managed payload and restarts an active

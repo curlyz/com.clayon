@@ -5,7 +5,7 @@ import type {
   ChatPublicationState,
   ChatFileTransferPhase,
   IssueAttachment,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   chatEndpointsApi,
   type ChatProvider,
@@ -52,7 +52,7 @@ type PublicationFeedback = {
 const publicationFeedback: Record<ChatPublicationState, PublicationFeedback> = {
   awaiting_consent: {
     title: "Waiting for file consent",
-    body: "The recipient must accept the file card in Microsoft Teams. The file is not delivered yet; this send identity is kept while Paperclip waits.",
+    body: "The recipient must accept the file card in Microsoft Teams. The file is not delivered yet; this send identity is kept while Clayon waits.",
     tone: "info",
   },
   published: {
@@ -62,12 +62,12 @@ const publicationFeedback: Record<ChatPublicationState, PublicationFeedback> = {
   },
   pending: {
     title: "Queued for channel",
-    body: "Delivery is still pending. Your draft is kept until Paperclip confirms publication.",
+    body: "Delivery is still pending. Your draft is kept until Clayon confirms publication.",
     tone: "info",
   },
   streaming: {
     title: "Publishing to channel",
-    body: "Delivery is still in progress. Your draft is kept until Paperclip confirms publication.",
+    body: "Delivery is still in progress. Your draft is kept until Clayon confirms publication.",
     tone: "info",
   },
   retry: {

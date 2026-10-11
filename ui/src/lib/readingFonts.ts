@@ -6,7 +6,7 @@
  * index.html pre-paint script, and the `[data-reader-font]` token maps in
  * index.css):
  * - `<html data-reader-font="<id>">` is the whole DOM contract.
- * - `localStorage["paperclip.readerFont"]` holds the id as a JSON string.
+ * - `localStorage["clayon.readerFont"]` holds the id as a JSON string.
  *
  * The chosen face is global (chrome, menus, forms — everything); only
  * mono/code glyphs keep their own face. Font stacks live in index.css;

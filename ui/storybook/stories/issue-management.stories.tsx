@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { Issue, IssueLabel, Project } from "@paperclipai/shared";
+import type { Issue, IssueLabel, Project } from "@clayon/shared";
 import type { RunForIssue } from "@/api/activity";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -49,7 +49,7 @@ import {
   storybookIssueRuns,
   storybookIssues,
   storybookProjects,
-} from "../fixtures/paperclipData";
+} from "../fixtures/clayonData";
 
 const companyId = "company-storybook";
 const issueListViewKey = "storybook:issue-management:list";
@@ -177,9 +177,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="paperclip-story__frame overflow-hidden">
+    <section className="clayon-story__frame overflow-hidden">
       <div className="border-b border-border px-5 py-4">
-        <div className="paperclip-story__label">{eyebrow}</div>
+        <div className="clayon-story__label">{eyebrow}</div>
         <h2 className="mt-1 text-xl font-semibold">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
@@ -210,7 +210,7 @@ function hydrateStorybookQueries(queryClient: ReturnType<typeof useQueryClient>)
         status: "active",
         user: {
           id: "user-board",
-          email: "riley@paperclip.local",
+          email: "riley@clayon.local",
           name: "Riley Board",
           image: null,
         },
@@ -220,7 +220,7 @@ function hydrateStorybookQueries(queryClient: ReturnType<typeof useQueryClient>)
         status: "active",
         user: {
           id: "user-product",
-          email: "morgan@paperclip.local",
+          email: "morgan@clayon.local",
           name: "Morgan Product",
           image: null,
         },
@@ -301,7 +301,7 @@ function LongValueStorybookData({ children }: { children: React.ReactNode }) {
 function IssuePropertiesLongValuePane({ inline = false }: { inline?: boolean }) {
   return (
     <LongValueStorybookData>
-      <div className="paperclip-story p-6">
+      <div className="clayon-story p-6">
         <div
           className={
             inline
@@ -352,7 +352,7 @@ function IssuePropertiesRelationshipBadgesPane({ inline = false }: { inline?: bo
   const location = useLocation();
   return (
     <LongValueStorybookData>
-      <div className="paperclip-story flex flex-wrap items-start gap-6 p-6">
+      <div className="clayon-story flex flex-wrap items-start gap-6 p-6">
         <div className="w-80 max-w-full border border-border bg-card">
           <div className="border-b border-border px-4 py-2 text-sm font-medium">Properties</div>
           <div className="p-4">
@@ -386,7 +386,7 @@ function IssuePropertiesRelationshipBadgesPane({ inline = false }: { inline?: bo
 function IssuePropertiesModelOverridePane() {
   return (
     <StorybookData>
-      <div className="paperclip-story p-6">
+      <div className="clayon-story p-6">
         <div className="mx-auto w-80 border border-border bg-card">
           <div className="border-b border-border px-4 py-2 text-sm font-medium">Properties</div>
           <div className="p-4">
@@ -421,7 +421,7 @@ function IssuePropertiesMobileBlockerActionsPane() {
 
   return (
     <StorybookData>
-      <div ref={rootRef} className="paperclip-story min-h-screen p-4">
+      <div ref={rootRef} className="clayon-story min-h-screen p-4">
         <div className="mx-auto max-w-sm border border-border bg-background">
           <div className="border-b border-border px-4 py-2 text-sm font-medium">Properties</div>
           <div className="p-4">
@@ -736,12 +736,12 @@ function QuicklookSurfaces() {
 function IssueManagementStories() {
   return (
     <StorybookData>
-      <div className="paperclip-story">
-        <main className="paperclip-story__inner space-y-6">
-          <section className="paperclip-story__frame p-6">
+      <div className="clayon-story">
+        <main className="clayon-story__inner space-y-6">
+          <section className="clayon-story__frame p-6">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
-                <div className="paperclip-story__label">Issue management</div>
+                <div className="clayon-story__label">Issue management</div>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight">List, detail, filters, runs, and workspace states</h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
                   Fixture-backed issue management stories cover the operational states used by the board when reviewing,
@@ -855,7 +855,7 @@ function IssueManagementStories() {
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.label} className="paperclip-story__frame shadow-none">
+                <Card key={item.label} className="clayon-story__frame shadow-none">
                   <CardHeader>
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <CardTitle>{item.label}</CardTitle>
@@ -894,7 +894,7 @@ export const IssuePropertiesUnavailablePolicy: Story = {
   name: "IssueProperties - unavailable execution policy",
   render: () => (
     <StorybookData>
-      <div className="paperclip-story p-6">
+      <div className="clayon-story p-6">
         <IssueProperties
           issue={{ ...primaryIssue, executionPolicy: { stages: {} } as unknown as Issue["executionPolicy"] }}
           onUpdate={() => undefined}

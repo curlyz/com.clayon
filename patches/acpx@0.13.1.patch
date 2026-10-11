@@ -51,7 +51,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
  		const parsed = parseTokenUsage(value);
  		if (parsed == null) return null;
 -		usage[key] = parsed;
-+		const receipt = parsePaperclipPiReceipt(asRecord$4(value)?.paperclip_pi);
++		const receipt = parseClayonPiReceipt(asRecord$4(value)?.paperclip_pi);
 +		usage[key] = receipt ? { ...parsed, paperclip_pi: receipt } : parsed;
  	}
  	return usage;
@@ -139,7 +139,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
 + // Optional diagnostics cannot affect settlement or standard token/cost accounting.
 + try {
 +  if (response.stopReason !== "end_turn" && response.stopReason !== "cancelled") return;
-+  const next = boundCursorPromptUsage({request_id: requestId, prompt_message_id: promptMessageId, receipt: response._meta?.paperclipCursorUsage}, conversation.messages);
++  const next = boundCursorPromptUsage({request_id: requestId, prompt_message_id: promptMessageId, receipt: response._meta?.clayonCursorUsage}, conversation.messages);
 +  if (!next) return;
 +  const previous = parseCursorPromptUsage(conversation.cursor_prompt_usage);
 +  if (previous && (previous.request_id === next.request_id || previous.prompt_message_id === next.prompt_message_id || previous.receipt.promptId === next.receipt.promptId)) return;
@@ -777,7 +777,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
  	trimConversationForRuntime(conversation);
  	return acpx;
  }
-+function parsePaperclipPiReceipt(raw, costField = "cost_usd") {
++function parseClayonPiReceipt(raw, costField = "cost_usd") {
 +	const receipt = asRecord$4(raw);
 +	if (receipt?.provenance !== "assistant_message_receipts" && receipt?.provenance !== "assistant_message_and_compaction_receipts") return;
 +	const cost = receipt[costField];
@@ -788,7 +788,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
  	const tokenUsage = sourceToTokenUsage(usage);
 -	if (!tokenUsage) return false;
 -	applyTokenUsage(conversation, tokenUsage, promptMessageId);
-+	const receipt = parsePaperclipPiReceipt(asRecord$4(asRecord$4(usage)?._meta)?.paperclipPi, "costUsd");
++	const receipt = parseClayonPiReceipt(asRecord$4(asRecord$4(usage)?._meta)?.clayonPi, "costUsd");
 +	if (!tokenUsage && !receipt) return false;
 +	if (tokenUsage) applyTokenUsage(conversation, tokenUsage, promptMessageId);
 +	const userId = promptMessageId ?? lastUserMessageId(conversation);

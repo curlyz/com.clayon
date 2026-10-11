@@ -24,17 +24,23 @@ import type {
   CompanySkillUpdateRequest,
   CompanySkillUpdateStatus,
   CompanySkillVersion,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { companySkillsApi } from "../api/companySkills";
+import { skillSourcesApi } from "../api/skillSources";
 import { foldersApi } from "../api/folders";
 import { agentsApi } from "../api/agents";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs, type Breadcrumb } from "../context/BreadcrumbContext";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
+import { SKILLS_SECTION_TABS } from "../lib/section-tabs/skillsSectionTabs";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { useCopyAction } from "../lib/use-copy-action";
 import { EmptyState } from "../components/EmptyState";
+import { PageHeaderBand } from "../components/PageHeaderBand";
+import { SectionTabs } from "@/components/SectionTabs";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave, type AutosaveController } from "../hooks/useAutosave";
 import { MarkdownBody } from "../components/MarkdownBody";
 import { MarkdownEditor } from "../components/MarkdownEditor";
 import { PageSkeleton } from "../components/PageSkeleton";
@@ -168,7 +174,7 @@ import {
   XOctagon,
 } from "lucide-react";
 import { GithubIcon } from "../components/icons/github-icon";
-import type { FolderListItem, FolderListResult } from "@paperclipai/shared";
+import type { FolderListItem, FolderListResult } from "@clayon/shared";
 
 type SkillTreeNode = {
   name: string;
@@ -274,8 +280,8 @@ function sourceMeta(sourceBadge: CompanySkillSourceBadge, sourceLabel: string | 
       return { icon: Link2, label: sourceLabel ?? "URL", managedLabel: "URL managed" };
     case "local":
       return { icon: Folder, label: sourceLabel ?? "Folder", managedLabel: "Folder managed" };
-    case "paperclip":
-      return { icon: Paperclip, label: sourceLabel ?? "Paperclip", managedLabel: "Paperclip managed" };
+    case "clayon":
+      return { icon: Paperclip, label: sourceLabel ?? "Clayon", managedLabel: "Clayon managed" };
     default:
       return { icon: Boxes, label: sourceLabel ?? "Catalog", managedLabel: "Catalog managed" };
   }
@@ -352,7 +358,7 @@ function classifySource(skill: {
   catalogKind?: "bundled" | "optional" | null;
   metadata?: Record<string, unknown> | null;
 }): SourceFilter {
-  if (skill.sourceBadge === "paperclip") return "company";
+  if (skill.sourceBadge === "clayon") return "company";
   if (skill.sourceType === "local_path" && !skill.sourceBadge.toString().includes("github")) {
     return "company";
   }
@@ -506,7 +512,7 @@ function CompatChip({ compatibility }: { compatibility: CompanySkillCompatibilit
     unknown: {
       icon: HelpCircle,
       label: "Unknown format",
-      tooltip: "Paperclip could not validate this skill as Agent Skills markdown. Install at your own risk.",
+      tooltip: "Clayon could not validate this skill as Agent Skills markdown. Install at your own risk.",
       className: "border-yellow-500/40 bg-yellow-500/10 text-yellow-800 dark:text-yellow-200",
     },
     invalid: {
@@ -713,7 +719,7 @@ function buildDiscoveryCards(
       catalogRef: entry.id,
       name: entry.name,
       slug: entry.slug,
-      author: entry.packageName ?? "Paperclip",
+      author: entry.packageName ?? "Clayon",
       version: discoveryVersionLabel({ packageVersion: entry.packageVersion ?? null, sourceRef: null }, required),
       tagline: null,
       description: entry.description,
@@ -2859,8 +2865,7 @@ export function SkillDetailPage({
   setViewMode,
   setEditMode,
   setDraft,
-  onSave,
-  savePending,
+  autosave,
   versions,
   versionsLoading,
   attachAgents,
@@ -2901,8 +2906,7 @@ export function SkillDetailPage({
   setViewMode: (mode: "preview" | "code") => void;
   setEditMode: (value: boolean) => void;
   setDraft: (value: string) => void;
-  onSave: () => void;
-  savePending: boolean;
+  autosave: AutosaveController;
   versions: CompanySkillVersion[];
   versionsLoading: boolean;
   attachAgents: AttachAgentOption[];
@@ -2960,20 +2964,6 @@ export function SkillDetailPage({
     setRightVersionId(selection.rightVersionId);
     setDiffOpen(Boolean(selection.rightVersionId));
   }
-
-  // Track unsaved edits so we can float a save bar and warn before the page is
-  // unloaded with a dirty draft (PAP-10907 J).
-  const savedFileContent = file?.content ?? "";
-  const isDirty = editMode && Boolean(file?.editable) && draft !== savedFileContent;
-  useEffect(() => {
-    if (!isDirty) return;
-    const handler = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
 
   if (!detail) {
     return loading ? <PageSkeleton variant="detail" /> : <EmptyState icon={Boxes} message="Skill not found." />;
@@ -3061,10 +3051,20 @@ export function SkillDetailPage({
               {skill.editable && file?.editable ? (
                 editMode ? (
                   <>
-                    <Button variant="ghost" size="sm" onClick={() => setEditMode(false)} disabled={savePending}>Cancel</Button>
-                    <Button size="sm" onClick={onSave} disabled={savePending}>
-                      <Save className="mr-1.5 h-3.5 w-3.5" />
-                      {savePending ? "Saving..." : "Save"}
+                    <SaveStatus
+                      status={autosave.status}
+                      errorMessage={autosave.errorMessage}
+                      onRetry={autosave.retry}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        autosave.flush();
+                        setEditMode(false);
+                      }}
+                    >
+                      Done
                     </Button>
                   </>
                 ) : (
@@ -3578,28 +3578,6 @@ export function SkillDetailPage({
         </aside>
       </div>
 
-      {/* Floating save bar: stays visible while a file edit is dirty so the
-          unsaved state is obvious (PAP-10907 J). */}
-      {isDirty ? (
-        <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-background/95 px-4 py-2 shadow-lg backdrop-blur">
-          <span className="text-sm text-muted-foreground">Unsaved changes</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setDraft(savedFileContent);
-              setEditMode(false);
-            }}
-            disabled={savePending}
-          >
-            Discard
-          </Button>
-          <Button size="sm" onClick={onSave} disabled={savePending}>
-            <Save className="mr-1.5 h-3.5 w-3.5" />
-            {savePending ? "Saving…" : "Save changes"}
-          </Button>
-        </div>
-      ) : null}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -4418,7 +4396,7 @@ export function CompanySkills() {
       pushToast({
         tone: "success",
         title: skill.forkedFromSkillId ? "Skill fork created" : "Skill created",
-        body: `${skill.name} is now editable in the Paperclip workspace.`,
+        body: `${skill.name} is now editable in the Clayon workspace.`,
       });
     },
     onError: (error) => {
@@ -4428,33 +4406,31 @@ export function CompanySkills() {
     },
   });
 
-  const saveFile = useMutation({
-    mutationFn: () => companySkillsApi.updateFile(
-      selectedCompanyId!,
-      selectedSkillId!,
-      selectedPath,
-      activeFile?.markdown ? mergeFrontmatter(activeFile.content, draft) : draft,
-    ),
-    onSuccess: async (result) => {
+  // Autosave (operator directive): file edits save themselves — debounced
+  // through the same updateFile endpoint; failures keep the draft and surface
+  // inline via SaveStatus (no Save/Discard button bars, no toasts).
+  const savedDraftBody = activeFile
+    ? activeFile.markdown
+      ? splitFrontmatter(activeFile.content).body
+      : activeFile.content
+    : "";
+  const fileAutosave = useAutosave({
+    value: editMode ? draft : savedDraftBody,
+    savedValue: savedDraftBody,
+    save: async (next) => {
+      const result = await companySkillsApi.updateFile(
+        selectedCompanyId!,
+        selectedSkillId!,
+        selectedPath,
+        activeFile?.markdown ? mergeFrontmatter(activeFile.content, next) : next,
+      );
+      setDraft(result.markdown ? splitFrontmatter(result.content).body : result.content);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.companySkills.list(selectedCompanyId!) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.companySkills.detail(selectedCompanyId!, selectedSkillId!) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.companySkills.file(selectedCompanyId!, selectedSkillId!, selectedPath) }),
       ]);
-      setDraft(result.markdown ? splitFrontmatter(result.content).body : result.content);
-      setEditMode(false);
-      pushToast({
-        tone: "success",
-        title: "Skill saved",
-        body: result.path,
-      });
-    },
-    onError: (error) => {
-      pushToast({
-        tone: "error",
-        title: "Save failed",
-        body: error instanceof Error ? error.message : "Failed to save skill file.",
-      });
+      return result;
     },
   });
 
@@ -4648,6 +4624,29 @@ export function CompanySkills() {
     }
     return counts;
   }, [installedSkills]);
+
+  // Skills long page (ADDENDUM 3): bare /skills is one immersive scroll of
+  // section bands; `?tab=` pins a single view (the bands' See-more targets).
+  const skillsLongPage = isDiscovery && !tabParam && !viewParam;
+  const installedPreviewCards = useMemo(
+    () => discoveryCards.filter((card) => card.installed).slice(0, 4),
+    [discoveryCards],
+  );
+  const discoverPreviewCards = useMemo(
+    () => discoveryCards.filter((card) => !card.installed).slice(0, 4),
+    [discoveryCards],
+  );
+  const authoredPreviewCards = useMemo(
+    () => discoveryCards.filter((card) => card.installed && card.sourceBadge === "clayon").slice(0, 4),
+    [discoveryCards],
+  );
+  // Sources preview reuses the SkillSources page's own query (same key, same
+  // endpoint — no new API surface).
+  const { data: skillSources } = useQuery({
+    queryKey: queryKeys.skillSources.all(selectedCompanyId!),
+    queryFn: () => skillSourcesApi.list(selectedCompanyId!),
+    enabled: Boolean(selectedCompanyId) && skillsLongPage,
+  });
   const installCatalog = useMutation({
     mutationFn: (payload: { catalogSkillId: string; slug: string | null; force: boolean; agentIds: string[] }) =>
       companySkillsApi.installCatalog(selectedCompanyId!, {
@@ -5150,7 +5149,7 @@ export function CompanySkills() {
   const studioTitle = studioForkFromId ? "Fork skill" : "Create a new skill";
   const studioDescription = studioForkFromId
     ? "Review the fork metadata and create an editable company copy."
-    : "Create an editable company skill in the Paperclip workspace.";
+    : "Create an editable company skill in the Clayon workspace.";
   return (
     <>
       {policyDenial.denial ? (
@@ -5412,6 +5411,65 @@ export function CompanySkills() {
           </div>
         </div>
       ) : isDiscovery ? (
+        skillsLongPage ? (
+          // One immersive scroll (ADDENDUM 3): sticky section strip, four
+          // preview bands, one See more per band into the existing view URLs.
+          <div className="flex flex-col">
+            <PageHeaderBand title="Skills" />
+            <SectionTabs
+              sections={SKILLS_SECTION_TABS.map(({ id, label, group }) => ({ id, label, group }))}
+              ariaLabel="Skills sections"
+            />
+            <div className="flex flex-col gap-6 pb-8">
+              <SkillsPreviewBand id="installed" title="Installed" count={discoveryTabCounts.installed} to="/skills?tab=installed">
+                {installedPreviewCards.length > 0 ? (
+                  <div className="grid gap-3 px-4 pb-4 md:grid-cols-2 xl:grid-cols-4">
+                    {installedPreviewCards.map((card) => (
+                      <SkillCard key={card.key} card={card} onOpen={openDiscoveryCard} />
+                    ))}
+                  </div>
+                ) : (
+                  <SkillsPreviewEmptyRow message="No installed skills yet. Browse Discover to add the first one." />
+                )}
+              </SkillsPreviewBand>
+              <SkillsPreviewBand id="discover" title="Discover" count={discoveryTabCounts.catalog} to="/skills?tab=discover">
+                {discoverPreviewCards.length > 0 ? (
+                  <div className="grid gap-3 px-4 pb-4 md:grid-cols-2 xl:grid-cols-4">
+                    {discoverPreviewCards.map((card) => (
+                      <SkillCard key={card.key} card={card} onOpen={openDiscoveryCard} />
+                    ))}
+                  </div>
+                ) : (
+                  <SkillsPreviewEmptyRow message="Nothing to discover right now." />
+                )}
+              </SkillsPreviewBand>
+              <SkillsPreviewBand id="sources" title="Sources" count={skillSources?.length ?? 0} to="/skills/sources">
+                {(skillSources ?? []).slice(0, 3).map((source) => (
+                  <div key={source.id} className="flex items-center justify-between gap-3 border-t border-border px-4 py-2.5">
+                    <span className="min-w-0 truncate text-sm text-foreground">{source.fullName}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {source.enabled ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+                ))}
+                {(skillSources ?? []).length === 0 ? (
+                  <SkillsPreviewEmptyRow message="No skill sources connected yet." />
+                ) : null}
+              </SkillsPreviewBand>
+              <SkillsPreviewBand id="authored" title="My Skills" count={sourceCounts.company} to="/skills/studio">
+                {authoredPreviewCards.length > 0 ? (
+                  <div className="grid gap-3 px-4 pb-4 md:grid-cols-2 xl:grid-cols-4">
+                    {authoredPreviewCards.map((card) => (
+                      <SkillCard key={card.key} card={card} onOpen={openDiscoveryCard} />
+                    ))}
+                  </div>
+                ) : (
+                  <SkillsPreviewEmptyRow message="No authored skills yet. Create one in the studio." />
+                )}
+              </SkillsPreviewBand>
+            </div>
+          </div>
+        ) : (
         <DiscoveryGrid
           tab={discoveryTab}
           tabCounts={discoveryTabCounts}
@@ -5497,8 +5555,9 @@ export function CompanySkills() {
           onMoveSelected={showInstalledFolders ? (folderId) => void moveSelectedSkills(folderId) : undefined}
           onCreateFolderAndMoveSelected={showInstalledFolders ? () => openCreateFolder(selectedSkillIds) : undefined}
           onClearSelected={showInstalledFolders ? () => setSelectedSkillIds([]) : undefined}
-          folderNudgeStorageKey={showInstalledFolders ? `paperclip:skills-folder-nudge:${selectedCompanyId ?? "none"}` : undefined}
+          folderNudgeStorageKey={showInstalledFolders ? `clayon:skills-folder-nudge:${selectedCompanyId ?? "none"}` : undefined}
         />
+        )
       ) : activeView === "installed" && selectedSkillId ? (
         <SkillDetailPage
           detail={activeDetail}
@@ -5517,8 +5576,7 @@ export function CompanySkills() {
           setViewMode={setViewMode}
           setEditMode={setEditMode}
           setDraft={setDraft}
-          onSave={() => saveFile.mutate()}
-          savePending={saveFile.isPending}
+          autosave={fileAutosave}
           versions={versionsQuery.data ?? []}
           versionsLoading={versionsQuery.isLoading}
           attachAgents={eligibleAgentsForAttach}
@@ -5626,5 +5684,49 @@ export function CompanySkills() {
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * Section band on the skills long page (leaf-node): title + plain-text count
+ * + exactly one trailing "See more" link to the section's dedicated view URL;
+ * the preview rows/cards below carry their own padding and hairlines — no
+ * fill, no wrapper card.
+ */
+function SkillsPreviewBand({
+  id,
+  title,
+  count,
+  to,
+  children,
+}: {
+  id: string;
+  title: string;
+  count?: number;
+  to: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} aria-labelledby={`${id}-band-title`} className="border-t border-border">
+      <div className="flex items-center justify-between gap-3 px-4 pt-4">
+        <h2 id={`${id}-band-title`} className="text-lg font-semibold text-foreground">
+          {title}
+          {count !== undefined ? (
+            <span className="ml-1.5 text-sm font-normal text-muted-foreground">{count}</span>
+          ) : null}
+        </h2>
+        <Link to={to} className="shrink-0 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground">
+          See more
+        </Link>
+      </div>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+/** Empty-state leaf row for a preview band. */
+function SkillsPreviewEmptyRow({ message }: { message: string }) {
+  return (
+    <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">{message}</p>
   );
 }

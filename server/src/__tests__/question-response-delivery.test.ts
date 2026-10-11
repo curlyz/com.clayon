@@ -21,7 +21,7 @@ import {
   issueQuestionResponseDeliveries,
   issueThreadInteractions,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -65,7 +65,7 @@ describeEmbeddedPostgres("question response delivery", () => {
 
   beforeAll(async () => {
     tempDb = await startEmbeddedPostgresTestDatabase(
-      "paperclip-question-delivery-",
+      "clayon-question-delivery-",
     );
     db = createDb(tempDb.connectionString);
   }, 20_000);

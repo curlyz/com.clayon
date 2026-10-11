@@ -4,7 +4,7 @@ import { link, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CommandManagedRuntimeRunner } from "@paperclipai/adapter-utils/command-managed-runtime";
+import type { CommandManagedRuntimeRunner } from "@clayon/adapter-utils/command-managed-runtime";
 import { MAX_REMOTE_DELIVERABLE_BYTES, readVerifiedRemoteWorkspaceFile } from "./remote-deliverable-file.js";
 
 const digest = (body: Buffer) => createHash("sha256").update(body).digest("hex");
@@ -48,7 +48,7 @@ describe.skipIf(!hasLinuxNode)("remote deliverable real Linux descriptor reads",
   let runner: Pick<CommandManagedRuntimeRunner, "execute">;
 
   beforeEach(async () => {
-    root = await realpath(await mkdtemp(join(tmpdir(), "paperclip-remote-file-")));
+    root = await realpath(await mkdtemp(join(tmpdir(), "clayon-remote-file-")));
     workspaceRoot = join(root, "workspace");
     await mkdir(workspaceRoot);
     await writeFile(join(workspaceRoot, "checklist.md"), body);

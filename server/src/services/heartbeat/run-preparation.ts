@@ -1,6 +1,6 @@
 import { spekoToolsForSession } from "../voice/speko-agent-tools.js";
 import { githubConfiguredInstructionSources } from "../chat-github-review-policy.js";
-import { CONFIGURED_ENVIRONMENT_KEYS } from "../../vendor/paperclip-runner/index.js";
+import { CONFIGURED_ENVIRONMENT_KEYS } from "../../vendor/clayon-runner/index.js";
 import { ASSIGNED_MCP_SERVER_NAME } from "../mcp-tool-names.js";
 import { externalConversationStateSql } from "../slack-conversation-state.js";
 import { githubBotConnectionIdsForRun } from "../chat-github-tools.js";
@@ -19,7 +19,7 @@ import {
   isNull,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   CHAT_PROVIDERS,
   CONNECTION_INTENT_AGENT_GUIDANCE,
@@ -29,7 +29,7 @@ import {
   type ChatProvider,
   type RoutineRevisionSnapshotV1,
   type SourceTrustMetadata,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   agents,
   assets,
@@ -60,7 +60,7 @@ import {
   toolConnections,
   toolProfileEntries,
   toolProfiles,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { HttpError } from "../../errors.js";
 import { filterResolvedGitHubConnectionsForRun } from "../git-credentials.js";
 import type {
@@ -105,26 +105,26 @@ import {
 import { redactSensitiveText } from "../../redaction.js";
 import { createRunSecretRedactionRegistry } from "../run-secret-redaction.js";
 import {
-  readPaperclipSkillSyncPreference,
-  writePaperclipSkillSyncPreference,
-} from "@paperclipai/adapter-utils/server-utils";
+  readClayonSkillSyncPreference,
+  writeClayonSkillSyncPreference,
+} from "@clayon/adapter-utils/server-utils";
 import {
   extractSkillMentionIds,
   isUuidLike,
-} from "@paperclipai/shared";
-import { evaluateCodexCredentialReadiness } from "@paperclipai/adapter-codex-local/server";
+} from "@clayon/shared";
+import { evaluateCodexCredentialReadiness } from "@clayon/adapter-codex-local/server";
 import type { TrustPresetResolution } from "../trust-preset-resolver.js";
 
 const EXTERNAL_ATTACHMENT_OMISSIONS_KEY = "externalAttachmentOmissions";
 
-export const PAPERCLIP_WAKE_PAYLOAD_KEY = "paperclipWake";
+export const CLAYON_WAKE_PAYLOAD_KEY = "clayonWake";
 
-const PAPERCLIP_AGENT_MESSAGE_KEY = "paperclipAgentMessage";
+const CLAYON_AGENT_MESSAGE_KEY = "clayonAgentMessage";
 
-export const PAPERCLIP_HARNESS_CHECKOUT_KEY = "paperclipHarnessCheckedOut";
+export const CLAYON_HARNESS_CHECKOUT_KEY = "clayonHarnessCheckedOut";
 
-export const PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY =
-  "paperclipExternalChatExecutionBound";
+export const CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY =
+  "clayonExternalChatExecutionBound";
 
 const MAX_INLINE_WAKE_COMMENTS = 8;
 
@@ -211,27 +211,27 @@ function isConfiguredEnvBindingValue(binding: unknown) {
 const LOW_TRUST_SENSITIVE_ENV_KEY_RE =
   /(api[-_]?key|access[-_]?token|auth(?:_?token)?|authorization|bearer|secret|passwd|password|credential|jwt|private[-_]?key|cookie|connectionstring)/i;
 
-// PAPERCLIP_* env binding policy:
-// 1. PAPERCLIP_API_KEY is never accepted from user/adapter/project/routine
+// CLAYON_* env binding policy:
+// 1. CLAYON_API_KEY is never accepted from user/adapter/project/routine
 //    config — the harness-minted run token is the only source.
-// 2. A PAPERCLIP_* runtime var the harness assigns for the run (RUN_ID,
+// 2. A CLAYON_* runtime var the harness assigns for the run (RUN_ID,
 //    AGENT_ID, wake/workspace vars, ...) always wins over a same-named
 //    binding; adapters enforce this at env-merge time.
-// 3. Any other PAPERCLIP_*-named binding is user data and flows through to
+// 3. Any other CLAYON_*-named binding is user data and flows through to
 //    the run env like any non-prefixed binding.
 const FORBIDDEN_ENV_BINDING_KEYS = new Set([
   CONFIGURED_ENVIRONMENT_KEYS,
-  "PAPERCLIP_AGENT_KEY_ID", "PAPERCLIP_AGENT_PUBLIC_KEY", "PAPERCLIP_AGENT_PRIVATE_KEY",
-  "PAPERCLIP_RUNNER_NETWORK_ACCESS",
-  "PAPERCLIP_RUNNER_NETWORK_ROOTS",
-  "PAPERCLIP_API_KEY",
-  "PAPERCLIP_GITHUB_AUTH_MODE",
-  "PAPERCLIP_GITHUB_HOST_HOME",
-  "PAPERCLIP_GIT_METADATA_ROOTS",
-  "PAPERCLIP_GITHUB_BROKER_TOKEN",
-  "PAPERCLIP_GITHUB_BROKER_URL",
-  "PAPERCLIP_GITHUB_BRIDGE_TOKEN",
-  "PAPERCLIP_GITHUB_LAUNCHER_DIR",
+  "CLAYON_AGENT_KEY_ID", "CLAYON_AGENT_PUBLIC_KEY", "CLAYON_AGENT_PRIVATE_KEY",
+  "CLAYON_RUNNER_NETWORK_ACCESS",
+  "CLAYON_RUNNER_NETWORK_ROOTS",
+  "CLAYON_API_KEY",
+  "CLAYON_GITHUB_AUTH_MODE",
+  "CLAYON_GITHUB_HOST_HOME",
+  "CLAYON_GIT_METADATA_ROOTS",
+  "CLAYON_GITHUB_BROKER_TOKEN",
+  "CLAYON_GITHUB_BROKER_URL",
+  "CLAYON_GITHUB_BRIDGE_TOKEN",
+  "CLAYON_GITHUB_LAUNCHER_DIR",
 ]);
 
 export const MANAGED_GITHUB_TOKEN_KEYS = new Set([
@@ -239,7 +239,7 @@ export const MANAGED_GITHUB_TOKEN_KEYS = new Set([
   "GITHUB_TOKEN",
   "GH_ENTERPRISE_TOKEN",
   "GITHUB_ENTERPRISE_TOKEN",
-  "PAPERCLIP_GIT_TOKEN",
+  "CLAYON_GIT_TOKEN",
 ]);
 
 function stripForbiddenEnvBindings(
@@ -715,8 +715,8 @@ export function applyRunScopedMentionedSkillKeys(
   );
   if (normalizedSkillKeys.length === 0) return config;
 
-  const existingPreference = readPaperclipSkillSyncPreference(config);
-  return writePaperclipSkillSyncPreference(config, [
+  const existingPreference = readClayonSkillSyncPreference(config);
+  return writeClayonSkillSyncPreference(config, [
     ...existingPreference.desiredSkillEntries,
     ...normalizedSkillKeys,
   ]);
@@ -869,18 +869,18 @@ type ManagedMcpGatewayRunConfig = {
   }>;
 };
 
-export function configuredPaperclipApiBaseUrl(): string | null {
-  const configured = readNonEmptyString(process.env.PAPERCLIP_API_URL);
+export function configuredClayonApiBaseUrl(): string | null {
+  const configured = readNonEmptyString(process.env.CLAYON_API_URL);
   return configured
     ? configured.replace(/\/+$/, "").replace(/\/api$/, "")
     : null;
 }
 
-export function paperclipApiBaseUrl(): string {
-  const configured = configuredPaperclipApiBaseUrl();
+export function clayonApiBaseUrl(): string {
+  const configured = configuredClayonApiBaseUrl();
   if (!configured) {
     throw new Error(
-      "PAPERCLIP_API_URL is required to deliver managed runtime MCP servers",
+      "CLAYON_API_URL is required to deliver managed runtime MCP servers",
     );
   }
   return configured;
@@ -905,7 +905,7 @@ export async function revokeHeartbeatRunGatewayTokens(input: {
     );
 }
 
-export async function buildPaperclipRuntimeMcpServers(input: {
+export async function buildClayonRuntimeMcpServers(input: {
   db: Db;
   agent: Pick<typeof agents.$inferSelect, "id" | "companyId" | "name">;
   runId: string;
@@ -1081,7 +1081,7 @@ export async function buildPaperclipRuntimeMcpServers(input: {
       const created = await access.createProfile(input.agent.companyId, {
         profileKey,
         name: `Native ${input.agent.id.slice(0, 8)} ${assignmentDigest.slice(0, 12)}`,
-        description: "Immutable Paperclip Runner MCP assignment profile.",
+        description: "Immutable Clayon Runner MCP assignment profile.",
         status: "active",
         defaultAction: "deny",
         metadata: {
@@ -1163,7 +1163,7 @@ export async function buildPaperclipRuntimeMcpServers(input: {
         body: {
           name: `Native ${input.agent.name} ${assignmentDigest.slice(0, 8)}`,
           slug,
-          description: "Run-scoped Paperclip Runner MCP gateway.",
+          description: "Run-scoped Clayon Runner MCP gateway.",
           profileId: profile!.id,
           defaultProfileMode: "gateway_only",
           agentId: input.agent.id,
@@ -1220,7 +1220,7 @@ export async function buildPaperclipRuntimeMcpServers(input: {
   return [
     {
       name: ASSIGNED_MCP_SERVER_NAME,
-      url: `${paperclipApiBaseUrl()}/mcp/gateways/${gateway!.gatewayPublicId}`,
+      url: `${clayonApiBaseUrl()}/mcp/gateways/${gateway!.gatewayPublicId}`,
       token: token.token,
       connectionId: `assignment:${assignmentDigest}`,
     },
@@ -1251,11 +1251,11 @@ export function createAdapterRuntimeToolAccess(input: {
     responsibleUserId: input.responsibleUserId,
   });
   if (!minted) return undefined;
-  // The normal server bootstrap always exports PAPERCLIP_API_URL. Some service
+  // The normal server bootstrap always exports CLAYON_API_URL. Some service
   // tests invoke heartbeat execution without booting an HTTP server, however;
   // in that context there is no reachable endpoint to advertise and runtime
   // tools should simply remain unavailable instead of failing the run.
-  const baseUrl = configuredPaperclipApiBaseUrl();
+  const baseUrl = configuredClayonApiBaseUrl();
   if (!baseUrl) return undefined;
   return Object.freeze({
     version: 1,
@@ -1532,7 +1532,7 @@ export async function createManagedMcpRunConfig(input: {
         subjectType: "heartbeat_run",
         subjectId: input.runId,
         clientLabel: `${input.agent.name} managed local adapter`,
-        ownerNote: `Short-lived Paperclip-managed MCP token for heartbeat run ${input.runId}.`,
+        ownerNote: `Short-lived Clayon-managed MCP token for heartbeat run ${input.runId}.`,
         allowedActions: ["tools/list", "tools/call"],
         expiresAt,
       },
@@ -1664,7 +1664,7 @@ function externalAttachmentOmissionNotice(
   const reasons = entries
     .map(([reason, count]) => `${reason.replaceAll("_", " ")}: ${count}`)
     .join(", ");
-  return `Paperclip could not import every attachment from this exact external message: ${omitted} attachment${omitted === 1 ? " was" : "s were"} omitted (${reasons}). Treat omitted attachments as unavailable; do not infer their contents or substitute an older workspace file.`;
+  return `Clayon could not import every attachment from this exact external message: ${omitted} attachment${omitted === 1 ? " was" : "s were"} omitted (${reasons}). Treat omitted attachments as unavailable; do not infer their contents or substitute an older workspace file.`;
 }
 
 export function enrichWakeContextSnapshot(input: {
@@ -1711,7 +1711,7 @@ export function enrichWakeContextSnapshot(input: {
     contextSnapshot.wakeCommentId = latestCommentId;
     // Once comment ids are normalized into the snapshot, rebuild the structured
     // wake payload from those ids later instead of carrying forward stale data.
-    delete contextSnapshot[PAPERCLIP_WAKE_PAYLOAD_KEY];
+    delete contextSnapshot[CLAYON_WAKE_PAYLOAD_KEY];
   } else if (
     !readNonEmptyString(contextSnapshot["wakeCommentId"]) &&
     wakeCommentId
@@ -1859,7 +1859,7 @@ export function mergeCoalescedContextSnapshot(
   };
   // Only executeRun can mint this proof. Coalescence may retain an unchanged
   // admitted proof, but must never accept a new marker from an incoming wake.
-  delete merged[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY];
+  delete merged[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY];
   delete merged[EXTERNAL_CHAT_QUESTION_RESPONSE_KEY];
   const mergedAttachmentOmissions = mergeExternalAttachmentOmissions(
     existing,
@@ -1894,9 +1894,9 @@ export function mergeCoalescedContextSnapshot(
     merged.wakeCommentId = latestCommentId;
     // The merged context should carry canonical comment ids; the next wake will
     // regenerate any structured payload from those ids.
-    delete merged[PAPERCLIP_WAKE_PAYLOAD_KEY];
+    delete merged[CLAYON_WAKE_PAYLOAD_KEY];
   }
-  const existingWake = parseObject(existing[PAPERCLIP_WAKE_PAYLOAD_KEY]);
+  const existingWake = parseObject(existing[CLAYON_WAKE_PAYLOAD_KEY]);
   const existingCommentIds = extractWakeCommentIds(existing);
   const payloadCommentIds = Array.isArray(existingWake.commentIds)
     ? existingWake.commentIds
@@ -1915,15 +1915,15 @@ export function mergeCoalescedContextSnapshot(
     mergedCommentIds.every((id, index) => id === existingCommentIds[index]) &&
     payloadCommentIds.length === existingCommentIds.length &&
     payloadCommentIds.every((id, index) => id === existingCommentIds[index]) &&
-    ((existing[PAPERCLIP_HARNESS_CHECKOUT_KEY] === true &&
+    ((existing[CLAYON_HARNESS_CHECKOUT_KEY] === true &&
       existingWake.checkedOutByHarness === true) ||
-      (existing[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] === true &&
+      (existing[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] === true &&
         existingWake.externalChatExecutionBound === true));
   if (preservesAdmittedWake) {
-    merged[PAPERCLIP_WAKE_PAYLOAD_KEY] = existingWake;
+    merged[CLAYON_WAKE_PAYLOAD_KEY] = existingWake;
     merged.wakeReason = existing.wakeReason;
-    if (existing[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] === true) {
-      merged[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] = true;
+    if (existing[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] === true) {
+      merged[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] = true;
     }
   }
   if (
@@ -1974,8 +1974,8 @@ export async function resolveExternalChatWakeProvider(input: {
     !input.agentId ||
     !input.issueId ||
     commentIds.length === 0 ||
-    (input.contextSnapshot[PAPERCLIP_HARNESS_CHECKOUT_KEY] !== true &&
-      input.contextSnapshot[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] !==
+    (input.contextSnapshot[CLAYON_HARNESS_CHECKOUT_KEY] !== true &&
+      input.contextSnapshot[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] !==
         true)
   ) {
     return null;
@@ -2124,8 +2124,8 @@ export async function attestReviewedExternalChatRun(input: {
             input,
             {
               ...(answer?.authorizationContext ?? admittedContext),
-              [PAPERCLIP_HARNESS_CHECKOUT_KEY]: false,
-              [PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY]: true,
+              [CLAYON_HARNESS_CHECKOUT_KEY]: false,
+              [CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY]: true,
             },
             "nonblocking",
           );
@@ -2214,7 +2214,7 @@ export async function attestReviewedExternalChatRun(input: {
   throw new Error("reviewed_chat_execution_binding_not_ready");
 }
 
-export async function buildPaperclipWakePayload(input: {
+export async function buildClayonWakePayload(input: {
   db: Db;
   companyId: string;
   agentId?: string | null;
@@ -2252,7 +2252,7 @@ export async function buildPaperclipWakePayload(input: {
   const conversationMode = input.contextSnapshot.conversationMode === true;
   const continuationSummary = conversationMode ? null : input.continuationSummary ?? null;
   const agentMessage = parseObject(
-    input.contextSnapshot[PAPERCLIP_AGENT_MESSAGE_KEY],
+    input.contextSnapshot[CLAYON_AGENT_MESSAGE_KEY],
   );
   const agentMessageText = sanitizeAgentSessionMessageText(agentMessage.text);
   const issueSummary =
@@ -2749,9 +2749,9 @@ export async function buildPaperclipWakePayload(input: {
     checkboxSelection:
       Object.keys(checkboxSelection).length > 0 ? checkboxSelection : null,
     checkedOutByHarness:
-      input.contextSnapshot[PAPERCLIP_HARNESS_CHECKOUT_KEY] === true,
+      input.contextSnapshot[CLAYON_HARNESS_CHECKOUT_KEY] === true,
     externalChatExecutionBound:
-      input.contextSnapshot[PAPERCLIP_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] ===
+      input.contextSnapshot[CLAYON_EXTERNAL_CHAT_EXECUTION_BOUND_KEY] ===
       true,
     simplifiedEnglishInteractions: input.simplifiedEnglishInteractions === true,
     dependencyBlockedInteraction:
@@ -2774,7 +2774,7 @@ export async function buildPaperclipWakePayload(input: {
     executionStage:
       Object.keys(executionStage).length > 0 ? executionStage : null,
     taskWatchdog: (input.contextSnapshot.taskWatchdog ?? null) as unknown,
-    skillTest: (input.contextSnapshot.paperclipSkillTest ?? null) as unknown,
+    skillTest: (input.contextSnapshot.clayonSkillTest ?? null) as unknown,
     continuationSummary: safeContinuationSummary
       ? {
           key: safeContinuationSummary.key,

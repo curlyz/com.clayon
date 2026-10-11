@@ -3,11 +3,11 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { forbidden, HttpError } from "../../errors.js";
 import { authorizationService } from "../authorization.js";
 import { captureRunIdentity } from "../run-identity.js";
-import { chatVoiceCallbacks, instanceUserRoles, companyMemberships } from "@paperclipai/db";
+import { chatVoiceCallbacks, instanceUserRoles, companyMemberships } from "@clayon/db";
 import type { VoiceCaller } from "./voice-session-store.js";
 import { z } from "zod";
 import { instanceSettingsService } from "../instance-settings.js";
-const SPEKO_TOOLS = [{ name: "call_my_phone", description: "Call the responsible person's saved phone number to discuss this task with the assigned Paperclip agent. Requires that person's callback opt-in. Never chooses another recipient, cancels work or grants approvals. Do not redial an uncertain attempt.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, risk: "write", scopes: [] }] as const;
+const SPEKO_TOOLS = [{ name: "call_my_phone", description: "Call the responsible person's saved phone number to discuss this task with the assigned Clayon agent. Requires that person's callback opt-in. Never chooses another recipient, cancels work or grants approvals. Do not redial an uncertain attempt.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, risk: "write", scopes: [] }] as const;
 type SpekoTaskSession = Pick<ToolGatewaySession, "companyId" | "agentId" | "runId" | "issueId" | "identityContextId">;
 interface Binding { companyId: string; endpointId: string; issueId: string; caller: VoiceCaller }
 const runtimes = new WeakMap<Db, (binding: Binding, invocationId: string) => Promise<unknown>>();
@@ -47,7 +47,7 @@ import {
   toolProfileEntries,
   toolProfileBindings,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import type {
   ToolGatewayDescriptor,
   ToolGatewaySession,

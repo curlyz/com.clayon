@@ -5,7 +5,7 @@ import {
   type BrowserUseViewportPreset,
   type BrowserUseViewportRequest,
   type BrowserUseViewportState,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   BrowserUseError,
   type BrowserUseRequest,

@@ -1,9 +1,8 @@
 import { useState, type CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
-import type { IssueThreadInteraction, IssueWorkMode } from "@paperclipai/shared";
+import type { IssueThreadInteraction, IssueWorkMode } from "@clayon/shared";
 import { ChevronLeft, Ellipsis } from "lucide-react";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { TaskChatComposer } from "@/components/task-chat/TaskChatComposer";
 import { TaskChatComposerDock } from "@/components/task-chat/TaskChatComposerDock";
 import { TaskChatInteractionCard } from "@/components/task-chat/TaskChatInteractionCard";
@@ -20,7 +19,7 @@ import {
   issueThreadInteractionFixtureMeta,
 } from "@/fixtures/issueThreadInteractionFixtures";
 import { composerAgentAppearance, composerAgents } from "../prototypes/composer-model-picker/fixtures";
-import { storybookAgentMap } from "../fixtures/paperclipData";
+import { storybookAgentMap } from "../fixtures/clayonData";
 
 const agentMap = new Map(composerAgents.map((agent) => [agent.id, {
   id: agent.id,
@@ -117,7 +116,10 @@ function InteractionAboveComposer({ interaction, mobile = false }: { interaction
           <TaskChatComposerDock mobile streamlined={false}>{composer}</TaskChatComposerDock>
         </div>
       </main>
-      <MobileBottomNav visible />
+      {/* Stand-in for the bottom dock (the real Dock needs the app's
+          providers); reserves the same bottom chrome so the composer's
+          nav-offset clearance stays honest. */}
+      <div className="h-16 shrink-0 bg-muted" aria-hidden="true" />
     </div>
   );
 

@@ -3,17 +3,13 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import {
   Bot,
   CircleDot,
-  House,
-  Inbox,
   LayoutDashboard,
   SquarePen,
-  Users,
 } from "lucide-react";
 import { BreadcrumbBar } from "@/components/BreadcrumbBar";
 import { CommandPalette } from "@/components/CommandPalette";
 import { CompanySwitcher } from "@/components/CompanySwitcher";
 import { KeyboardShortcutsCheatsheetContent } from "@/components/KeyboardShortcutsCheatsheet";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { PageTabBar } from "@/components/PageTabBar";
 import { Sidebar } from "@/components/Sidebar";
 import { PluginLauncherProvider } from "@/plugins/launchers";
@@ -38,8 +34,7 @@ import {
   storybookAgents,
   storybookIssues,
   storybookProjects,
-  storybookSidebarBadges,
-} from "../fixtures/paperclipData";
+} from "../fixtures/clayonData";
 
 function Section({
   eyebrow,
@@ -51,9 +46,9 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="paperclip-story__frame overflow-hidden">
+    <section className="clayon-story__frame overflow-hidden">
       <div className="border-b border-border px-5 py-4">
-        <div className="paperclip-story__label">{eyebrow}</div>
+        <div className="clayon-story__label">{eyebrow}</div>
         <h2 className="mt-1 text-xl font-semibold">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
@@ -116,50 +111,6 @@ const tabItems = [
   { value: "history", label: "History" },
 ];
 
-const mobileNavItems = [
-  { label: "Home", icon: House },
-  { label: "Issues", icon: CircleDot },
-  { label: "Create", icon: SquarePen },
-  { label: "Agents", icon: Users },
-  { label: "Inbox", icon: Inbox, badge: storybookSidebarBadges.inbox },
-];
-
-function MobileBottomNavActiveStateMatrix() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-      {mobileNavItems.map((activeItem) => (
-        <div key={activeItem.label} className="overflow-hidden border border-border bg-background">
-          <div className="grid h-16 grid-cols-5 px-1">
-            {mobileNavItems.map((item) => {
-              const Icon = item.icon;
-              const active = item.label === activeItem.label;
-              return (
-                <div
-                  key={item.label}
-                  className={cn(
-                    "relative flex min-w-0 flex-col items-center justify-center gap-1 rounded-md text-[10px] font-medium",
-                    active ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  <span className="relative">
-                    <Icon className={cn("h-[18px] w-[18px]", active && "stroke-[2.3]")} />
-                    {item.badge ? (
-                      <span className="absolute -right-2 -top-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] leading-none text-primary-foreground">
-                        {item.badge}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="truncate">{item.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function CommandResultsSurface() {
   return (
     <Command className="rounded-none border border-border">
@@ -220,17 +171,17 @@ function CommandEmptySurface() {
 
 function NavigationLayoutStories() {
   return (
-    <div className="paperclip-story">
+    <div className="clayon-story">
       <RouteSetter to="/PAP/projects/board-ui/issues" />
-      <main className="paperclip-story__inner max-w-[1320px] space-y-6">
-        <section className="paperclip-story__frame p-6">
+      <main className="clayon-story__inner max-w-[1320px] space-y-6">
+        <section className="clayon-story__frame p-6">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
-              <div className="paperclip-story__label">Navigation and layout</div>
+              <div className="clayon-story__label">Navigation and layout</div>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight">Sidebar, command, tabs, and mobile chrome</h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
                 Fixture-backed navigation states for the board shell: company switching, dense work navigation,
-                breadcrumbs, command discovery, and mobile entry points.
+                breadcrumbs, command discovery, and the bottom dock's below-lg slot.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -301,15 +252,6 @@ function NavigationLayoutStories() {
           </div>
         </Section>
 
-        <Section eyebrow="Mobile bottom nav" title="Actual mobile bar and all active item states">
-          <div className="space-y-5">
-            <div className="relative h-24 max-w-sm overflow-hidden border border-border bg-background [&>nav]:!absolute [&>nav]:!bottom-0 [&>nav]:!left-0 [&>nav]:!right-0 [&>nav]:!z-0 [&>nav]:!block">
-              <MobileBottomNav visible />
-            </div>
-            <MobileBottomNavActiveStateMatrix />
-          </div>
-        </Section>
-
         <Section eyebrow="Command palette" title="Open command results and empty state">
           <CommandPalette />
           <div className="grid gap-5 xl:grid-cols-2">
@@ -349,7 +291,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Navigation and layout stories cover the board shell components that orient operators across companies, work surfaces, command search, breadcrumbs, tabs, and mobile navigation.",
+          "Navigation and layout stories cover the board shell components that orient operators across companies, work surfaces, command search, breadcrumbs, and tabs. The bottom dock replaced the old mobile bar (2026-10-11 redesign); it renders in the app shell, not here.",
       },
     },
   },
@@ -369,7 +311,7 @@ export const BoardChromeMatrix: Story = {};
 function SidebarIconAlignmentHarness() {
   return (
     <PluginLauncherProvider>
-      <div className="paperclip-story">
+      <div className="clayon-story">
         <RouteSetter to="/PAP/projects/board-ui/issues" />
         <div className="flex min-h-[760px] items-start justify-center bg-muted/30 p-8">
           <div

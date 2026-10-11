@@ -14,11 +14,11 @@ import type {
   ChatPublicationSummary,
   ChatActivityItem,
   ChatFileTransferResolutionPrecondition,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 export type {
   ChatPublicationSummary,
   ChatActivityItem,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 
 export type ChatProvider =
   "slack" | "github" | "discord" | "microsoft-teams" | "telegram" | "agentmail" | "imessage-photon" | "speko";
@@ -55,8 +55,8 @@ export interface ChatIdentityLink {
   lastConnectAt?: string | null;
   externalLabel: string;
   externalDetail?: string | null;
-  paperclipUserId?: string | null;
-  paperclipUserLabel?: string | null;
+  clayonUserId?: string | null;
+  clayonUserLabel?: string | null;
   status: "linked" | "pending" | "revoked";
 }
 
@@ -130,7 +130,7 @@ export interface ChatEndpoint {
   conversations?: ChatConversation[];
   activity?: ChatActivityItem[];
   setup?: {
-    github?: import("@paperclipai/shared").ChatEndpointSetupState["github"];
+    github?: import("@clayon/shared").ChatEndpointSetupState["github"];
     step: string;
     testStartedAt?: string | null;
     testSkipped?: boolean;

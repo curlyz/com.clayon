@@ -149,7 +149,7 @@ function registerModuleMocks() {
 
   // The adapter registry reads the disabled set from this store. Mock it so a
   // test can declare an adapter disabled without writing to the real
-  // ~/.paperclip/adapter-settings.json.
+  // ~/.clayon/adapter-settings.json.
   vi.doMock("../services/adapter-plugin-store.js", () => ({
     getDisabledAdapterTypes: mockAdapterPluginStore.getDisabledAdapterTypes,
     isAdapterDisabled: (type: string) =>
@@ -540,7 +540,7 @@ describe("agent routes adapter validation", () => {
 
   it("restores a saved agent's redacted CODEX_HOME before testing its adapter", async () => {
     const agentId = "11111111-1111-4111-8111-111111111111";
-    const storedHome = "/paperclip/companies/company-1/agents/agent-1/codex-home";
+    const storedHome = "/clayon/companies/company-1/agents/agent-1/codex-home";
     mockAgentService.getById.mockResolvedValue({
       ...(await mockAgentService.getById()),
       id: agentId,
@@ -601,7 +601,7 @@ describe("agent routes adapter validation", () => {
 
   it("refuses to create an agent on an adapter the instance has disabled", async () => {
     // A disabled adapter is one the instance cannot run (e.g. curated out of
-    // PAPERCLIP_ADAPTERS). Creating an agent on it "succeeds" and then every
+    // CLAYON_ADAPTERS). Creating an agent on it "succeeds" and then every
     // run of that agent dies at lease time with "not in the configured adapter
     // registry", so the refusal belongs here, where it can name the choices.
     const { registerServerAdapter } = await import("../adapters/index.js");
@@ -697,8 +697,8 @@ describe("agent routes adapter validation", () => {
           adapterType: "paperclip_runner",
           adapterConfig: {
             provider: "codex",
-            paperclipSkillSync: {
-              desiredSkills: ["paperclipai/paperclip/paperclip", "company-1/reviewer"],
+            clayonSkillSync: {
+              desiredSkills: ["paperclipai/paperclip/clayon", "company-1/reviewer"],
             },
           },
         }),
@@ -713,7 +713,7 @@ describe("agent routes adapter validation", () => {
           model: "gpt-5.6-sol",
           codexPermissionMode: "never",
           lifecycleMode: "per_turn",
-          paperclipSkillSync: { desiredSkills: ["company-1/reviewer"] },
+          clayonSkillSync: { desiredSkills: ["company-1/reviewer"] },
         }),
       }),
       expect.any(Object),
@@ -751,8 +751,8 @@ describe("agent routes adapter validation", () => {
     expect(saved.adapterConfig).toMatchObject(config);
     expect(saved.adapterConfig.model).toBeUndefined();
     expect(saved.adapterConfig.codexPermissionMode).toBeUndefined();
-    const { resolvePaperclipRunnerProviderProfile } = await import("../services/native-runtime/provider-profile.js");
-    expect(() => resolvePaperclipRunnerProviderProfile(saved.adapterConfig)).toThrow(expect.objectContaining({ code: "paperclip_runner_dot_config_invalid" }));
+    const { resolveClayonRunnerProviderProfile } = await import("../services/native-runtime/provider-profile.js");
+    expect(() => resolveClayonRunnerProviderProfile(saved.adapterConfig)).toThrow(expect.objectContaining({ code: "paperclip_runner_dot_config_invalid" }));
   });
 
   it.each(["create", "hire", "convert"])("rejects a new Dot selection when only the general Runner rollout is enabled for %s", async mode => {
@@ -787,8 +787,8 @@ describe("agent routes adapter validation", () => {
       adapterType: "codex_local",
       adapterConfig: {
         model: "gpt-5.5",
-        paperclipSkillSync: {
-          desiredSkills: ["paperclipai/paperclip/paperclip", "company-1/reviewer"],
+        clayonSkillSync: {
+          desiredSkills: ["paperclipai/paperclip/clayon", "company-1/reviewer"],
         },
       },
     });
@@ -810,7 +810,7 @@ describe("agent routes adapter validation", () => {
           model: "gpt-5.5",
           codexPermissionMode: "never",
           lifecycleMode: "per_turn",
-          paperclipSkillSync: { desiredSkills: ["company-1/reviewer"] },
+          clayonSkillSync: { desiredSkills: ["company-1/reviewer"] },
         }),
       }),
       expect.any(Object),
@@ -1093,7 +1093,7 @@ describe("agent routes adapter validation", () => {
       "paperclip_runner_codex_permission_mode_unqualified",
     ],
   ])(
-    "rejects a same-provider Paperclip Runner edit with %s",
+    "rejects a same-provider Clayon Runner edit with %s",
     async (_label, existingAdapterConfig, adapterConfigPatch, expectedCode) => {
       const existing = await mockAgentService.getById();
       mockAgentService.getById.mockResolvedValue({

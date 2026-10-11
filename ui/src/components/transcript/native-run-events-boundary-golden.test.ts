@@ -1,10 +1,10 @@
-import type { HeartbeatRunEvent } from "@paperclipai/shared";
+import type { HeartbeatRunEvent } from "@clayon/shared";
 import { describe, expect, it } from "vitest";
 
 import {
   localIntegrityBoundaryGolden as fixture,
   localIntegrityEventsFor,
-} from "../../../../packages/paperclip-runner/test-support/local-integrity-boundary-golden";
+} from "../../../../packages/clayon-runner/test-support/local-integrity-boundary-golden";
 import { nativeRunEventsToTranscript } from "./native-run-events";
 
 function persistedEventsFor(

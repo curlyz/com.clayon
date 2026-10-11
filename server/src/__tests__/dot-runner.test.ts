@@ -10,19 +10,19 @@ import express, { type Request } from "express";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { agents, authUsers, companies, companyMemberships, createDb, dotAgentBindings, dotMailboxItems, dotRunnerAssignments, dotRunnerOperations,
-  heartbeatRuns, agentWakeupRequests, issueComments, issues, nativeRunResults, nativeRunFinalizations, completionContracts, mcpEventDeliveries, mcpEventSubscriptions, workspaceOperations, workAssessments, statusDecisions, issueThreadInteractions } from "@paperclipai/db";
+  heartbeatRuns, agentWakeupRequests, issueComments, issues, nativeRunResults, nativeRunFinalizations, completionContracts, mcpEventDeliveries, mcpEventSubscriptions, workspaceOperations, workAssessments, statusDecisions, issueThreadInteractions } from "@clayon/db";
 import { startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { createPublicMcpOAuth, DEVICE_GRANT } from "../services/public-mcp/oauth.js";
 import { createPublicMcpExecutor } from "../services/public-mcp/capabilities.js";
 import { publicMcpIngressRoutes, publicMcpManagementRoutes } from "../routes/public-mcp.js";
 import { createPublicMcpEvents, type EventFetch } from "../services/public-mcp/events.js";
 import { instanceSettingsService } from "../services/instance-settings.js";
-import { canonicalNativeRuntimeContextDigest, type StrictCompletionContractInput } from "../vendor/paperclip-runner/index.js";
+import { canonicalNativeRuntimeContextDigest, type StrictCompletionContractInput } from "../vendor/clayon-runner/index.js";
 import { createDotRunnerMcpTools, dotRunnerBroker } from "../services/dot-runner-broker.js";
 import { prepareNativeHeartbeatRun } from "../services/native-runtime/prepare-native-run.js";
 import { buildNativeExecutionInput } from "../services/native-runtime/native-execution-input.js";
 import { nativeRuntimeContextFixture } from "../services/native-runtime/runtime-context.test-fixture.js";
-import { executePaperclipNativeSession } from "../services/native-runtime/native-session-executor.js";
+import { executeClayonNativeSession } from "../services/native-runtime/native-session-executor.js";
 import { registerAssignedMcpGateway } from "../services/native-runtime/assigned-mcp-tools.js";
 import type { ToolGatewayService } from "../services/tool-gateway.js";
 import { documentService } from "../services/documents.js";
@@ -39,15 +39,15 @@ describe("durable Dot Runner integration", () => {
   let db: ReturnType<typeof createDb>;
   let root: string;
   beforeAll(async () => {
-    const runnerRoot = fileURLToPath(new URL("../../../packages/paperclip-runner/", import.meta.url));
-    execFileSync("cargo", ["build", "--release", "--locked", "--manifest-path", join(runnerRoot, "runner/Cargo.toml"), "-p", "paperclip-runner-core", "--bin", "paperclip-runnerd"], { cwd: runnerRoot, stdio: "inherit", timeout: 300000 });
-    temporary = await startEmbeddedPostgresTestDatabase("paperclip-dot-runner-");
+    const runnerRoot = fileURLToPath(new URL("../../../packages/clayon-runner/", import.meta.url));
+    execFileSync("cargo", ["build", "--release", "--locked", "--manifest-path", join(runnerRoot, "runner/Cargo.toml"), "-p", "clayon-runner-core", "--bin", "clayon-runnerd"], { cwd: runnerRoot, stdio: "inherit", timeout: 300000 });
+    temporary = await startEmbeddedPostgresTestDatabase("clayon-dot-runner-");
     db = createDb(temporary.connectionString);
-    root = await mkdtemp(join(tmpdir(), "paperclip-dot-state-"));
-    vi.stubEnv("PAPERCLIP_IN_WORKTREE", "false");
-    vi.stubEnv("PAPERCLIP_RUNNER_BINARY", join(runnerRoot, "runner/target/release", process.platform === "win32" ? "paperclip-runnerd.exe" : "paperclip-runnerd"));
-    vi.stubEnv("PAPERCLIP_RUNNER_STATE_DIR", join(root, "runner-state"));
-    vi.stubEnv("PAPERCLIP_SECRETS_MASTER_KEY", randomBytes(32).toString("base64"));
+    root = await mkdtemp(join(tmpdir(), "clayon-dot-state-"));
+    vi.stubEnv("CLAYON_IN_WORKTREE", "false");
+    vi.stubEnv("CLAYON_RUNNER_BINARY", join(runnerRoot, "runner/target/release", process.platform === "win32" ? "clayon-runnerd.exe" : "clayon-runnerd"));
+    vi.stubEnv("CLAYON_RUNNER_STATE_DIR", join(root, "runner-state"));
+    vi.stubEnv("CLAYON_SECRETS_MASTER_KEY", randomBytes(32).toString("base64"));
     await instanceSettingsService(db).updateExperimental({ enablePublicMcp: true, enableOpenAiDot: true, enableNativeRunner: false });
   }, 360000);
   afterAll(async () => {
@@ -68,12 +68,12 @@ describe("durable Dot Runner integration", () => {
     for (const key of ["enableOpenAiDot", "enablePublicMcp"] as const) {
       await settings.updateExperimental({ [key]: false });
       try {
-        vi.stubEnv("PAPERCLIP_ENABLE_OPENAI_DOT", "1");
+        vi.stubEnv("CLAYON_ENABLE_OPENAI_DOT", "1");
         expect(await broker.enabled()).toBe(false);
         await expect(broker.createPairing({ companyId: randomUUID(), agentId: randomUUID(), operatorId: randomUUID() })).rejects.toThrow("experimental settings");
       } finally { await settings.updateExperimental({ [key]: true }); }
     }
-    vi.stubEnv("PAPERCLIP_ENABLE_OPENAI_DOT", "0");
+    vi.stubEnv("CLAYON_ENABLE_OPENAI_DOT", "0");
     expect(await broker.enabled()).toBe(true);
   });
 
@@ -91,7 +91,7 @@ describe("durable Dot Runner integration", () => {
     expect(resolveNativeRuntimeMode({ ...input, enabled: false, dotEnabled: true })).toMatchObject({ kind: "native", profile: { backend: "openai_dot_mcp" } });
     expect(() => resolveNativeRuntimeMode({ ...input, enabled: false, dotEnabled: true,
       adapterConfig: { provider: "codex" },
-    })).toThrow("Paperclip Runner is experimental and disabled");
+    })).toThrow("Clayon Runner is experimental and disabled");
     expect(resolveHeartbeatNativeRuntimeMode({ ...input, enabled: false, dotEnabled: false,
       persisted: { runtimeMode: "native", runtimeModeReason: null, runtimeModeResolvedAt: new Date(), driverKind: "openai_dot_mcp" },
     })).toMatchObject({ kind: "native", profile: { backend: "openai_dot_mcp" } });
@@ -103,12 +103,12 @@ describe("durable Dot Runner integration", () => {
     const [company] = await db.insert(companies).values({ name: "Dot test", issuePrefix: "DT" + randomBytes(3).toString("hex") }).returning();
     await db.insert(companyMemberships).values({ companyId: company!.id, principalType: "user", principalId: userId, membershipRole: "owner", status: "active" });
     const [agent] = await db.insert(agents).values({ companyId: company!.id, name: "Dot", adapterType: "paperclip_runner", status: "active", adapterConfig: { provider: "openai_dot", allowUnmeteredProvider: true } }).returning();
-    const config = { origin: "https://paperclip.example", resource: "https://paperclip.example/mcp/runner" };
+    const config = { origin: "https://clayon.example", resource: "https://clayon.example/mcp/runner" };
     const oauth = createPublicMcpOAuth(db, config);
     const client = await oauth.register({ client_name: "Dedicated Dot", redirect_uris: ["https://chatgpt.com/connector_platform/oauth/callback"] }, randomUUID());
     const verifier = randomBytes(32).toString("base64url");
     const input = { client_id: client.client_id, redirect_uri: "https://chatgpt.com/connector_platform/oauth/callback", response_type: "code", resource: config.resource,
-      scope: "paperclip:agent offline_access", code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256" };
+      scope: "clayon:agent offline_access", code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256" };
     const requestId = (await oauth.authorize(input)).split("/").at(-1)!;
     const consent = await oauth.consent(requestId, { type: "board", source: "session", userId }, { decision: "approve", companyId: company!.id, allowWrites: false });
     const tokens = await oauth.token({ grant_type: "authorization_code", client_id: client.client_id, redirect_uri: input.redirect_uri,
@@ -122,7 +122,7 @@ describe("durable Dot Runner integration", () => {
     await expect(broker.pair(unpaired, pairing.pairingCode)).rejects.toThrow();
     const principal = await oauth.authenticate(tokens.access_token);
     expect(principal.actor).toMatchObject({ type: "agent", agentId: agent!.id, companyId: company!.id });
-    const personal = createPublicMcpOAuth(db, { ...config, resource: config.origin + "/mcp/paperclip" });
+    const personal = createPublicMcpOAuth(db, { ...config, resource: config.origin + "/mcp/clayon" });
     await expect(personal.authenticate(tokens.access_token)).rejects.toThrow();
     const secret = "whsec_" + randomBytes(32).toString("base64");
     const received: Array<Record<string, any>> = [];
@@ -136,7 +136,7 @@ describe("durable Dot Runner integration", () => {
       received.push(body); return new Response(null, { status: 204 });
     };
     const events = createPublicMcpEvents(db, oauth, async () => { throw new Error("personal API dispatch forbidden"); }, { enableDotRunner: true, fetch: fetcher, ...options });
-    const subscription = { name: "paperclip.dot.mailbox_updated", arguments: { companyId: company!.id, bindingId: pairing.bindingId }, delivery: { mode: "webhook", url: "https://example.com/dot-hook", secret } };
+    const subscription = { name: "clayon.dot.mailbox_updated", arguments: { companyId: company!.id, bindingId: pairing.bindingId }, delivery: { mode: "webhook", url: "https://example.com/dot-hook", secret } };
     await events.subscribe(principal, subscription);
     await events.tick();
     if (!received.length) throw new Error("Dot readiness delivery missing: " + JSON.stringify(await db.select({ outcome: mcpEventDeliveries.outcome, event: mcpEventDeliveries.event }).from(mcpEventDeliveries)));
@@ -171,7 +171,7 @@ describe("durable Dot Runner integration", () => {
   }
 
   function gateway(oauth: ReturnType<typeof createPublicMcpOAuth>, actor: Request["actor"]) {
-    const personal = createPublicMcpOAuth(db, { ...oauth.config, resource: oauth.config.origin + "/mcp/paperclip" });
+    const personal = createPublicMcpOAuth(db, { ...oauth.config, resource: oauth.config.origin + "/mcp/clayon" });
     const dispatch = async () => { throw new Error("Personal API dispatch forbidden"); };
     const app = express();
     app.use(express.json());
@@ -373,7 +373,7 @@ describe("durable Dot Runner integration", () => {
         let wakes = await db.select().from(agentWakeupRequests).where(eq(agentWakeupRequests.agentId, f.agent.id));
         expect(wakes).toHaveLength(scenario === "read before wake admission" ? 2 : 1);
         const pending = wakes.find(wake => wake.status === "deferred_issue_execution")!;
-        expect(pending.payload?._paperclipWakeContext).toMatchObject({ wakeCommentIds:
+        expect(pending.payload?._clayonWakeContext).toMatchObject({ wakeCommentIds:
           ["finish before delivery", "failed history"].includes(scenario)
             ? comments.map(comment => comment.id) : [comments[1]!.id] });
         if (scenario === "read before wake admission") expect(wakes.find(wake => wake.payload?.commentId === comments[0]!.id)?.status).toBe("coalesced");
@@ -605,7 +605,7 @@ describe("durable Dot Runner integration", () => {
     expect(metadata.body.authorization_servers).toEqual([oauth.config.origin + "/mcp/runner/oauth"]);
     const issuer = await request(app).get("/.well-known/oauth-authorization-server/mcp/runner/oauth");
     expect(issuer.body).toMatchObject({ issuer: oauth.config.origin + "/mcp/runner/oauth", client_id_metadata_document_supported: true,
-      scopes_supported: ["paperclip:agent", "offline_access"], device_authorization_endpoint: oauth.config.origin + "/mcp/runner/oauth/device_authorization" });
+      scopes_supported: ["clayon:agent", "offline_access"], device_authorization_endpoint: oauth.config.origin + "/mcp/runner/oauth/device_authorization" });
     expect((await request(app).get("/.well-known/oauth-authorization-server")).body.issuer).toBe(oauth.config.origin);
     const verifier = randomBytes(32).toString("base64url");
     const input = { client_id: clientId, redirect_uri: redirectUri, response_type: "code", resource: oauth.config.resource,
@@ -624,9 +624,9 @@ describe("durable Dot Runner integration", () => {
     expect(redirect.searchParams.get("iss")).toBe(issuer.body.issuer);
     const tokens = await oauth.token({ grant_type: "authorization_code", client_id: clientId, redirect_uri: redirectUri,
       resource: oauth.config.resource, code: redirect.searchParams.get("code"), code_verifier: verifier });
-    expect((await oauth.authenticate(tokens.access_token)).grant).toMatchObject({ purpose: "agent", agentId: null, scopes: ["paperclip:agent"] });
+    expect((await oauth.authenticate(tokens.access_token)).grant).toMatchObject({ purpose: "agent", agentId: null, scopes: ["clayon:agent"] });
     await expect(personal.authenticate(tokens.access_token)).rejects.toThrow();
-    await expect(oauth.authorize({ ...input, scope: "paperclip:read" })).rejects.toMatchObject({ code: "invalid_scope" });
+    await expect(oauth.authorize({ ...input, scope: "clayon:read" })).rejects.toMatchObject({ code: "invalid_scope" });
     await f.events.unsubscribe(f.principal, f.subscription);
   }, 30000);
 
@@ -635,7 +635,7 @@ describe("durable Dot Runner integration", () => {
     const { app, personal } = gateway(f.oauth, { type: "board", source: "session", userId: f.userId });
     const client = await f.oauth.register({ client_name: "Dot device", redirect_uris: [], response_types: [], grant_types: [DEVICE_GRANT, "refresh_token"] }, randomUUID());
     const started = await request(app).post("/mcp/runner/oauth/device_authorization")
-      .send({ client_id: client.client_id, resource: f.oauth.config.resource, scope: "paperclip:agent offline_access", company_id: f.company.id });
+      .send({ client_id: client.client_id, resource: f.oauth.config.resource, scope: "clayon:agent offline_access", company_id: f.company.id });
     expect(started.status).toBe(200);
     const codes = started.body;
     expect(await f.oauth.ownsDevice(codes.user_code)).toBe(true);
@@ -659,14 +659,14 @@ describe("durable Dot Runner integration", () => {
     await instanceSettingsService(db).updateExperimental({ enableOpenAiDot: false });
     try {
       expect((await request(app).get("/.well-known/oauth-protected-resource/mcp/runner")).status).toBe(503);
-      expect((await request(app).get("/.well-known/oauth-protected-resource/mcp/paperclip")).status).toBe(200);
+      expect((await request(app).get("/.well-known/oauth-protected-resource/mcp/clayon")).status).toBe(200);
     } finally { await instanceSettingsService(db).updateExperimental({ enableOpenAiDot: true }); }
     await f.events.unsubscribe(f.principal, f.subscription);
   }, 30000);
 
   it.each([
     { name: "local Rust", managed: false },
-    ...(process.env.PAPERCLIP_DOT_DAYTONA_LIVE === "1" ? [{ name: "private Daytona Rust", managed: true }] : []),
+    ...(process.env.CLAYON_DOT_DAYTONA_LIVE === "1" ? [{ name: "private Daytona Rust", managed: true }] : []),
   ])("signed readiness, native tools and finalization through $name", async ({ managed }) => {
     const remote = managed ? await (await import("./helpers/dot-daytona.js")).startDotDaytona(root) : null;
     try {
@@ -680,7 +680,7 @@ describe("durable Dot Runner integration", () => {
       const [boundRun] = await db.select().from(heartbeatRuns).where(eq(heartbeatRuns.id, run!.id));
       const [contract] = await db.select().from(completionContracts).where(eq(completionContracts.id, boundRun!.completionContractId!));
       const runtimeContext = nativeRuntimeContextFixture();
-      await writeFile(join(root, "AGENTS.md"), "Use Paperclip tools to save the report.");
+      await writeFile(join(root, "AGENTS.md"), "Use Clayon tools to save the report.");
       runtimeContext.instructions.bundle.rootPath = root;
       runtimeContext.aggregateDigest = canonicalNativeRuntimeContextDigest(runtimeContext);
       const execution = buildNativeExecutionInput({ companyId: f.company.id, agentId: f.agent.id, runId: run!.id, issue: issue!,
@@ -697,19 +697,19 @@ describe("durable Dot Runner integration", () => {
       const gatewayTools = [{ name: "fixture:read_status", displayName: "Read fixture status", description: "Read a synthetic app", parametersSchema: { type: "object", properties: {}, additionalProperties: false }, risk: "read" }];
       registerAssignedMcpGateway(db, { listToolsForNamedGateway: vi.fn().mockResolvedValue(gatewayTools), executeTool: appCall } as unknown as ToolGatewayService);
       await db.update(agents).set({ adapterConfig: { ...f.agent.adapterConfig, dotWorkspaceAccess: true, dotAttachmentAccess: true } }).where(eq(agents.id, f.agent.id));
-      vi.stubEnv("PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN", "fixture-cloud");
+      vi.stubEnv("CLAYON_CLOUD_TENANT_SERVER_TOKEN", "fixture-cloud");
       try {
         for (const useRunnerd of [false, true]) {
-          await expect(executePaperclipNativeSession({ db, execution, runnerInstanceId: prepared.runnerInstanceId,
+          await expect(executeClayonNativeSession({ db, execution, runnerInstanceId: prepared.runnerInstanceId,
             useRunnerd, turnTimeoutMs: 1000, onEvent: async () => {} }))
             .rejects.toThrow("dot_cloud_requires_managed_runner");
         }
-      } finally { vi.stubEnv("PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN", ""); }
-      const resultPromise = executePaperclipNativeSession({ db, execution,
+      } finally { vi.stubEnv("CLAYON_CLOUD_TENANT_SERVER_TOKEN", ""); }
+      const resultPromise = executeClayonNativeSession({ db, execution,
         ...(remote ? { runnerExecutionTarget: remote.target, runnerRemoteBinaryPath: remote.runnerBinary, runnerIngressAuthorized: true }
           : { dotWorkspaceRoot: root }),
         runnerInstanceId: prepared.runnerInstanceId,
-        runnerEnvironment: { PAPERCLIP_NATIVE_MCP_NAME: "paperclip-assigned", PAPERCLIP_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/dot-fixture", PAPERCLIP_NATIVE_MCP_TOKEN: "fixture-gateway-secret" },
+        runnerEnvironment: { CLAYON_NATIVE_MCP_NAME: "clayon-assigned", CLAYON_NATIVE_MCP_URL: "http://127.0.0.1:3217/mcp/gateways/dot-fixture", CLAYON_NATIVE_MCP_TOKEN: "fixture-gateway-secret" },
         useRunnerd: true, turnTimeoutMs: 45000, onEvent: async event => { observed.push(event); }, onLog: async () => {} });
       // Attach a handler immediately: a bootstrap error must never become an unhandled rejection.
       let startupError: unknown;

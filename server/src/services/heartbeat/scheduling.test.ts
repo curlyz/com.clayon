@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents, agentSessionGoalActions, agentTaskSessions, companies, createDb,
   EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, heartbeatRuns, issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
@@ -77,7 +77,7 @@ describe.skipIf(!postgres.supported)("heartbeat scheduling database boundary", (
   let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
   let db: Db;
   beforeAll(async () => {
-    database = await startEmbeddedPostgresTestDatabase("paperclip-heartbeat-scheduling-module");
+    database = await startEmbeddedPostgresTestDatabase("clayon-heartbeat-scheduling-module");
     db = createDb(database.connectionString);
   }, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS);
   afterAll(async () => {

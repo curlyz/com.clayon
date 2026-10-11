@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { AgentInstructionsFileDetail } from "@paperclipai/shared";
+import type { AgentInstructionsFileDetail } from "@clayon/shared";
 import { AgentFileRunNotice, PromptsTab } from "@/pages/AgentDetail";
 import { Button } from "@/components/ui/button";
 import { queryKeys } from "@/lib/queryKeys";
-import { storybookAgents } from "../fixtures/paperclipData";
+import { storybookAgents } from "../fixtures/clayonData";
 
 const agent = { ...storybookAgents[0]!, id: "agent-files-story", adapterType: "codex_local" as const };
 const root = "/instance/agents/agent-files-story/instructions";
@@ -97,8 +97,7 @@ function AgentFilesStory({ failedSync = false, fullStorageRun = false, historica
           errorCode: failedSync ? "AGENT_FILES_LIMIT_EXCEEDED" : null,
           errorMessage: failedSync ? syncFailure : null, storageWarning: fullStorageRun ? storageWarning : null } }} />
       </section>}
-      {ready && <PromptsTab agent={agent} companyId={agent.companyId} onDirtyChange={setDirty} onSavingChange={setSaving}
-        onSaveActionChange={onSave} onCancelActionChange={onCancel} />}
+      {ready && <PromptsTab agent={agent} companyId={agent.companyId} />}
       <div className="flex items-center justify-between border-t border-border pt-4">
         <Button variant="outline" disabled={!dirty || saving} onClick={() => cancel.current?.()}>Cancel changes</Button>
         <Button disabled={!dirty || saving} onClick={() => save.current?.()}>Save changes</Button>

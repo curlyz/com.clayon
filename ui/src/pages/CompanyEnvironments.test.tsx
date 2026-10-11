@@ -243,6 +243,16 @@ async function act(callback: () => void | Promise<void>) {
   await new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
+// The edit/create pages have no Cancel button anymore (autosave); leave via
+// the "Environments" back link.
+function clickEnvironmentsBackLink(root: ParentNode) {
+  return click(
+    Array.from(root.querySelectorAll("a")).find((anchor) =>
+      anchor.textContent?.includes("Environments"),
+    ),
+  );
+}
+
 async function flushReact() {
   for (let i = 0; i < 3; i += 1) {
     await Promise.resolve();
@@ -599,14 +609,14 @@ describe("CompanyEnvironments — test provider button", () => {
     mockEnvironmentsApi.probe.mockResolvedValue({
       ok: true,
       driver: "sandbox",
-      summary: "Connected to Daytona sandbox paperclip-probe.",
+      summary: "Connected to Daytona sandbox clayon-probe.",
       details: {
         provider: "daytona",
         diagnostics: [],
         metadata: {
           provider: "daytona",
           sandboxId: "473167E9",
-          sandboxName: "paperclip-probe",
+          sandboxName: "clayon-probe",
         },
       },
     });
@@ -622,7 +632,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     expect(mockEnvironmentsApi.probe).toHaveBeenCalledExactlyOnceWith("env-1", "company-1");
-    expect(container.textContent).toContain("Connected to Daytona sandbox paperclip-probe.");
+    expect(container.textContent).toContain("Connected to Daytona sandbox clayon-probe.");
     expect(container.textContent).not.toContain("Verified temporary daytona sandbox");
     expect(container.textContent).not.toContain("Test probes clean up the validation sandbox after the check");
     expect(container.textContent).not.toContain("provider dashboard");
@@ -645,7 +655,7 @@ describe("CompanyEnvironments — test provider button", () => {
         metadata: {
           provider: "daytona",
           sandboxId: "473167E9",
-          sandboxName: "paperclip-probe",
+          sandboxName: "clayon-probe",
         },
       },
     });
@@ -714,14 +724,18 @@ describe("CompanyEnvironments — test provider button", () => {
     });
 
     await act(async () => {
-      findButton(document.body, "Cancel")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      click(
+        Array.from(container.querySelectorAll("a")).find((anchor) =>
+          anchor.textContent?.includes("Environments"),
+        ),
+      );
     });
     await flushReact();
 
     expect(getEnvironmentFormPage()).toBeNull();
   });
 
-  it("opens the edit form on a standalone page with existing values and closes after save", async () => {
+  it("opens the edit form on a standalone page with existing values and autosaves variable edits", async () => {
     root = createRoot(container);
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -754,10 +768,10 @@ describe("CompanyEnvironments — test provider button", () => {
     });
     await flushReact();
 
+    // Autosave: the staged row commits into the form, then the form persists.
     await act(async () => {
-      findButton(document.body, "Save environment")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     });
-    await flushReact();
 
     expect(mockEnvironmentsApi.update).toHaveBeenCalledExactlyOnceWith(
       "env-1",
@@ -770,55 +784,11 @@ describe("CompanyEnvironments — test provider button", () => {
       // bindings even when the environment has none yet.
       "company-1",
     );
-    // Saving awaits query invalidation before navigating away. A single flush
-    // can observe the API call before that asynchronous success path settles.
-    await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()).toBeNull();
-    });
-  });
-
-  it("confirms before cancelling the edit page with unsaved environment variable drafts", async () => {
-    root = createRoot(container);
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-
-    await act(async () => {
-      root!.render(renderCompanyEnvironments(queryClient));
-    });
-    await flushReact();
-
-    await act(async () => {
-      click(findAction(container, "Edit"));
-    });
-    await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
-    });
-    const page = getEnvironmentFormPage()!;
-
-    await act(async () => click(findButton(page, "Add variable")));
-    await flushReact();
-    const variableName = page.querySelector<HTMLInputElement>('input[aria-label="Variable name"]')!;
-    const variableValue = page.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!;
-    await act(async () => {
-      setInputValue(variableName, "API_TOKEN");
-      setInputValue(variableValue, "draft-token");
-    });
-    await flushReact();
-
-    await act(async () => click(findButton(document.body, "Cancel")));
-    await flushReact();
-
-    expect(confirmSpy).toHaveBeenCalledWith("Discard unsaved environment changes?");
+    // Autosave keeps the operator on the page.
     expect(getEnvironmentFormPage()).not.toBeNull();
-
-    confirmSpy.mockReturnValue(true);
-    await act(async () => click(findButton(document.body, "Cancel")));
-    await flushReact();
-
-    expect(getEnvironmentFormPage()).toBeNull();
   });
 
-  it("keeps unload and in-app link warnings after env var changes are staged into the form", async () => {
+  it("flushes pending autosave edits on in-app link clicks instead of blocking", async () => {
     root = createRoot(container);
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -845,10 +815,6 @@ describe("CompanyEnvironments — test provider button", () => {
       setInputValue(variableValue, "draft-token");
     });
     await flushReact();
-
-    await act(async () => click(findButton(page, "Save")));
-    await flushReact();
-    expect(page.textContent).not.toContain("Unsaved changes");
 
     const beforeUnload = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(beforeUnload);
@@ -860,9 +826,8 @@ describe("CompanyEnvironments — test provider button", () => {
     const clickEvent = new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 });
     link.dispatchEvent(clickEvent);
 
-    expect(confirmSpy).toHaveBeenCalledWith("Discard unsaved environment changes?");
-    expect(clickEvent.defaultPrevented).toBe(true);
-    expect(getEnvironmentFormPage()).not.toBeNull();
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(clickEvent.defaultPrevented).toBe(false);
     link.remove();
   });
 
@@ -928,7 +893,7 @@ describe("CompanyEnvironments — test provider button", () => {
       expect(getEnvironmentFormPage()?.textContent).toContain("Configure image");
     });
     expect(mockEnvironmentsApi.customImageTemplate).toHaveBeenCalledExactlyOnceWith("env-1", "company-1");
-    await act(async () => click(findButton(document.body, "Cancel")));
+    await act(async () => clickEnvironmentsBackLink(document.body));
     await waitForAssertion(() => expect(getEnvironmentFormPage()).toBeNull());
 
     // E2B does not advertise interactive setup.
@@ -937,7 +902,7 @@ describe("CompanyEnvironments — test provider button", () => {
       expect(getEnvironmentFormPage()?.textContent).toContain("Unsupported provider");
     });
     expect(getEnvironmentFormPage()?.textContent).not.toContain("Configure image");
-    await act(async () => click(findButton(document.body, "Cancel")));
+    await act(async () => clickEnvironmentsBackLink(document.body));
     await waitForAssertion(() => expect(getEnvironmentFormPage()).toBeNull());
 
     // Provider advertises setup but cannot capture an image.
@@ -1292,7 +1257,7 @@ describe("CompanyEnvironments — test provider button", () => {
       expect(dialog?.textContent).not.toContain("id 12345678-90a");
       expect(
         dialog?.querySelector(
-          "[title='Provider snapshot ref redacted-template-ref (Paperclip template 12345678-90ab-cdef-1234-567890abcdef)']",
+          "[title='Provider snapshot ref redacted-template-ref (Clayon template 12345678-90ab-cdef-1234-567890abcdef)']",
         ),
       ).toBeTruthy();
       expect(findButton(dialog!, "Refresh")).toBeTruthy();

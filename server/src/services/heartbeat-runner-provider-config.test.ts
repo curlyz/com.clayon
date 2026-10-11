@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   assertAgentCoreProfileRecoveryBinding,
   assertManagedProfileRecoveryBinding,
-  projectPaperclipRunnerTaskConfig,
-  resolvePaperclipRunnerNativeProviderInput,
+  projectClayonRunnerTaskConfig,
+  resolveClayonRunnerNativeProviderInput,
 } from "./native-runtime/provider-profile.js";
 
-describe("Paperclip Runner native provider configuration", () => {
+describe("Clayon Runner native provider configuration", () => {
   it.each([
     ["gpt-6.1-sol", "0.158.0", "gpt-6-sol"],
     ["gpt-6.1-sol", "0.156.0", "gpt-5.6-sol"],
@@ -18,7 +18,7 @@ describe("Paperclip Runner native provider configuration", () => {
       adapterConfig: { provider: "codex", model, modelReasoningEffort: "high", codexPermissionMode: "never" },
       codexCliVersion,
     };
-    expect(resolvePaperclipRunnerNativeProviderInput(input)).toEqual({
+    expect(resolveClayonRunnerNativeProviderInput(input)).toEqual({
       provider: "codex", model: expectedModel, codexApprovalPolicy: "never", codexReasoningEffort: "high",
     });
     expect(input.adapterConfig.model).toBe(model);
@@ -27,13 +27,13 @@ describe("Paperclip Runner native provider configuration", () => {
   it.each([
     ["gpt-6.1-sol", "0.159.0"], ["gpt-6-sol", "0.157.0"], ["gpt-5.6-sol", "0.156.0"],
   ])("keeps a supported %s selection on Codex %s", (model, codexCliVersion) => {
-    expect(resolvePaperclipRunnerNativeProviderInput({ backend: "codex_app_server",
+    expect(resolveClayonRunnerNativeProviderInput({ backend: "codex_app_server",
       adapterConfig: { provider: "codex", model }, codexCliVersion })).toMatchObject({ model });
   });
-  it.each([undefined, "approve-all", "approve-paperclip", "approve-reads", "deny-all"])(
+  it.each([undefined, "approve-all", "approve-clayon", "approve-reads", "deny-all"])(
     "passes Grok's full-auto default or explicit %s policy to the native runner",
     (acpxPermissionMode) => {
-      expect(resolvePaperclipRunnerNativeProviderInput({
+      expect(resolveClayonRunnerNativeProviderInput({
         backend: "acpx_runtime",
         adapterConfig: { provider: "acpx", acpxAgent: "grok", acpxPermissionMode },
       })).toEqual({
@@ -47,7 +47,7 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("qualifies native Codex only in never-ask mode", () => {
     expect(
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "codex_app_server",
         adapterConfig: { provider: "codex", model: "gpt-5.6-sol" },
       }),
@@ -57,7 +57,7 @@ describe("Paperclip Runner native provider configuration", () => {
       codexApprovalPolicy: "never",
     });
     expect(() =>
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "codex_app_server",
         adapterConfig: {
           provider: "codex",
@@ -68,11 +68,11 @@ describe("Paperclip Runner native provider configuration", () => {
   });
 
   it("projects Codex effort only when the selected model supports it", () => {
-    expect(resolvePaperclipRunnerNativeProviderInput({
+    expect(resolveClayonRunnerNativeProviderInput({
       backend: "codex_app_server",
       adapterConfig: { provider: "codex", model: "gpt-6-astra", modelReasoningEffort: "ultra" },
     })).toMatchObject({ provider: "codex", model: "gpt-6-astra", codexReasoningEffort: "ultra" });
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "codex_app_server",
       adapterConfig: { provider: "codex", model: "gpt-6-luna", modelReasoningEffort: "ultra" },
     })).toThrow("reasoning effort is not supported");
@@ -80,19 +80,19 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("uses only task model and effort overrides without changing the Runner provider", () => {
     const base = { provider: "codex", model: "gpt-6-astra", modelReasoningEffort: "ultra", codexPermissionMode: "never" };
-    const projected = projectPaperclipRunnerTaskConfig("codex_app_server", base, {
+    const projected = projectClayonRunnerTaskConfig("codex_app_server", base, {
       provider: "opencode", model: "gpt-6-luna", managedProfileId: "other-profile",
     });
     expect(projected).toEqual({ provider: "codex", model: "gpt-6-luna", codexPermissionMode: "never" });
-    expect(resolvePaperclipRunnerNativeProviderInput({
+    expect(resolveClayonRunnerNativeProviderInput({
       backend: "codex_app_server", adapterConfig: projected,
     })).toEqual({ provider: "codex", model: "gpt-6-luna", codexApprovalPolicy: "never" });
-    expect(projectPaperclipRunnerTaskConfig("codex_app_server", base, { modelReasoningEffort: "high" }))
+    expect(projectClayonRunnerTaskConfig("codex_app_server", base, { modelReasoningEffort: "high" }))
       .toMatchObject({ provider: "codex", model: "gpt-6-astra", modelReasoningEffort: "high" });
   });
 
   it("uses an OpenCode task model without changing the Runner provider", () => {
-    const projected = projectPaperclipRunnerTaskConfig(
+    const projected = projectClayonRunnerTaskConfig(
       "opencode_server",
       { provider: "opencode", model: "openrouter/qwen/qwen3-coder-next", opencodePermissionMode: "deny" },
       { provider: "codex", model: "openrouter/deepseek/deepseek-v4-flash-0731", modelReasoningEffort: "ultra" },
@@ -100,19 +100,19 @@ describe("Paperclip Runner native provider configuration", () => {
     expect(projected).toEqual({
       provider: "opencode", model: "openrouter/deepseek/deepseek-v4-flash-0731", opencodePermissionMode: "deny",
     });
-    expect(resolvePaperclipRunnerNativeProviderInput({ backend: "opencode_server", adapterConfig: projected }))
+    expect(resolveClayonRunnerNativeProviderInput({ backend: "opencode_server", adapterConfig: projected }))
       .toEqual({
         provider: "opencode", model: "openrouter/deepseek/deepseek-v4-flash-0731", opencodePermissionMode: "deny",
       });
   });
 
   it("keeps the connection's authoritative model namespace in durable input", () => {
-    const projected = projectPaperclipRunnerTaskConfig("opencode_server",
+    const projected = projectClayonRunnerTaskConfig("opencode_server",
       { provider: "opencode", model: "openai/gpt-5.4" },
       { provider: "codex", model: "team-alias" },
-      "paperclip/team-alias");
-    expect(resolvePaperclipRunnerNativeProviderInput({ backend: "opencode_server", adapterConfig: projected }))
-      .toMatchObject({ provider: "opencode", model: "paperclip/team-alias" });
+      "clayon/team-alias");
+    expect(resolveClayonRunnerNativeProviderInput({ backend: "opencode_server", adapterConfig: projected }))
+      .toMatchObject({ provider: "opencode", model: "clayon/team-alias" });
   });
 
   it("requires persisted Claude recovery to use the qualified identity and current profile secret", () => {
@@ -170,7 +170,7 @@ describe("Paperclip Runner native provider configuration", () => {
       memoryArn: "arn:aws:bedrock-agentcore:us-east-1:123456789012:memory/m-1",
       memoryId: "m-1",
       invocationRoleArn: "arn:aws:iam::123456789012:role/invoke",
-      contextBucket: "paperclip-context",
+      contextBucket: "clayon-context",
       contextPrefix: "runner/",
       contextKmsKeyArn: "arn:aws:kms:us-east-1:123456789012:key/key-1",
       qualificationRevision: "aws-agentcore-harness-context-v2",
@@ -198,7 +198,7 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("projects OpenCode identity, model, and permissions from adapter config", () => {
     expect(
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "opencode_server",
         adapterConfig: {
           provider: "opencode",
@@ -220,7 +220,7 @@ describe("Paperclip Runner native provider configuration", () => {
     "projects the qualified ACPX %s descriptor from adapter config",
     (acpxAgent, model, acpxPermissionMode) => {
       expect(
-        resolvePaperclipRunnerNativeProviderInput({
+        resolveClayonRunnerNativeProviderInput({
           backend: "acpx_runtime",
           adapterConfig: { provider: "acpx", acpxAgent, model, acpxPermissionMode },
         }),
@@ -235,7 +235,7 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("applies the full-auto provider permission default from adapter config", () => {
     expect(
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "opencode_server",
         adapterConfig: {
           provider: "opencode",
@@ -250,7 +250,7 @@ describe("Paperclip Runner native provider configuration", () => {
   });
 
   it("materializes a qualified Claude Managed profile without trusting editable resource IDs", () => {
-    expect(resolvePaperclipRunnerNativeProviderInput({
+    expect(resolveClayonRunnerNativeProviderInput({
       backend: "claude_managed_agents_api",
       adapterConfig: {
         provider: "claude_managed",
@@ -283,7 +283,7 @@ describe("Paperclip Runner native provider configuration", () => {
   });
 
   it("materializes a qualified AgentCore profile with bounded invocation limits", () => {
-    expect(resolvePaperclipRunnerNativeProviderInput({
+    expect(resolveClayonRunnerNativeProviderInput({
       backend: "aws_agentcore_harness_api",
       adapterConfig: {
         provider: "aws_agentcore",
@@ -307,7 +307,7 @@ describe("Paperclip Runner native provider configuration", () => {
           memoryArn: "arn:aws:bedrock-agentcore:us-east-1:123456789012:memory/m-1",
           memoryId: "m-1",
           invocationRoleArn: "arn:aws:iam::123456789012:role/invoke",
-          contextBucket: "paperclip-context",
+          contextBucket: "clayon-context",
           contextPrefix: "runner/",
           contextKmsKeyArn: "arn:aws:kms:us-east-1:123456789012:key/key-1",
           qualificationRevision: "aws-agentcore-harness-context-v2",
@@ -339,7 +339,7 @@ describe("Paperclip Runner native provider configuration", () => {
     ["maxOutputTokens", 4_097],
     ["timeoutSeconds", 301],
   ])("rejects an unsafe AgentCore %s override", (field, value) => {
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "aws_agentcore_harness_api",
       adapterConfig: {
         provider: "aws_agentcore",
@@ -361,7 +361,7 @@ describe("Paperclip Runner native provider configuration", () => {
           memoryArn: "arn:aws:bedrock-agentcore:us-east-1:123456789012:memory/m-1",
           memoryId: "m-1",
           invocationRoleArn: "arn:aws:iam::123456789012:role/invoke",
-          contextBucket: "paperclip-context",
+          contextBucket: "clayon-context",
           contextPrefix: "runner/",
           contextKmsKeyArn: "arn:aws:kms:us-east-1:123456789012:key/key-1",
           qualificationRevision: "aws-agentcore-harness-context-v2",
@@ -374,7 +374,7 @@ describe("Paperclip Runner native provider configuration", () => {
   });
 
   it("rejects managed providers without retention acknowledgement or a matching stored profile", () => {
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "claude_managed_agents_api",
       adapterConfig: {
         provider: "claude_managed",
@@ -382,7 +382,7 @@ describe("Paperclip Runner native provider configuration", () => {
       },
     })).toThrow("requires acknowledgement");
 
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "aws_agentcore_harness_api",
       adapterConfig: {
         provider: "aws_agentcore",
@@ -393,7 +393,7 @@ describe("Paperclip Runner native provider configuration", () => {
   });
 
   it("rejects managed provider model overrides outside the runner allowlist", () => {
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "claude_managed_agents_api",
       adapterConfig: {
         provider: "claude_managed",
@@ -413,7 +413,7 @@ describe("Paperclip Runner native provider configuration", () => {
       },
     })).toThrow("requires exact model claude-sonnet-5");
 
-    expect(() => resolvePaperclipRunnerNativeProviderInput({
+    expect(() => resolveClayonRunnerNativeProviderInput({
       backend: "aws_agentcore_harness_api",
       adapterConfig: {
         provider: "aws_agentcore",
@@ -435,7 +435,7 @@ describe("Paperclip Runner native provider configuration", () => {
           memoryArn: "arn:aws:bedrock-agentcore:us-east-1:123456789012:memory/m-1",
           memoryId: "m-1",
           invocationRoleArn: "arn:aws:iam::123456789012:role/invoke",
-          contextBucket: "paperclip-context",
+          contextBucket: "clayon-context",
           contextPrefix: "runner/",
           contextKmsKeyArn: "arn:aws:kms:us-east-1:123456789012:key/key-1",
           qualificationRevision: "aws-agentcore-harness-context-v2",
@@ -449,7 +449,7 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("fails closed when the persisted backend and current provider disagree", () => {
     expect(() =>
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "opencode_server",
         adapterConfig: { provider: "codex" },
       }),
@@ -458,7 +458,7 @@ describe("Paperclip Runner native provider configuration", () => {
 
   it("preserves a caller-selected Pi model in the native descriptor", () => {
     expect(
-      resolvePaperclipRunnerNativeProviderInput({
+      resolveClayonRunnerNativeProviderInput({
         backend: "acpx_runtime",
         adapterConfig: { provider: "acpx", acpxAgent: "pi", model: "pi-model" },
       }),

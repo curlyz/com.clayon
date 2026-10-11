@@ -7,7 +7,7 @@ import { ChatCommunicationInstructions } from "./ChatCommunicationInstructions";
 import { SlackAvatarSettings } from "./SlackAvatarStep";
 import { agentsApi } from "@/api/agents";
 import { agentAvatarUrl } from "@/lib/agent-avatar-url";
-import { resolveAgentAppearance } from "@paperclipai/shared";
+import { resolveAgentAppearance } from "@clayon/shared";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { ChatConversationList } from "./ChatConversationList";
 import { GitHubBotManagement, GitHubReviews } from "./GitHubBotManagement";
@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { AppLogo } from "../AppLogo";
+import { SectionTabs } from "@/components/SectionTabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useToast } from "@/context/ToastContext";
@@ -86,32 +87,32 @@ const providerLifecycleGuidance: Record<
 > = {
   speko: {
     reconnect: "Reverify this voice persona and update its signed session tools. Existing task assignments stay attached to their history.",
-    remove: "Stop this connection from accepting voice requests. Accepted work and task history remain in Paperclip.",
+    remove: "Stop this connection from accepting voice requests. Accepted work and task history remain in Clayon.",
   },
   agentmail: { reconnect: "Reconnect the same email inbox.", remove: "Disconnect email and retain task history." },
   slack: {
     reconnect:
       "Reconnect verifies or replaces credentials for this same Slack app. It does not reinstall the app or change its workspace or channel membership.",
     remove:
-      "Paperclip archives the endpoint, stops new ingress, and retires its saved Slack credentials. It does not uninstall the Slack app: the app remains installed, and its bot remains in channels, until you remove them in Slack.",
+      "Clayon archives the endpoint, stops new ingress, and retires its saved Slack credentials. It does not uninstall the Slack app: the app remains installed, and its bot remains in channels, until you remove them in Slack.",
   },
   github: {
     reconnect:
       "Reconnect verifies this same App and installation, then updates its webhook URL, secret, and secure delivery settings. It does not reinstall the App or change repository access.",
     remove:
-      "Paperclip archives the endpoint, stops new ingress, and retires its saved App key and webhook secret. It does not uninstall the GitHub App: the App, its installations, and its webhook settings remain until you remove or update them on GitHub.",
+      "Clayon archives the endpoint, stops new ingress, and retires its saved App key and webhook secret. It does not uninstall the GitHub App: the App, its installations, and its webhook settings remain until you remove or update them on GitHub.",
   },
   discord: {
     reconnect:
       "Reconnect verifies this same Discord application and server installation. It does not add or remove the bot from the server.",
     remove:
-      "Paperclip archives the endpoint, stops its Paperclip Gateway connection, and retires its saved bot token. It does not uninstall the bot: the bot remains in the Discord server, and the application remains in the Developer Portal, until you remove them there.",
+      "Clayon archives the endpoint, stops its Clayon Gateway connection, and retires its saved bot token. It does not uninstall the bot: the bot remains in the Discord server, and the application remains in the Developer Portal, until you remove them there.",
   },
   "microsoft-teams": {
     reconnect:
       "Reconnect verifies this same Microsoft app, tenant, and bot identity. It does not upload or reinstall the Teams app.",
     remove:
-      "Paperclip archives the endpoint, stops new ingress, and retires its saved client secret. It does not uninstall the Teams app: the Entra app registration, Azure Bot, custom Teams app, and Teams installations remain until you remove them in Microsoft.",
+      "Clayon archives the endpoint, stops new ingress, and retires its saved client secret. It does not uninstall the Teams app: the Entra app registration, Azure Bot, custom Teams app, and Teams installations remain until you remove them in Microsoft.",
   },
   "imessage-photon": {
     reconnect: "Reconnect verifies the same Photon project and line allocation, then recovers eligible missed messages.",
@@ -119,9 +120,9 @@ const providerLifecycleGuidance: Record<
   },
   telegram: {
     reconnect:
-      "Reconnect verifies this same BotFather bot and automatically refreshes its Paperclip webhook and command menu.",
+      "Reconnect verifies this same BotFather bot and automatically refreshes its Clayon webhook and command menu.",
     remove:
-      "Paperclip archives the endpoint and queues durable removal of its Telegram webhook and command menu. After Telegram confirms that cleanup, Paperclip retires the saved token. The BotFather bot and its chat memberships remain until you remove them in Telegram.",
+      "Clayon archives the endpoint and queues durable removal of its Telegram webhook and command menu. After Telegram confirms that cleanup, Clayon retires the saved token. The BotFather bot and its chat memberships remain until you remove them in Telegram.",
   },
 };
 
@@ -186,8 +187,8 @@ export function activityResolutionDescription(item: ChatActivityItem): string {
   if (phase === "consent_unknown")
     return "The consent card may have reached Teams. File delivery is not confirmed. Cancelling here does not remove any card already sent.";
   if (phase)
-    return "The file may already exist in OneDrive. Cancelling stops this Paperclip transfer; it does not delete remote bytes. Uploads cannot be marked delivered or retried from this uncertain state.";
-  return "Paperclip lost confirmation after sending. Check the provider conversation first. Retrying can create a duplicate message.";
+    return "The file may already exist in OneDrive. Cancelling stops this Clayon transfer; it does not delete remote bytes. Uploads cannot be marked delivered or retried from this uncertain state.";
+  return "Clayon lost confirmation after sending. Check the provider conversation first. Retrying can create a duplicate message.";
 }
 
 export function isResolutionEligible(item: ChatActivityItem): boolean {
@@ -222,7 +223,7 @@ export function connectionHealthPresentation(
     paused: "Connection is paused. Resume it to receive new messages.",
     attention: "Connection needs attention.",
     revoked: "Connection access is revoked. Reconnect to verify access.",
-    archived: "Connection has been removed from Paperclip.",
+    archived: "Connection has been removed from Clayon.",
   };
   const lifecycleMessage =
     endpoint.status === "active" ? null : lifecycleMessages[endpoint.status];
@@ -310,7 +311,22 @@ export function ChatEndpointDetail() {
       </div>
     );
   if (endpoint.provider === "agentmail" && activeTab === "settings")
-    return <EmailEndpointSettings key={endpoint.id} endpointId={endpoint.id} companyId={endpoint.companyId} assignedAgentName={endpoint.assignedAgentName} />;
+    return (
+      <div className="max-w-5xl space-y-6 pb-12">
+        <SectionTabs
+          ariaLabel="Chat connection"
+          sections={tabs
+            .filter((tab) => tab !== "reviews" || endpoint.provider === "github")
+            .map((tab) => ({
+              id: tab,
+              label: tab[0].toUpperCase() + tab.slice(1),
+              to: `/apps/chat/${endpointId}/${tab}`,
+              end: tab !== "reviews",
+            }))}
+        />
+        <EmailEndpointSettings key={endpoint.id} endpointId={endpoint.id} companyId={endpoint.companyId} assignedAgentName={endpoint.assignedAgentName} />
+      </div>
+    );
   const setupIncomplete =
     endpoint.setup?.step !== "complete" &&
     !(endpoint.provider === "slack" && endpoint.setup?.step === "test") &&
@@ -364,6 +380,17 @@ export function ChatEndpointDetail() {
           {["paused", "attention", "revoked"].includes(endpoint.status) && <StatusBadge status={endpoint.status} />}
         </div>
       </header>
+      <SectionTabs
+        ariaLabel="Chat connection"
+        sections={tabs
+          .filter((tab) => tab !== "reviews" || endpoint.provider === "github")
+          .map((tab) => ({
+            id: tab,
+            label: tab[0].toUpperCase() + tab.slice(1),
+            to: `/apps/chat/${endpointId}/${tab}`,
+            end: tab !== "reviews",
+          }))}
+      />
       {endpoint.provider === "github" && <div hidden={activeTab !== "settings" && activeTab !== "access"}>
         <GitHubBotManagement key={endpoint.id} endpoint={endpoint} view={activeTab === "access" ? "access" : "settings"} />
       </div>}
@@ -612,7 +639,7 @@ function Settings({
           : <SlackAvatarSettings
               agentName={avatarAgent.data?.name ?? endpoint.assignedAgentName}
               appName={endpoint.setup?.slackApp?.appName ?? defaultSlackAppName(avatarAgent.data?.name ?? endpoint.assignedAgentName)}
-              avatarUrl={agentAvatarUrl(resolveAgentAppearance(avatarAgent.data?.appearance, endpoint.assignedAgentId), 512, 1, "rest", false, "paperclip-dark")}
+              avatarUrl={agentAvatarUrl(resolveAgentAppearance(avatarAgent.data?.appearance, endpoint.assignedAgentId), 512, 1, "rest", false, "clayon-dark")}
             />}
       </SlackSetupAdvanced>}
       {endpoint.provider === "slack" && <SlackSetupAdvanced label="Slack tools"><SlackToolsSettings companyId={endpoint.companyId} endpointId={endpointId} connectionId={endpoint.connectionId} /></SlackSetupAdvanced>}
@@ -664,7 +691,7 @@ function Access({
   const [joinCommandCopied, setJoinCommandCopied] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [confirmationFor, setConfirmationFor] = useState<string | null>(null);
-  const joinCommand = `${endpoint.setup?.slackApp?.command ?? endpoint.setup?.command ?? "/paperclip"} connect`;
+  const joinCommand = `${endpoint.setup?.slackApp?.command ?? endpoint.setup?.command ?? "/clayon"} connect`;
   const linksQuery = useQuery({
     queryKey: queryKeys.chatEndpoints.principals(endpointId),
     queryFn: () => chatEndpointsApi.listPrincipals(endpointId),
@@ -717,7 +744,7 @@ function Access({
             <div className="space-y-4 text-sm">
               <ol className="list-decimal space-y-3 pl-5">
                 <li>Send <code className="font-mono">{joinCommand}</code> in Slack.</li>
-                <li>Open the bot’s private link and sign in to Paperclip to confirm your Slack account.</li>
+                <li>Open the bot’s private link and sign in to Clayon to confirm your Slack account.</li>
                 <li>If you’re new to this organization, request access and wait for an admin to approve.</li>
               </ol>
               <p className="text-muted-foreground">The confirmation link is personal and expires after 15 minutes.</p>
@@ -727,14 +754,14 @@ function Access({
                 }}>{joinCommandCopied ? <Check className="size-4" /> : <Copy className="size-4" />}{joinCommandCopied ? "Copied" : "Copy command"}</Button>
                 <Button onClick={() => {
                   const workspace = endpoint.providerAccountId ? `https://app.slack.com/client/${encodeURIComponent(endpoint.providerAccountId)}` : "https://app.slack.com/";
-                  void copyTextToClipboard(`Talk to ${endpoint.assignedAgentName} in Slack: ${workspace}\nSend ${joinCommand}, then open the bot’s private link and sign in to Paperclip to confirm your account. If you’re new to the organization, request access for an admin to approve.`).then(() => setInviteCopied(true), () => pushToast({ title: "Couldn't copy invitation", tone: "error" }));
+                  void copyTextToClipboard(`Talk to ${endpoint.assignedAgentName} in Slack: ${workspace}\nSend ${joinCommand}, then open the bot’s private link and sign in to Clayon to confirm your account. If you’re new to the organization, request access for an admin to approve.`).then(() => setInviteCopied(true), () => pushToast({ title: "Couldn't copy invitation", tone: "error" }));
                 }}>{inviteCopied ? <Check className="size-4" /> : <Copy className="size-4" />}{inviteCopied ? "Invitation copied" : "Copy invitation"}</Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>}
       </div>
-      <p className="text-sm text-muted-foreground">People with linked accounts use their own Paperclip permissions. <Link className="underline underline-offset-4" to="/company/settings/members">Manage members</Link></p>
+      <p className="text-sm text-muted-foreground">People with linked accounts use their own Clayon permissions. <Link className="underline underline-offset-4" to="/company/settings/members">Manage members</Link></p>
       {confirmationUrl && (
         <div className="space-y-2 border-y border-border py-3">
           <p className="text-sm font-medium">Confirm {confirmationFor ?? "this account"}</p>
@@ -780,8 +807,8 @@ function Access({
                 className="flex flex-wrap items-center gap-3 py-3"
               >
                 <div className="min-w-0 flex-1">
-                  <Identity name={link.paperclipUserLabel ?? link.externalLabel} size="default" className="gap-2" />
-                  {(link.status !== "linked" || link.externalLabel !== link.paperclipUserLabel) && <p className="pl-10 text-xs text-muted-foreground">
+                  <Identity name={link.clayonUserLabel ?? link.externalLabel} size="default" className="gap-2" />
+                  {(link.status !== "linked" || link.externalLabel !== link.clayonUserLabel) && <p className="pl-10 text-xs text-muted-foreground">
                     {link.status === "revoked" ? "Disconnected" : link.status === "linked"
                       ? link.externalLabel
                       : "Waiting for account confirmation"}
@@ -1036,7 +1063,7 @@ function Activity({
           <p className="text-xs text-muted-foreground">
             {endpoint.setup?.callbacksNeedUpdate
               ? "Slack callback URLs need an update. Save the current App Manifest, then exercise Events, Interactivity, and the registered command again."
-              : "Paperclip records each callback surface independently after Slack successfully calls it."}
+              : "Clayon records each callback surface independently after Slack successfully calls it."}
           </p>
           <div className="divide-y divide-border border-y border-border">
             {callbackSurfaceRows.map(([label, surface]) => (
@@ -1264,9 +1291,9 @@ function Activity({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {resolutionItem?.actionType === "slash_task_start"
-                ? "Paperclip lost confirmation after asking Slack to start the task. Check Slack first. Retrying can create a duplicate starter message and task."
+                ? "Clayon lost confirmation after asking Slack to start the task. Check Slack first. Retrying can create a duplicate starter message and task."
                 : resolutionItem?.actionType === "provider_effect"
-                  ? "Paperclip lost confirmation after sending this provider reply. Check the provider first. Marking it delivered applies any pending Paperclip state change; retrying can create a duplicate message."
+                  ? "Clayon lost confirmation after sending this provider reply. Check the provider first. Marking it delivered applies any pending Clayon state change; retrying can create a duplicate message."
                   : resolutionItem
                     ? activityResolutionDescription(resolutionItem)
                     : ""}
@@ -1346,7 +1373,7 @@ function Activity({
             <AlertDialogTitle>Remove this connection?</AlertDialogTitle>
             <AlertDialogDescription>
               {endpoint.assignedAgentName} will stop receiving new work from
-              {` ${providerNames[endpoint.provider]}`}. Existing Paperclip tasks
+              {` ${providerNames[endpoint.provider]}`}. Existing Clayon tasks
               remain available.{" "}
               {providerLifecycleGuidance[endpoint.provider].remove}
               {endpoint.provider === "slack" && (

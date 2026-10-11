@@ -237,7 +237,7 @@ function sortRunsChronologically(runs: readonly RunRecord[]): RunRecord[] {
   );
 }
 
-async function restartIsolatedPaperclipServer(input: {
+async function restartIsolatedClayonServer(input: {
   api: RunnerApi;
   requestId: string;
   deadlineAt: number;
@@ -291,7 +291,7 @@ async function restartIsolatedPaperclipServer(input: {
 }
 
 const executionIds = (() => {
-  const encoded = process.env.PAPERCLIP_RUNNER_E2E_EXECUTION_IDS;
+  const encoded = process.env.CLAYON_RUNNER_E2E_EXECUTION_IDS;
   if (encoded) {
     const parsed = JSON.parse(encoded) as unknown;
     if (
@@ -300,24 +300,24 @@ const executionIds = (() => {
       parsed.some((value) => typeof value !== "string")
     ) {
       throw new Error(
-        "PAPERCLIP_RUNNER_E2E_EXECUTION_IDS must be a non-empty JSON string array",
+        "CLAYON_RUNNER_E2E_EXECUTION_IDS must be a non-empty JSON string array",
       );
     }
     return parsed;
   }
-  const single = process.env.PAPERCLIP_RUNNER_E2E_EXECUTION_ID;
+  const single = process.env.CLAYON_RUNNER_E2E_EXECUTION_ID;
   if (!single)
-    throw new Error("PAPERCLIP_RUNNER_E2E_EXECUTION_IDS is required");
+    throw new Error("CLAYON_RUNNER_E2E_EXECUTION_IDS is required");
   return [single];
 })();
 const executions = executionIds.map(runnerExecutionById);
 // Direct Playwright invocation must enforce the same admission boundary as
 // launch.ts before reading any provider credential from the environment.
 assertRunnerE2EPrerequisites(executions);
-const attempt = Number(process.env.PAPERCLIP_RUNNER_E2E_ATTEMPT ?? "1");
-const temporaryRoot = process.env.PAPERCLIP_RUNNER_E2E_TEMP_ROOT;
-const privateRoot = process.env.PAPERCLIP_RUNNER_E2E_PRIVATE_DIR;
-const workspacePath = process.env.PAPERCLIP_RUNNER_E2E_WORKSPACE;
+const attempt = Number(process.env.CLAYON_RUNNER_E2E_ATTEMPT ?? "1");
+const temporaryRoot = process.env.CLAYON_RUNNER_E2E_TEMP_ROOT;
+const privateRoot = process.env.CLAYON_RUNNER_E2E_PRIVATE_DIR;
+const workspacePath = process.env.CLAYON_RUNNER_E2E_WORKSPACE;
 if (!temporaryRoot || !privateRoot || !workspacePath)
   throw new Error("Runner E2E temporary/private/workspace paths are required");
 
@@ -900,7 +900,7 @@ for (const execution of executions) {
         executionNonce: nonce,
         workspacePath,
         credentials,
-        daytonaImage: process.env.PAPERCLIP_E2E_DAYTONA_IMAGE,
+        daytonaImage: process.env.CLAYON_E2E_DAYTONA_IMAGE,
       });
 
       if (["native-completion", NATIVE_INSTRUCTION_SUITE].includes(execution.suite.id)) {
@@ -919,9 +919,9 @@ for (const execution of executions) {
         ? createRemoteNativeBootstrap({
           api, daytona: await createRemoteFixtureClient(credentials.DAYTONA_API_KEY ?? ""),
           companyId: fixtures.company.id, environmentId: fixtures.environment.id, agentId: fixtures.agent.id,
-          image: process.env.PAPERCLIP_E2E_DAYTONA_IMAGE ?? "",
-          nodeSha256: process.env.PAPERCLIP_E2E_DAYTONA_NODE_SHA256 ?? "",
-          runnerdSha256: process.env.PAPERCLIP_E2E_DAYTONA_RUNNERD_SHA256 ?? "",
+          image: process.env.CLAYON_E2E_DAYTONA_IMAGE ?? "",
+          nodeSha256: process.env.CLAYON_E2E_DAYTONA_NODE_SHA256 ?? "",
+          runnerdSha256: process.env.CLAYON_E2E_DAYTONA_RUNNERD_SHA256 ?? "",
           deadlineAt: startedAtMs + deadlineMs,
           evidence: (name, data) => writeSanitizedJson(snapshotsDir, name, data, secrets),
         }) : undefined;
@@ -1015,7 +1015,7 @@ for (const execution of executions) {
       } else if (execution.task.flow === "continuation_accounting") {
         const accounting = await runAccountingFlow({
           page, api, fixtures, execution, nonce, deadlineAt: startedAtMs + deadlineMs - 60_000,
-          restart: () => restartIsolatedPaperclipServer({ api, requestId: `accounting-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
+          restart: () => restartIsolatedClayonServer({ api, requestId: `accounting-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
           observe: (currentIssue, currentRuns, checks) => {
             issue = currentIssue; selectedRuns = currentRuns;
             matcherResults = checks.map(check => ({ matcher: { kind: "json_path" as const, path: `accounting.${check.id}`, expected: true }, passed: check.passed, detail: check.detail }));
@@ -1064,7 +1064,7 @@ for (const execution of executions) {
       } else if (execution.task.flow === "pi_native") {
         const story = await runPiNativeFlow({
           page, api, fixtures, execution, nonce, workspacePath, deadlineAt: startedAtMs + deadlineMs,
-          restart: preserveRunner => restartIsolatedPaperclipServer({ api, requestId: `pi-native-${nonce}`, deadlineAt: startedAtMs + deadlineMs, preserveRunner }),
+          restart: preserveRunner => restartIsolatedClayonServer({ api, requestId: `pi-native-${nonce}`, deadlineAt: startedAtMs + deadlineMs, preserveRunner }),
           observe: (currentIssue, currentRuns) => { issue = currentIssue as IssueRecord; selectedRuns = currentRuns as RunRecord[]; },
           capture: captureScreenshot,
           evidence: (name, data) => writeSanitizedJson(snapshotsDir, name, data, secrets),
@@ -1085,7 +1085,7 @@ for (const execution of executions) {
       } else if (execution.task.flow === "instruction_persistence") {
         const story = await runInstructionPersistenceFlow({
           page, api, fixtures, execution, nonce, secrets, deadlineAt: startedAtMs + deadlineMs,
-          restart: () => restartIsolatedPaperclipServer({ api, requestId: `instructions-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
+          restart: () => restartIsolatedClayonServer({ api, requestId: `instructions-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
           observe: (currentIssue, currentRuns) => { issue = currentIssue as IssueRecord; selectedRuns = currentRuns as RunRecord[]; },
           capture: captureScreenshot,
           evidence: (name, data) => writeSanitizedJson(snapshotsDir, name, data, secrets),
@@ -1095,7 +1095,7 @@ for (const execution of executions) {
       } else if (execution.task.flow === "continuation") {
         const continuation = await runContinuationFlow({
           page, api, fixtures, execution, nonce, secrets, workspacePath, deadlineAt: startedAtMs + deadlineMs - 60_000,
-          restart: () => restartIsolatedPaperclipServer({ api, requestId: `continuation-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
+          restart: () => restartIsolatedClayonServer({ api, requestId: `continuation-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
           observe: (currentIssue, currentRuns, checks) => {
             issue = currentIssue; selectedRuns = currentRuns;
             matcherResults = checks.map(check => ({ matcher: { kind: "json_path" as const, path: `continuation.${check.id}`, expected: true }, passed: check.passed, detail: check.detail }));
@@ -1108,7 +1108,7 @@ for (const execution of executions) {
         const story = await runEverydayFlow({
           page, api, fixtures, execution, nonce, workspacePath, privateDir,
           deadlineAt: startedAtMs + deadlineMs,
-          restart: () => restartIsolatedPaperclipServer({ api, requestId: `story-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
+          restart: () => restartIsolatedClayonServer({ api, requestId: `story-${nonce}`, deadlineAt: startedAtMs + deadlineMs }),
           observe: (storyIssue, storyRuns) => { issue = storyIssue; selectedRuns = storyRuns; },
           capture: captureScreenshot,
           evidence: (name, data) => writeSanitizedJson(snapshotsDir, name, data, secrets),
@@ -1131,7 +1131,7 @@ for (const execution of executions) {
       } else if (execution.task.flow === "agent_chat") {
         const chat = await runChatFlow({
           page, api, fixtures, execution, nonce, workspacePath,
-          restart: () => restartChatServer(page, () => restartIsolatedPaperclipServer({ api, requestId: `chat-${nonce}`, deadlineAt: startedAtMs + deadlineMs })),
+          restart: () => restartChatServer(page, () => restartIsolatedClayonServer({ api, requestId: `chat-${nonce}`, deadlineAt: startedAtMs + deadlineMs })),
           observe: (chatIssue, chatRuns) => { issue = chatIssue; selectedRuns = chatRuns; },
           capture: captureScreenshot,
           evidence: completionEvidence,
@@ -1290,7 +1290,7 @@ for (const execution of executions) {
         await page.getByRole("button", { name: "Dismiss Approve tool action" }).click();
         await page.getByRole("button", { name: "Review request", exact: true }).click();
         if (execution.task.toolReviewDecision === "restart") {
-          await restartIsolatedPaperclipServer({ api, requestId: `tool-review-${nonce}`, deadlineAt });
+          await restartIsolatedClayonServer({ api, requestId: `tool-review-${nonce}`, deadlineAt });
           await page.reload();
         }
         if (execution.task.toolReviewDecision === "always") {
@@ -1546,7 +1546,7 @@ for (const execution of executions) {
         );
         if (execution.task.restartServerBeforeQuestionAnswer) {
           const restartRequestId = `question-wait-${nonce}`;
-          await restartIsolatedPaperclipServer({
+          await restartIsolatedClayonServer({
             api,
             requestId: restartRequestId,
             deadlineAt,
@@ -1841,7 +1841,7 @@ for (const execution of executions) {
           }
           const journalEvidence = execution.suite.id === "daytona-journal-continuity" && completedTurn === 1
             ? await largeJournalEvidence({
-                stateRoot: path.join(process.env.PAPERCLIP_HOME!, "instances", process.env.PAPERCLIP_INSTANCE_ID!, "runtime", "paperclip-runner", "durable-sessions"),
+                stateRoot: path.join(process.env.CLAYON_HOME!, "instances", process.env.CLAYON_INSTANCE_ID!, "runtime", "clayon-runner", "durable-sessions"),
                 runId: chronologicalRuns.at(-1)!.id,
                 minimumBytes: 2 * 1024 * 1024,
                 minimumCompletedStimulusCalls: 240,
@@ -1875,7 +1875,7 @@ for (const execution of executions) {
           })).toBeVisible({ timeout: reviewUiTimeout() });
           const turnReply = page.getByTestId("task-chat-thread")
             .getByTestId("task-chat-agent-bubble")
-            .filter({ hasText: `PAPERCLIP_E2E_WARM_T${completedTurn}_${nonce}` }).last();
+            .filter({ hasText: `CLAYON_E2E_WARM_T${completedTurn}_${nonce}` }).last();
           await expect(turnReply).toBeVisible({ timeout: reviewUiTimeout() });
           const pendingReview = waitingState.interactions.find(isPendingWarmConfirmation)!;
           const reviewCard = page.locator(`[id=${JSON.stringify(`interaction-${pendingReview.id}`)}]`);
@@ -2022,7 +2022,7 @@ for (const execution of executions) {
             ? Date.parse(candidate.finishedAt)
             : Number.NaN;
           const acquisition = record(
-            record(candidate.contextSnapshot).paperclipEnvironment,
+            record(candidate.contextSnapshot).clayonEnvironment,
           ).sandboxLeaseAcquisition;
           const acquisitionOutcome = record(acquisition).outcome;
           return {
@@ -2260,8 +2260,8 @@ for (const execution of executions) {
       }
 
       const context = record(run.contextSnapshot);
-      const environmentContext = record(context.paperclipEnvironment);
-      const workspaceContext = record(context.paperclipWorkspace);
+      const environmentContext = record(context.clayonEnvironment);
+      const workspaceContext = record(context.clayonWorkspace);
       const environmentDriver =
         environmentContext.driver ?? persistedEnvironment.driver;
       const observedEnvironment =
@@ -2397,7 +2397,7 @@ for (const execution of executions) {
       }
       if (execution.task.flow === "warm_three_turn") {
         const runEnvironmentContexts = selectedRuns.map((candidate) =>
-          record(record(candidate.contextSnapshot).paperclipEnvironment),
+          record(record(candidate.contextSnapshot).clayonEnvironment),
         );
         const leaseIds = runEnvironmentContexts.map((entry) => entry.leaseId);
         const acquisitionOutcomes = runEnvironmentContexts.map(
@@ -2405,7 +2405,7 @@ for (const execution of executions) {
         );
         const projectWorkspaceIds = selectedRuns.map(
           (candidate) =>
-            record(record(candidate.contextSnapshot).paperclipWorkspace)
+            record(record(candidate.contextSnapshot).clayonWorkspace)
               .workspaceId,
         );
         const executionWorkspaceIds = selectedRuns.map(
@@ -3091,7 +3091,7 @@ for (const execution of executions) {
         fallbackFinishedAt: new Date(finishedAtMs),
       });
       const resultWithoutBilling: RunnerE2EResult = {
-        schema: "paperclip.runner-e2e.result/v2",
+        schema: "clayon.runner-e2e.result/v2",
         executionId: execution.id,
         suiteId: execution.suite.id,
         suiteDefinitionHash: execution.suiteDefinitionHash,

@@ -1,4 +1,4 @@
-# @paperclipai/shared
+# @clayon/shared
 
 ## 0.3.1
 

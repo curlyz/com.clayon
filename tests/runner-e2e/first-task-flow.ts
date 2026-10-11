@@ -134,9 +134,9 @@ export async function setupFirstTaskFixtures(input: {
     expect(migrated.adapterConfig?.instructionsFilePath).toBe(
       agents[0].adapterConfig?.instructionsFilePath,
     );
-    expect(migrated.adapterConfig?.paperclipSkillSync?.desiredSkills).toEqual(
+    expect(migrated.adapterConfig?.clayonSkillSync?.desiredSkills).toEqual(
       (
-        runtimePatch.adapterConfig.paperclipSkillSync as {
+        runtimePatch.adapterConfig.clayonSkillSync as {
           desiredSkills?: unknown[];
         }
       )?.desiredSkills,
@@ -354,7 +354,7 @@ export async function runFirstTaskFlow(input: {
       permissions: agent.permissions,
     };
     const desired =
-      agent.adapterConfig?.paperclipSkillSync?.desiredSkills ?? [];
+      agent.adapterConfig?.clayonSkillSync?.desiredSkills ?? [];
     expect(
       desired.map((s: string | { key: string }) =>
         typeof s === "string" ? s : s.key,
@@ -430,7 +430,7 @@ export async function runFirstTaskFlow(input: {
           o.id === (scenario.opening === "interview" ? "interview" : "task"),
       );
       await page
-        // Paperclip includes the option description in the accessible name.
+        // Clayon includes the option description in the accessible name.
         .getByRole("radio", { name: option.label })
         .last()
         .click();

@@ -25,7 +25,7 @@ const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
 
 async function createTempDatabase(): Promise<string> {
-  const db = await startEmbeddedPostgresTestDatabase("paperclip-db-client-");
+  const db = await startEmbeddedPostgresTestDatabase("clayon-db-client-");
   cleanups.push(db.cleanup);
   return db.connectionString;
 }
@@ -119,21 +119,21 @@ describeEmbeddedPostgres("createDb pool defaults", () => {
     const [self] = await db.$client`select application_name from pg_stat_activity where pid = pg_backend_pid()`;
     expect(self?.application_name).toBe(DEFAULT_DATABASE_APPLICATION_NAME);
 
-    const shortLived = createDb(url, { applicationName: "paperclip-idle-test", idleTimeoutSeconds: 1 });
+    const shortLived = createDb(url, { applicationName: "clayon-idle-test", idleTimeoutSeconds: 1 });
     cleanups.push(async () => {
       await shortLived.$client.end({ timeout: 1 });
     });
     await shortLived.$client`select 1`;
-    expect(await backendsNamed("paperclip-idle-test")).toBe(1);
+    expect(await backendsNamed("clayon-idle-test")).toBe(1);
 
     // The driver closes the idle connection after `idle_timeout`; without the
     // option (the driver default) the backend would stay until the process
     // exits. Wait past the timeout, then poll PostgreSQL's own view.
     const deadline = Date.now() + 10_000;
-    let remaining = await backendsNamed("paperclip-idle-test");
+    let remaining = await backendsNamed("clayon-idle-test");
     while (remaining > 0 && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 250));
-      remaining = await backendsNamed("paperclip-idle-test");
+      remaining = await backendsNamed("clayon-idle-test");
     }
     expect(remaining).toBe(0);
   }, 30_000);
@@ -175,7 +175,7 @@ describeEmbeddedPostgres("applyPendingMigrations", () => {
     await ensurePostgresDatabase(clusterUrl.toString(), databaseName);
     clusterUrl.pathname = "/" + databaseName;
     const connectionString = clusterUrl.toString();
-    const prefixFolder = await fs.promises.mkdtemp(join(tmpdir(), "paperclip-migration-prefix-"));
+    const prefixFolder = await fs.promises.mkdtemp(join(tmpdir(), "clayon-migration-prefix-"));
     cleanups.push(() => fs.promises.rm(prefixFolder, { recursive: true, force: true }));
     await fs.promises.mkdir(join(prefixFolder, "meta"));
     const journal = JSON.parse(await fs.promises.readFile(new URL("./migrations/meta/_journal.json", import.meta.url), "utf8"));
@@ -1534,7 +1534,7 @@ describeEmbeddedPostgres("applyPendingMigrations", () => {
       legacyUrl.pathname = "/native_legacy";
       const connectionString = legacyUrl.href;
       cleanups.push(() => closeRegisteredClients(connectionString));
-      const directory = await fs.promises.mkdtemp(join(tmpdir(), "paperclip-native-prior-migrations-"));
+      const directory = await fs.promises.mkdtemp(join(tmpdir(), "clayon-native-prior-migrations-"));
       cleanups.push(() => fs.promises.rm(directory, { recursive: true, force: true }));
       const migrationsRoot = new URL("./migrations/", import.meta.url);
       const journal = JSON.parse(await fs.promises.readFile(new URL("meta/_journal.json", migrationsRoot), "utf8"));

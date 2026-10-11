@@ -29,8 +29,8 @@ export async function createPerRunSecret(clients: KubeClients, input: CreatePerR
         name: input.secretName,
         namespace: input.namespace,
         labels: {
-          "paperclip.io/run-id": input.runId,
-          "paperclip.io/managed-by": "paperclip-k8s-plugin",
+          "clayon.io/run-id": input.runId,
+          "clayon.io/managed-by": "clayon-k8s-plugin",
         },
         ownerReferences: [
           {

@@ -20,7 +20,7 @@ vi.mock("../sentry.js", () => ({ captureException: captureExceptionMock }));
 vi.mock("../telemetry.js", () => ({
   getTelemetryClient: () => telemetryMocks.client,
 }));
-vi.mock("@paperclipai/shared/telemetry", () => ({
+vi.mock("@clayon/shared/telemetry", () => ({
   trackErrorHandlerCrash: telemetryMocks.trackErrorHandlerCrash,
 }));
 
@@ -289,7 +289,7 @@ describe("errorHandler", () => {
     const db = { marker: "db" };
     const req = {
       ...makeReq(),
-      app: { locals: { paperclipDb: db } },
+      app: { locals: { clayonDb: db } },
       actor: {
         type: "agent",
         agentId: "agent-1",

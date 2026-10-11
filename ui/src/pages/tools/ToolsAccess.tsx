@@ -8,6 +8,7 @@ import { ProfilesIndex } from "./profiles/ProfilesIndex";
 import { GatewaysTab } from "./GatewaysTab";
 import { PasteConfigTab } from "./PasteConfigTab";
 import { SmokeLabTab } from "./SmokeLabTab";
+import { AppsPageTabs } from "@/components/AppsPageTabs";
 import {
   ADVANCED_TABS,
   TOOL_TABS,
@@ -84,6 +85,7 @@ export function ToolsAccess() {
     // and a focused setup tab. The developer surface stays behind a quiet link.
     return (
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
+        <AppsPageTabs />
         <header>
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold text-foreground">Advanced setup</h1>
@@ -131,5 +133,10 @@ export function ToolsAccess() {
     );
   }
 
-  return <div className="max-w-5xl">{renderTab(activeTab, selectedCompanyId)}</div>;
+  return (
+    <div className="max-w-5xl space-y-5">
+      <AppsPageTabs />
+      {renderTab(activeTab, selectedCompanyId)}
+    </div>
+  );
 }

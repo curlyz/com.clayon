@@ -13,8 +13,8 @@ import { Dashboard } from "@/pages/Dashboard";
 import { NewAgent } from "@/pages/NewAgent";
 import { AgentBasicsDialog } from "@/components/new-agent/AgentBasicsDialog";
 import { queryKeys } from "@/lib/queryKeys";
-import { resolveAgentAppearance } from "@paperclipai/shared";
-import { storybookAgents, storybookIssues, storybookActivityEvents, storybookLiveRuns, storybookDashboardSummary } from "../fixtures/paperclipData";
+import { resolveAgentAppearance } from "@clayon/shared";
+import { storybookAgents, storybookIssues, storybookActivityEvents, storybookLiveRuns, storybookDashboardSummary } from "../fixtures/clayonData";
 
 const companyId = "company-storybook";
 const agents = storybookAgents.map(agent => {

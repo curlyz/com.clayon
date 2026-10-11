@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from "react";
 import { History } from "lucide-react";
+import { z } from "zod";
 import { EmptyState } from "@/components/EmptyState";
+import { PageHeaderBand } from "@/components/PageHeaderBand";
 import { PageTabBar } from "@/components/PageTabBar";
 import { Tabs } from "@/components/ui/tabs";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -12,6 +14,7 @@ import { AuditFeed, type AuditFeedMode } from "./AuditFeed";
 import { AuditRuns } from "./AuditRuns";
 import { RoutineAuditActivity } from "./RoutineAuditActivity";
 import {
+  AUDIT_SECTION_IDS,
   AUDIT_SECTIONS,
   auditScopeFromSearchParams,
   auditSectionHref,
@@ -83,18 +86,17 @@ export function AuditHub({ section }: { section: AuditSection }) {
 
   return (
     <div className="flex flex-col">
-      <h1 className="border-t border-border bg-muted/50 px-4 py-3 text-3xl font-semibold tracking-tight text-foreground">Audit</h1>
-
-      <Tabs
-        className="border-t border-border bg-muted/50"
-        value={section}
-        onValueChange={(value) => {
-          const next = value as AuditSection;
-          navigate(auditSectionHref(next, scope));
-        }}
-      >
-        <PageTabBar items={AUDIT_SECTIONS} value={section} align="start" />
-      </Tabs>
+      <PageHeaderBand title="Audit">
+        <Tabs
+          value={section}
+          onValueChange={(value) => {
+            const next = z.enum(AUDIT_SECTION_IDS).safeParse(value);
+            if (next.success) navigate(auditSectionHref(next.data, scope));
+          }}
+        >
+          <PageTabBar items={AUDIT_SECTIONS} value={section} align="start" />
+        </Tabs>
+      </PageHeaderBand>
 
       {section === "activity" && routineId ? (
         <RoutineAuditActivity companyId={selectedCompanyId} routineId={routineId} />

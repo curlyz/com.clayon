@@ -68,7 +68,7 @@ describe("decideQueuedCommentQueueSteering", () => {
     expect(decision).toEqual({ protocol: "paperclip_runner_v1", kind: "probe", steeringRunId: "run-1" });
   });
 
-  it("keeps a preparing Paperclip Runner on the steering protocol until runtime selection finishes", () => {
+  it("keeps a preparing Clayon Runner on the steering protocol until runtime selection finishes", () => {
     expect(decideQueuedCommentQueueSteering({ state: "deferred", queueRunRuntimeMode: null,
       activeRun: { id: "preparing-run", runtimeMode: "legacy", runtimeModeResolvedAt: null,
         runnerProfileJson: { adapterDispatch: { adapterType: "paperclip_runner" } } },
@@ -137,13 +137,13 @@ describe("withQueuedCommentIdsInRunContext", () => {
     const result = withQueuedCommentIdsInRunContext({
       issueId: "issue-1",
       preserved: "keep",
-      paperclipWake: { comments: [{ id: "comment-1" }] },
-      paperclipWakeComment: { id: "comment-1" },
-      paperclipTaskMarkdown: "historical",
-      paperclipTaskMarkdownCompact: "historical compact",
-      paperclipTaskMarkdownAssignment: "assignment",
-      paperclipTaskMarkdownAssignmentCompact: "assignment compact",
-      paperclipTurnContext: { version: 1, events: { owner: "wake_prompt" } },
+      clayonWake: { comments: [{ id: "comment-1" }] },
+      clayonWakeComment: { id: "comment-1" },
+      clayonTaskMarkdown: "historical",
+      clayonTaskMarkdownCompact: "historical compact",
+      clayonTaskMarkdownAssignment: "assignment",
+      clayonTaskMarkdownAssignmentCompact: "assignment compact",
+      clayonTurnContext: { version: 1, events: { owner: "wake_prompt" } },
     }, ["comment-2"]);
 
     expect(result).toMatchObject({
@@ -153,12 +153,12 @@ describe("withQueuedCommentIdsInRunContext", () => {
       wakeCommentId: "comment-2",
       commentId: "comment-2",
     });
-    expect(result).not.toHaveProperty("paperclipWake");
-    expect(result).not.toHaveProperty("paperclipWakeComment");
-    expect(result).not.toHaveProperty("paperclipTaskMarkdown");
-    expect(result).not.toHaveProperty("paperclipTaskMarkdownCompact");
-    expect(result).not.toHaveProperty("paperclipTaskMarkdownAssignment");
-    expect(result).not.toHaveProperty("paperclipTaskMarkdownAssignmentCompact");
-    expect(result).not.toHaveProperty("paperclipTurnContext");
+    expect(result).not.toHaveProperty("clayonWake");
+    expect(result).not.toHaveProperty("clayonWakeComment");
+    expect(result).not.toHaveProperty("clayonTaskMarkdown");
+    expect(result).not.toHaveProperty("clayonTaskMarkdownCompact");
+    expect(result).not.toHaveProperty("clayonTaskMarkdownAssignment");
+    expect(result).not.toHaveProperty("clayonTaskMarkdownAssignmentCompact");
+    expect(result).not.toHaveProperty("clayonTurnContext");
   });
 });

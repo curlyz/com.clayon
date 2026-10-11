@@ -180,7 +180,7 @@ export function stageBundledProviderOptionalDependencies(destinationDir, publish
   for (const field of ["bundleDependencies", "bundledDependencies"]) {
     if (Array.isArray(result[field])) result[field] = result[field].filter(name => !Object.hasOwn(declarations, name));
   }
-  delete result.paperclipProviderArtifacts;
+  delete result.clayonProviderArtifacts;
   return result;
 }
 
@@ -377,7 +377,7 @@ export function prepareBundledPackage(sourceDir, destinationDir, { sourceRoot = 
   const publishManifest = materializePublishManifest(sourcePackage);
   const rootPackage = JSON.parse(readFileSync(resolve(sourceRoot, "package.json"), "utf8"));
   const profileData = bundledDependencies.includes("@agentclientprotocol/codex-acp")
-    ? JSON.parse(readFileSync(resolve(sourceRoot, "packages/paperclip-runner/acpx-profiles.json"), "utf8")) : undefined;
+    ? JSON.parse(readFileSync(resolve(sourceRoot, "packages/clayon-runner/acpx-profiles.json"), "utf8")) : undefined;
   const { installManifest, profiles } = configureBundledProviderOverrides(
     createBundledInstallManifest(publishManifest, bundledDependencies), bundledDependencies, rootPackage, profileData,
   );

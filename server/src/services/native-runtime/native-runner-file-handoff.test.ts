@@ -1,4 +1,4 @@
-import type { PrpStructuredRunResult } from "../../vendor/paperclip-runner/index.js";
+import type { PrpStructuredRunResult } from "../../vendor/clayon-runner/index.js";
 import { nativeCompletionFeedback } from "./native-completion-feedback.js";
 import { createHash, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
@@ -31,7 +31,7 @@ import {
   issueComments,
   issues,
   issueWorkProducts,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import { createLocalDiskStorageProvider } from "../../storage/local-disk-provider.js";
@@ -44,7 +44,7 @@ import {
   stageNativeRunnerAttachmentBytes,
   stageNativeRunnerWakeAttachments,
 } from "./native-runner-file-handoff.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 
 describe("native runner file handoff", () => {
   let temporary: Awaited<
@@ -66,7 +66,7 @@ describe("native runner file handoff", () => {
     );
     db = createDb(temporary.connectionString);
     temporaryRoot = await mkdtemp(
-      path.join(tmpdir(), "paperclip-native-file-handoff-"),
+      path.join(tmpdir(), "clayon-native-file-handoff-"),
     );
     workspaceRoot = path.join(temporaryRoot, "workspace");
     storageRoot = path.join(temporaryRoot, "storage");
@@ -125,7 +125,7 @@ describe("native runner file handoff", () => {
       readRemoteWorkspaceFile: (input: { contentRef: string; byteSize: number; sha256: string }) => Promise<Buffer>;
     }> = {},
   ) {
-    return new PaperclipRunnerToolAuthority(db, {
+    return new ClayonRunnerToolAuthority(db, {
       companyId: overrides.companyId ?? companyId,
       agentId,
       issueId,
@@ -237,13 +237,13 @@ describe("native runner file handoff", () => {
       await previous.cleanup();
       const slot = path.join(root, previous.workspaceRelativePath);
       await writeFile(slot, "stale bytes after an interrupted owner");
-      const directories = await readdir(path.join(root, ".paperclip-inbound"));
+      const directories = await readdir(path.join(root, ".clayon-inbound"));
 
       const wake = await stageEmptyWake(root);
       expect(wake.attachments).toEqual([]);
       await wake.cleanup();
       await expect(readFile(slot)).resolves.toEqual(Buffer.alloc(0));
-      await expect(readdir(path.join(root, ".paperclip-inbound"))).resolves.toEqual(directories);
+      await expect(readdir(path.join(root, ".clayon-inbound"))).resolves.toEqual(directories);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -256,7 +256,7 @@ describe("native runner file handoff", () => {
       const outside = await mkdtemp(path.join(temporaryRoot, "empty-wake-outside-"));
       try {
         await writeFile(path.join(outside, "keep.txt"), "outside bytes");
-        const inbound = path.join(root, ".paperclip-inbound");
+        const inbound = path.join(root, ".clayon-inbound");
         if (kind === "root-file") await writeFile(inbound, "not a directory");
         else if (kind === "root-symlink") await symlink(outside, inbound);
         else {
@@ -487,7 +487,7 @@ describe("native runner file handoff", () => {
     ).resolves.toEqual([
       expect.objectContaining({
         type: "artifact",
-        provider: "paperclip",
+        provider: "clayon",
         title: "Requested answer",
         createdByRunId: runId,
       }),
@@ -636,7 +636,7 @@ describe("native runner file handoff", () => {
       .set({
         contextSnapshot: {
           issueId,
-          paperclipWake: {
+          clayonWake: {
             comments: [
               {
                 id: comment.id,
@@ -676,7 +676,7 @@ describe("native runner file handoff", () => {
         contentType: "text/plain",
         byteSize: body.length,
         workspaceRelativePath: expect.stringMatching(
-          /^\.paperclip-inbound\/.+\/[0-9a-f-]{36}$/u,
+          /^\.clayon-inbound\/.+\/[0-9a-f-]{36}$/u,
         ),
         unavailableReason: null,
       },
@@ -716,7 +716,7 @@ describe("native runner file handoff", () => {
     try {
       const liveForeignDirectory = path.join(
         workspaceRoot,
-        ".paperclip-inbound",
+        ".clayon-inbound",
         `process-${liveOwner.pid}-unknown-00000000-0000-4000-8000-000000009298`,
       );
       const liveForeignFile = path.join(liveForeignDirectory, "active-slot");
@@ -741,7 +741,7 @@ describe("native runner file handoff", () => {
 
       const recycledOwnerDirectory = path.join(
         workspaceRoot,
-        ".paperclip-inbound",
+        ".clayon-inbound",
         `process-${liveOwner.pid}-0-00000000-0000-4000-8000-000000009297`,
       );
       const recycledOwnerFile = path.join(recycledOwnerDirectory, "stale-slot");
@@ -774,7 +774,7 @@ describe("native runner file handoff", () => {
     );
     expect(prompt).toContain(relativePath!);
     expect(prompt).not.toContain("/api/attachments/");
-    expect(prompt).not.toContain("PAPERCLIP_API_KEY");
+    expect(prompt).not.toContain("CLAYON_API_KEY");
     await stage.cleanup();
     await expect(
       readFile(path.join(workspaceRoot, relativePath!)),
@@ -782,7 +782,7 @@ describe("native runner file handoff", () => {
 
     const crashDirectory = path.join(
       workspaceRoot,
-      ".paperclip-inbound",
+      ".clayon-inbound",
       "process-2147483647-0-00000000-0000-4000-8000-000000009299",
     );
     await mkdir(crashDirectory, { recursive: true });
@@ -892,7 +892,7 @@ describe("native runner file handoff", () => {
       .set({
         contextSnapshot: {
           issueId,
-          paperclipWake: {
+          clayonWake: {
             comments: [
               {
                 id: current.comment.id,
@@ -966,7 +966,7 @@ describe("native runner file handoff", () => {
     });
     const currentComment = await issueService(db).addComment(
       issueId,
-      "Inspect the current attachment if Paperclip imported it.",
+      "Inspect the current attachment if Clayon imported it.",
       { userId: "inbound-user" },
     );
     await db
@@ -974,11 +974,11 @@ describe("native runner file handoff", () => {
       .set({
         contextSnapshot: {
           issueId,
-          paperclipWake: {
+          clayonWake: {
             comments: [
               {
                 id: currentComment.id,
-                body: "Inspect the current attachment if Paperclip imported it.",
+                body: "Inspect the current attachment if Clayon imported it.",
                 attachments: [],
               },
             ],
@@ -1049,7 +1049,7 @@ describe("native runner file handoff", () => {
       companyId,
       issueId,
       type: "artifact",
-      provider: "paperclip",
+      provider: "clayon",
       externalId: existingAttachment!.id,
       title: "Reminted by another run",
       status: "active",
@@ -1082,7 +1082,7 @@ describe("native runner file handoff", () => {
         await realStorage.deleteObject(deleteCompanyId, objectKey);
       },
     };
-    const mismatchingAuthority = new PaperclipRunnerToolAuthority(db, {
+    const mismatchingAuthority = new ClayonRunnerToolAuthority(db, {
       companyId,
       agentId,
       issueId,
@@ -1138,7 +1138,7 @@ describe("native runner file handoff", () => {
       FOR EACH ROW EXECUTE FUNCTION paperclip_test_fail_native_receipt()
     `);
     try {
-      const receiptFailureAuthority = new PaperclipRunnerToolAuthority(db, {
+      const receiptFailureAuthority = new ClayonRunnerToolAuthority(db, {
         companyId,
         agentId,
         issueId,
@@ -1248,7 +1248,7 @@ describe("native runner file handoff", () => {
         await writeFile(path.join(workspaceRoot, filename), body);
         await db
           .update(heartbeatRuns)
-          .set({ contextSnapshot: { issueId, paperclipWake: testCase.wake } })
+          .set({ contextSnapshot: { issueId, clayonWake: testCase.wake } })
           .where(eq(heartbeatRuns.id, runId));
         const call = callFor(filename, body, `delivery-mode-${index}`);
         // A tool argument or user comment never selects delivery capability.
@@ -1330,7 +1330,7 @@ describe("native runner file handoff", () => {
       await db.update(heartbeatRuns).set({ contextSnapshot: { issueId } }).where(eq(heartbeatRuns.id, nextRunId));
 
       // The replacement can verify and publish the existing bytes itself. No user action is needed.
-      const replacement = new PaperclipRunnerToolAuthority(db, { companyId, agentId, issueId, runId: nextRunId,
+      const replacement = new ClayonRunnerToolAuthority(db, { companyId, agentId, issueId, runId: nextRunId,
         workspaceRoot, executionTargetKind: "local", storage: createStorageService(createLocalDiskStorageProvider(storageRoot)) });
       const current = await replacement.execute(callFor(`${key}.txt`, body, `${key}-verified`)) as { entityRefs: string[] };
       expect(current.entityRefs[0]).not.toBe(prior.entityRefs[0]);

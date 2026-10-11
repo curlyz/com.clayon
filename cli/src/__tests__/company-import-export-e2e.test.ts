@@ -85,7 +85,7 @@ function writeTestConfig(configPath: string, tempRoot: string, port: number, con
         baseDir: path.join(tempRoot, "storage"),
       },
       s3: {
-        bucket: "paperclip",
+        bucket: "clayon",
         region: "us-east-1",
         prefix: "",
         forcePathStyle: false,
@@ -104,26 +104,26 @@ function writeTestConfig(configPath: string, tempRoot: string, port: number, con
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 }
 
-interface TestPaperclipEnv {
+interface TestClayonEnv {
   configPath: string;
-  paperclipHome: string;
+  clayonHome: string;
   instanceId: string;
   shellHome?: string;
 }
 
-function createBasePaperclipEnv(options: TestPaperclipEnv) {
+function createBaseClayonEnv(options: TestClayonEnv) {
   const env = { ...process.env };
   for (const key of Object.keys(env)) {
-    if (key.startsWith("PAPERCLIP_")) {
+    if (key.startsWith("CLAYON_")) {
       delete env[key];
     }
   }
 
-  env.PAPERCLIP_CONFIG = options.configPath;
-  env.PAPERCLIP_HOME = options.paperclipHome;
-  env.PAPERCLIP_INSTANCE_ID = options.instanceId;
-  env.PAPERCLIP_CONTEXT = path.join(options.paperclipHome, "context.json");
-  env.PAPERCLIP_AUTH_STORE = path.join(options.paperclipHome, "auth.json");
+  env.CLAYON_CONFIG = options.configPath;
+  env.CLAYON_HOME = options.clayonHome;
+  env.CLAYON_INSTANCE_ID = options.instanceId;
+  env.CLAYON_CONTEXT = path.join(options.clayonHome, "context.json");
+  env.CLAYON_AUTH_STORE = path.join(options.clayonHome, "auth.json");
   if (options.shellHome) {
     env.HOME = options.shellHome;
   }
@@ -135,9 +135,9 @@ function createServerEnv(
   configPath: string,
   port: number,
   connectionString: string,
-  options: Omit<TestPaperclipEnv, "configPath">,
+  options: Omit<TestClayonEnv, "configPath">,
 ) {
-  const env = createBasePaperclipEnv({
+  const env = createBaseClayonEnv({
     configPath,
     ...options,
   });
@@ -152,25 +152,25 @@ function createServerEnv(
   env.HOST = "127.0.0.1";
   env.PORT = String(port);
   env.SERVE_UI = "false";
-  env.PAPERCLIP_DB_BACKUP_ENABLED = "false";
-  env.PAPERCLIP_DECISION_SIGNING_SECRET = "company-import-export-decision-signing-secret";
+  env.CLAYON_DB_BACKUP_ENABLED = "false";
+  env.CLAYON_DECISION_SIGNING_SECRET = "company-import-export-decision-signing-secret";
   env.HEARTBEAT_SCHEDULER_ENABLED = "false";
-  env.PAPERCLIP_MIGRATION_AUTO_APPLY = "true";
-  env.PAPERCLIP_UI_DEV_MIDDLEWARE = "false";
+  env.CLAYON_MIGRATION_AUTO_APPLY = "true";
+  env.CLAYON_UI_DEV_MIDDLEWARE = "false";
 
   return env;
 }
 
-function createCliEnv(options: TestPaperclipEnv) {
-  const env = createBasePaperclipEnv(options);
+function createCliEnv(options: TestClayonEnv) {
+  const env = createBaseClayonEnv(options);
   delete env.DATABASE_URL;
   delete env.PORT;
   delete env.HOST;
   delete env.SERVE_UI;
-  delete env.PAPERCLIP_DB_BACKUP_ENABLED;
+  delete env.CLAYON_DB_BACKUP_ENABLED;
   delete env.HEARTBEAT_SCHEDULER_ENABLED;
-  delete env.PAPERCLIP_MIGRATION_AUTO_APPLY;
-  delete env.PAPERCLIP_UI_DEV_MIDDLEWARE;
+  delete env.CLAYON_MIGRATION_AUTO_APPLY;
+  delete env.CLAYON_UI_DEV_MIDDLEWARE;
   return env;
 }
 
@@ -210,16 +210,16 @@ async function api<T>(baseUrl: string, pathname: string, init?: RequestInit): Pr
 }
 
 function isPortableAgent(agent: { metadata?: Record<string, unknown> | null }) {
-  const marker = agent.metadata?.paperclipBuiltInAgent;
+  const marker = agent.metadata?.clayonBuiltInAgent;
   return typeof marker !== "object" || marker === null;
 }
 
 async function runCliJson<T>(
   args: string[],
-  opts: TestPaperclipEnv & { apiBase?: string; includeConfigArg?: boolean },
+  opts: TestClayonEnv & { apiBase?: string; includeConfigArg?: boolean },
 ) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-  const cliArgs = ["--silent", "paperclipai", ...args];
+  const cliArgs = ["--silent", "clayon", ...args];
   if (opts.apiBase) {
     cliArgs.push("--api-base", opts.apiBase);
   }
@@ -253,7 +253,7 @@ async function waitForServer(
   while (Date.now() - startedAt < 30_000) {
     if (child.exitCode !== null) {
       throw new Error(
-        `paperclipai run exited before healthcheck succeeded.\nstdout:\n${output.stdout.join("")}\nstderr:\n${output.stderr.join("")}`,
+        `clayon run exited before healthcheck succeeded.\nstdout:\n${output.stdout.join("")}\nstderr:\n${output.stderr.join("")}`,
       );
     }
 
@@ -272,28 +272,28 @@ async function waitForServer(
   );
 }
 
-describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
+describeEmbeddedPostgres("clayon company import/export e2e", () => {
   let tempRoot = "";
   let configPath = "";
   let exportDir = "";
   let apiBase = "";
-  let paperclipHome = "";
+  let clayonHome = "";
   let cliShellHome = "";
-  let paperclipInstanceId = "";
+  let clayonInstanceId = "";
   let serverProcess: ServerProcess | null = null;
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempRoot = mkdtempSync(path.join(os.tmpdir(), "paperclip-company-cli-e2e-"));
+    tempRoot = mkdtempSync(path.join(os.tmpdir(), "clayon-company-cli-e2e-"));
     configPath = path.join(tempRoot, "config", "config.json");
     exportDir = path.join(tempRoot, "exported-company");
-    paperclipHome = path.join(tempRoot, "paperclip-home");
+    clayonHome = path.join(tempRoot, "clayon-home");
     cliShellHome = path.join(tempRoot, "shell-home");
-    paperclipInstanceId = "company-cli-e2e";
-    mkdirSync(paperclipHome, { recursive: true });
+    clayonInstanceId = "company-cli-e2e";
+    mkdirSync(clayonHome, { recursive: true });
     mkdirSync(cliShellHome, { recursive: true });
 
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-company-cli-db-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-company-cli-db-");
 
     const port = await getAvailablePort();
     writeTestConfig(configPath, tempRoot, port, tempDb.connectionString);
@@ -303,12 +303,12 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
     const output = { stdout: [] as string[], stderr: [] as string[] };
     const child = spawn(
       "pnpm",
-      ["paperclipai", "run", "--config", configPath],
+      ["clayon", "run", "--config", configPath],
       {
         cwd: repoRoot,
         env: createServerEnv(configPath, port, tempDb.connectionString, {
-          paperclipHome,
-          instanceId: paperclipInstanceId,
+          clayonHome,
+          instanceId: clayonInstanceId,
           shellHome: cliShellHome,
         }),
         stdio: ["ignore", "pipe", "pipe"],
@@ -344,15 +344,15 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       ["context", "set", "--profile", "isolation-check", "--api-base", "https://example.test"],
       {
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
         includeConfigArg: false,
       },
     );
 
-    const expectedContextPath = path.join(paperclipHome, "context.json");
-    const leakedContextPath = path.join(cliShellHome, ".paperclip", "context.json");
+    const expectedContextPath = path.join(clayonHome, "context.json");
+    const leakedContextPath = path.join(cliShellHome, ".clayon", "context.json");
     expect(cliContext.contextPath).toBe(expectedContextPath);
     expect(cliContext.profileName).toBe("isolation-check");
     expect(cliContext.profile.apiBase).toBe("https://example.test");
@@ -440,8 +440,8 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       {
         apiBase,
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
       },
     );
@@ -449,7 +449,7 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
     expect(exportResult.ok).toBe(true);
     expect(exportResult.filesWritten).toBeGreaterThan(0);
     expect(readFileSync(path.join(exportDir, "COMPANY.md"), "utf8")).toContain(sourceCompany.name);
-    expect(readFileSync(path.join(exportDir, ".paperclip.yaml"), "utf8")).toContain('schema: "paperclip/v1"');
+    expect(readFileSync(path.join(exportDir, ".clayon.yaml"), "utf8")).toContain('schema: "clayon/v1"');
 
     const importedNew = await runCliJson<{
       company: { id: string; name: string; action: string };
@@ -470,8 +470,8 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       {
         apiBase,
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
       },
     );
@@ -524,8 +524,8 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       {
         apiBase,
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
       },
     );
@@ -557,8 +557,8 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       {
         apiBase,
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
       },
     );
@@ -590,7 +590,7 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
     const zipPath = path.join(tempRoot, "exported-company.zip");
     const portableFiles: Record<string, string> = {};
     collectTextFiles(exportDir, exportDir, portableFiles);
-    writeFileSync(zipPath, createStoredZipArchive(portableFiles, "paperclip-demo"));
+    writeFileSync(zipPath, createStoredZipArchive(portableFiles, "clayon-demo"));
 
     const importedFromZip = await runCliJson<{
       company: { id: string; name: string; action: string };
@@ -611,8 +611,8 @@ describeEmbeddedPostgres("paperclipai company import/export e2e", () => {
       {
         apiBase,
         configPath,
-        paperclipHome,
-        instanceId: paperclipInstanceId,
+        clayonHome,
+        instanceId: clayonInstanceId,
         shellHome: cliShellHome,
       },
     );

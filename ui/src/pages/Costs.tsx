@@ -1,4 +1,5 @@
 import { DecisionHistory } from "../components/decision-models/DecisionHistory";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { SubscriptionCostCard, SubscriptionTokenUsage } from "../components/SubscriptionCostCard";
 import { subscriptionsApi } from "../api/subscriptions";
 import { useSearchParams } from "@/lib/router";
@@ -17,7 +18,7 @@ import type {
   FinanceEvent,
   QuotaWindow,
   ProviderQuotaResult,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronRight, Coins, DollarSign, ReceiptText } from "lucide-react";
 import { budgetsApi } from "../api/budgets";
 import { costsApi } from "../api/costs";
@@ -593,59 +594,61 @@ export function Costs({
 
   const showCustomPrompt = preset === "custom" && !customReady;
   const showOverviewLoading = spendLoading && customReady;
+  const presetButtons = (
+    <div className="flex flex-wrap items-center gap-2">
+      {PRESET_KEYS.map((key) => (
+        <Button
+          key={key}
+          variant={preset === key ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => setPreset(key)}
+          aria-pressed={preset === key}
+        >
+          {PRESET_LABELS[key]}
+        </Button>
+      ))}
+    </div>
+  );
+  const customRangeRow = preset === "custom" ? (
+    <div className="mx-4 my-2 flex flex-wrap items-center gap-2 border border-border p-3">
+      <input
+        type="date"
+        value={customFrom}
+        onChange={(event) => setCustomFrom(event.target.value)}
+        className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+      />
+      <span className="text-sm text-muted-foreground">to</span>
+      <input
+        type="date"
+        value={customTo}
+        onChange={(event) => setCustomTo(event.target.value)}
+        className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+      />
+    </div>
+  ) : null;
+  const currenciesNote = financeData?.summary.currencies?.some((row) => row.currency !== "USD") ? (
+    <p role="status" className="px-4 py-2 text-sm text-muted-foreground">
+      Finance headline totals are USD only. Other currencies are listed separately; no exchange-rate conversion is applied.
+    </p>
+  ) : null;
   const overviewError = !spendData && spendError;
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col">
+      {showSummaryChrome && !embedded ? (
+        <PageHeaderBand title="Costs" actions={presetButtons} />
+      ) : null}
+      {showSummaryChrome && embedded ? (
+        <div className="flex flex-col gap-4 px-4 py-3 lg:flex-row lg:items-start lg:justify-between">
+          <h2 className="text-lg font-semibold text-foreground">Costs</h2>
+          {presetButtons}
+        </div>
+      ) : null}
+
       {showSummaryChrome ? (
-        <div className="space-y-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              {embedded ? (
-                <h2 className="text-lg font-semibold text-foreground">Costs</h2>
-              ) : (
-                <h1 className="text-3xl font-semibold tracking-tight">Costs</h1>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {PRESET_KEYS.map((key) => (
-                <Button
-                  key={key}
-                  variant={preset === key ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setPreset(key)}
-                  aria-pressed={preset === key}
-                >
-                  {PRESET_LABELS[key]}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {preset === "custom" ? (
-            <div className="flex flex-wrap items-center gap-2 border border-border p-3">
-              <input
-                type="date"
-                value={customFrom}
-                onChange={(event) => setCustomFrom(event.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-              />
-              <span className="text-sm text-muted-foreground">to</span>
-              <input
-                type="date"
-                value={customTo}
-                onChange={(event) => setCustomTo(event.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-              />
-            </div>
-          ) : null}
-
-          {financeData?.summary.currencies?.some((row) => row.currency !== "USD") && (
-            <p role="status" className="text-sm text-muted-foreground">
-              Finance headline totals are USD only. Other currencies are listed separately; no exchange-rate conversion is applied.
-            </p>
-          )}
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div>
+          {customRangeRow}
+          {currenciesNote}
+          <div className="grid gap-3 py-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricTile
               label="API spend"
               value={subscriptions ? subscriptions.api.unpricedEventCount === subscriptions.api.eventCount && subscriptions.api.eventCount > 0 ? "—" : formatCents(Number(subscriptions.api.costCents)) : "—"}
@@ -716,21 +719,21 @@ export function Costs({
       ) : null}
 
       {budgetError && !budgetData ? (
-        <p role="status" className="text-sm text-muted-foreground">
+        <p role="status" className="px-4 py-2 text-sm text-muted-foreground">
           Budget data could not be loaded. Please try again shortly.
         </p>
       ) : null}
       {((spendData && spendError) || (financeData && financeError) || (budgetData && budgetError) || providerError || billerError || weekError || weekBillerError || windowError) ? (
-        <p role="status" className="text-sm text-muted-foreground">
+        <p role="status" className="px-4 py-2 text-sm text-muted-foreground">
           Showing the last loaded data. Updates will resume automatically.
         </p>
       ) : null}
 
-      {!!spendData?.summary.estimatedEventCount && <p role="status" className="text-sm text-muted-foreground">Includes {spendData.summary.estimatedEventCount} estimated {spendData.summary.estimatedEventCount === 1 ? "charge" : "charges"}. Token estimates use published rates and recorded assumptions; provider bills may differ.</p>}
-      {incidentMutation.error && <p role="alert" className="text-sm text-destructive">Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.</p>}
+      {!!spendData?.summary.estimatedEventCount && <p role="status" className="px-4 py-2 text-sm text-muted-foreground">Includes {spendData.summary.estimatedEventCount} estimated {spendData.summary.estimatedEventCount === 1 ? "charge" : "charges"}. Token estimates use published rates and recorded assumptions; provider bills may differ.</p>}
+      {incidentMutation.error && <p role="alert" className="px-4 py-2 text-sm text-destructive">Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.</p>}
       <Tabs value={mainTab} onValueChange={(value) => { setMainTab(value as typeof mainTab); setSearchParams(current => { const next = new URLSearchParams(current); next.set("tab", value); return next; }, { replace: true }); }}>
         {!lockTab ? (
-          <div className="max-w-full overflow-x-auto pb-2">
+          <div className="max-w-full overflow-x-auto px-4 py-2">
             <TabsList variant="line" className="justify-start">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               {!hideBudgetsTab ? <TabsTrigger value="budgets">Budgets</TabsTrigger> : null}
@@ -767,7 +770,7 @@ export function Costs({
                           const isExpanded = expandedAgents.has(row.agentId);
                           const hasBreakdown = modelRows.length > 0;
                           return (
-                            <div key={row.agentId ?? "services"} role="group" aria-label={`${row.agentName ?? row.agentId ?? "Paperclip services"} costs`} className="border border-border px-4 py-3">
+                            <div key={row.agentId ?? "services"} role="group" aria-label={`${row.agentName ?? row.agentId ?? "Clayon services"} costs`} className="border border-border px-4 py-3">
                               <div
                                 className={cn("flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between", hasBreakdown ? "cursor-pointer select-none" : "")}
                                 onClick={() => hasBreakdown && toggleAgent(row.agentId)}
@@ -780,7 +783,7 @@ export function Costs({
                                   ) : (
                                     <span className="h-3 w-3 shrink-0" />
                                   )}
-                                  {row.agentId ? <AgentIdentity agent={{ id: row.agentId, name: row.agentName ?? row.agentId, appearance: row.agentAppearance }} size="sm" /> : <span className="font-medium">Paperclip services</span>}
+                                  {row.agentId ? <AgentIdentity agent={{ id: row.agentId, name: row.agentName ?? row.agentId, appearance: row.agentAppearance }} size="sm" /> : <span className="font-medium">Clayon services</span>}
                                   {row.agentStatus === "terminated" ? <StatusBadge status="terminated" /> : null}
                                 </div>
                                 <div className="text-right text-sm tabular-nums">

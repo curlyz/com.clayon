@@ -1,4 +1,4 @@
-import type { ToolConnectionInstall } from "@paperclipai/shared";
+import type { ToolConnectionInstall } from "@clayon/shared";
 
 /**
  * Shared "Permitted vs Installed" helpers (Phase 3b, PAP-13618).

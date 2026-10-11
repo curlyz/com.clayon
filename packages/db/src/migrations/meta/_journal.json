@@ -2304,6 +2304,13 @@
       "when": 1791578748375,
       "tag": "0330_spooky_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 331,
+      "version": "7",
+      "when": 1791698861883,
+      "tag": "0331_regular_the_leader",
+      "breakpoints": true
     }
   ]
 }

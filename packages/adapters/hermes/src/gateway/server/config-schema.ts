@@ -1,4 +1,4 @@
-import type { AdapterConfigSchema } from "@paperclipai/adapter-utils";
+import type { AdapterConfigSchema } from "@clayon/adapter-utils";
 import { DEFAULT_EVENT_RECONNECT_MS, DEFAULT_TIMEOUT_SEC } from "../shared/constants.js";
 import { INSECURE_REMOTE_HTTP_ESCAPE_HATCH } from "./transport-security.js";
 
@@ -17,7 +17,7 @@ export function getConfigSchema(): AdapterConfigSchema {
         label: "API key",
         type: "text",
         required: true,
-        hint: "Hermes API_SERVER_KEY, not PAPERCLIP_API_KEY. Stored as a Paperclip secret reference.",
+        hint: "Hermes API_SERVER_KEY, not CLAYON_API_KEY. Stored as a Clayon secret reference.",
         meta: { secret: true },
       },
       {
@@ -54,10 +54,10 @@ export function getConfigSchema(): AdapterConfigSchema {
         hint: "Delay before reconnecting the Hermes SSE events stream after a nonterminal disconnect.",
       },
       {
-        key: "paperclipApiUrl",
-        label: "Paperclip API URL",
+        key: "clayonApiUrl",
+        label: "Clayon API URL",
         type: "text",
-        hint: "Optional Paperclip API URL reachable by the remote Hermes host. This is not a credential.",
+        hint: "Optional Clayon API URL reachable by the remote Hermes host. This is not a credential.",
       },
       {
         key: "headers",

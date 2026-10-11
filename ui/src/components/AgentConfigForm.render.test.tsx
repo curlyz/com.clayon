@@ -4,9 +4,10 @@ import { useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Agent, Environment, UserSecretDefinition } from "@paperclipai/shared";
-import { getEnvironmentCapabilities } from "@paperclipai/shared";
+import type { Agent, Environment, UserSecretDefinition } from "@clayon/shared";
+import { getEnvironmentCapabilities } from "@clayon/shared";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ToastProvider } from "../context/ToastContext";
 import { AgentConfigForm, AdapterLoginPanel, subtractPersistedOverlay, type AdapterLoginDescriptor } from "./AgentConfigForm";
@@ -18,7 +19,7 @@ import { ApiError } from "../api/client";
 import { aiConnectionsApi } from "../api/ai-connections";
 import { CodexLocalConfigFields } from "../adapters/codex-local/config-fields";
 import type { AdapterConfigFieldsProps } from "../adapters/types";
-import { DEFAULT_CODEX_LOCAL_MODEL } from "@paperclipai/adapter-codex-local";
+import { DEFAULT_CODEX_LOCAL_MODEL } from "@clayon/adapter-codex-local";
 
 const mockAgentsApi = vi.hoisted(() => ({
   get: vi.fn(),
@@ -91,9 +92,9 @@ vi.mock("../lib/clipboard", () => ({
 
 vi.mock("../context/CompanyContext", () => ({
   useCompany: () => ({
-    companies: [{ id: "company-1", name: "Paperclip" }],
+    companies: [{ id: "company-1", name: "Clayon" }],
     selectedCompanyId: "company-1",
-    selectedCompany: { id: "company-1", name: "Paperclip" },
+    selectedCompany: { id: "company-1", name: "Clayon" },
     selectionSource: "bootstrap",
     loading: false,
     error: null,
@@ -213,6 +214,15 @@ async function flushReact() {
   });
 }
 
+/** Waits out the 800 ms autosave debounce plus a settle tick, so a draft's
+ *  save has fired and resolved before an assertion reads `onSave`. */
+async function flushAutosave() {
+  await act(async () => {
+    await new Promise((resolve) => window.setTimeout(resolve, 950));
+  });
+  await flushReact();
+}
+
 function makeAgent(overrides: Partial<Agent> = {}): Agent {
   return {
     id: "agent-1",
@@ -269,10 +279,6 @@ async function renderForm(
     showAdapterTestEnvironmentButton?: boolean;
     content?: "configuration" | "secrets";
     environmentVariablesPlacement?: "configuration" | "secrets";
-    hideInlineSave?: boolean;
-    onDirtyChange?: (dirty: boolean) => void;
-    onSaveActionChange?: (save: (() => void) | null) => void;
-    onCancelActionChange?: (cancel: (() => void) | null) => void;
   } = {},
 ) {
   mockEnvironmentsApi.list.mockResolvedValue(environments);
@@ -293,20 +299,18 @@ async function renderForm(
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <TooltipProvider>
-            <AgentConfigForm
-              mode="edit"
-              agent={makeAgent(agentOverrides)}
-              onSave={onSave}
-              hidePromptTemplate
-              content={options.content}
-              environmentVariablesPlacement={options.environmentVariablesPlacement}
-              hideInlineSave={options.hideInlineSave}
-              onDirtyChange={options.onDirtyChange}
-              onSaveActionChange={options.onSaveActionChange}
-              onCancelActionChange={options.onCancelActionChange}
-              showAdapterTypeField={false}
-              showAdapterTestEnvironmentButton={options.showAdapterTestEnvironmentButton ?? false}
-            />
+            <MemoryRouter>
+              <AgentConfigForm
+                mode="edit"
+                agent={makeAgent(agentOverrides)}
+                onSave={onSave}
+                hidePromptTemplate
+                content={options.content}
+                environmentVariablesPlacement={options.environmentVariablesPlacement}
+                showAdapterTypeField={false}
+                showAdapterTestEnvironmentButton={options.showAdapterTestEnvironmentButton ?? false}
+              />
+            </MemoryRouter>
           </TooltipProvider>
         </ToastProvider>
       </QueryClientProvider>,
@@ -346,14 +350,16 @@ async function renderCreateForm(
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <TooltipProvider>
-            <AgentConfigForm
-              mode="create"
-              values={values}
-              onChange={onChange}
-              hidePromptTemplate
-              showAdapterTypeField={false}
-              showAdapterTestEnvironmentButton={options.showAdapterTestEnvironmentButton ?? false}
-            />
+            <MemoryRouter>
+              <AgentConfigForm
+                mode="create"
+                values={values}
+                onChange={onChange}
+                hidePromptTemplate
+                showAdapterTypeField={false}
+                showAdapterTestEnvironmentButton={options.showAdapterTestEnvironmentButton ?? false}
+              />
+            </MemoryRouter>
           </TooltipProvider>
         </ToastProvider>
       </QueryClientProvider>,
@@ -592,7 +598,9 @@ async function renderStatefulCreateClaudeSandbox(environments: Environment[]) {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <TooltipProvider>
-            <Harness />
+            <MemoryRouter>
+              <Harness />
+            </MemoryRouter>
           </TooltipProvider>
         </ToastProvider>
       </QueryClientProvider>,
@@ -745,15 +753,9 @@ describe("AgentConfigForm environment selector", () => {
     vi.clearAllMocks();
   });
 
-  it("promotes environment drafts through the page Save action and discards them through the page Discard action", async () => {
-    const dirty = vi.fn();
-    let save: (() => void) | null = null;
-    let discard: (() => void) | null = null;
+  it("promotes environment drafts through autosave once the row is drafted", async () => {
     const result = await renderForm([], {}, {
-      content: "secrets", environmentVariablesPlacement: "secrets", hideInlineSave: true,
-      onDirtyChange: dirty,
-      onSaveActionChange: action => { save = action; },
-      onCancelActionChange: action => { discard = action; },
+      content: "secrets", environmentVariablesPlacement: "secrets",
     });
     roots.push(result.root);
     const add = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Add variable")!;
@@ -763,14 +765,11 @@ describe("AgentConfigForm environment selector", () => {
       setInputValue(result.container.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!, "true");
     });
     await flushReact();
-    expect(dirty).toHaveBeenLastCalledWith(true);
+    // Autosave (operator directive): no Save button anywhere — the drafted
+    // row saves itself after the debounce.
     expect([...result.container.querySelectorAll("button")].some(button => button.textContent?.trim() === "Save")).toBe(false);
-    await act(async () => { await save?.(); });
+    await flushAutosave();
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ env: { ONBOARDING_SMOKE: { type: "plain", value: "true" } } }) }));
-    await act(async () => discard?.());
-    await flushReact();
-    expect(dirty).toHaveBeenLastCalledWith(false);
-    expect(result.container.querySelector('input[aria-label="Variable name"]')).toBeNull();
   });
 
   it("reads and saves Pi thinking effort using the Pi runtime key", async () => {
@@ -784,8 +783,7 @@ describe("AgentConfigForm environment selector", () => {
     expect(low).toBeTruthy();
     await act(async () => low.click());
     await flushReact();
-    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Save")!;
-    await act(async () => save.click());
+    await flushAutosave();
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ thinking: "low" }) }));
     expect(result.onSave.mock.calls[0][0].adapterConfig.effort).toBeUndefined();
   });
@@ -819,7 +817,7 @@ describe("AgentConfigForm environment selector", () => {
         option.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
       });
       await flushReact();
-      await clickByText(result.container, "Save");
+      await flushAutosave();
       expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({
         adapterConfig: expect.objectContaining({ provider, model, ...(acpxAgent ? { acpxAgent } : {}) }),
       }));
@@ -839,8 +837,7 @@ describe("AgentConfigForm environment selector", () => {
     expect(xhigh).toBeTruthy();
     await act(async () => xhigh.click());
     await flushReact();
-    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Save")!;
-    await act(async () => save.click());
+    await flushAutosave();
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ reasoningEffort: "xhigh" }) }));
     expect(result.onSave.mock.calls[0][0].adapterConfig.effort).toBeUndefined();
   });
@@ -920,12 +917,7 @@ describe("AgentConfigForm environment selector", () => {
     });
     await flushReact();
 
-    const saveButton = Array.from(result.container.querySelectorAll("button"))
-      .find((button) => button.textContent?.trim() === "Save");
-    expect(saveButton).not.toBeUndefined();
-    await act(async () => {
-      saveButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    });
+    await flushAutosave();
 
     expect(result.onSave).toHaveBeenCalledWith({
       adapterConfig: { model: "gpt-6-astra" },
@@ -1062,18 +1054,18 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderForm([
       makeEnvironment({
         id: "managed-1",
-        name: "Paperclip Computer",
+        name: "Clayon Computer",
         driver: "sandbox",
         config: { provider: "daytona" },
-        metadata: { managedByPaperclip: true },
+        metadata: { managedByClayon: true },
       }),
     ]);
     roots.push(result.root);
 
     const selector = result.container.querySelector("select");
 
-    expect(selector?.textContent).toContain("Default: Paperclip Computer");
-    expect(selector?.textContent).toContain("Paperclip Computer");
+    expect(selector?.textContent).toContain("Default: Clayon Computer");
+    expect(selector?.textContent).toContain("Clayon Computer");
     expect(selector?.textContent).not.toContain("(sandbox)");
     expect(selector?.textContent).not.toContain("· sandbox");
   });
@@ -1508,7 +1500,9 @@ describe("AgentConfigForm environment selector", () => {
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
             <TooltipProvider>
-              <LiftedFeedbackHarness />
+              <MemoryRouter>
+                <LiftedFeedbackHarness />
+              </MemoryRouter>
             </TooltipProvider>
           </ToastProvider>
         </QueryClientProvider>,
@@ -1571,7 +1565,7 @@ describe("AgentConfigForm environment selector", () => {
           name: "Managed",
           driver: "sandbox",
           config: { provider: "daytona" },
-          metadata: { managedByPaperclip: true },
+          metadata: { managedByClayon: true },
         }),
       ],
       { adapterType: "claude_local", defaultEnvironmentId: null },
@@ -2130,7 +2124,7 @@ describe("AgentConfigForm environment selector", () => {
         <AgentConfigForm mode="edit" agent={saved} onSave={onSave} hidePromptTemplate showAdapterTypeField={false} />
       </>;
     }
-    await act(async () => root.render(<QueryClientProvider client={queryClient}><ToastProvider><TooltipProvider><Harness /></TooltipProvider></ToastProvider></QueryClientProvider>));
+    await act(async () => root.render(<QueryClientProvider client={queryClient}><ToastProvider><TooltipProvider><MemoryRouter><Harness /></MemoryRouter></TooltipProvider></ToastProvider></QueryClientProvider>));
     await flushReact();
     const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]')!;
     setInputValue(nameInput, "Unsaved name");
@@ -2150,7 +2144,7 @@ describe("AgentConfigForm environment selector", () => {
     expect(mockAgentsApi.get).toHaveBeenCalledWith(saved.id, saved.companyId);
     expect(container.textContent).toContain("Verifying agent");
     expect(nameInput.value).toBe("Edited during poll");
-    await act(async () => findButton(container, "Save")!.click());
+    await flushAutosave();
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ name: "Edited during poll" }));
     mockAgentsApi.get.mockRejectedValueOnce(new Error("Status unavailable"));
     await act(async () => { await queryClient.refetchQueries({ queryKey: [...queryKeys.agents.detail(saved.id), "lifecycle"] }); });
@@ -2222,7 +2216,9 @@ describe("AgentConfigForm environment selector", () => {
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
             <TooltipProvider>
-              <RefreshHarness />
+              <MemoryRouter>
+                <RefreshHarness />
+              </MemoryRouter>
             </TooltipProvider>
           </ToastProvider>
         </QueryClientProvider>,
@@ -2255,14 +2251,9 @@ describe("AgentConfigForm environment selector", () => {
       container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]')!.value,
     ).toBe("Renamed during bind");
 
-    // An ordinary Save in that window still carries the binding.
+    // In that window the rename's autosave still carries the binding.
     const persistedPatch = onSave.mock.calls[0]![0] as Record<string, unknown>;
-    const saveButton = findButton(container, "Save");
-    expect(saveButton).toBeTruthy();
-    await act(async () => {
-      saveButton!.click();
-    });
-    await flushReact();
+    await flushAutosave();
     expect(onSave.mock.calls.length).toBeGreaterThan(1);
     const racingPatch = onSave.mock.calls.at(-1)![0] as Record<string, unknown>;
     const racingEnv = (racingPatch.adapterConfig as Record<string, unknown>).env as Record<
@@ -3327,17 +3318,19 @@ describe("AgentConfigForm environment selector", () => {
           <QueryClientProvider client={queryClient}>
             <ToastProvider>
               <TooltipProvider>
-                <AgentConfigForm
-                  mode="edit"
-                  agent={makeAgent({
-                    adapterType: "claude_local",
-                    defaultEnvironmentId: "sandbox-1",
-                  })}
-                  onSave={vi.fn()}
-                  hidePromptTemplate
-                  showAdapterTypeField={false}
-                  showAdapterTestEnvironmentButton
-                />
+                <MemoryRouter>
+                  <AgentConfigForm
+                    mode="edit"
+                    agent={makeAgent({
+                      adapterType: "claude_local",
+                      defaultEnvironmentId: "sandbox-1",
+                    })}
+                    onSave={vi.fn()}
+                    hidePromptTemplate
+                    showAdapterTypeField={false}
+                    showAdapterTestEnvironmentButton
+                  />
+                </MemoryRouter>
               </TooltipProvider>
             </ToastProvider>
           </QueryClientProvider>,
@@ -3650,18 +3643,20 @@ async function renderEditClaudeSandbox(agentOverrides: Partial<Agent> = {}) {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <TooltipProvider>
-            <AgentConfigForm
-              mode="edit"
-              agent={makeAgent({
-                adapterType: "claude_local",
-                defaultEnvironmentId: "sandbox-1",
-                ...agentOverrides,
-              })}
-              onSave={onSave}
-              hidePromptTemplate
-              showAdapterTypeField={false}
-              showAdapterTestEnvironmentButton
-            />
+            <MemoryRouter>
+              <AgentConfigForm
+                mode="edit"
+                agent={makeAgent({
+                  adapterType: "claude_local",
+                  defaultEnvironmentId: "sandbox-1",
+                  ...agentOverrides,
+                })}
+                onSave={onSave}
+                hidePromptTemplate
+                showAdapterTypeField={false}
+                showAdapterTestEnvironmentButton
+              />
+            </MemoryRouter>
           </TooltipProvider>
         </ToastProvider>
       </QueryClientProvider>,

@@ -8,7 +8,7 @@ missing managed-connection bindings.
 Start from a fresh worktree with dependencies installed:
 
 ```sh
-pnpm exec tsx cli/src/index.ts test-drive --data-dir /tmp/paperclip-hiring-qa --no-browser
+pnpm exec tsx cli/src/index.ts test-drive --data-dir /tmp/clayon-hiring-qa --no-browser
 ```
 
 Use the URL printed at startup. Test-drive may choose another available port when
@@ -78,8 +78,8 @@ destination directory without starting the container:
 ```sh
 mkdir -p /tmp/hiring-native-artifacts
 hiring_image_container=$(docker create "$HIRING_AI_DAYTONA_IMAGE" /bin/true)
-docker cp "$hiring_image_container:/opt/paperclip-runner/provider-pack" /tmp/hiring-native-artifacts/provider-pack
-docker cp "$hiring_image_container:/usr/local/bin/paperclip-runnerd" /tmp/hiring-native-artifacts/paperclip-runnerd
+docker cp "$hiring_image_container:/opt/clayon-runner/provider-pack" /tmp/hiring-native-artifacts/provider-pack
+docker cp "$hiring_image_container:/usr/local/bin/clayon-runnerd" /tmp/hiring-native-artifacts/clayon-runnerd
 docker rm "$hiring_image_container"
 ```
 
@@ -87,8 +87,8 @@ Add these settings to the disposable instance's `instances/default/.env`, alongs
 the native API-tools flag, and restart test-drive:
 
 ```dotenv
-PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH=/tmp/hiring-native-artifacts/provider-pack
-PAPERCLIP_RUNNER_REMOTE_BINARY_PATH=/tmp/hiring-native-artifacts/paperclip-runnerd
+CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH=/tmp/hiring-native-artifacts/provider-pack
+CLAYON_RUNNER_REMOTE_BINARY_PATH=/tmp/hiring-native-artifacts/clayon-runnerd
 ```
 
 Run the Daytona command with `HIRING_AI_RUNNER=native` and
@@ -108,7 +108,7 @@ pnpm exec vitest run server/src/__tests__/agent-hire-ai-connections.test.ts \
   server/src/services/execution-recovery-attempt.test.ts \
   server/src/services/native-runtime/runner-api.integration.test.ts \
   ui/src/features/connections/ConnectionIntentInteractionBody.test.tsx
-pnpm --filter @paperclipai/ui exec storybook dev -p 6010 -c storybook/.storybook --ci --no-open
+pnpm --filter @clayon/ui exec storybook dev -p 6010 -c storybook/.storybook --ci --no-open
 HIRING_AI_STORYBOOK_URL=http://127.0.0.1:6010 \
   pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep storybook
 ```

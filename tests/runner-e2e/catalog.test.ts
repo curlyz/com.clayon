@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { contextIntegrityTasks } from "./context-integrity-cases.js";
-import { normalizePrpResultSignals } from "../../packages/paperclip-runner/src/protocol/result-normalization.js";
+import { normalizePrpResultSignals } from "../../packages/clayon-runner/src/protocol/result-normalization.js";
 import {
   connectionReviewSuite,
   runnerEnvironments,
@@ -235,7 +235,7 @@ describe("runner E2E catalog", () => {
       '"reviewInteractionId":"<returned interaction id>"',
     );
     expect(followups[1]).toContain(
-      '{"status":"done","comment":"PAPERCLIP_E2E_WARM_T3_nonce"}',
+      '{"status":"done","comment":"CLAYON_E2E_WARM_T3_nonce"}',
     );
     expect(followups[1]).not.toContain('"kind":"request_confirmation"');
     const cells = runnerMatrix.filter(
@@ -337,19 +337,19 @@ describe("runner E2E catalog", () => {
     });
     expect(localQuestion?.buildPrompt("nonce")).toContain("ask_user_questions");
     expect(localQuestion?.buildPrompt("nonce")).toContain(
-      "do not spell, quote, repeat, announce, or include PAPERCLIP_E2E_QUESTION_DONE_nonce",
+      "do not spell, quote, repeat, announce, or include CLAYON_E2E_QUESTION_DONE_nonce",
     );
     expect(localQuestion?.buildPrompt("nonce")).toContain(
       "refer to it only as “the terminal marker.”",
     );
     expect(localQuestion?.buildPrompt("nonce")).toContain(
-      'API_ORIGIN="${PAPERCLIP_API_URL%/}"; API_ORIGIN="${API_ORIGIN%/api}"',
+      'API_ORIGIN="${CLAYON_API_URL%/}"; API_ORIGIN="${API_ORIGIN%/api}"',
     );
     expect(localQuestion?.buildPrompt("nonce")).toContain(
       '"idempotencyKey":"question-nonce"',
     );
     expect(localQuestion?.buildPrompt("nonce")).toContain(
-      'PATCH $API_ORIGIN/api/issues/$PAPERCLIP_TASK_ID with exactly {"status":"in_review"}',
+      'PATCH $API_ORIGIN/api/issues/$CLAYON_TASK_ID with exactly {"status":"in_review"}',
     );
     expect(localQuestion?.buildPrompt("nonce")).toContain(
       "Do not include `reviewInteractionId`",
@@ -583,10 +583,10 @@ describe("runner E2E catalog", () => {
     expect(task!.buildPrompt("nonce")).toContain("request_confirmation");
     expect(task!.buildPrompt("nonce")).toContain("baseRevisionId");
     expect(task!.buildPrompt("nonce")).toContain(
-      "do not spell, quote, repeat, announce, or include PAPERCLIP_E2E_PLAN_DONE_nonce",
+      "do not spell, quote, repeat, announce, or include CLAYON_E2E_PLAN_DONE_nonce",
     );
     expect(task!.buildPrompt("nonce")).toContain(
-      'summary:"PAPERCLIP_E2E_PLAN_DONE_nonce"',
+      'summary:"CLAYON_E2E_PLAN_DONE_nonce"',
     );
     expect(task!.buildPrompt("nonce")).toContain("first call get_task_context");
     expect(task!.buildPrompt("nonce")).toContain(
@@ -624,7 +624,7 @@ describe("runner E2E catalog", () => {
       "make exactly one public-API write containing the marker",
     );
     expect(prompt).toContain(
-      'PATCH /api/issues/$PAPERCLIP_TASK_ID with {"status":"done","comment":"E2E_ASK_12_nonce"}',
+      'PATCH /api/issues/$CLAYON_TASK_ID with {"status":"done","comment":"E2E_ASK_12_nonce"}',
     );
     expect(prompt).toContain("Do not POST to /comments");
     expect(prompt).toContain("do not PATCH the status separately");

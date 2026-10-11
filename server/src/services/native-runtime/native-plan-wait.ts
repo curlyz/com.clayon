@@ -3,12 +3,12 @@ import {
   completionContracts, heartbeatRunEvents, heartbeatRuns, issues, issueComments,
   nativeRunFinalizations, nativeRunResults, statusDecisions,
   issueQuestionResponseDeliveries, issueThreadInteractions, type Db,
-} from "@paperclipai/db";
-import type { AskUserQuestionsInteraction } from "@paperclipai/shared";
+} from "@clayon/db";
+import type { AskUserQuestionsInteraction } from "@clayon/shared";
 import {
-  parsePaperclipQuestionResponse, parsePaperclipQuestionSet,
+  parseClayonQuestionResponse, parseClayonQuestionSet,
   type PrpStructuredRunResult,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import { buildQuestionResponseDeliveryEnvelope } from "../question-response-delivery.js";
 import { nativeCompletionContractSha256 } from "./completion-contracts.js";
 import { nativeSha256 } from "./canonical.js";
@@ -131,18 +131,18 @@ function planWaitFromFacts(facts: PlanWaitFacts, committedSource?: NativePlanWai
         tools.some(e => e.sourceSeq > created.sourceSeq && record(e.payload).executionId !== id)) return null;
       toolBinding = { toolExecutionId: id, toolLifecycleSha256: nativeSha256(lifecycle) };
     }
-    const questionSet = parsePaperclipQuestionSet(request.input);
-    const response = parsePaperclipQuestionResponse(questionSet, resolution.response);
+    const questionSet = parseClayonQuestionSet(request.input);
+    const response = parseClayonQuestionResponse(questionSet, resolution.response);
     const planRevision = adapter.acceptedRevision(questionSet, response);
     if (planRevision === null) return null;
     const matches = facts.interactions.filter(({ interaction: i }) => record(i.payload).runtimeRequestId === request.requestId);
     if (matches.length !== 1) return null;
     const { interaction: i, delivery: d } = matches[0]!;
     if (i.companyId !== b.companyId || i.issueId !== b.issueId || i.sourceRunId !== b.runId || i.createdByAgentId !== b.agentId || i.kind !== "ask_user_questions" || i.status !== "answered" || i.continuationPolicy !== "none" || !i.resolvedByUserId || !i.resolvedAt || i.resolvedByAgentId ||
-      i.idempotencyKey !== `paperclip-runner-question:${b.runId}:${request.requestId}` || !same(record(i.payload).questionSet, questionSet) ||
+      i.idempotencyKey !== `clayon-runner-question:${b.runId}:${request.requestId}` || !same(record(i.payload).questionSet, questionSet) ||
       d.companyId !== b.companyId || d.issueId !== b.issueId || d.interactionId !== i.id || d.sourceRunId !== b.runId || d.targetRunId !== b.runId || d.status !== "delivered" || d.deliveryMode !== "steered" || !d.acknowledgedAt || (d.targetTurnId !== null && d.targetTurnId !== terminal.turnId)) return null;
     const envelope = buildQuestionResponseDeliveryEnvelope(i as unknown as AskUserQuestionsInteraction);
-    if (d.payloadSha256 !== nativeSha256(envelope) || !same(parsePaperclipQuestionResponse(questionSet, envelope.response), response)) return null;
+    if (d.payloadSha256 !== nativeSha256(envelope) || !same(parseClayonQuestionResponse(questionSet, envelope.response), response)) return null;
     const source: NativePlanWaitSource = {
       ...b, schema: format.schema, contractId: contract.id, contractSha256: contract.canonicalSha256, interactionId: i.id, requestId: request.requestId, planRevision,
       turnId: terminal.turnId, normalizedSessionId: sessionId, sourceInstanceId: terminal.sourceInstanceId,

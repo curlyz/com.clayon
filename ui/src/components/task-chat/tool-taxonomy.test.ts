@@ -44,13 +44,13 @@ describe("tool activity vocabulary", () => {
     expect(mcpToolIdentity("mcp.linear-server.search_issues")).toEqual({ namespace: "linear-server", name: "search_issues" });
     expect(mcpToolSegment("mcp__linear-server__search_issues")).toBe("Search issues");
     expect(mcpToolSegment("mcp.linear-server.search_issues")).toBe("Search issues");
-    const mcp = toolActivityPresentation({ name: "mcp.paperclip.search_tasks" });
+    const mcp = toolActivityPresentation({ name: "mcp.clayon.search_tasks" });
     expect(mcp).toMatchObject({
       family: "mcp",
       icon: McpIcon,
       runningLabel: "Searching tasks",
       completedLabel: "Searched tasks",
-      sourceLabel: "Paperclip",
+      sourceLabel: "Clayon",
       confidence: "exact",
     });
   });
@@ -91,14 +91,14 @@ describe("tool activity vocabulary", () => {
     }
   });
 
-  it("gives anticipated provider tools and Paperclip operations purpose-specific labels", () => {
+  it("gives anticipated provider tools and Clayon operations purpose-specific labels", () => {
     const anticipated = [
       "ToolSearch", "NotebookRead", "NotebookEdit", "TaskOutput", "TaskStop", "SendMessage",
       "EnterPlanMode", "ExitPlanMode", "LSP", "TodoWrite", "ReportFindings", "Skill",
       "view_image", "Image generation", "Compact conversation", "Guardian Review",
       "apply_patch", "multi_tool_use.parallel", "wait_agent", "interrupt_agent",
     ];
-    const paperclip = [
+    const clayon = [
       "get_task_context", "get_task_history", "list_documents", "read_document", "list_document_revisions",
       "report_progress", "answer_status_question", "write_document", "request_human_input",
       "register_deliverable", "finish_task", "paperclip_finish", "block_task", "paperclip_block",
@@ -107,15 +107,15 @@ describe("tool activity vocabulary", () => {
       "create_task", "request_approval", "decide_approval", "comment_on_approval", "schedule_wake",
       "generic_api_request",
     ];
-    for (const name of [...anticipated, ...paperclip]) {
-      const presentation = toolActivityPresentation({ name, namespace: paperclip.includes(name) ? "paperclip" : undefined });
+    for (const name of [...anticipated, ...clayon]) {
+      const presentation = toolActivityPresentation({ name, namespace: clayon.includes(name) ? "clayon" : undefined });
       expect(presentation.confidence, name).toBe("exact");
       expect(presentation.runningLabel, name).not.toMatch(/running a tool|tool call/i);
       expect(presentation.completedLabel, name).not.toMatch(/ran a tool|tool call/i);
     }
-    expect(toolActivityPresentation({ name: "report_progress", namespace: "paperclip" }).runningLabel).toBe("Reporting progress");
-    expect(toolActivityPresentation({ name: "paperclip_block", namespace: "paperclip" }).completedLabel).toBe("Reported a blocker");
-    expect(toolActivityPresentation({ name: "schedule_wake", namespace: "paperclip" }).runningLabel).toBe("Scheduling a wake-up");
+    expect(toolActivityPresentation({ name: "report_progress", namespace: "clayon" }).runningLabel).toBe("Reporting progress");
+    expect(toolActivityPresentation({ name: "paperclip_block", namespace: "clayon" }).completedLabel).toBe("Reported a blocker");
+    expect(toolActivityPresentation({ name: "schedule_wake", namespace: "clayon" }).runningLabel).toBe("Scheduling a wake-up");
   });
 
   it("humanizes unknown named extensions and reserves the unnamed copy for missing identity", () => {

@@ -63,7 +63,7 @@ function resetAdapterMocks() {
   mockAdapterPluginStore.addAdapterPlugin.mockResolvedValue(undefined);
   mockAdapterPluginStore.removeAdapterPlugin.mockReturnValue(false);
   mockAdapterPluginStore.getAdapterPluginByType.mockReturnValue(undefined);
-  mockAdapterPluginStore.getAdapterPluginsDir.mockReturnValue("/tmp/paperclip-adapter-routes-test");
+  mockAdapterPluginStore.getAdapterPluginsDir.mockReturnValue("/tmp/clayon-adapter-routes-test");
   mockAdapterPluginStore.getDisabledAdapterTypes.mockReturnValue([]);
   mockAdapterPluginStore.setAdapterDisabled.mockReturnValue(false);
   mockPluginLoader.buildExternalAdapters.mockResolvedValue([]);
@@ -340,7 +340,7 @@ describe("adapter routes", () => {
     expect(res.body.fields).toEqual([]);
   });
 
-  it("serves provider-scoped Paperclip Runner configuration fields", async () => {
+  it("serves provider-scoped Clayon Runner configuration fields", async () => {
     const app = createApp();
 
     const res = await request(app).get("/api/adapters/paperclip_runner/config-schema");

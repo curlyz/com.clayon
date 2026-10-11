@@ -1,6 +1,6 @@
 import {
   ConfigurationIncompleteFailure,
-  type buildPaperclipWakePayload,
+  type buildClayonWakePayload,
   type createHeartbeatRunPreparation,
 } from "./run-preparation.js";
 import { dotRunnerBroker } from "../dot-runner-broker.js";
@@ -17,15 +17,15 @@ import type { buildExecutionContinuation } from "../execution-continuation.js";
 import type { agentInstructionWorkingCopyService } from "../agent-instruction-working-copies.js";
 import { createHash, randomUUID } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { CHAT_PROVIDERS } from "@paperclipai/shared";
+import type { Db } from "@clayon/db";
+import { CHAT_PROVIDERS } from "@clayon/shared";
 import {
   type agents,
   completionContracts,
   heartbeatRunEvents,
   heartbeatRuns,
   nativeRunFinalizations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { getStartupTracer } from "../../instrumentation.js";
 import { documentService } from "../documents.js";
 import { managedAgentProfileService } from "../managed-agent-profiles.js";
@@ -53,15 +53,15 @@ import {
 import {
   assertAgentCoreProfileRecoveryBinding,
   assertManagedProfileRecoveryBinding,
-  projectPaperclipRunnerTaskConfig,
-  resolvePaperclipRunnerNativeProviderInput,
+  projectClayonRunnerTaskConfig,
+  resolveClayonRunnerNativeProviderInput,
 } from "../native-runtime/provider-profile.js";
 import { readRemoteCodexModelCliVersion } from "../native-runtime/codex-model-fallback.js";
 import {
   describeRunnerdNativeSessionBackend,
   parseNativeExecutionInput,
   type NativeExecutionInput,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import { PROVIDER_TRACE_MAX_BYTES } from "../provider-trace-store.js";
 import type { AdapterRuntimeEvent } from "../../adapters/index.js";
 import { parseObject } from "../../adapters/utils.js";
@@ -72,8 +72,8 @@ import {
 import { CHAT_CONTROL_RECOVERY_ADMISSION_KEY } from "../chat-control-recovery-stop.js";
 import type { issueService } from "../issues.js";
 import { buildPlanReviewContext } from "../plan-review-context.js";
-import { resolvePaperclipRunnerIdleTimeoutMs } from "@paperclipai/adapter-utils";
-import { selectPaperclipTaskMarkdown } from "@paperclipai/adapter-utils/server-utils";
+import { resolveClayonRunnerIdleTimeoutMs } from "@clayon/adapter-utils";
+import { selectClayonTaskMarkdown } from "@clayon/adapter-utils/server-utils";
 import type { ProviderResourceDisposition } from "../environment-runtime.js";
 
 type Run = typeof heartbeatRuns.$inferSelect;
@@ -99,7 +99,7 @@ export interface HeartbeatRuntimeSelectionInput {
     executionContinuation: Awaited<ReturnType<typeof buildExecutionContinuation>> | null;
     safeWakeComments: Parameters<typeof nativeCompletionRequestsWithSources>[0];
     safeWakeCommentContext: { id: string; body: string } | null;
-    paperclipWakePayload: Awaited<ReturnType<typeof buildPaperclipWakePayload>>;
+    clayonWakePayload: Awaited<ReturnType<typeof buildClayonWakePayload>>;
     acceptedPlanContinuationWake: boolean;
   };
   session: {
@@ -251,7 +251,7 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
   const { run, agent, nativeRuntimeResolution, issuesSvc, runtimeEnv, beforeNativeRuntimeSelection, onAdapterEvent,
     onNativeLifecycleSelected, onProviderResourceDisposition, onNativeOwnershipHeld, stopControllerLease } = input;
   const { issueRef, issueContext, context, executionContinuation, safeWakeComments, safeWakeCommentContext,
-    paperclipWakePayload, acceptedPlanContinuationWake } = input.task;
+    clayonWakePayload, acceptedPlanContinuationWake } = input.task;
   const { persistedNativeExecutionInput, persistedRunnerProfile, taskSessionCredentialCompatible, taskSessionDecodedParams,
     taskSessionForRun, isFailedChatRunRetry, getFreshSessionHandoff } = input.session;
   const { persistedExecutionWorkspace, executionWorkspace, executionTarget, activeEnvironmentLease, isDotRun, projectRepositoryPaths } = input.workspace;
@@ -313,14 +313,14 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
             : [],
         {
           requiredFullWakeCommentCount:
-            paperclipWakePayload?.fallbackFetchNeeded === true &&
+            clayonWakePayload?.fallbackFetchNeeded === true &&
             CHAT_PROVIDERS.some(
               (provider) =>
                 provider ===
-                paperclipWakePayload.externalChatProvider,
+                clayonWakePayload.externalChatProvider,
             ) &&
-            Array.isArray(paperclipWakePayload.commentIds)
-              ? paperclipWakePayload.commentIds.length
+            Array.isArray(clayonWakePayload.commentIds)
+              ? clayonWakePayload.commentIds.length
               : undefined,
         },
       );
@@ -488,7 +488,7 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
       parseObject(agent.adapterConfig).lifecycleMode === "warm"
         ? {
             mode: "warm" as const,
-            idleTimeoutMs: resolvePaperclipRunnerIdleTimeoutMs(
+            idleTimeoutMs: resolveClayonRunnerIdleTimeoutMs(
               parseObject(agent.adapterConfig).idleTimeoutMs,
             ),
           }
@@ -697,14 +697,14 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
       getNativeFreshSessionHandoff = nativeReviewRequest ? undefined : getFreshSessionHandoff;
       const nativeProviderConfig = nativeRuntimeResolution.profile.backend === "codex_app_server"
         || nativeRuntimeResolution.profile.backend === "opencode_server"
-        ? projectPaperclipRunnerTaskConfig(
+        ? projectClayonRunnerTaskConfig(
             nativeRuntimeResolution.profile.backend,
             agent.adapterConfig,
             issueAssigneeOverrides?.adapterConfig,
             managedAiRuntime ? readNonEmptyString(resolvedConfig.model) ?? undefined : undefined,
           )
         : agent.adapterConfig;
-      const requestedNativeProvider = resolvePaperclipRunnerNativeProviderInput({
+      const requestedNativeProvider = resolveClayonRunnerNativeProviderInput({
         backend: nativeRuntimeResolution.profile.backend,
         adapterConfig: nativeProviderConfig, managedProfile, agentCoreProfile, dotBinding,
       });
@@ -712,11 +712,11 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
         ? await readRemoteCodexModelCliVersion({
             model: requestedNativeProvider.model,
             target: executionTarget,
-            remoteCodexPath: runtimeEnv.PAPERCLIP_RUNNER_REMOTE_CODEX_PATH,
-            remoteCodexNpmSpec: runtimeEnv.PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC,
+            remoteCodexPath: runtimeEnv.CLAYON_RUNNER_REMOTE_CODEX_PATH,
+            remoteCodexNpmSpec: runtimeEnv.CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC,
           }) : null;
       const nativeProvider = codexCliVersion
-        ? resolvePaperclipRunnerNativeProviderInput({
+        ? resolveClayonRunnerNativeProviderInput({
             backend: nativeRuntimeResolution.profile.backend,
             adapterConfig: nativeProviderConfig, codexCliVersion, managedProfile, agentCoreProfile, dotBinding,
           }) : requestedNativeProvider;
@@ -735,7 +735,7 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
               issue: nativeReviewRequest ? { ...issueRef, title: `Review: ${issueRef.title}`, description: nativeReviewRequest } : issueRef,
               taskPrompt: [
                 nativeReviewRequest ?? readNonEmptyString(
-                  selectPaperclipTaskMarkdown(context, {
+                  selectClayonTaskMarkdown(context, {
                     resumedSession: false,
                     includeCommunicationGuidance: false,
                   }),
@@ -745,20 +745,20 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
                   ? `## Project repositories\nThe task workspace also contains these editable Git repositories:\n${projectRepositoryPaths.map((repo) => `- ${repo}`).join("\n")}`
                   : null,
               ].filter(Boolean).join("\n\n"),
-              initialCommunicationGuidance: nativeReviewRequest ? null : readNonEmptyString(context.paperclipTaskCommunicationGuidance),
-              wakePayload: context.paperclipWake,
-              turnContext: context.paperclipTurnContext,
+              initialCommunicationGuidance: nativeReviewRequest ? null : readNonEmptyString(context.clayonTaskCommunicationGuidance),
+              wakePayload: context.clayonWake,
+              turnContext: context.clayonTurnContext,
               githubInstructionSkillKeys: runScopedMentionedSkillKeys,
               resumedSession,
               previousTurn: (() => {
                 if (!previousNativeRun || nativeReviewRequest) return null;
                 try {
                   const previousTask = parseNativeExecutionInput(parseObject(previousNativeRun.runnerProfileJson).nativeExecutionInput).task;
-                  if (paperclipWakePayload?.externalChatProvider) {
+                  if (clayonWakePayload?.externalChatProvider) {
                     // External native inputs use a neutral task title. Compare
                     // the saved canonical brief so old provider text is not
                     // repeated as a change, while genuine edits still arrive.
-                    const savedIssue = parseObject(parseObject(previousNativeRun.contextSnapshot).paperclipIssue);
+                    const savedIssue = parseObject(parseObject(previousNativeRun.contextSnapshot).clayonIssue);
                     if (savedIssue.id !== issueRef.id || typeof savedIssue.title !== "string" ||
                       (savedIssue.description !== null && typeof savedIssue.description !== "string")) return null;
                     return { runId: previousNativeRun.id, task: { title: savedIssue.title, description: savedIssue.description } };
@@ -848,18 +848,18 @@ export async function selectHeartbeatRuntime(db: Db, input: HeartbeatRuntimeSele
         sandboxResource: nativeSandboxLifecycle.sandboxResource,
       });
       const selectedLifecycleSpan = getStartupTracer(
-        "paperclip.environment-lifecycle",
+        "clayon.environment-lifecycle",
       ).startSpan("sandbox.lifecycle.selected", {
         attributes: {
-          "paperclip.native.span.provider": nativeExecution.provider.kind,
-          "paperclip.native.span.harness":
+          "clayon.native.span.provider": nativeExecution.provider.kind,
+          "clayon.native.span.harness":
             nativeExecution.session.driverKind,
-          "paperclip.native.span.lifecycle_mode":
+          "clayon.native.span.lifecycle_mode":
             nativeExecution.session.lifecyclePolicy.mode,
-          "paperclip.native.span.sandbox_resource":
+          "clayon.native.span.sandbox_resource":
             nativeSandboxLifecycle.sandboxResource,
-          "paperclip.native.span.outcome": "selected",
-          "paperclip.native.span.bytes_transferred": 0,
+          "clayon.native.span.outcome": "selected",
+          "clayon.native.span.bytes_transferred": 0,
         },
       });
       selectedLifecycleSpan.end();

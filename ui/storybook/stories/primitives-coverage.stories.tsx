@@ -110,9 +110,9 @@ export const NativeSelects: Story = {
 
 function StoryFrame({ children }: { children: React.ReactNode }) {
   return (
-    <div className="paperclip-story">
-      <main className="paperclip-story__inner">
-        <section className="paperclip-story__frame p-6">{children}</section>
+    <div className="clayon-story">
+      <main className="clayon-story__inner">
+        <section className="clayon-story__frame p-6">{children}</section>
       </main>
     </div>
   );
@@ -150,7 +150,7 @@ export const BreadcrumbTrail: Story = {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="#">Paperclip</BreadcrumbLink>
+            <BreadcrumbLink href="#">Clayon</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

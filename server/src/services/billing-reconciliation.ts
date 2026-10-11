@@ -1,7 +1,7 @@
 import { createFinanceEventInTransaction } from "./finance.js";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { decisionInvocations, budgetReservations, agentRuntimeState, costEvents, costAdjustments, billingInvoices, billingInvoiceLines, financeEvents, heartbeatRuns, type Db } from "@paperclipai/db";
-import { adjustCostSchema, importBillingInvoiceSchema, normalizeCents, subtractCents, type AdjustCost, type ImportBillingInvoice } from "@paperclipai/shared";
+import { decisionInvocations, budgetReservations, agentRuntimeState, costEvents, costAdjustments, billingInvoices, billingInvoiceLines, financeEvents, heartbeatRuns, type Db } from "@clayon/db";
+import { adjustCostSchema, importBillingInvoiceSchema, normalizeCents, subtractCents, type AdjustCost, type ImportBillingInvoice } from "@clayon/shared";
 import { conflict, notFound, unprocessable } from "../errors.js";
 import { withAccountingReadSnapshot, withAccountingTransaction } from "./accounting-transaction.js";
 import { receiptFingerprint } from "./receipt-fingerprint.js";

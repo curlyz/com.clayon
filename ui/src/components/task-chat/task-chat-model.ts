@@ -20,13 +20,13 @@ import type {
   IssueDocument,
   IssueDocumentSummary,
   IssueWorkProduct,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import type {
-  PaperclipQuestionResponse,
-  PaperclipQuestionSet,
-} from "@paperclipai/adapter-utils";
+  ClayonQuestionResponse,
+  ClayonQuestionSet,
+} from "@clayon/adapter-utils";
 
-export type { PaperclipQuestionResponse, PaperclipQuestionSet };
+export type { ClayonQuestionResponse, ClayonQuestionSet };
 
 export type TaskChatProviderActivityFamily =
   | "plan"
@@ -425,15 +425,15 @@ export interface TaskChatRuntimeRequestItem {
   prompt: string;
   choices: Array<{ key: string; label: string }>;
   fields: Array<{ name: string; label: string; placeholder: string | null }>;
-  questionSet?: PaperclipQuestionSet | null;
+  questionSet?: ClayonQuestionSet | null;
   resolvedAction?: string | null;
-  response?: PaperclipQuestionResponse | null;
+  response?: ClayonQuestionResponse | null;
 }
 
 export type TaskChatRuntimeRequestDecision =
   | { action: "accept" | "accept_for_session" | "decline" | "cancel" }
   | { action: "submit"; values: Record<string, string> }
-  | { action: "submit"; response: PaperclipQuestionResponse };
+  | { action: "submit"; response: ClayonQuestionResponse };
 
 export interface TaskChatRunResultItem {
   id: string;
@@ -536,7 +536,7 @@ export interface TaskChatTurnItem {
   standaloneHeader?: boolean;
   /** This segment resumes the same native run after a steering input. */
   continuedAfterSteering?: boolean;
-  /** Durable response shown after the ordered Paperclip Runner timeline. */
+  /** Durable response shown after the ordered Clayon Runner timeline. */
   finalResponse?: TaskChatMessageItem;
   summary: {
     /** e.g. "38s" — omitted when unknown. */

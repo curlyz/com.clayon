@@ -25,7 +25,7 @@ afterEach(async () => {
 function result(executionId: string, status: "passed" | "failed") {
   const [suiteId, profileId, environmentId, caseId] = executionId.split(".");
   return {
-    schema: "paperclip.runner-e2e.result/v2",
+    schema: "clayon.runner-e2e.result/v2",
     executionId,
     suiteId,
     source: {

@@ -1,4 +1,4 @@
-import type { CreateConfigValues } from "@paperclipai/adapter-utils";
+import type { CreateConfigValues } from "@clayon/adapter-utils";
 
 function parseJsonObject(text: string): Record<string, unknown> | null {
   const trimmed = text.trim();
@@ -41,8 +41,8 @@ export function buildOpenClawGatewayConfig(v: CreateConfigValues): Record<string
     if (parsed.length > 0) ac.scopes = parsed;
   }
 
-  // Paperclip API override
-  if (v.paperclipApiUrl) ac.paperclipApiUrl = v.paperclipApiUrl;
+  // Clayon API override
+  if (v.clayonApiUrl) ac.clayonApiUrl = v.clayonApiUrl;
 
   // Headers — parse headersJson first, then inject authToken on top
   const headers = parseJsonObject(v.headersJson ?? "");

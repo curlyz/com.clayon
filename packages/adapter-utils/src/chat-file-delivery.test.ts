@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { paperclipChatFilePreparationDelivery } from "./chat-file-delivery.js";
-import { renderPaperclipWakePrompt } from "./server-utils.js";
+import { clayonChatFilePreparationDelivery } from "./chat-file-delivery.js";
+import { renderClayonWakePrompt } from "./server-utils.js";
 
 function chatWake(provider: unknown) {
   return {
@@ -22,7 +22,7 @@ describe("chat file preparation delivery contract", () => {
   it.each(["github", "microsoft-teams", "speko"])(
     "describes %s as task-only, never a native attachment",
     (provider) => {
-      const delivery = paperclipChatFilePreparationDelivery(provider);
+      const delivery = clayonChatFilePreparationDelivery(provider);
       expect(delivery).toMatchObject({
         provider,
         mode: "paperclip_task_only",
@@ -31,7 +31,7 @@ describe("chat file preparation delivery contract", () => {
       });
       expect(delivery.guidance).toContain("cannot upload file bytes");
       expect(delivery.guidance).toContain(
-        "must be opened there with Paperclip access",
+        "must be opened there with Clayon access",
       );
       expect(delivery.guidance).toContain("do not say it is attached");
       expect(delivery.guidance).toContain(
@@ -43,7 +43,7 @@ describe("chat file preparation delivery contract", () => {
   it.each(["slack", "discord", "telegram"])(
     "describes %s attachment capability without claiming delivery",
     (provider) => {
-      const delivery = paperclipChatFilePreparationDelivery(provider);
+      const delivery = clayonChatFilePreparationDelivery(provider);
       expect(delivery).toMatchObject({
         provider,
         mode: "provider_attachment",
@@ -73,7 +73,7 @@ describe("chat file preparation delivery contract", () => {
   it.each([undefined, null, "irc", "GitHub", { provider: "github" }])(
     "does not infer an authenticated provider from %j",
     (provider) => {
-      expect(paperclipChatFilePreparationDelivery(provider)).toMatchObject({
+      expect(clayonChatFilePreparationDelivery(provider)).toMatchObject({
         provider: null,
         mode: "unknown",
         providerDeliveryConfirmed: false,
@@ -86,7 +86,7 @@ describe("chat file preparation delivery contract", () => {
     (provider) => {
       for (const resumedSession of [false, true]) {
         for (const overflow of [false, true]) {
-          const prompt = renderPaperclipWakePrompt(
+          const prompt = renderClayonWakePrompt(
             {
               ...chatWake(provider),
               ...(overflow
@@ -104,7 +104,7 @@ describe("chat file preparation delivery contract", () => {
             { resumedSession, nativeWakeReaderAvailable: true },
           );
           expect(prompt).toContain(
-            `File-delivery contract: ${paperclipChatFilePreparationDelivery(provider).guidance}`,
+            `File-delivery contract: ${clayonChatFilePreparationDelivery(provider).guidance}`,
           );
         }
       }
@@ -122,7 +122,7 @@ describe("chat file preparation delivery contract", () => {
       },
       chatWake("irc"),
     ]) {
-      expect(renderPaperclipWakePrompt(wake)).not.toContain(
+      expect(renderClayonWakePrompt(wake)).not.toContain(
         "File-delivery contract:",
       );
     }

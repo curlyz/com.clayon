@@ -1,6 +1,6 @@
 import { photonAnswersMatch } from "../photon/interactions.js";
 import { and, or, eq, lte, inArray, notExists, sql } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agentWakeupRequests,
   chatActions,
@@ -19,8 +19,8 @@ import {
   issueComments,
   issueQuestionResponseDeliveries,
   issueThreadInteractions,
-} from "@paperclipai/db";
-import type { AskUserQuestionsInteraction } from "@paperclipai/shared";
+} from "@clayon/db";
+import type { AskUserQuestionsInteraction } from "@clayon/shared";
 import {
   parseChatQuestionFormSubmitTokenPayload,
   validateChatQuestionFormSubmission,
@@ -30,7 +30,7 @@ import { voiceSessionStore, type VoiceTransaction, currentVoiceCredentialFingerp
 import { nativeSha256 } from "./canonical.js";
 
 export const EXTERNAL_CHAT_QUESTION_RESPONSE_KEY =
-  "paperclipExternalChatQuestionResponse";
+  "clayonExternalChatQuestionResponse";
 type Binding = {
   companyId: string;
   issueId: string;
@@ -321,7 +321,7 @@ async function resolveQuestionResponseChain(
   chain.interactionIds.add(interaction.id);
   chain.deliveryIds.add(delivery.id);
   const sourceContext = record(source.contextSnapshot);
-  const sourceWake = record(sourceContext.paperclipWake);
+  const sourceWake = record(sourceContext.clayonWake);
   // A follow-up question inherits no authority from its marker alone. Rebuild
   // every parent proof from current durable state until the direct-chat root.
   const parent =
@@ -373,9 +373,9 @@ async function resolveQuestionResponseChain(
       )) ||
     sourceWake.externalChatProvider !== provider ||
     !(
-      (sourceContext.paperclipHarnessCheckedOut === true &&
+      (sourceContext.clayonHarnessCheckedOut === true &&
         sourceWake.checkedOutByHarness === true) ||
-      (sourceContext.paperclipExternalChatExecutionBound === true &&
+      (sourceContext.clayonExternalChatExecutionBound === true &&
         sourceWake.externalChatExecutionBound === true)
     ) ||
     sourceIds.length !== 1 ||
@@ -493,7 +493,7 @@ async function resolveQuestionResponseChain(
       if (!mint && nativeSha256(record(context[EXTERNAL_CHAT_QUESTION_RESPONSE_KEY])) !== nativeSha256(marker)) return null;
       return { marker, provider, answeredAtMs: interaction.resolvedAt.getTime(),
         interactionIds: [...(parent?.interactionIds ?? []), interaction.id],
-        authorizationContext: { ...context, source: "chat:speko", paperclipHarnessCheckedOut: false, paperclipExternalChatExecutionBound: true } };
+        authorizationContext: { ...context, source: "chat:speko", clayonHarnessCheckedOut: false, clayonExternalChatExecutionBound: true } };
     }
     if (proofs.length !== 1) return null;
     const proof = proofs[0]!;
@@ -536,7 +536,7 @@ async function resolveQuestionResponseChain(
     if (!mint && nativeSha256(record(context[EXTERNAL_CHAT_QUESTION_RESPONSE_KEY])) !== nativeSha256(marker)) return null;
     return { marker, provider, answeredAtMs: interaction.resolvedAt.getTime(),
       interactionIds: [...(parent?.interactionIds ?? []), interaction.id],
-      authorizationContext: { ...context, source: "chat:speko", paperclipHarnessCheckedOut: false, paperclipExternalChatExecutionBound: true } };
+      authorizationContext: { ...context, source: "chat:speko", clayonHarnessCheckedOut: false, clayonExternalChatExecutionBound: true } };
   }
 
   const actionQuery = tx
@@ -840,7 +840,7 @@ async function resolveQuestionResponseChain(
     publication.issueId !== binding.issueId ||
     record(publication.payload).interactionId !== interaction.id ||
     identity.status !== "linked" ||
-    identity.paperclipUserId !== interaction.resolvedByUserId
+    identity.clayonUserId !== interaction.resolvedByUserId
   )
     return null;
   const marker: Marker = {
@@ -927,8 +927,8 @@ async function resolveQuestionResponseChain(
     authorizationContext: {
       ...context,
       source: `chat:${provider}`,
-      paperclipHarnessCheckedOut: false,
-      paperclipExternalChatExecutionBound: true,
+      clayonHarnessCheckedOut: false,
+      clayonExternalChatExecutionBound: true,
     },
   };
 }

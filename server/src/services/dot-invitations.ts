@@ -1,8 +1,8 @@
 import { and, desc, eq, isNull, ne, sql } from "drizzle-orm";
-import { activityLog, agents, companies, dotAgentBindings, type Db } from "@paperclipai/db";
+import { activityLog, agents, companies, dotAgentBindings, type Db } from "@clayon/db";
 import { agentService } from "./agents.js";
 import { createAgentLifecycle, scheduleAgentLifecycle } from "./agent-lifecycle.js";
-import { withDedicatedDbConnection } from "@paperclipai/db";
+import { withDedicatedDbConnection } from "@clayon/db";
 import { approvalService } from "./approvals.js";
 import { accessService } from "./access.js";
 import { agentInstructionsService } from "./agent-instructions.js";
@@ -38,7 +38,7 @@ export function dotInvitationService(db: Db) {
     async create(companyId: string, operatorId: string) {
       if (!await dotRunnerBroker(db).enabled()) throw unprocessable("Enable OpenAI Dot and Assistant connections (MCP) in experimental settings.");
       const database = db;
-      const lockKey = `paperclip:dot-invitation:${companyId}:${operatorId}`;
+      const lockKey = `clayon:dot-invitation:${companyId}:${operatorId}`;
       return withDedicatedDbConnection(db, lockDb => lockDb.transaction(async lock => {
         await lock.execute(sql`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`);
         // SQL locking also serializes retries on different control-plane replicas.

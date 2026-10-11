@@ -14,8 +14,8 @@ import {
   issueRelations,
   issues,
   projects,
-} from "@paperclipai/db";
-import { LOW_TRUST_REVIEW_PRESET } from "@paperclipai/shared";
+} from "@clayon/db";
+import { LOW_TRUST_REVIEW_PRESET } from "@clayon/shared";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -189,7 +189,7 @@ describeEmbeddedPostgres("issue subtree diagnostics route", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-issue-subtree-diagnostics-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-issue-subtree-diagnostics-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 

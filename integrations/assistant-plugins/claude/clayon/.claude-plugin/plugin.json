@@ -1,0 +1,14 @@
+{
+  "name": "clayon",
+  "version": "0.1.0",
+  "description": "Review your team, delegate work and retrieve durable results in Clayon.",
+  "author": {
+    "name": "Clayon",
+    "url": "https://clayon.ing"
+  },
+  "homepage": "https://clayon.ing",
+  "repository": "https://github.com/paperclipai/paperclip",
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

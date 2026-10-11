@@ -8,13 +8,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Clock3, Coins, GanttChartSquare, Minus, Plus, RotateCcw, type LucideIcon } from "lucide-react";
-import type { WorkTimelineResult } from "@paperclipai/shared";
+import type { WorkTimelineResult } from "@clayon/shared";
 import { workTimelineApi, type WorkTimelineParams } from "@/api/workTimeline";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { EmptyState } from "@/components/EmptyState";
 import { PageSkeleton } from "@/components/PageSkeleton";
+import { PageHeaderBand } from "@/components/PageHeaderBand";
 import { RequestCollapsedSidebar } from "@/components/RequestCollapsedSidebar";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -367,15 +368,6 @@ export function Timeline({ embedded = false }: { embedded?: boolean } = {}) {
     );
   }
 
-  const header = (
-    <div className="flex items-center gap-2">
-      <GanttChartSquare className="h-6 w-6 text-muted-foreground" />
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {scopedProjectId ? "Project Timeline" : "Work Timeline"}
-      </h1>
-    </div>
-  );
-
   const adjustZoom = (factor: number) => {
     zoomTouched.current = true;
     const nextScale = clampZoomScale((zoomScale ?? zoomScaleForLevel(zoom)) * factor);
@@ -474,10 +466,18 @@ export function Timeline({ embedded = false }: { embedded?: boolean } = {}) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col">
       {!embedded && <RequestCollapsedSidebar />}
-      {header}
-      {toolbar}
+      <PageHeaderBand
+        title={(
+          <span className="flex items-center gap-2">
+            <GanttChartSquare className="h-6 w-6 text-muted-foreground" />
+            {scopedProjectId ? "Project Timeline" : "Work Timeline"}
+          </span>
+        )}
+      >
+        {toolbar}
+      </PageHeaderBand>
 
       {isLoading && <PageSkeleton />}
 

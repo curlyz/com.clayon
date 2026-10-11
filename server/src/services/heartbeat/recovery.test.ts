@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import type { Db } from "@paperclipai/db";
-import { agents, companies, createDb, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, heartbeatRuns, issues, nativeRunFinalizations } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { agents, companies, createDb, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, heartbeatRuns, issues, nativeRunFinalizations } from "@clayon/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
@@ -36,8 +36,8 @@ vi.mock("../native-runtime/index.js", async (importOriginal) => ({
   reconcileRetainedNativeSessionCleanups: native.cleanups,
   claimNativeRestartRecoveries: native.claims,
 }));
-vi.mock("../../vendor/paperclip-runner/index.js", async (importOriginal) => ({
-  ...await importOriginal<typeof import("../../vendor/paperclip-runner/index.js")>(),
+vi.mock("../../vendor/clayon-runner/index.js", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../../vendor/clayon-runner/index.js")>(),
   drainRetainedRunnerdMaintenanceOperations: native.drainMaintenance,
 }));
 
@@ -171,7 +171,7 @@ describePostgres("heartbeat recovery module ownership", () => {
   let db: Db;
   let database: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
   beforeAll(async () => {
-    database = await startEmbeddedPostgresTestDatabase("paperclip-heartbeat-recovery-module-");
+    database = await startEmbeddedPostgresTestDatabase("clayon-heartbeat-recovery-module-");
     db = createDb(database.connectionString);
   }, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS);
   afterAll(async () => { await database?.cleanup(); });

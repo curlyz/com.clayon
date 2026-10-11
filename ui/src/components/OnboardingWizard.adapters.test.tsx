@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // --- Mocks (hoisted so vi.mock factories can close over them) ----------------
 
-const ONBOARDING_STORAGE_KEY = "paperclip-onboarding-state";
+const ONBOARDING_STORAGE_KEY = "clayon-onboarding-state";
 
 const mockDialog = vi.hoisted(() => ({
   onboardingOpen: true,
@@ -200,7 +200,7 @@ describe("OnboardingWizard adapter selection", () => {
     });
   });
 
-  it("keeps onboarding on legacy adapters even when Paperclip Runner is enabled", async () => {
+  it("keeps onboarding on legacy adapters even when Clayon Runner is enabled", async () => {
     mockAdapterRegistry.list = [
       { type: "paperclip_runner" },
       { type: "codex_local" },
@@ -233,7 +233,7 @@ describe("OnboardingWizard adapter selection", () => {
     });
   });
 
-  it("normalizes a saved Paperclip Runner draft before adapter discovery resolves", async () => {
+  it("normalizes a saved Clayon Runner draft before adapter discovery resolves", async () => {
     mockAdapterRegistry.loaded = false;
     mockAdapterRegistry.list = [{ type: "codex_local" }];
     window.localStorage.setItem(

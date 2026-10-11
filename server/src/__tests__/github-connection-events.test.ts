@@ -9,11 +9,11 @@ import {
   externalObjects,
   toolApplications,
   toolConnections,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { eq } from "drizzle-orm";
 import { githubConnectionEventService } from "../services/github-connection-events.js";
 import { subscribeCompanyLiveEvents } from "../services/live-events.js";
-import type { PaperclipCloudConnector } from "../services/paperclip-cloud-connector.js";
+import type { ClayonCloudConnector } from "../services/clayon-cloud-connector.js";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -27,7 +27,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-github-events-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-github-events-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -51,7 +51,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
     const applicationId = randomUUID();
     const connectionId = randomUUID();
     const grantId = randomUUID();
-    await db.insert(companies).values({ id: companyId, name: "Paperclip", issuePrefix: "GHE" });
+    await db.insert(companies).values({ id: companyId, name: "Clayon", issuePrefix: "GHE" });
     await db.insert(toolApplications).values({
       id: applicationId,
       companyId,
@@ -91,8 +91,8 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
           repositoryCount: 3,
           repositorySelection: "selected",
           installationIds: ["101"],
-          installationOwnerLogins: ["paperclipai"],
-          repositories: [{ id: "203", fullName: "paperclipai/removed", installationId: "101" }],
+          installationOwnerLogins: ["clayon"],
+          repositories: [{ id: "203", fullName: "clayon/removed", installationId: "101" }],
           webhookHealth: "pending",
         },
       },
@@ -146,7 +146,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       setWebhookBinding: vi.fn(async () => undefined),
       leaseEvents: vi.fn(async () => ({ leaseId: `lease-${++poll}`, events: [leasedEvent] })),
       acknowledgeEvents: vi.fn(async () => 1),
-    } as unknown as PaperclipCloudConnector;
+    } as unknown as ClayonCloudConnector;
     let currentTime = new Date("2026-09-04T12:00:05.000Z");
     const service = githubConnectionEventService(db, { connector, now: () => currentTime });
 
@@ -212,7 +212,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
     const applicationId = randomUUID();
     const connectionId = randomUUID();
     const grantId = randomUUID();
-    await db.insert(companies).values({ id: companyId, name: "Paperclip", issuePrefix: "GHI" });
+    await db.insert(companies).values({ id: companyId, name: "Clayon", issuePrefix: "GHI" });
     await db.insert(toolApplications).values({
       id: applicationId,
       companyId,
@@ -252,8 +252,8 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
           repositoryCount: 3,
           repositorySelection: "selected",
           installationIds: ["101"],
-          installationOwnerLogins: ["paperclipai"],
-          repositories: [{ id: "203", fullName: "paperclipai/removed", installationId: "101" }],
+          installationOwnerLogins: ["clayon"],
+          repositories: [{ id: "203", fullName: "clayon/removed", installationId: "101" }],
           webhookHealth: "pending",
         },
       },
@@ -293,7 +293,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
         return ({ leaseId: `lease-${++poll}`, events: [leasedEvent] });
       }),
       acknowledgeEvents: vi.fn(async () => 1),
-    } as unknown as PaperclipCloudConnector;
+    } as unknown as ClayonCloudConnector;
     let currentTime = new Date("2026-09-04T12:00:05.000Z");
     const service = githubConnectionEventService(db, { connector, now: () => currentTime });
 

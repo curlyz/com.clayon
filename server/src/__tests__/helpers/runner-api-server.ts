@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { eq, sql } from "drizzle-orm";
-import { agents, authUsers, companies, companyMemberships, createDb, heartbeatRuns, issues, projects, projectWorkspaces, activityLog, issueComments, assets, goals, approvals, documents, documentRevisions, issueDocuments, issueRelations, issueThreadInteractions, connectionIntentDeliveries, toolApplications, toolConnections, toolConnectionInstalls, connectionGrants, toolCatalogEntries, toolProfiles, toolProfileBindings } from "@paperclipai/db";
+import { agents, authUsers, companies, companyMemberships, createDb, heartbeatRuns, issues, projects, projectWorkspaces, activityLog, issueComments, assets, goals, approvals, documents, documentRevisions, issueDocuments, issueRelations, issueThreadInteractions, connectionIntentDeliveries, toolApplications, toolConnections, toolConnectionInstalls, connectionGrants, toolCatalogEntries, toolProfiles, toolProfileBindings } from "@clayon/db";
 import { documentService } from "../../services/documents.js";
 import { connectionIntentService } from "../../services/connection-intents.js";
 import { initializeRunIdentity } from "../../services/run-identity.js";
@@ -13,7 +13,7 @@ import { createApp } from "../../app.js";
 import { createLocalDiskStorageProvider } from "../../storage/local-disk-provider.js";
 import { createStorageService } from "../../storage/service.js";
 import { setupRunnerPrpWebSocketServer, runnerPrpWebSocketInternals } from "../../realtime/runner-prp-ws.js";
-import { PaperclipRunnerToolAuthority } from "../../services/native-runtime/paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "../../services/native-runtime/clayon-runner-tool-authority.js";
 
 export type RunnerConnectionScenario = "fresh" | "pending" | "declined" | "custom" | "foreign" | "stale_owner" | "ready";
 const CONNECTION_SCENARIOS: readonly RunnerConnectionScenario[] = ["fresh", "pending", "declined", "custom", "foreign", "stale_owner", "ready"];
@@ -22,8 +22,8 @@ const CONNECTION_SCENARIOS: readonly RunnerConnectionScenario[] = ["fresh", "pen
 export async function startRunnerApiTestServer(options: {
   deploymentMode?: "authenticated" | "local_trusted";
 } = {}) {
-  const root = await mkdtemp(join(tmpdir(), "paperclip-api-eval-"));
-  const temporary = await startEmbeddedPostgresTestDatabase("paperclip-api-eval-db-");
+  const root = await mkdtemp(join(tmpdir(), "clayon-api-eval-"));
+  const temporary = await startEmbeddedPostgresTestDatabase("clayon-api-eval-db-");
   const db = createDb(temporary.connectionString);
   const storage = createStorageService(createLocalDiskStorageProvider(join(root, "storage")));
   const app = await createApp(db, {
@@ -153,7 +153,7 @@ export async function startRunnerApiTestServer(options: {
         connectionScenario: options.connectionScenario ?? null, responsibleUserId, userId: responsibleUserId, sourceRunId: runId,
         customConnectionService, foreignConnectionService, pendingInteractionId,
         initialInteractionIds: pendingInteractionId ? [pendingInteractionId] : [],
-        authority: new PaperclipRunnerToolAuthority(db, binding),
+        authority: new ClayonRunnerToolAuthority(db, binding),
         async snapshot() {
           return {
             issues: await db.select().from(issues).where(eq(issues.companyId, companyId)),
@@ -179,7 +179,7 @@ export async function startRunnerApiTestServer(options: {
     },
     async close() {
       runnerPrpWebSocketInternals.resetForTests();
-      await app.locals.paperclipShutdown();
+      await app.locals.clayonShutdown();
       for (const socket of sockets) socket.destroy();
       http.closeAllConnections();
       await new Promise<void>((resolve) => http.close(() => resolve()));

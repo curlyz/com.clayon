@@ -1,4 +1,4 @@
-import type { ExternalObjectSummary } from "@paperclipai/shared";
+import type { ExternalObjectSummary } from "@clayon/shared";
 import {
   dominantExternalObjectTone,
   externalObjectCategoryLabel,

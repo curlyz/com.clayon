@@ -8,12 +8,12 @@ import { COGNEE_STDIO_TEMPLATE, cogneeCloudUrl, callCogneeCloud } from "./cognee
 import { HttpError } from "../errors.js";
 import { claimSlackRateLimitRetry } from "./connectors/slack-retry.js";
 import { resolveSlackTaskAuthority } from "./connectors/slack-authority.js";
-import { SLACK_TOOLS } from "@paperclipai/shared";
+import { SLACK_TOOLS } from "@clayon/shared";
 import { slackToolsForSession } from "./connectors/slack-catalog.js";
 import { executeSlackTool } from "./connectors/slack.js";
 import { githubGuestBotConnectionForSession, githubBotToolsForSession } from "./chat-github-tools.js";
 import { githubChatReviewService } from "./chat-github-reviews.js";
-import { runIdentityContexts } from "@paperclipai/db";
+import { runIdentityContexts } from "@clayon/db";
 import { executeSpekoVoiceTool, spekoToolsForSession } from "./voice/speko-agent-tools.js";
 import { captureRunIdentity } from "./run-identity.js";
 import { emitConnectionInvoked } from "./connector-telemetry.js";
@@ -35,7 +35,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents,
   approvals,
@@ -69,8 +69,8 @@ import {
   toolProfileEntries,
   toolProfiles,
   toolStdioCommandTemplates,
-} from "@paperclipai/db";
-import type { ToolRunContext } from "@paperclipai/plugin-sdk";
+} from "@clayon/db";
+import type { ToolRunContext } from "@clayon/plugin-sdk";
 import type {
   CreateToolMcpGateway,
   CreateToolMcpGatewayToken,
@@ -91,14 +91,14 @@ import type {
   ToolMcpGatewayTokenCreated,
   ToolMcpGatewayWithTokens,
   UpdateToolMcpGateway,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   getConnectableAppDefinition,
   isGitHubConnectorProfileId,
   isGoogleWorkspaceConnectorProfileId,
   type GitHubConnectorProfileId,
   type GoogleWorkspaceConnectorProfileId,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import type {
   AgentToolDescriptor,
   PluginToolDispatcher,
@@ -148,14 +148,14 @@ import {
   type ToolRuntimeSlotView,
 } from "./tool-runtime-supervisor.js";
 import { recordToolRuntimeAuditWriteFailure } from "./tool-runtime-metrics.js";
-import { isRetiredComposioConnection, RETIRED_COMPOSIO_MESSAGE } from "@paperclipai/shared";
+import { isRetiredComposioConnection, RETIRED_COMPOSIO_MESSAGE } from "@clayon/shared";
 import {
-  createPaperclipCloudConnector,
-  isPaperclipCloudConnectorStrategy,
-  paperclipCloudConnectorConfigFromEnv,
-  PaperclipCloudConnectorError,
-  type PaperclipCloudConnector,
-} from "./paperclip-cloud-connector.js";
+  createClayonCloudConnector,
+  isClayonCloudConnectorStrategy,
+  clayonCloudConnectorConfigFromEnv,
+  ClayonCloudConnectorError,
+  type ClayonCloudConnector,
+} from "./clayon-cloud-connector.js";
 import {
   createVercelConnectClient,
   vercelGrantReference,
@@ -447,9 +447,9 @@ const BUILTIN_LOCAL_STDIO_RUNTIME_TEMPLATES: Record<
   string,
   Omit<LocalStdioRuntimeTemplate, "templateId">
 > = {
-  "paperclip.cognee-cloud": COGNEE_STDIO_TEMPLATE,
-  "paperclip.google-sheets": {
-    command: "paperclip-google-sheets-mcp-server",
+  "clayon.cognee-cloud": COGNEE_STDIO_TEMPLATE,
+  "clayon.google-sheets": {
+    command: "clayon-google-sheets-mcp-server",
     args: [],
     envKeys: [
       "GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON",
@@ -457,12 +457,12 @@ const BUILTIN_LOCAL_STDIO_RUNTIME_TEMPLATES: Record<
       "GOOGLE_SHEETS_ALLOWED_SPREADSHEET_IDS",
     ],
   },
-  "paperclip.echo-calculator-time": {
+  "clayon.echo-calculator-time": {
     command: null,
     args: [],
     envKeys: [],
   },
-  "paperclip.synthetic-todo-kv": {
+  "clayon.synthetic-todo-kv": {
     command: null,
     args: [],
     envKeys: [],
@@ -530,12 +530,12 @@ const sensitivePassthroughHeaderNames = new Set([
   "proxy-authorization",
   "cookie",
   "set-cookie",
-  "x-paperclip-tool-gateway-token",
+  "x-clayon-tool-gateway-token",
 ]);
 
 function isSensitivePassthroughHeader(name: string) {
   return (
-    name.startsWith("x-paperclip-") ||
+    name.startsWith("x-clayon-") ||
     sensitivePassthroughHeaderNames.has(name) ||
     sensitivePassthroughHeaderPattern.test(name)
   );
@@ -617,41 +617,41 @@ function mcpGatewayProtocolLimits(
   const envDefaults: McpGatewayProtocolLimitOptions = {
     authFailures: {
       windowMs: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_AUTH_FAILURE_WINDOW_MS,
+        process.env.CLAYON_MCP_GATEWAY_AUTH_FAILURE_WINDOW_MS,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.authFailures.windowMs,
       ),
       max: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_AUTH_FAILURE_LIMIT,
+        process.env.CLAYON_MCP_GATEWAY_AUTH_FAILURE_LIMIT,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.authFailures.max,
       ),
     },
     gatewayRequests: {
       windowMs: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_REQUEST_WINDOW_MS,
+        process.env.CLAYON_MCP_GATEWAY_REQUEST_WINDOW_MS,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.gatewayRequests.windowMs,
       ),
       max: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_REQUEST_LIMIT,
+        process.env.CLAYON_MCP_GATEWAY_REQUEST_LIMIT,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.gatewayRequests.max,
       ),
     },
     tokenRequests: {
       windowMs: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_TOKEN_REQUEST_WINDOW_MS,
+        process.env.CLAYON_MCP_GATEWAY_TOKEN_REQUEST_WINDOW_MS,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.tokenRequests.windowMs,
       ),
       max: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_TOKEN_REQUEST_LIMIT,
+        process.env.CLAYON_MCP_GATEWAY_TOKEN_REQUEST_LIMIT,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.tokenRequests.max,
       ),
     },
     sessionSetup: {
       windowMs: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_SESSION_SETUP_WINDOW_MS,
+        process.env.CLAYON_MCP_GATEWAY_SESSION_SETUP_WINDOW_MS,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.sessionSetup.windowMs,
       ),
       max: positiveInt(
-        process.env.PAPERCLIP_MCP_GATEWAY_SESSION_SETUP_LIMIT,
+        process.env.CLAYON_MCP_GATEWAY_SESSION_SETUP_LIMIT,
         DEFAULT_MCP_GATEWAY_PROTOCOL_LIMITS.sessionSetup.max,
       ),
     },
@@ -698,7 +698,7 @@ function safeClientMetadata(
   headers: Record<string, string | string[] | undefined> | undefined,
 ) {
   const clientName =
-    safeHeaderValue(headers, "x-paperclip-client-name", 120) ??
+    safeHeaderValue(headers, "x-clayon-client-name", 120) ??
     safeHeaderValue(headers, "mcp-client-name", 120) ??
     null;
   const correlationId =
@@ -997,30 +997,30 @@ const BUILTIN_TOOLS: ToolGatewayDescriptor[] = [
     risk: "write",
   },
   {
-    name: "paperclip-self:list_my_issues",
-    displayName: "List my Paperclip issues",
+    name: "clayon-self:list_my_issues",
+    displayName: "List my Clayon issues",
     description:
-      "Paperclip self-MCP read fixture that lists the authenticated agent's current issues.",
+      "Clayon self-MCP read fixture that lists the authenticated agent's current issues.",
     parametersSchema: {
       type: "object",
       properties: { limit: { type: "number" } },
       additionalProperties: false,
     },
-    pluginId: "paperclip-self",
+    pluginId: "clayon-self",
     providerType: "paperclip_self",
     risk: "read",
   },
   {
-    name: "paperclip-self:get_issue_context",
+    name: "clayon-self:get_issue_context",
     displayName: "Get issue context",
     description:
-      "Paperclip self-MCP read fixture that returns scoped issue context and plan document metadata.",
+      "Clayon self-MCP read fixture that returns scoped issue context and plan document metadata.",
     parametersSchema: {
       type: "object",
       properties: { issueId: { type: "string" } },
       additionalProperties: false,
     },
-    pluginId: "paperclip-self",
+    pluginId: "clayon-self",
     providerType: "paperclip_self",
     risk: "read",
   },
@@ -1058,7 +1058,7 @@ const VIRTUAL_SEARCH_TOOLS: ToolGatewayDescriptor = {
   name: "search_tools",
   displayName: "Search available tools",
   description:
-    "Search the tools available through this Paperclip gateway without loading every target tool into the tool list.",
+    "Search the tools available through this Clayon gateway without loading every target tool into the tool list.",
   parametersSchema: {
     type: "object",
     properties: {
@@ -1067,7 +1067,7 @@ const VIRTUAL_SEARCH_TOOLS: ToolGatewayDescriptor = {
     },
     additionalProperties: false,
   },
-  pluginId: "paperclip-gateway",
+  pluginId: "clayon-gateway",
   providerType: "paperclip_virtual",
   risk: "read",
 };
@@ -1076,7 +1076,7 @@ const VIRTUAL_RUN_TOOL: ToolGatewayDescriptor = {
   name: "run_tool",
   displayName: "Run a selected tool",
   description:
-    "Run a target tool by name after Paperclip applies the target tool's profile, policy, approval, and rate-limit checks.",
+    "Run a target tool by name after Clayon applies the target tool's profile, policy, approval, and rate-limit checks.",
   parametersSchema: {
     type: "object",
     properties: {
@@ -1086,7 +1086,7 @@ const VIRTUAL_RUN_TOOL: ToolGatewayDescriptor = {
     required: ["tool"],
     additionalProperties: false,
   },
-  pluginId: "paperclip-gateway",
+  pluginId: "clayon-gateway",
   providerType: "paperclip_virtual",
   risk: "write",
 };
@@ -1106,9 +1106,9 @@ export function createToolGatewayService(
     /** Test seam for deterministic remote MCP protocol fixtures. */
     remoteHttpRequest?: (url: string, init: RequestInit) => Promise<Response>;
     /** Test seam for refreshing personal Gmail grants. */
-    paperclipCloudConnector?: PaperclipCloudConnector | null;
-    /** @deprecated Use paperclipCloudConnector. */
-    paperclipIdGmailConnector?: PaperclipCloudConnector | null;
+    clayonCloudConnector?: ClayonCloudConnector | null;
+    /** @deprecated Use clayonCloudConnector. */
+    clayonIdGmailConnector?: ClayonCloudConnector | null;
     /** Refreshes customer-owned/DCR OAuth grants before remote MCP execution. */
     oauthGrantRefresher?: (input: {
       companyId: string;
@@ -1179,17 +1179,17 @@ export function createToolGatewayService(
     }
   >();
   const configuredCloudConnector =
-    options.paperclipCloudConnector ?? options.paperclipIdGmailConnector;
+    options.clayonCloudConnector ?? options.clayonIdGmailConnector;
   const connectorWasProvided =
-    options.paperclipCloudConnector !== undefined ||
-    options.paperclipIdGmailConnector !== undefined;
+    options.clayonCloudConnector !== undefined ||
+    options.clayonIdGmailConnector !== undefined;
   let cachedCloudConnector = configuredCloudConnector ?? null;
-  const currentCloudConnector = (): PaperclipCloudConnector | null => {
+  const currentCloudConnector = (): ClayonCloudConnector | null => {
     if (cachedCloudConnector || connectorWasProvided)
       return cachedCloudConnector;
-    const config = paperclipCloudConnectorConfigFromEnv();
+    const config = clayonCloudConnectorConfigFromEnv();
     cachedCloudConnector = config
-      ? createPaperclipCloudConnector({ config, now: options.now })
+      ? createClayonCloudConnector({ config, now: options.now })
       : null;
     return cachedCloudConnector;
   };
@@ -3170,11 +3170,11 @@ export function createToolGatewayService(
       };
     }
 
-    if (tool.name === "paperclip-self:list_my_issues") {
+    if (tool.name === "clayon-self:list_my_issues") {
       if (!session.agentId) {
         throw new ToolGatewayHttpError(
           403,
-          "Paperclip self tools require an agent-scoped gateway session",
+          "Clayon self tools require an agent-scoped gateway session",
           "agent_context_required",
         );
       }
@@ -3203,11 +3203,11 @@ export function createToolGatewayService(
       };
     }
 
-    if (tool.name === "paperclip-self:get_issue_context") {
+    if (tool.name === "clayon-self:get_issue_context") {
       if (!session.agentId) {
         throw new ToolGatewayHttpError(
           403,
-          "Paperclip self tools require an agent-scoped gateway session",
+          "Clayon self tools require an agent-scoped gateway session",
           "agent_context_required",
         );
       }
@@ -3524,7 +3524,7 @@ export function createToolGatewayService(
     };
     for (const key of policy.metadataHeaders) {
       const value = values[key];
-      if (value) headers[`x-paperclip-${key.replace(/_/g, "-")}`] = value;
+      if (value) headers[`x-clayon-${key.replace(/_/g, "-")}`] = value;
     }
     return headers;
   }
@@ -3711,14 +3711,14 @@ export function createToolGatewayService(
     }
   }
 
-  async function maybeRefreshPaperclipCloudGrant(
+  async function maybeRefreshClayonCloudGrant(
     session: ToolGatewaySession,
     connection: typeof toolConnections.$inferSelect,
     grant: typeof connectionGrants.$inferSelect,
     forceRefresh = false,
   ): Promise<typeof connectionGrants.$inferSelect> {
     const oauth = asRecord(asRecord(connection.config)?.oauth);
-    if (!oauth || !isPaperclipCloudConnectorStrategy(oauth.strategy))
+    if (!oauth || !isClayonCloudConnectorStrategy(oauth.strategy))
       return grant;
     const configuredProfile = oauth.connectorProfile;
     const connectorProfile:
@@ -3777,9 +3777,9 @@ export function createToolGatewayService(
     )
       return grant;
     if (oauth.strategy === "paperclip_id_connector") {
-      // Paperclip ID used different endpoints, signing metadata, envelope
+      // Clayon ID used different endpoints, signing metadata, envelope
       // purposes, and a different Google client. Its refresh token cannot be
-      // exchanged through Paperclip Cloud. Let an unexpired access token finish
+      // exchanged through Clayon Cloud. Let an unexpired access token finish
       // its useful life, then require an explicit managed-connector enrollment
       // and provider reconnect instead of sending it to the wrong client.
       await db
@@ -3791,7 +3791,7 @@ export function createToolGatewayService(
         .where(eq(connectionGrants.id, grant.id));
       throw new ToolGatewayHttpError(
         409,
-        "Legacy authorization must be reconnected through Paperclip Cloud",
+        "Legacy authorization must be reconnected through Clayon Cloud",
         "connector_reauthorization_required",
         {
           connectionId: connection.id,
@@ -3908,7 +3908,7 @@ export function createToolGatewayService(
       } catch (error) {
         if (error instanceof ToolGatewayHttpError) throw error;
         if (
-          error instanceof PaperclipCloudConnectorError &&
+          error instanceof ClayonCloudConnectorError &&
           error.code === "REAUTHORIZATION_REQUIRED"
         ) {
           await db
@@ -4126,12 +4126,12 @@ export function createToolGatewayService(
     }
     const oauth = asRecord(asRecord(connection.config)?.oauth);
     if (
-      isPaperclipCloudConnectorStrategy(oauth?.strategy) &&
+      isClayonCloudConnectorStrategy(oauth?.strategy) &&
       !options.oauthGrantRefresher
     ) {
       // Compatibility fallback for isolated service consumers. The production
       // app supplies tool-access's lease/CAS refresher below.
-      grant = await maybeRefreshPaperclipCloudGrant(
+      grant = await maybeRefreshClayonCloudGrant(
         session,
         connection,
         grant,
@@ -4375,7 +4375,7 @@ export function createToolGatewayService(
       detailsMarkdown:
         grantKind === "organization"
           ? "Vercel Connect reports that the shared organization identity needs authorization."
-          : "This run needs your personal authorization. Paperclip will not use another user's identity.",
+          : "This run needs your personal authorization. Clayon will not use another user's identity.",
       target: {
         type: "custom" as const,
         key: `connection:${connection.uid}:user:${userId}`,
@@ -5024,7 +5024,7 @@ export function createToolGatewayService(
         );
       }
     }
-    if (template.templateId === "paperclip.cognee-cloud") {
+    if (template.templateId === "clayon.cognee-cloud") {
       try { cogneeCloudUrl(env.COGNEE_BASE_URL ?? ""); }
       catch {
         throw new ToolGatewayHttpError(422, "Reconnect Cognee with the tenant API Base URL from its API Keys page.", "cognee_cloud_url_invalid");
@@ -5055,7 +5055,7 @@ export function createToolGatewayService(
     protocolParams?: Record<string, unknown>;
     timeoutMs: number;
   }): Promise<unknown> {
-    if (input.template.templateId === "paperclip.cognee-cloud") {
+    if (input.template.templateId === "clayon.cognee-cloud") {
       if (input.protocolMethod === "resources/list") return { resources: [] };
       if (input.protocolMethod === "prompts/list") return { prompts: [] };
       if (input.protocolMethod && input.protocolMethod !== "tools/call") {
@@ -5228,7 +5228,7 @@ export function createToolGatewayService(
       await request("initialize", {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "paperclip-tool-gateway", version: "0.3.1" },
+        clientInfo: { name: "clayon-tool-gateway", version: "0.3.1" },
       });
       child.stdin.write(
         `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized", params: {} })}\n`,
@@ -5307,7 +5307,7 @@ export function createToolGatewayService(
         headers: mcpHttpRequestHeaders(headers),
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: `paperclip-context-${randomUUID()}`,
+          id: `clayon-context-${randomUUID()}`,
           method: input.method,
           params: input.params,
         }),
@@ -5401,7 +5401,7 @@ export function createToolGatewayService(
       template,
       grant,
     );
-    if (template.templateId === "paperclip.cognee-cloud") {
+    if (template.templateId === "clayon.cognee-cloud") {
       return callLocalStdioMcp({ connection: input.connection, template, env,
         protocolMethod: input.method, protocolParams: input.params ?? {}, timeoutMs: DEFAULT_TOOL_TIMEOUT_MS });
     }
@@ -5437,13 +5437,13 @@ export function createToolGatewayService(
     connectionId: string,
     value: string,
   ) {
-    return `paperclip-${kind}://${connectionId}/${Buffer.from(value, "utf8").toString("base64url")}`;
+    return `clayon-${kind}://${connectionId}/${Buffer.from(value, "utf8").toString("base64url")}`;
   }
 
   function parseContextHandle(kind: "resource" | "prompt", value: unknown) {
     if (typeof value !== "string") return null;
     const match = value.match(
-      new RegExp(`^paperclip-${kind}://([0-9a-f-]{36})/([A-Za-z0-9_-]+)$`, "i"),
+      new RegExp(`^clayon-${kind}://([0-9a-f-]{36})/([A-Za-z0-9_-]+)$`, "i"),
     );
     if (!match) return null;
     try {
@@ -5836,7 +5836,7 @@ export function createToolGatewayService(
         status: "awaiting_approval",
         errorCode: "elicitation_required",
         errorMessage:
-          "Remote MCP tool requested elicitation; Paperclip created an issue interaction for the response.",
+          "Remote MCP tool requested elicitation; Clayon created an issue interaction for the response.",
         updatedAt: now,
       })
       .where(eq(toolInvocations.id, input.invocationId));
@@ -5974,7 +5974,7 @@ export function createToolGatewayService(
     });
     let headers = builtHeaders.headers;
     let headerSummary = builtHeaders.summary;
-    const requestId = `paperclip-tool-${randomUUID()}`;
+    const requestId = `clayon-tool-${randomUUID()}`;
     const execution: RemoteHttpExecutionAudit = {
       transport: "mcp_remote",
       request: {
@@ -6103,7 +6103,7 @@ export function createToolGatewayService(
         response.status === 401 &&
         connection.authKind === "oauth" &&
         connection.credentialSource === "paperclip_vault" &&
-        isPaperclipCloudConnectorStrategy(oauth?.strategy)
+        isClayonCloudConnectorStrategy(oauth?.strategy)
       ) {
         credentialHeaders = {
           ...projectedConnectionHeaders(connection),
@@ -6125,7 +6125,7 @@ export function createToolGatewayService(
         response.status === 401 &&
         connection.authKind === "oauth" &&
         connection.credentialSource === "paperclip_vault" &&
-        !isPaperclipCloudConnectorStrategy(oauth?.strategy) &&
+        !isClayonCloudConnectorStrategy(oauth?.strategy) &&
         options.oauthGrantRefresher
       ) {
         credentialHeaders = {
@@ -6408,10 +6408,10 @@ export function createToolGatewayService(
       grant,
     );
     const invoke = () => callLocalStdioMcp({ connection, entry, template, env, parameters,
-      timeoutMs: useProviderDefaultTimeout && template.templateId === "paperclip.cognee-cloud" ? 60_000 : ms });
+      timeoutMs: useProviderDefaultTimeout && template.templateId === "clayon.cognee-cloud" ? 60_000 : ms });
     // Cognee is a bundled HTTP client. Provider failures are tool failures, not
     // crashed local processes, and must never consume slots or restart budgets.
-    const result = template.templateId === "paperclip.cognee-cloud"
+    const result = template.templateId === "clayon.cognee-cloud"
       ? await invoke()
       : await runtimeSupervisor.useConnectionSlot(
       {
@@ -6436,7 +6436,7 @@ export function createToolGatewayService(
       },
     );
     return {
-      result: normalizeMcpToolResult(result, template.templateId === "paperclip.cognee-cloud" ? "cognee_cloud" : "local_stdio", template.templateId !== "paperclip.cognee-cloud"),
+      result: normalizeMcpToolResult(result, template.templateId === "clayon.cognee-cloud" ? "cognee_cloud" : "local_stdio", template.templateId !== "clayon.cognee-cloud"),
     };
   }
 
@@ -6490,7 +6490,7 @@ export function createToolGatewayService(
             },
           },
         },
-        notes: ["Use the full Paperclip origin before the endpoint path."],
+        notes: ["Use the full Clayon origin before the endpoint path."],
       },
       {
         client: "claude_desktop",
@@ -6550,7 +6550,7 @@ export function createToolGatewayService(
             },
           },
         },
-        notes: ["Use the full Paperclip origin before the endpoint path."],
+        notes: ["Use the full Clayon origin before the endpoint path."],
       },
     ];
   }

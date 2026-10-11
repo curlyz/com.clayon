@@ -1,13 +1,13 @@
 import { useState, type ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import type { PaperclipQuestionSet, TranscriptEntry } from "@paperclipai/adapter-utils";
+import type { ClayonQuestionSet, TranscriptEntry } from "@clayon/adapter-utils";
 import { IssueThreadInteractionCard } from "@/components/IssueThreadInteractionCard";
 import { TaskChatCompactInteractionCard } from "@/components/task-chat/TaskChatCompactInteractionCard";
 import { TaskChatProtocolActivityRow } from "@/components/task-chat/TaskChatProtocolActivityRow";
 import { TaskChatProtocolCard } from "@/components/task-chat/TaskChatProtocolCard";
 import type { TaskChatRuntimeRequestDecision } from "@/components/task-chat/task-chat-model";
-import { paperclipRunnerUIAdapter } from "@/adapters/paperclip-runner";
+import { clayonRunnerUIAdapter } from "@/adapters/clayon-runner";
 import { transcriptToTaskChatItems } from "@/components/task-chat/transcript-adapter";
 import {
   issueThreadInteractionFixtureMeta,
@@ -19,15 +19,15 @@ import type {
   AskUserQuestionsInteraction,
   RequestConfirmationInteraction,
 } from "@/lib/issue-thread-interactions";
-import { storybookAgentMap } from "../fixtures/paperclipData";
+import { storybookAgentMap } from "../fixtures/clayonData";
 
 // Production components and production projection, with callbacks kept in memory.
 // No provider, runner, or control-plane mutation is made by these stories.
 function Frame({ children }: { children: ReactNode }) {
-  return <div className="paperclip-story"><main className="paperclip-story__inner space-y-6">{children}</main></div>;
+  return <div className="clayon-story"><main className="clayon-story__inner space-y-6">{children}</main></div>;
 }
 
-const questionSet: PaperclipQuestionSet = {
+const questionSet: ClayonQuestionSet = {
   schema: "paperclip.question_set.v1",
   title: "Deployment details",
   questions: [
@@ -99,7 +99,7 @@ const revisionId = "77777777-7777-4777-8777-777777777777";
 // This is the native runtime-question path, distinct from a synchronized plan document.
 const cursorPlanRevision = "eedc589b367de4f6366ff76090d93676adb1e2238d4c5af280ac88393e1adef3";
 const cursorPlanQuestionId = `plan-${cursorPlanRevision}`;
-const cursorPlanQuestions: PaperclipQuestionSet = {
+const cursorPlanQuestions: ClayonQuestionSet = {
   schema: "paperclip.question_set.v1", title: "Review Cursor's plan", description: fullPlan, submitLabel: "Send decision",
   questions: [
     { id: cursorPlanQuestionId, prompt: "How should Cursor proceed with this plan?", required: true, answerMode: "single_select", options: [
@@ -111,8 +111,8 @@ const cursorPlanQuestions: PaperclipQuestionSet = {
 
 function NativeCursorPlan() {
   const [receipt, setReceipt] = useState<{ requestId: string; decision: TaskChatRuntimeRequestDecision } | null>(null);
-  const entries = paperclipRunnerUIAdapter.parseStdoutLine(JSON.stringify({
-    type: "paperclip.prp.event", event: { eventType: "runtime_request.created", turnId: "cursor-plan-turn", payload: {
+  const entries = clayonRunnerUIAdapter.parseStdoutLine(JSON.stringify({
+    type: "clayon.prp.event", event: { eventType: "runtime_request.created", turnId: "cursor-plan-turn", payload: {
       request: { requestId: "cursor-create-plan-revision-7", requestKind: "runtime", type: "input", status: "pending", prompt: "Review Cursor's plan", input: cursorPlanQuestions },
     } },
   }), "2026-09-28T12:00:00.000Z");

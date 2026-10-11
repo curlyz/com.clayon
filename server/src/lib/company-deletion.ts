@@ -1,4 +1,4 @@
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 
 type CompanyDeletionTransaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 

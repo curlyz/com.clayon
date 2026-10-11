@@ -94,7 +94,7 @@ export function SidebarShell({
   collapsed = false,
   peeking = false,
   resizable = false,
-  storageKey = "paperclip.sidebar.width",
+  storageKey = "clayon.sidebar.width",
   className,
   onPanelMouseEnter,
   onPanelMouseLeave,
@@ -237,10 +237,13 @@ export function SidebarShell({
         >
           <div
             className={cn(
-              "mx-auto h-full w-0.5 transition-colors",
-              isResizing
-                ? "bg-ring"
-                : "bg-transparent group-hover:bg-ring group-focus-visible:bg-ring",
+              // Always-visible 1px --border hairline; it thickens to a --ring
+              // bar on hover, keyboard focus, and while dragging (operator
+              // directive 2026-10-11). Width snaps — the shell is motion-free
+              // by design — so only the color eases.
+              "mx-auto h-full w-px bg-border transition-colors",
+              "group-hover:w-1 group-hover:bg-ring group-focus-visible:w-1 group-focus-visible:bg-ring",
+              isResizing && "w-1 bg-ring",
             )}
           />
         </div>

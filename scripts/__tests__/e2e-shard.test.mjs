@@ -29,7 +29,7 @@ function readTrustedPrWorkflow() {
   const caller = readFileSync(prCallerWorkflow, "utf8");
   assert.match(
     caller,
-    /^\s+uses: paperclipai\/paperclip\/\.github\/workflows\/pr-trusted\.yml@master\s*$/m,
+    /^\s+uses: clayon\/clayon\/\.github\/workflows\/pr-trusted\.yml@master\s*$/m,
     "pr.yml must call the trusted workflow from CODEOWNERS-protected master",
   );
   // Validate proposed workflow changes locally; CI executes the merged master version.
@@ -63,7 +63,7 @@ function runStackScope(stack, prBaseRef) {
     .split("\n")
     .map((line) => line.replace(/^ {10}/, ""))
     .join("\n");
-  const scratch = mkdtempSync(path.join(tmpdir(), "paperclip-stack-scope-"));
+  const scratch = mkdtempSync(path.join(tmpdir(), "clayon-stack-scope-"));
   const output = path.join(scratch, "github-output");
 
   try {

@@ -27,7 +27,7 @@ import {
   issueWorkProducts,
   toolApplications,
   toolConnections,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import { createLocalDiskStorageProvider } from "../../storage/local-disk-provider.js";
@@ -40,7 +40,7 @@ import {
   resolveExternalChatResponseWaitAuthorization,
   type ChatAttachmentReuseSource,
 } from "./chat-attachment-reuse.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 import { validateNativeDeliverableEvidence } from "./native-deliverable-feedback.js";
 
 describe("native same-conversation chat attachment reuse", () => {
@@ -71,7 +71,7 @@ describe("native same-conversation chat attachment reuse", () => {
     temporary = await startEmbeddedPostgresTestDatabase("native-chat-reuse-");
     db = createDb(temporary.connectionString);
     const storageRoot = await mkdtemp(
-      path.join(tmpdir(), "paperclip-chat-reuse-"),
+      path.join(tmpdir(), "clayon-chat-reuse-"),
     );
     await mkdir(storageRoot, { recursive: true });
     storage = createStorageService(createLocalDiskStorageProvider(storageRoot));
@@ -181,7 +181,7 @@ describe("native same-conversation chat attachment reuse", () => {
       companyId,
       endpointId,
       principalId,
-      paperclipUserId: userId,
+      clayonUserId: userId,
       status: "linked",
     });
     await db.insert(companyMemberships).values({
@@ -277,10 +277,10 @@ describe("native same-conversation chat attachment reuse", () => {
       .set({
         contextSnapshot: {
           source: "chat:discord",
-          paperclipHarnessCheckedOut: true,
+          clayonHarnessCheckedOut: true,
           wakeCommentIds: [currentCommentId],
           commentId: currentCommentId,
-          paperclipWake: {
+          clayonWake: {
             reason: "External chat message received",
             externalChatProvider: "discord",
             checkedOutByHarness: true,
@@ -297,7 +297,7 @@ describe("native same-conversation chat attachment reuse", () => {
   });
 
   function authority() {
-    return new PaperclipRunnerToolAuthority(db, {
+    return new ClayonRunnerToolAuthority(db, {
       companyId,
       agentId,
       issueId,
@@ -375,7 +375,7 @@ describe("native same-conversation chat attachment reuse", () => {
       const spoofedContext = {
         ...((run?.contextSnapshot as Record<string, unknown> | null) ?? {}),
       };
-      delete spoofedContext.paperclipWake;
+      delete spoofedContext.clayonWake;
       await db
         .update(heartbeatRuns)
         .set({

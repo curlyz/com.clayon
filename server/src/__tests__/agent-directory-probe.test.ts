@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createRequire } from "node:module";
 import childProcess, { execFileSync } from "node:child_process";
-import { prepareAdapterExecutionTargetRuntime } from "@paperclipai/adapter-utils/execution-target";
-import { captureDirectorySnapshot } from "@paperclipai/adapter-utils/workspace-restore-merge";
-import { prepareSandboxManagedRuntime } from "@paperclipai/adapter-utils/sandbox-managed-runtime";
+import { prepareAdapterExecutionTargetRuntime } from "@clayon/adapter-utils/execution-target";
+import { captureDirectorySnapshot } from "@clayon/adapter-utils/workspace-restore-merge";
+import { prepareSandboxManagedRuntime } from "@clayon/adapter-utils/sandbox-managed-runtime";
 import { agentDirectoryBaselineDigest, agentDirectoryProbeProgram, observeLocalAgentDirectory, probeAgentDirectory, retireAgentDirectoryTransferScratch, agentDirectoryTransferCleanupProgram } from "../services/agent-directory-probe.js";
 
 describe("stable live agent directory observation", () => {
@@ -43,7 +43,7 @@ describe("stable live agent directory observation", () => {
   });
   it("runs bounded transfer cleanup after the production tsx transform", () => {
     const { cleanup } = productionPrograms();
-    const scratch = join(root, ".paperclip-runtime", "agent-files");
+    const scratch = join(root, ".clayon-runtime", "agent-files");
     const retire = () => execFileSync(process.execPath, ["-e", cleanup, root], {
       env: {}, encoding: "utf8", timeout: 10_000, maxBuffer: 64 * 1024, stdio: "pipe",
     });
@@ -53,7 +53,7 @@ describe("stable live agent directory observation", () => {
     expect(fs.readFileSync(join(scratch, "unexpected"), "utf8")).toBe("retain");
     fs.unlinkSync(join(scratch, "unexpected"));
     retire();
-    expect(fs.existsSync(join(root, ".paperclip-runtime"))).toBe(false);
+    expect(fs.existsSync(join(root, ".clayon-runtime"))).toBe(false);
     expect(fs.readFileSync(join(root, "AGENTS.md"), "utf8")).toBe("Instructions\n");
     expect(fs.readFileSync(join(root, "notes", "memory.bin"))).toEqual(Buffer.from([0, 1, 255]));
   });
@@ -81,7 +81,7 @@ describe("stable live agent directory observation", () => {
     const remote = `${root}-remote`;
     fs.mkdirSync(remote);
     const target = { kind: "remote" as const, transport: "sandbox" as const, remoteCwd: remote,
-      runner: { execute: async (input: Parameters<import("@paperclipai/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner["execute"]>[0]) => ({
+      runner: { execute: async (input: Parameters<import("@clayon/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner["execute"]>[0]) => ({
         stdout: execFileSync(input.command, input.args ?? [], { cwd: input.cwd, input: input.stdin, encoding: "utf8",
           env: { PATH: process.env.PATH, ...input.env }, timeout: input.timeoutMs, maxBuffer: 32 * 1024 * 1024 }),
         stderr: "", exitCode: 0, signal: null, timedOut: false, pid: null, startedAt: new Date().toISOString(),
@@ -91,9 +91,9 @@ describe("stable live agent directory observation", () => {
       const baseline = await captureDirectorySnapshot(root);
       runtime = await prepareAdapterExecutionTargetRuntime({ target, runId: "probe-transfer", adapterKey: "agent-files",
         workspaceLocalDir: root, workspaceRemoteDir: remote, syncWorkspace: true, workspaceBaseline: baseline,
-        workspaceGitSnapshot: null, workspaceFileMode: "all", workspaceExclude: [".paperclip-runtime", ".paperclip-runtime/**"] });
-      expect(fs.readdirSync(`${remote}/.paperclip-runtime`)).toEqual(["agent-files"]);
-      expect(fs.readdirSync(`${remote}/.paperclip-runtime/agent-files`)).toEqual([]);
+        workspaceGitSnapshot: null, workspaceFileMode: "all", workspaceExclude: [".clayon-runtime", ".clayon-runtime/**"] });
+      expect(fs.readdirSync(`${remote}/.clayon-runtime`)).toEqual(["agent-files"]);
+      expect(fs.readdirSync(`${remote}/.clayon-runtime/agent-files`)).toEqual([]);
       execFileSync(process.execPath, ["-e", agentDirectoryTransferCleanupProgram, remote], { env: {}, timeout: 10_000 });
       expect(() => probeAgentDirectory(remote)).not.toThrow();
       expect(probeAgentDirectory(remote).digest).toBe(agentDirectoryBaselineDigest(baseline));
@@ -101,14 +101,14 @@ describe("stable live agent directory observation", () => {
   });
   it("keeps restart fallback transfer scratch outside the native memory directory", async () => {
     const remoteCwd = `${root}-remote`;
-    const agentHome = join(remoteCwd, ".paperclip-runtime", "agent-files", "agent", "original-run");
-    const scratch = join(remoteCwd, ".paperclip-runtime", "paperclip-runner", "agent-file-transfers", "agent", "original-run");
+    const agentHome = join(remoteCwd, ".clayon-runtime", "agent-files", "agent", "original-run");
+    const scratch = join(remoteCwd, ".clayon-runtime", "clayon-runner", "agent-file-transfers", "agent", "original-run");
     fs.mkdirSync(agentHome, { recursive: true });
     fs.cpSync(root, agentHome, { recursive: true });
     const target = { kind: "remote" as const, transport: "sandbox" as const, remoteCwd,
       // A newly bound controller target may have no native sync hooks. Exercise
       // the production command/base64 fallback rather than a transport mock.
-      runner: { execute: async (input: Parameters<import("@paperclipai/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner["execute"]>[0]) => ({
+      runner: { execute: async (input: Parameters<import("@clayon/adapter-utils/command-managed-runtime").CommandManagedRuntimeRunner["execute"]>[0]) => ({
         stdout: execFileSync(input.command, input.args ?? [], { cwd: input.cwd, input: input.stdin, encoding: "utf8",
           env: { PATH: process.env.PATH, ...input.env }, timeout: input.timeoutMs, maxBuffer: 32 * 1024 * 1024 }),
         stderr: "", exitCode: 0, signal: null, timedOut: false, pid: null, startedAt: new Date().toISOString(),
@@ -119,7 +119,7 @@ describe("stable live agent directory observation", () => {
       runtime = await prepareAdapterExecutionTargetRuntime({ target, runId: "restart-transfer", adapterKey: "agent-files",
         workspaceLocalDir: root, workspaceRemoteDir: agentHome, runtimeRootDir: scratch,
         syncWorkspace: true, workspaceInboundMode: "adopt_remote", workspaceBaseline: baseline,
-        workspaceGitSnapshot: null, workspaceFileMode: "all", workspaceExclude: [".paperclip-runtime", ".paperclip-runtime/**"] });
+        workspaceGitSnapshot: null, workspaceFileMode: "all", workspaceExclude: [".clayon-runtime", ".clayon-runtime/**"] });
       const memory = "0123456789abcdef0123456789abcdef\n";
       fs.writeFileSync(join(agentHome, "notes", "memory.txt"), memory);
       await runtime.restoreWorkspace();
@@ -127,15 +127,15 @@ describe("stable live agent directory observation", () => {
       // A transfer must not introduce a reserved path that the product's own
       // full agent-directory probe rejects, including after controller recovery.
       expect(() => probeAgentDirectory(agentHome)).not.toThrow();
-      expect(fs.existsSync(join(agentHome, ".paperclip-runtime"))).toBe(false);
+      expect(fs.existsSync(join(agentHome, ".clayon-runtime"))).toBe(false);
       expect(runtime.runtimeRootDir).toBe(scratch);
       expect(fs.readdirSync(scratch)).toEqual([]);
     } finally { await runtime?.cleanupWorkspaceSnapshot?.(); fs.rmSync(remoteCwd, { recursive: true, force: true }); }
   });
   it.each(["outside", "reserved-root", "relative", "traversal", "trailing-slash", "nul"])("rejects %s transfer scratch before filesystem work", async kind => {
-    const reserved = join(root, ".paperclip-runtime");
+    const reserved = join(root, ".clayon-runtime");
     const invalid = {
-      outside: `${root}-foreign/scratch`, "reserved-root": reserved, relative: ".paperclip-runtime/scratch",
+      outside: `${root}-foreign/scratch`, "reserved-root": reserved, relative: ".clayon-runtime/scratch",
       traversal: `${reserved}/../../scratch`, "trailing-slash": `${reserved}/scratch/`, nul: `${reserved}/scratch\0`,
     }[kind]!;
     await expect(prepareSandboxManagedRuntime({
@@ -145,7 +145,7 @@ describe("stable live agent directory observation", () => {
     expect(fs.existsSync(reserved)).toBe(false);
   });
   it.each(["file", "extra-directory", "symlink", "race"])("fails closed on %s in transfer-owned scratch without deleting contents", kind => {
-    const parent = join(root, ".paperclip-runtime"), scratch = join(parent, "agent-files");
+    const parent = join(root, ".clayon-runtime"), scratch = join(parent, "agent-files");
     fs.mkdirSync(scratch, { recursive: true });
     const retained = join(parent, "retained.txt");
     if (kind === "file") fs.writeFileSync(join(scratch, "retained.txt"), "keep");
@@ -190,7 +190,7 @@ describe("stable live agent directory observation", () => {
   it.each(["symlink", "hardlink", "reserved"])("rejects %s entries", kind => {
     if (kind === "symlink") fs.symlinkSync(join(root, "AGENTS.md"), join(root, "unsafe"));
     if (kind === "hardlink") fs.linkSync(join(root, "AGENTS.md"), join(root, "unsafe"));
-    if (kind === "reserved") fs.mkdirSync(join(root, ".paperclip-runtime"));
+    if (kind === "reserved") fs.mkdirSync(join(root, ".clayon-runtime"));
     expect(() => probeAgentDirectory(root)).toThrow();
   });
   it("detects file mutation during a bounded read", () => {

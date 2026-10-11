@@ -39,7 +39,7 @@ const ARCHIVING_COMPANY = {
 const SIBLING_COMPANY = {
   ...ARCHIVING_COMPANY,
   id: "company-pap",
-  name: "Paperclip",
+  name: "Clayon",
   issuePrefix: "PAP",
 };
 
@@ -90,7 +90,7 @@ const CLOUD_HEALTH = {
   status: "ok" as const,
   cloud: {
     managed: true as const,
-    managedBy: "paperclip-cloud" as const,
+    managedBy: "clayon-cloud" as const,
     stackSlug: "acme-labs",
     cloudBaseUrl: "https://cloud.example.test",
   },
@@ -188,7 +188,7 @@ describe("CompanySettings archive departure", () => {
       expect(mockPushToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Old Co is archived",
-          body: "Switched to Paperclip.",
+          body: "Switched to Clayon.",
         }),
       );
       expect(mockNavigateTopLevel).not.toHaveBeenCalled();

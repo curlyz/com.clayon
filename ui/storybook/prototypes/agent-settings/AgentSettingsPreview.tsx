@@ -15,11 +15,11 @@ import {
   ConfigurationTab,
   KeysTab,
   AgentRevisionsTab,
-  confirmAgentConfigNavigation,
 } from "@/pages/AgentDetail";
 import { AgentSkillsTab } from "@/pages/agent-skills/AgentSkillsTab";
 import { AgentToolsTab } from "@/pages/AgentToolsTab";
-import { AgentContextualSidebar } from "@/components/AgentContextualSidebar";
+import { SectionTabs } from "@/components/SectionTabs";
+import { buildAgentSectionTabs } from "@/lib/section-tabs/agentSectionTabs";
 import { AgentActionButtons } from "@/components/AgentActionButtons";
 import { PillGuy } from "@/components/onboarding/PillGuy";
 import {
@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { RuntimeTestCard } from "../RuntimeTestCard";
 import { type TestOutcome } from "../new-agent-fixtures";
 import { COMPANY, ID, REF, createSettingsFixtures, library } from "./fixtures";
-import { storybookIssues } from "../../fixtures/paperclipData";
+import { storybookIssues } from "../../fixtures/clayonData";
 import "./settings.css";
 
 const descriptions: Record<AgentLocalDetailView, string> = {
@@ -55,7 +55,7 @@ const descriptions: Record<AgentLocalDetailView, string> = {
   tools: "Manage installed connections, available tools, and access policies.",
   channels: "Manage the external chat connections dedicated to this agent.",
   permissions: "Set the agent’s trust level, authority, and boundaries.",
-  "api-keys": "Manage the keys this agent uses to authenticate with Paperclip.",
+  "api-keys": "Manage the keys this agent uses to authenticate with Clayon.",
   revisions:
     "Review past configuration changes and restore an earlier version.",
 };
@@ -218,12 +218,7 @@ function SettingsPage({ runtimeContent }: { runtimeContent?: ReactNode }) {
         )?.label;
   const display = getAdapterDisplay(agent.adapterType);
   const Icon = display.icon;
-  const callbacks = {
-    onDirtyChange: onDirty,
-    onSaveActionChange: onSaveAction,
-    onCancelActionChange: onCancelAction,
-    onSavingChange: setSaving,
-  };
+  const callbacks = {};
   async function saveAgent(patch: Record<string, unknown>) {
     setSaving(true);
     setSaveError(null);
@@ -249,38 +244,18 @@ function SettingsPage({ runtimeContent }: { runtimeContent?: ReactNode }) {
         <span className="text-foreground">{title}</span>
       </div>
       <div className="flex min-h-screen">
-        <div
-          className="hidden w-52 shrink-0 md:block"
-          onClickCapture={(event) => {
-            if (
-              dirty &&
-              (event.target as HTMLElement).closest("a") &&
-              !confirmAgentConfigNavigation(true)
-            ) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          }}
-        >
-          <AgentContextualSidebar
-            agentRef={REF}
-            agentId={ID}
-            agentName={agent.name}
-            labels={{ secrets: "Secrets & variables" }}
-          />
-        </div>
         <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-5xl space-y-8">
-            <details className="md:hidden">
-              <summary className="cursor-pointer text-sm">
-                {agent.name} · Agent navigation
-              </summary>
-              <AgentContextualSidebar
-                agentRef={REF}
-                agentId={ID}
-                agentName={agent.name}
-              />
-            </details>
+            <SectionTabs
+              ariaLabel="Agent sections"
+              sections={buildAgentSectionTabs(REF, ID).map((tab) => ({
+                id: tab.id,
+                label: tab.label,
+                group: tab.group,
+                to: tab.to,
+                end: true,
+              }))}
+            />
             <header className="flex flex-wrap items-center justify-between gap-5 border-b border-border pb-6">
               <div className="flex min-w-0 items-center gap-4">
                 <div
@@ -373,7 +348,6 @@ function SettingsPage({ runtimeContent }: { runtimeContent?: ReactNode }) {
                           agent={agent}
                           onSave={saveAgent}
                           isSaving={saving}
-                          hideInlineSave
                           hidePromptTemplate
                           hideInstructionsFile
                           content={
@@ -394,9 +368,6 @@ function SettingsPage({ runtimeContent }: { runtimeContent?: ReactNode }) {
                             permissions: "Model & execution",
                             identity: "Agent identity",
                           }}
-                          onDirtyChange={onDirty}
-                          onSaveActionChange={onSaveAction}
-                          onCancelActionChange={onCancelAction}
                           onTestActionChange={onTestAction}
                           onTestActionStateChange={setTestAction}
                           onTestFeedbackChange={setFeedback}

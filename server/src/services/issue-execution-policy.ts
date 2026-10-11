@@ -9,8 +9,8 @@ import type {
   IssueExecutionStagePrincipal,
   IssueExecutionState,
   IssueMonitorScheduledBy,
-} from "@paperclipai/shared";
-import { issueExecutionPolicySchema, issueExecutionStateSchema } from "@paperclipai/shared";
+} from "@clayon/shared";
+import { issueExecutionPolicySchema, issueExecutionStateSchema } from "@clayon/shared";
 import { unprocessable } from "../errors.js";
 
 type AssigneeLike = {

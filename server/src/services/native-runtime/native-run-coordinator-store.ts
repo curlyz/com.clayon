@@ -2,14 +2,14 @@ import { createHash } from "node:crypto";
 
 import { and, desc, eq, inArray, lt } from "drizzle-orm";
 
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   heartbeatRunEvents,
   heartbeatRuns,
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   NativeSessionProtocolIntegrityError,
   type PrpEvent,
@@ -17,7 +17,7 @@ import {
   type PrpTerminalState,
   validatePrpEvent,
   validatePrpStructuredRunResult,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 
 export interface NativeRunStoreBinding {
   readonly companyId: string;

@@ -2,7 +2,7 @@
 
 ## Scope and provenance
 
-The live qualification agent remains Paperclip Runner → Codex →
+The live qualification agent remains Clayon Runner → Codex →
 `gpt-5.6-luna`. The earlier real Slack, GitHub, Discord, and Telegram text
 samples completed in 13.472–16.467 seconds from send to provider acknowledgement.
 Those are historical samples, not measurements of the changes in this document.
@@ -51,7 +51,7 @@ dependency installation gate is reconciled. The previously observed
   Project trust remains effective even when isolated workspace selection is off.
 
 Useful lifecycle, question, final-answer, image and file signals may reach the
-provider. Native thinking/tool activity remains on the private Paperclip Board;
+provider. Native thinking/tool activity remains on the private Clayon Board;
 raw reasoning, internal logs and credentials are not broadcast to chat.
 
 ## Database compatibility
@@ -75,7 +75,7 @@ Two independent PostgreSQL upgrade checks passed:
 
 Generation inputs, the original SQL, hashes, baseline, proof script and results
 are retained locally under
-`.paperclip-runtime/chat-adapters-live/migration-reconcile-20260907/`.
+`.clayon-runtime/chat-adapters-live/migration-reconcile-20260907/`.
 Those fixture checks did not mutate the live database. The later backed-up live
 upgrade is recorded below.
 
@@ -115,7 +115,7 @@ and transport races in deterministic tests are simulated, not live-provider proo
   launch rebinding.
 
 Detailed command logs are under
-`.paperclip-runtime/chat-adapters-live/upstream-*.log`.
+`.clayon-runtime/chat-adapters-live/upstream-*.log`.
 
 ## Deployed checkpoint
 
@@ -138,12 +138,12 @@ Before migration:
   migration was a no-op.
 
 Backup, baseline and verification artifacts are in
-`.paperclip-runtime/chat-adapters-live/upstream-live-backup-20260907/`.
+`.clayon-runtime/chat-adapters-live/upstream-live-backup-20260907/`.
 The guarded local `upstream-live-upgrade.ts` helper and its logs remain alongside
 that directory. The portable-backup precision discrepancy was not patched as
 part of this chat integration.
 
-`pnpm --filter @paperclipai/server build` passed, including the full native runner
+`pnpm --filter @clayon/server build` passed, including the full native runner
 build, protocol/contract checks and binary staging. The package and vendored
 runner binaries share SHA256
 `f7c1273cce29e521e820ad947d657e500da28477f563053148e764cdfb3730cd`.
@@ -201,8 +201,8 @@ working-placeholder message timestamp. Native execution alone took 11.3 s,
 SLO or a production load benchmark.
 
 Slack's root is `1788838921.759279` in channel `C0BUT55N9RV`:
-[live Slack thread](https://papercliplabs.slack.com/archives/C0BUT55N9RV/p1788838921759279).
-[GitHub reply](https://github.com/cryppadotta/paperclip-chat-e2e-enabled/issues/2#issuecomment-5578817993).
+[live Slack thread](https://clayonlabs.slack.com/archives/C0BUT55N9RV/p1788838921759279).
+[GitHub reply](https://github.com/cryppadotta/clayon-chat-e2e-enabled/issues/2#issuecomment-5578817993).
 
 Ten Slack follow-ups (`BURST-LUNA-0907-01` through `-10`) were sent through that
 thread's actual composer in 4.3 s. All ten became distinct durable inbound
@@ -246,7 +246,7 @@ Luna run `a57802aa-4df8-4415-9b19-41444eb3caa0`. The run finished in 14.0 s and
 published `GH-INLINE-LUNA-READY` as review comment `3954194907`, under the same
 line thread rather than the PR main discussion. The response was inspected after
 refreshing GitHub's classic PR page, which did not insert the new reply live.
-[Inline reply proof](https://github.com/cryppadotta/paperclip-chat-e2e-enabled/pull/3#discussion_r3954194907).
+[Inline reply proof](https://github.com/cryppadotta/clayon-chat-e2e-enabled/pull/3#discussion_r3954194907).
 This closes fresh native inline-reply delivery, not every inline edit/delete or
 file-fallback journey. No test PR was merged and no implementation PR was tended.
 
@@ -302,7 +302,7 @@ The subsequent native GitHub inline-file run
 `c90e0948-1512-41b3-81af-bb14d4e93ada` succeeded in 30.3 s, but exposed a
 wording defect: the model claimed the file was attached in the review thread,
 while the transport correctly explained that GitHub App comments cannot upload
-file bytes and saved the file on the private Paperclip task. This is not signed
+file bytes and saved the file on the private Clayon task. This is not signed
 off as native GitHub attachment delivery; capability/result guidance needs to
 prevent the conflicting claim.
 
@@ -349,7 +349,7 @@ Inbound/outbound asset hashes match for each file: PNG
 Native execution took 57.6 s; the final text published 0.93 s after completion,
 with both native files delivered within another 5.8 s. This verifies actual
 current-message file/image handling on Luna, not just an attachment label.
-[Slack media proof](https://papercliplabs.slack.com/archives/C0BUT55N9RV/p1788841046075929).
+[Slack media proof](https://clayonlabs.slack.com/archives/C0BUT55N9RV/p1788841046075929).
 
 ### Historical file follow-up and private-review arbitration
 
@@ -434,7 +434,7 @@ reports `2026.831.0+419.git.205c0ca99`. Deterministic browser coverage also pass
 **9/9** in 2.7 minutes (`chat-ui-root-hardening-01.log`). This is supporting
 fixture coverage, separate from the signed-in provider journeys below.
 
-Maya's runtime settings visibly select **Paperclip Runner → Codex →
+Maya's runtime settings visibly select **Clayon Runner → Codex →
 `gpt-5.6-luna`**, with automatic isolated permissions and turn-by-turn lifecycle.
 The actual native run/model records agree. No Terra substitution was made.
 
@@ -444,14 +444,14 @@ The actual native run/model records agree. No Terra substitution was made.
   “Answered: Cobalt.” One durable response delivery woke one continuation,
   `3d9cf547-d0fd-4a6b-9e23-eab8d3533c74`; its single final “cobalt” was published
   14.92 seconds after the answer. A later DB check found no duplicate response,
-  continuation or final. [Visible reply](https://papercliplabs.slack.com/archives/C0BUT55N9RV/p1788842861244389?thread_ts=1788838921.759279&cid=C0BUT55N9RV).
+  continuation or final. [Visible reply](https://clayonlabs.slack.com/archives/C0BUT55N9RV/p1788842861244389?thread_ts=1788838921.759279&cid=C0BUT55N9RV).
 - **GitHub file-location wording/storage: passed.** Inline review run
   `e903e64c-a91d-404e-ab27-cc3483f8b95d` completed in 50.43 seconds. The result
-  correctly says the file is on the private Paperclip task, not attached in
+  correctly says the file is on the private Clayon task, not attached in
   GitHub. Independent inspection verified the stored 21 bytes are exactly
   `LUNA-FILE-LOCATION-OK`; SHA-256
   `907f14d2edb054321688372f2e96d43ee50f7f4093bf7a912ea675238de2d633`.
-  [Visible reply](https://github.com/cryppadotta/paperclip-chat-e2e-enabled/pull/3#discussion_r3954401548).
+  [Visible reply](https://github.com/cryppadotta/clayon-chat-e2e-enabled/pull/3#discussion_r3954401548).
   This does **not** qualify native GitHub binary uploads, which the App does not
   support.
 - **Telegram photo inspection: passed; wait/history follow-up: failed.** Run
@@ -736,10 +736,10 @@ seven native recovery holds were left intact rather than rewriting old evidence.
 
 - Slack `b3d8f284-36fe-4817-b556-3971246f0e75` completed in **14.71s** and
   displayed the exact `SLACK-LUNA-READY` reply, replacing its working message.
-  [Visible reply](https://papercliplabs.slack.com/archives/C0BUT55N9RV/p1788848899973669?thread_ts=1788838921.759279&cid=C0BUT55N9RV).
+  [Visible reply](https://clayonlabs.slack.com/archives/C0BUT55N9RV/p1788848899973669?thread_ts=1788838921.759279&cid=C0BUT55N9RV).
 - GitHub `2c41782e-cef3-4f6d-af68-a1d1c647a1d3` completed in **13.65s** and
   displayed `GITHUB-LUNA-READY` in the same inline thread, still present after
-  reload. [Visible reply](https://github.com/cryppadotta/paperclip-chat-e2e-enabled/pull/3#discussion_r3954971454).
+  reload. [Visible reply](https://github.com/cryppadotta/clayon-chat-e2e-enabled/pull/3#discussion_r3954971454).
   Both used `external_chat_response_waiting`, materialized one authorized final
   comment, and published into the existing working message. Their actual native
   execution inputs have separate task-owned cwd paths outside the agent home.
@@ -828,8 +828,8 @@ direct synchronous SDK callbacks and verifies the durable queue drains.
   (`native-review-full-root-01.log`), and emitted server compilation passed
   (`native-review-emitted-tsc-root-01.log`). These precede two narrow follow-ups:
   skipping redundant metadata restoration for the latest already-materialized
-  decision and excluding only adapter-managed `paperclipRuntimeServices` and
-  `paperclipRuntimePrimaryUrl` display fields from the otherwise unchanged
+  decision and excluding only adapter-managed `clayonRuntimeServices` and
+  `clayonRuntimePrimaryUrl` display fields from the otherwise unchanged
   context hash. Those final differences passed **78/78** focused tests
   (`native-review-presentation-09.log`) and server typechecking; changed causal
   wake data still denies publication.
@@ -873,7 +873,7 @@ Inspector for the successful Telegram run shows 88 canonical events with raw
 capture off; no private reasoning or raw provider trace was sent to chat.
 
 The final Slack post-deployment smoke encountered a separate ingress delay:
-provider message `1788852525.310329` is timestamped 07:28:45, but its Paperclip
+provider message `1788852525.310329` is timestamped 07:28:45, but its Clayon
 delivery was not created until 07:30:23.026 and was processed at 07:30:23.794.
 The final reply was displayed once as `SLACK-LUNA-VERIFIED` at bot message
 `1788852624.382399`. Native run `7c2e2e0c-7522-428f-b5da-ca2e760cfb80` took
@@ -881,7 +881,7 @@ The final reply was displayed once as `SLACK-LUNA-VERIFIED` at bot message
 the subscription survived restart. The approximately 98-second gap precedes
 durable admission, but that does not establish HTTP-arrival time: development
 logs omit request duration/start and Slack retry headers. The gap remains
-unattributed, not proven to be Slack or Paperclip initialization. The 07:34:06
+unattributed, not proven to be Slack or Clayon initialization. The 07:34:06
 repeat did not reproduce it: ingress took **0.526s**, queue time **10ms**, native
 Luna run `abda130f-c886-4e39-b2fc-ceb921ebf136` **12.439s**, and total
 message-to-final **15.004s**. `SLACK-LUNA-QUICK` published once on existing working
@@ -972,11 +972,11 @@ exactly-once response delivery. A narrow attested-continuation fix is in progres
 
 Edited only our existing comment `3955555016` through GitHub's **Edit comment**
 UI, appending harmless marker `GH-INLINE-EDIT-0908`. The update was saved at
-07:55:19.257 UTC. Paperclip received one `message_updated` event
+07:55:19.257 UTC. Clayon received one `message_updated` event
 `f373ca14-06b8-4c86-971d-3d15e0538272` and processed it at 07:55:21.673.
 It appended correction comment `964922f1-c620-433f-ae40-d130d31a4f0b` to the
 existing `CHA-10` task and preserved the original comment. No new run was
-created. GitHub visibly retained the corrected text. In Paperclip's `CHA-10`
+created. GitHub visibly retained the corrected text. In Clayon's `CHA-10`
 activity, expanding **System update · An external message was edited** showed
 the same correction and marker. No PR code, review resolution, installation
 or repository settings were changed.
@@ -1035,10 +1035,10 @@ human reviews remain pending with no resolution timestamp. An independent check
 of actual Codex `turn_context.model` events confirms `gpt-5.6-luna` in all four
 source/continuation runs, not merely in the agent's configured model.
 
-The Telegram answer run page shows **PAPERCLIP RUNNER openai / gpt-5.6-luna**,
+The Telegram answer run page shows **CLAYON RUNNER openai / gpt-5.6-luna**,
 the canonical **Amber** result and 51 events. Its Runner Inspector works with
 raw provider capture **off**, exposing canonical events and persisted
-presentation decisions privately in Paperclip. External chats received the
+presentation decisions privately in Clayon. External chats received the
 selected answer, not private reasoning or tool events.
 
 The stronger wording instruction still did **not** fully pass the live media
@@ -1083,7 +1083,7 @@ wake/chat/task answer copies.
 The clean `161212685` live process reports the correct loaded health version.
 All four real provider-session declarations contain the updated completion
 schema and description. The existing fingerprint mechanism correctly starts a
-new Codex session with full task context while retaining each Paperclip
+new Codex session with full task context while retaining each Clayon
 conversation, task, attachments and audit history. Actual `turn_context.model`
 events confirm `gpt-5.6-luna` in all four initial runs and the Discord correction.
 
@@ -1117,7 +1117,7 @@ links, and explains one-at-a-time continuation. Its documented argument shape is
 `payload.questions`, matching the production authority and declared schema;
 there is no `questionSpec` argument. The retained-tool fingerprint advances to
 v10 so already-open Codex sessions receive the corrected declaration without
-resetting Paperclip task history. Root's combined prompt/authority/checkpoint
+resetting Clayon task history. Root's combined prompt/authority/checkpoint
 suite passes **56/56**, with server typecheck passing. The real authority test
 creates the documented question on an in-review, human-review-required task,
 replays it idempotently, and verifies the original task/review state and one
@@ -1169,7 +1169,7 @@ The final-answer click-to-publication times were **22.477s** (Discord) and
 **21.307s** (Telegram), distinct from run duration and not a general latency SLO.
 
 An independent source audit also confirms the native tracing boundary: rich
-run events and the Runner Inspector remain private in Paperclip. External
+run events and the Runner Inspector remain private in Clayon. External
 providers currently receive only coalesced queued/working/waiting/completed/
 failed milestones, authorized final responses, files, and supported question
 controls. Raw tool activity is not relayed. Long turns still have coarse
@@ -1339,7 +1339,7 @@ The final answer published at 09:20:40.036Z and image at 09:20:41.274Z,
 to the original attachment and comment in this same conversation.
 
 GitHub's current message deliberately supplied two different attachments:
-the public Paperclip README's WebM and a newly uploaded non-sensitive text
+the public Clayon README's WebM and a newly uploaded non-sensitive text
 fixture in the private test repository. Run
 `809d3630-f9dc-4346-98f2-59f05e56fe2e` received only the public WebM:
 **video/webm, 2,658,275 bytes**, SHA256
@@ -1420,14 +1420,14 @@ browser send action. Its working/final message ID is `1788859867.497279`.
 Every publication attempted delivery once; the task remained open.
 
 The first Discord DM failed at Discord itself: Clyde rejected it and
-Paperclip received no DM delivery. Although Paperclip's endpoint already
+Clayon received no DM delivery. Although Clayon's endpoint already
 allowed DMs, Clawd's per-server **Direct Messages** switch was off.
 This is a documented independent provider constraint in
 [Discord's DM troubleshooting guide](https://support.discord.com/hc/en-us/articles/360060145013-Why-isn-t-my-DM-going-through).
 Temporarily enabling that switch and reopening the bot's Message action
 allowed the actual test. The switch was subsequently restored to **off**;
 Message requests returned to its original disabled/off state. Share my
-activity and Activity joining remained unchanged. Paperclip's existing
+activity and Activity joining remained unchanged. Clayon's existing
 Allow direct messages setting was not changed. A short Discord-only hint
 now explains this prerequisite beside that setting.
 
@@ -1550,8 +1550,8 @@ overlap and must not be added into a fictitious unique-test total.
 
 The live server is running clean `27c6dc4f8`, private and recovery-ready.
 The final repeat was submitted at 10:02:47.933Z as
-[review comment 3956680939](https://github.com/cryppadotta/paperclip-chat-e2e-enabled/pull/3#discussion_r3956680939).
-It remains visible after a browser reload, but no corresponding Paperclip
+[review comment 3956680939](https://github.com/cryppadotta/clayon-chat-e2e-enabled/pull/3#discussion_r3956680939).
+It remains visible after a browser reload, but no corresponding Clayon
 delivery or run has arrived during this check. Tailscale's public 8443/10000
 webhook proxy is reachable; Board 443 remains tailnet-only. The provider's
 [status page](https://www.githubstatus.com/) reports webhooks operational;
@@ -1685,7 +1685,7 @@ private live instance. A fresh explicit Discord request sent at
 that the historically quarantined provider conversation was restored.
 Independent durable-state inspection confirms explicit continuity fallback
 from unavailable old provider session `01a0802b…` to new provider session
-`01a0808d-fe51-7e00-b6c5-e032a49f4e3d`, preserving the Paperclip task and
+`01a0808d-fe51-7e00-b6c5-e032a49f4e3d`, preserving the Clayon task and
 normalized conversation binding. The following busy request and correction
 both resume that exact new provider session. Their archived/current runner
 roots all retain exact identities, completed stop/drain and suspend commands,
@@ -1851,7 +1851,7 @@ production sign-off.
 
 A new text-only GitHub PR-level sentinel was submitted once at
 10:53:53.004Z and is visible as comment `5584024357` on the disposable PR #3.
-It did not reach Paperclip; the endpoint's last event remained
+It did not reach Clayon; the endpoint's last event remained
 09:57:08.687Z. The earlier inline private-image comment `3956680939` likewise
 remains without ingress. This distinguishes the current callback gap from an
 image-decoding failure. Both fixtures were preserved without blind retries.
@@ -1875,7 +1875,7 @@ interaction `d2028e5b-033c-4227-bfba-d85410ac9942`, wake request
 `3672ff28-51c0-495b-be42-cbf1307d5c27` identify the exact failure.
 The error was `reviewed_chat_execution_binding_not_authorized`; the provider
 then showed a misleading stopped-turn message at 10:55:19.066Z. This is a
-Paperclip modal-answer authorization defect, not Luna generation latency or
+Clayon modal-answer authorization defect, not Luna generation latency or
 a provider permission requirement. Button answers used a recognized durable
 action kind, while modal answers used an unrecognized form-submit kind.
 The original failed evidence is retained while that proof path is repaired.
@@ -1889,7 +1889,7 @@ post-comment retry paths. It passed **9/9** focused PostgreSQL cases and
 **5/5** current-wake-comment tests. It adds no download capability, URL/token
 persistence, Graph permission, or claim of live Teams qualification.
 The subsequent fresh full chat integration suite passed **333/333** (69.18s).
-The failed Slack question is also visible on the real Paperclip task: both
+The failed Slack question is also visible on the real Clayon task: both
 answers are retained, followed by `setup_failed`. Its durable answer-delivery
 row remains `fallback_queued` against that failed run; no database edit,
 automatic historical answer replay, or false recovery claim was used.

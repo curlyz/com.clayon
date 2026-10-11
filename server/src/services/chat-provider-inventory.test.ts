@@ -137,9 +137,9 @@ describe("chat provider inventory", () => {
             {
               id: 101,
               name: "repo",
-              full_name: "paperclip/repo",
-              html_url: "https://github.com/paperclip/repo",
-              owner: { id: 12, login: "paperclip" },
+              full_name: "clayon/repo",
+              html_url: "https://github.com/clayon/repo",
+              owner: { id: 12, login: "clayon" },
               private: true,
             },
           ],
@@ -154,8 +154,8 @@ describe("chat provider inventory", () => {
       expect.objectContaining({
         providerResourceId: "101",
         parentProviderResourceId: "12",
-        label: "paperclip/repo",
-        providerUrl: "https://github.com/paperclip/repo",
+        label: "clayon/repo",
+        providerUrl: "https://github.com/clayon/repo",
       }),
     ]);
     expect(JSON.stringify(result)).not.toContain("installation-secret");
@@ -184,7 +184,7 @@ describe("chat provider inventory", () => {
       response([
         {
           id: 44,
-          account: { id: 12, login: "paperclip", type: "Organization" },
+          account: { id: 12, login: "clayon", type: "Organization" },
           permissions: {
             issues: "write",
             metadata: "read",
@@ -204,7 +204,7 @@ describe("chat provider inventory", () => {
     ).resolves.toEqual({
       installationId: "44",
       accountId: "12",
-      accountLabel: "paperclip",
+      accountLabel: "clayon",
       accountType: "Organization",
       permissions: {
         issues: "write",
@@ -220,7 +220,7 @@ describe("chat provider inventory", () => {
         return response([
           {
             id: 144,
-            account: { id: 12, login: "paperclip", type: "Organization" },
+            account: { id: 12, login: "clayon", type: "Organization" },
             permissions: {
               issues: "write",
               metadata: "read",
@@ -244,7 +244,7 @@ describe("chat provider inventory", () => {
     ).resolves.toMatchObject({
       installationId: "144",
       accountId: "12",
-      accountLabel: "paperclip",
+      accountLabel: "clayon",
     });
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenLastCalledWith(
@@ -261,7 +261,7 @@ describe("chat provider inventory", () => {
           response([
             {
               id: 44,
-              account: { id: 12, login: "paperclip" },
+              account: { id: 12, login: "clayon" },
               permissions: {
                 issues: "read",
                 metadata: "read",

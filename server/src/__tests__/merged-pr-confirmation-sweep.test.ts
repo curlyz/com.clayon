@@ -9,7 +9,7 @@ import {
   goals,
   issueThreadInteractions,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   extractGitHubPullRequestReferences,
   getMergeConfirmationPullRequestReferences,
@@ -38,18 +38,18 @@ describe("merged pull-request confirmation extraction", () => {
 
   it("extracts and deduplicates full GitHub URLs and owner/repo#N shorthand", () => {
     expect(extractGitHubPullRequestReferences([
-      "Merge https://github.com/PaperclipAI/paperclip/pull/39.",
-      "Also paperclipai/paperclip#40 and PAPERCLIPAI/paperclip#40.",
+      "Merge https://github.com/Clayon/clayon/pull/39.",
+      "Also paperclipai/paperclip#40 and CLAYON/clayon#40.",
     ])).toEqual([
-      { host: "github.com", owner: "PaperclipAI", repo: "paperclip", number: 39 },
-      { host: "github.com", owner: "paperclipai", repo: "paperclip", number: 40 },
+      { host: "github.com", owner: "Clayon", repo: "clayon", number: 39 },
+      { host: "github.com", owner: "clayon", repo: "clayon", number: 40 },
     ]);
   });
 
   it("requires merge intent and excludes document and tool-action confirmations", () => {
     const base = {
       kind: "request_confirmation",
-      title: "Merge PaperclipAI/paperclip#39?",
+      title: "Merge Clayon/clayon#39?",
       summary: null,
       payload: { version: 1, prompt: "Merge the pull request?" },
     } as const;
@@ -84,8 +84,8 @@ describe("merged pull-request confirmation extraction", () => {
         },
       },
     })).toEqual([
-      { host: "github.com", owner: "paperclipai", repo: "paperclip", number: 39 },
-      { host: "github.com", owner: "paperclipai", repo: "paperclip", number: 40 },
+      { host: "github.com", owner: "clayon", repo: "clayon", number: 39 },
+      { host: "github.com", owner: "clayon", repo: "clayon", number: 40 },
     ]);
   });
 
@@ -139,7 +139,7 @@ describeEmbeddedPostgres("merged pull-request confirmation sweep", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-merged-pr-confirmations-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-merged-pr-confirmations-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -163,7 +163,7 @@ describeEmbeddedPostgres("merged pull-request confirmation sweep", () => {
     const agentId = randomUUID();
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix: "MPR",
       requireBoardApprovalForNewAgents: false,
     });
@@ -272,8 +272,8 @@ describeEmbeddedPostgres("merged pull-request confirmation sweep", () => {
 
     await expect(service.sweepMergedPullRequestConfirmations([{
       companyId,
-      owner: "paperclipai",
-      repo: "paperclip",
+      owner: "clayon",
+      repo: "clayon",
       number: 39,
     }])).resolves.toEqual({
       checked: 6,

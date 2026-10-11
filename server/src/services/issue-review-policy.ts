@@ -1,6 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { activityLog, type Db } from "@paperclipai/db";
-import type { IssueReviewPolicy } from "@paperclipai/shared";
+import { activityLog, type Db } from "@clayon/db";
+import type { IssueReviewPolicy } from "@clayon/shared";
 import { forbidden } from "../errors.js";
 
 export interface IssueReviewVerdictActor {

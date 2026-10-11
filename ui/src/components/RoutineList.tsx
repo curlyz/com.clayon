@@ -1,4 +1,4 @@
-import type { AgentAppearance } from "@paperclipai/shared";
+import type { AgentAppearance } from "@clayon/shared";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import type { ReactNode } from "react";
 import { MoreHorizontal, Play } from "lucide-react";
@@ -52,6 +52,112 @@ export function nextRoutineStatus(currentStatus: string, enabled: boolean) {
   return enabled ? "active" : "paused";
 }
 
+/** Run/pause/menu cluster shared by the list row and the leaf tile. */
+function RoutineRowActions<TRoutine extends RoutineListRowItem>({
+  routine,
+  runningRoutineId,
+  statusMutationRoutineId,
+  href,
+  configureLabel,
+  runNowButton,
+  disableRunNow,
+  disableToggle,
+  hideArchiveAction,
+  extraMenuItems,
+  onRunNow,
+  onToggleEnabled,
+  onToggleArchived,
+}: {
+  routine: TRoutine;
+  runningRoutineId: string | null;
+  statusMutationRoutineId: string | null;
+  href: string;
+  configureLabel: string;
+  runNowButton: boolean;
+  disableRunNow: boolean;
+  disableToggle: boolean;
+  hideArchiveAction: boolean;
+  extraMenuItems?: ReactNode;
+  onRunNow: (routine: TRoutine) => void;
+  onToggleEnabled: (routine: TRoutine, enabled: boolean) => void;
+  onToggleArchived?: (routine: TRoutine) => void;
+}) {
+  const enabled = routine.status === "active";
+  const isArchived = routine.status === "archived";
+  const isStatusPending = statusMutationRoutineId === routine.id;
+  const isDraft = !isArchived && !routine.assigneeAgentId;
+  const runDisabled = runningRoutineId === routine.id || isArchived || disableRunNow;
+
+  return (
+    <div className="flex items-center gap-3" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}>
+      {runNowButton ? (
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={runDisabled}
+          onClick={() => onRunNow(routine)}
+        >
+          <Play className="h-3.5 w-3.5" />
+          {runningRoutineId === routine.id ? "Running..." : "Run now"}
+        </Button>
+      ) : null}
+
+      <div className="flex items-center gap-3">
+        <ToggleSwitch
+          size="lg"
+          checked={enabled}
+          onCheckedChange={() => onToggleEnabled(routine, enabled)}
+          disabled={isStatusPending || isArchived || disableToggle}
+          aria-label={enabled ? `Disable ${routine.title}` : `Enable ${routine.title}`}
+        />
+        <span className="w-12 text-xs text-muted-foreground">
+          {isArchived ? "Archived" : isDraft ? "Draft" : enabled ? "On" : "Off"}
+        </span>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${routine.title}`}>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link to={href}>{configureLabel}</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={runDisabled}
+            onClick={() => onRunNow(routine)}
+          >
+            {runningRoutineId === routine.id ? "Running..." : "Run now"}
+          </DropdownMenuItem>
+          {extraMenuItems ? (
+            <>
+              <DropdownMenuSeparator />
+              {extraMenuItems}
+            </>
+          ) : null}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => onToggleEnabled(routine, enabled)}
+            disabled={isStatusPending || isArchived || disableToggle}
+          >
+            {enabled ? "Pause" : "Enable"}
+          </DropdownMenuItem>
+          {!hideArchiveAction && onToggleArchived ? (
+            <DropdownMenuItem
+              onClick={() => onToggleArchived(routine)}
+              disabled={isStatusPending}
+            >
+              {routine.status === "archived" ? "Restore" : "Archive"}
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 export function RoutineListRow<TRoutine extends RoutineListRowItem>({
   routine,
   projectById,
@@ -98,13 +204,10 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
   onToggleEnabled: (routine: TRoutine, enabled: boolean) => void;
   onToggleArchived?: (routine: TRoutine) => void;
 }) {
-  const enabled = routine.status === "active";
   const isArchived = routine.status === "archived";
-  const isStatusPending = statusMutationRoutineId === routine.id;
   const project = routine.projectId ? projectById.get(routine.projectId) ?? null : null;
   const agent = routine.assigneeAgentId ? agentById.get(routine.assigneeAgentId) ?? null : null;
   const isDraft = !isArchived && !routine.assigneeAgentId;
-  const runDisabled = runningRoutineId === routine.id || isArchived || disableRunNow;
 
   return (
     <Link
@@ -164,71 +267,149 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
         ) : null}
       </div>
 
-      <div className="flex items-center gap-3" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}>
-        {runNowButton ? (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={runDisabled}
-            onClick={() => onRunNow(routine)}
-          >
-            <Play className="h-3.5 w-3.5" />
-            {runningRoutineId === routine.id ? "Running..." : "Run now"}
-          </Button>
-        ) : null}
+      <RoutineRowActions
+        routine={routine}
+        runningRoutineId={runningRoutineId}
+        statusMutationRoutineId={statusMutationRoutineId}
+        href={href}
+        configureLabel={configureLabel}
+        runNowButton={runNowButton}
+        disableRunNow={disableRunNow}
+        disableToggle={disableToggle}
+        hideArchiveAction={hideArchiveAction}
+        extraMenuItems={extraMenuItems}
+        onRunNow={onRunNow}
+        onToggleEnabled={onToggleEnabled}
+        onToggleArchived={onToggleArchived}
+      />
+    </Link>
+  );
+}
 
-        <div className="flex items-center gap-3">
-          <ToggleSwitch
-            size="lg"
-            checked={enabled}
-            onCheckedChange={() => onToggleEnabled(routine, enabled)}
-            disabled={isStatusPending || isArchived || disableToggle}
-            aria-label={enabled ? `Disable ${routine.title}` : `Enable ${routine.title}`}
+/**
+ * Leaf tile for the routines grid (per-page review criteria #1: collections
+ * tile). One leaf band per routine — identity block, stacked meta rows split
+ * by one hairline, actions pinned to the bottom — no card chrome.
+ */
+export function RoutineTile<TRoutine extends RoutineListRowItem>({
+  routine,
+  projectById,
+  agentById,
+  runningRoutineId,
+  statusMutationRoutineId,
+  href,
+  configureLabel = "Edit",
+  managedByLabel,
+  secondaryDetails,
+  runNowButton = false,
+  disableRunNow = false,
+  disableToggle = false,
+  hideArchiveAction = false,
+  selected = false,
+  selectMode = false,
+  extraMenuItems,
+  onSelectChange,
+  onRunNow,
+  onToggleEnabled,
+  onToggleArchived,
+}: {
+  routine: TRoutine;
+  projectById: Map<string, RoutineListProjectSummary>;
+  agentById: Map<string, RoutineListAgentSummary>;
+  runningRoutineId: string | null;
+  statusMutationRoutineId: string | null;
+  href: string;
+  configureLabel?: string;
+  managedByLabel?: string | null;
+  secondaryDetails?: ReactNode;
+  runNowButton?: boolean;
+  disableRunNow?: boolean;
+  disableToggle?: boolean;
+  hideArchiveAction?: boolean;
+  selected?: boolean;
+  selectMode?: boolean;
+  extraMenuItems?: ReactNode;
+  onSelectChange?: (routine: TRoutine, selected: boolean) => void;
+  onRunNow: (routine: TRoutine) => void;
+  onToggleEnabled: (routine: TRoutine, enabled: boolean) => void;
+  onToggleArchived?: (routine: TRoutine) => void;
+}) {
+  const isArchived = routine.status === "archived";
+  const project = routine.projectId ? projectById.get(routine.projectId) ?? null : null;
+  const agent = routine.assigneeAgentId ? agentById.get(routine.assigneeAgentId) ?? null : null;
+  const isDraft = !isArchived && !routine.assigneeAgentId;
+
+  return (
+    <Link
+      to={href}
+      className="group flex h-full flex-col gap-3 rounded-lg p-4 text-inherit no-underline transition-colors hover:bg-accent/50"
+    >
+      {selectMode ? (
+        <div
+          className="flex items-start"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+        >
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-border"
+            checked={selected}
+            aria-label={`Select ${routine.title}`}
+            onChange={(event) => onSelectChange?.(routine, event.target.checked)}
           />
-          <span className="w-12 text-xs text-muted-foreground">
-            {isArchived ? "Archived" : isDraft ? "Draft" : enabled ? "On" : "Off"}
-          </span>
         </div>
+      ) : null}
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <span className="truncate text-sm font-medium">{routine.title}</span>
+        {(isArchived || routine.status === "paused" || isDraft) ? (
+          <span className="text-xs text-muted-foreground">
+            {isArchived ? "archived" : isDraft ? "draft" : "paused"}
+          </span>
+        ) : null}
+        {managedByLabel ? (
+          <span className="text-xs text-muted-foreground">{managedByLabel}</span>
+        ) : null}
+      </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${routine.title}`}>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={href}>{configureLabel}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={runDisabled}
-              onClick={() => onRunNow(routine)}
-            >
-              {runningRoutineId === routine.id ? "Running..." : "Run now"}
-            </DropdownMenuItem>
-            {extraMenuItems ? (
-              <>
-                <DropdownMenuSeparator />
-                {extraMenuItems}
-              </>
-            ) : null}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onToggleEnabled(routine, enabled)}
-              disabled={isStatusPending || isArchived || disableToggle}
-            >
-              {enabled ? "Pause" : "Enable"}
-            </DropdownMenuItem>
-            {!hideArchiveAction && onToggleArchived ? (
-              <DropdownMenuItem
-                onClick={() => onToggleArchived(routine)}
-                disabled={isStatusPending}
-              >
-                {routine.status === "archived" ? "Restore" : "Archive"}
-              </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="flex flex-col gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-sm"
+            style={{ backgroundColor: project?.color ?? "var(--project-none)" }}
+          />
+          <span className="truncate">{routine.projectId ? (project?.name ?? "Unknown project") : "No project"}</span>
+        </span>
+        <span className="flex min-w-0 items-center gap-2">
+          {routine.assigneeAgentId ? <AgentAvatar agent={{ ...agent, id: routine.assigneeAgentId }} size={16} className="h-3.5 w-3.5 shrink-0"/> : null}
+          <span className="truncate">{routine.assigneeAgentId ? (agent?.name ?? "Unknown agent") : "No default agent"}</span>
+        </span>
+        <span className="truncate">
+          {formatLastRunTimestamp(routine.lastRun?.triggeredAt)}
+          {routine.lastRun ? ` · ${formatRoutineRunStatus(routine.lastRun.status)}` : ""}
+        </span>
+        {secondaryDetails ? (
+          <div>{secondaryDetails}</div>
+        ) : null}
+      </div>
+
+      <div className="mt-auto">
+        <RoutineRowActions
+          routine={routine}
+          runningRoutineId={runningRoutineId}
+          statusMutationRoutineId={statusMutationRoutineId}
+          href={href}
+          configureLabel={configureLabel}
+          runNowButton={runNowButton}
+          disableRunNow={disableRunNow}
+          disableToggle={disableToggle}
+          hideArchiveAction={hideArchiveAction}
+          extraMenuItems={extraMenuItems}
+          onRunNow={onRunNow}
+          onToggleEnabled={onToggleEnabled}
+          onToggleArchived={onToggleArchived}
+        />
       </div>
     </Link>
   );

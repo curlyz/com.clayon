@@ -1,9 +1,9 @@
-import { codexLocalReasoningEffortsForModel, isCodexLocalFastModeSupported, isCodexLocalKnownModel } from "@paperclipai/adapter-codex-local";
-import { claudeLocalReasoningEffortsForModel } from "@paperclipai/adapter-claude-local";
-import { resolvePaperclipRunnerModel } from "@paperclipai/adapter-utils";
-import { DEFAULT_GROK_LOCAL_MODEL, grokLocalReasoningEffortsForModel } from "@paperclipai/adapter-grok-local";
-import { DEFAULT_KIMI_LOCAL_MODEL, modelSupportsEffort, KIMI_SUPPORTED_EFFORTS } from "@paperclipai/adapter-kimi-local";
-import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema, type Agent, type IssueAssigneeAdapterOverrides } from "@paperclipai/shared";
+import { codexLocalReasoningEffortsForModel, isCodexLocalFastModeSupported, isCodexLocalKnownModel } from "@clayon/adapter-codex-local";
+import { claudeLocalReasoningEffortsForModel } from "@clayon/adapter-claude-local";
+import { resolveClayonRunnerModel } from "@clayon/adapter-utils";
+import { DEFAULT_GROK_LOCAL_MODEL, grokLocalReasoningEffortsForModel } from "@clayon/adapter-grok-local";
+import { DEFAULT_KIMI_LOCAL_MODEL, modelSupportsEffort, KIMI_SUPPORTED_EFFORTS } from "@clayon/adapter-kimi-local";
+import { aiConnectionBindingSchema, aiRuntimeConnectionBindingSchema, type Agent, type IssueAssigneeAdapterOverrides } from "@clayon/shared";
 
 export interface ComposerRunSettings {
   model: string | null;
@@ -43,8 +43,8 @@ export function composerDefaultModel(agent: Agent | undefined): string {
   if (agent.adapterType === "kimi_local") return DEFAULT_KIMI_LOCAL_MODEL;
   if (agent.adapterType === "paperclip_runner") {
     const provider = composerCatalogProvider(agent);
-    if (provider === "codex" || provider === "opencode") return resolvePaperclipRunnerModel(provider, config.model);
-    if (provider === "acpx" && config.acpxAgent !== "grok") return resolvePaperclipRunnerModel(provider, config.model);
+    if (provider === "codex" || provider === "opencode") return resolveClayonRunnerModel(provider, config.model);
+    if (provider === "acpx" && config.acpxAgent !== "grok") return resolveClayonRunnerModel(provider, config.model);
   }
   return "";
 }

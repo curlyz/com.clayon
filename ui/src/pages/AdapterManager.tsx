@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { ChoosePathButton } from "@/components/PathInstructionsModal";
 import { invalidateDynamicParser } from "@/adapters/dynamic-loader";
 import { invalidateConfigSchemaCache } from "@/adapters/schema-config-fields";
+import { SettingsPageTabs } from "@/components/SettingsPageTabs";
 
 function AdapterRow({
   adapter,
@@ -397,6 +398,7 @@ export function AdapterManager() {
 
   return (
     <div className="max-w-6xl space-y-6">
+      <SettingsPageTabs />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -477,7 +479,7 @@ export function AdapterManager() {
                     <Label htmlFor="adapterPackageName">Package Name</Label>
                     <Input
                       id="adapterPackageName"
-                      placeholder="my-paperclip-adapter"
+                      placeholder="my-clayon-adapter"
                       value={installPackage}
                       onChange={(e) => setInstallPackage(e.target.value)}
                     />

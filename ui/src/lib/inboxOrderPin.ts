@@ -1,4 +1,4 @@
-import type { Issue } from "@paperclipai/shared";
+import type { Issue } from "@clayon/shared";
 import {
   getInboxWorkItemKey,
   type InboxGroupedSection,

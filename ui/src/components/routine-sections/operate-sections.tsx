@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity as ActivityIcon } from "lucide-react";
 import { issuesApi } from "@/api/issues";
 import { queryKeys } from "@/lib/queryKeys";
-import { routineDetailHref } from "../RoutineContextualSidebar";
+import { routineDetailHref } from "../../lib/routine-navigation";
 import { createIssueDetailLocationState } from "@/lib/issueDetailBreadcrumb";
 import { useToastActions } from "@/context/ToastContext";
 import { IssuesList } from "../IssuesList";
@@ -40,7 +40,7 @@ export function RunsSection() {
       agents={agents}
       projects={projects}
       liveIssueIds={new Set(hasLiveRun && activeIssueId ? [activeIssueId] : [])}
-      viewStateKey={`paperclip:routine-runs:${companyId}:${routine.id}`}
+      viewStateKey={`clayon:routine-runs:${companyId}:${routine.id}`}
       searchFilters={filters}
       issueLinkState={createIssueDetailLocationState("Runs", routineDetailHref(routine.id, "runs"))}
       rowPresentation="task"
@@ -108,7 +108,7 @@ export function HistorySection() {
     dirtyFields,
     routineDefaults,
     setEditDraft,
-    saveRoutine,
+    autosave,
     agentById,
     projectById,
     availableSecrets,
@@ -123,8 +123,8 @@ export function HistorySection() {
       dirtyFields={dirtyFields}
       onDiscardEdits={() => setEditDraft(routineDefaults)}
       onSaveEdits={() => {
-        if (!saveRoutine.isPending && routine.title.trim()) {
-          saveRoutine.mutate();
+        if (autosave.status !== "saving" && routine.title.trim()) {
+          autosave.flush();
         }
       }}
       agents={agentById}

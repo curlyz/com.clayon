@@ -7,8 +7,8 @@ import { z } from "zod";
 import type { Request } from "express";
 import {
   type Db, activityLog, agents, authUsers, companies, companyLogos, dotAgentBindings, mcpOauthClients, mcpOauthGrants, mcpOauthRequests, mcpOauthTokens, mcpOauthDeviceRequests, mcpOauthMetadataAdmissions,
-} from "@paperclipai/db";
-import { DOT_RUNNER_MCP_PATH, DOT_RUNNER_MCP_SCOPES, PUBLIC_MCP_PATH, PUBLIC_MCP_SCOPES, type McpConnectionRequest, type McpDotPairingPreview } from "@paperclipai/shared";
+} from "@clayon/db";
+import { DOT_RUNNER_MCP_PATH, DOT_RUNNER_MCP_SCOPES, PUBLIC_MCP_PATH, PUBLIC_MCP_SCOPES, type McpConnectionRequest, type McpDotPairingPreview } from "@clayon/shared";
 import { boardAuthService } from "../board-auth.js";
 import { logActivity } from "../activity-log.js";
 import { createClientMetadataResolver, mcpRedirectMatches, validMcpRedirect as validRedirect, type MetadataFetch } from "./client-metadata.js";
@@ -28,7 +28,7 @@ export class PublicMcpDisabledError extends McpOAuthError {
 const invalidGrant = () => new McpOAuthError("invalid_grant", "Authorization is expired, revoked, or invalid.");
 
 export function publicMcpConfig(env: NodeJS.ProcessEnv = process.env, authPublicBaseUrl?: string) {
-  const origin = env.PAPERCLIP_PUBLIC_URL ?? authPublicBaseUrl;
+  const origin = env.CLAYON_PUBLIC_URL ?? authPublicBaseUrl;
   if (!origin) return null;
   const normalizeOrigin = (value: string, setting: string) => {
     const url = new URL(value);
@@ -39,11 +39,11 @@ export function publicMcpConfig(env: NodeJS.ProcessEnv = process.env, authPublic
     }
     return url.origin;
   };
-  const publicOrigin = normalizeOrigin(origin, "PAPERCLIP_PUBLIC_URL");
+  const publicOrigin = normalizeOrigin(origin, "CLAYON_PUBLIC_URL");
   // Optional browser ingress for the same instance. Protocol issuer, resource,
   // token exchange and callback delivery remain on the public MCP origin.
-  const authorizationOrigin = env.PAPERCLIP_MCP_AUTHORIZATION_ORIGIN
-    ? normalizeOrigin(env.PAPERCLIP_MCP_AUTHORIZATION_ORIGIN, "PAPERCLIP_MCP_AUTHORIZATION_ORIGIN") : undefined;
+  const authorizationOrigin = env.CLAYON_MCP_AUTHORIZATION_ORIGIN
+    ? normalizeOrigin(env.CLAYON_MCP_AUTHORIZATION_ORIGIN, "CLAYON_MCP_AUTHORIZATION_ORIGIN") : undefined;
   return { origin: publicOrigin, resource: publicOrigin + PUBLIC_MCP_PATH, ...(authorizationOrigin ? { authorizationOrigin } : {}) };
 }
 export type PublicMcpConfig = NonNullable<ReturnType<typeof publicMcpConfig>>;
@@ -67,7 +67,7 @@ const authorizeSchema = z.object({
   redirect_uri: z.string().max(2048),
   response_type: z.literal("code"),
   resource: z.string().max(2048),
-  scope: z.string().max(200).default("paperclip:read"),
+  scope: z.string().max(200).default("clayon:read"),
   state: z.string().max(2048).optional(),
   code_challenge: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
   code_challenge_method: z.literal("S256"),
@@ -77,7 +77,7 @@ const authorizeSchema = z.object({
 export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: { metadataFetch?: MetadataFetch } = {}) {
   const agentConnection = new URL(config.resource).pathname === DOT_RUNNER_MCP_PATH;
   const scopesSupported = agentConnection ? DOT_RUNNER_MCP_SCOPES : PUBLIC_MCP_SCOPES;
-  const requiredScope = agentConnection ? "paperclip:agent" : "paperclip:read";
+  const requiredScope = agentConnection ? "clayon:agent" : "clayon:read";
   const issuer = agentConnection ? config.origin + DOT_RUNNER_MCP_PATH + "/oauth" : config.origin;
   const authorizationOrigin = config.authorizationOrigin ?? config.origin;
   const resolveMetadata = createClientMetadataResolver(options.metadataFetch);
@@ -104,7 +104,7 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
     const [company] = await queryDb.select({ status: companies.status }).from(companies).where(eq(companies.id, grant.companyId));
     if (!access.user || !membership || !company || company.status === "archived") throw invalidGrant();
     if (agentConnection) {
-      if (grant.purpose !== "agent" || !grant.scopes.includes("paperclip:agent")) throw invalidGrant();
+      if (grant.purpose !== "agent" || !grant.scopes.includes("clayon:agent")) throw invalidGrant();
       if (membership.membershipRole === "viewer") throw invalidGrant();
       if (!grant.agentId) return { type: "none", source: "mcp_oauth", companyId: grant.companyId };
       const [agent] = await queryDb.select().from(agents).where(and(eq(agents.id, grant.agentId), eq(agents.companyId, grant.companyId)));
@@ -229,8 +229,8 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
     if (request.resource !== config.resource) throw invalidGrant();
     if (agentConnection && membership.membershipRole === "viewer") throw new McpOAuthError("access_denied", "Dot agent connections require an operator role.", 403);
     if ((input.allowWrites || input.allowConfiguration) && membership.membershipRole === "viewer") throw new McpOAuthError("access_denied", "Viewer access is read-only.", 403);
-    const scopes = request.scopes.filter(s => (s !== "paperclip:write" || input.allowWrites)
-      && (s !== "paperclip:configure" || input.allowConfiguration === true));
+    const scopes = request.scopes.filter(s => (s !== "clayon:write" || input.allowWrites)
+      && (s !== "clayon:configure" || input.allowConfiguration === true));
     const [grant] = await tx.insert(mcpOauthGrants).values({ companyId: input.companyId!, userId: actor.userId, clientId: request.clientId, resource: request.resource, scopes, purpose: agentConnection ? "agent" : "personal" }).returning();
     await tx.insert(activityLog).values({ companyId: grant!.companyId, actorType: "user", actorId: actor.userId,
       action: "mcp.connection_authorized", entityType: "mcp_connection", entityId: grant!.id, details: { clientId: grant!.clientId, scopes } });
@@ -292,9 +292,9 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
     async deviceAuthorize(input: unknown, source = "unknown") {
       await assertEnabled();
       const p = z.object({ client_id: z.string().min(1).max(2048), resource: z.literal(config.resource), scope: z.string().max(200).default(requiredScope), company_id: z.uuid().optional() }).safeParse(input);
-      if (!p.success) throw new McpOAuthError("invalid_request", "Supply a registered client and the exact Paperclip resource.");
+      if (!p.success) throw new McpOAuthError("invalid_request", "Supply a registered client and the exact Clayon resource.");
       const scopes = [...new Set(p.data.scope.split(/\s+/).filter(Boolean))];
-      if (!scopes.includes(requiredScope) || scopes.some(s => !(scopesSupported as readonly string[]).includes(s))) throw new McpOAuthError("invalid_scope", "Unsupported Paperclip scope.");
+      if (!scopes.includes(requiredScope) || scopes.some(s => !(scopesSupported as readonly string[]).includes(s))) throw new McpOAuthError("invalid_scope", "Unsupported Clayon scope.");
       const client = await resolveClient(p.data.client_id, source);
       if (!client?.grantTypes.includes(DEVICE_GRANT)) throw new McpOAuthError("unauthorized_client", "Register a device authorization client.");
       const deviceCode = secret("pcmcp_device_");
@@ -322,7 +322,7 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
         .where(and(eq(mcpOauthDeviceRequests.userCodeHash, deviceHash(userCode)), eq(mcpOauthDeviceRequests.status, "pending"), gt(mcpOauthDeviceRequests.expiresAt, new Date())));
       if (!row || row.request.resource !== config.resource) throw new McpOAuthError("invalid_request", "This code is expired, already decided, or invalid. Start a new connection from your assistant.", 404);
       return { agentConnection, id: row.request.id, clientName: row.client.name, redirectOrigin: "", clientOrigin: row.client.id.startsWith("https://") ? new URL(row.client.id).origin : null,
-        requestedConfigure: row.request.scopes.includes("paperclip:configure"), requestedWrite: row.request.scopes.includes("paperclip:write"), offlineAccess: row.request.scopes.includes("offline_access"), requestedCompanyId: row.request.requestedCompanyId,
+        requestedConfigure: row.request.scopes.includes("clayon:configure"), requestedWrite: row.request.scopes.includes("clayon:write"), offlineAccess: row.request.scopes.includes("offline_access"), requestedCompanyId: row.request.requestedCompanyId,
         setupUrl: null, ...await consentContext(actor, row.request.requestedCompanyId) };
     },
     async consentDevice(userCode: string, actor: Request["actor"], input: { decision: "approve" | "deny"; companyId?: string; allowWrites: boolean; allowConfiguration?: boolean }) {
@@ -356,10 +356,10 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
       const parsed = authorizeSchema.extend({ scope: z.string().max(200).default(requiredScope) }).safeParse(input);
       if (!parsed.success) throw new McpOAuthError("invalid_request", "A registered client, exact redirect URI, resource, and S256 PKCE challenge are required.");
       const p = parsed.data;
-      if (p.resource !== config.resource) throw new McpOAuthError("invalid_target", "Resource does not match this Paperclip MCP endpoint.");
+      if (p.resource !== config.resource) throw new McpOAuthError("invalid_target", "Resource does not match this Clayon MCP endpoint.");
       const scopes = [...new Set(p.scope.split(/\s+/).filter(Boolean))];
       if (!scopes.includes(requiredScope) || scopes.some((s) => !(scopesSupported as readonly string[]).includes(s))) {
-        throw new McpOAuthError("invalid_scope", "Unsupported Paperclip scope.");
+        throw new McpOAuthError("invalid_scope", "Unsupported Clayon scope.");
       }
       const client = await resolveClient(p.client_id, source);
       if (!client || !client.grantTypes.includes("authorization_code") || !mcpRedirectMatches(client.redirectUris, p.redirect_uri, client.native)) {
@@ -394,7 +394,7 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
       return {
         agentConnection, id, clientName: row.client.name, redirectOrigin: new URL(row.request.redirectUri).origin,
         clientOrigin: row.client.id.startsWith("https://") ? new URL(row.client.id).origin : null,
-        requestedConfigure: row.request.scopes.includes("paperclip:configure"), requestedWrite: row.request.scopes.includes("paperclip:write"), offlineAccess: row.request.scopes.includes("offline_access"),
+        requestedConfigure: row.request.scopes.includes("clayon:configure"), requestedWrite: row.request.scopes.includes("clayon:write"), offlineAccess: row.request.scopes.includes("offline_access"),
         requestedCompanyId: row.request.requestedCompanyId,
         ...await consentContext(actor, row.request.requestedCompanyId), setupUrl,
       };
@@ -548,9 +548,9 @@ export function createPublicMcpOAuth(db: Db, config: PublicMcpConfig, options: {
         .innerJoin(companies, eq(companies.id, mcpOauthGrants.companyId))
         .where(and(eq(mcpOauthTokens.tokenHash, hashMcpSecret(token)), eq(mcpOauthTokens.kind, "access"),
           gt(mcpOauthTokens.expiresAt, new Date()), isNull(mcpOauthGrants.revokedAt)));
-      if (!row) throw new McpOAuthError("invalid_token", "Connect Paperclip again.", 401);
+      if (!row) throw new McpOAuthError("invalid_token", "Connect Clayon again.", 401);
       try { return { grant: row.grant, company: row.company, actor: await actorForGrant(row.grant) }; }
-      catch { throw new McpOAuthError("invalid_token", "Paperclip access is no longer available.", 401); }
+      catch { throw new McpOAuthError("invalid_token", "Clayon access is no longer available.", 401); }
     },
     async revokeToken(token: string, clientId: string) {
       const grant = await db.transaction(async (tx) => {

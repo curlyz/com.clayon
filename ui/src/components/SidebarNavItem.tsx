@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { NavLink } from "@/lib/router";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useSidebar } from "../context/SidebarContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { LucideIcon } from "lucide-react";
@@ -122,14 +123,17 @@ export function SidebarNavItem({
       onClick={() => { if (isMobile) setSidebarOpen(false); }}
       className={({ isActive }) =>
         cn(
-          // One rhythm and one inset pill highlight: mx-2 floats the row off
-          // the sidebar edges, rounded-lg matches the card anchor, px-2 gives
-          // the icon breathing room inside the pill. Rows with hover menus
+          // Leaf-node law (operator directive 2026-10-11): the nav wrapper
+          // carries gap only; this row is the one leaf that pads, full-bleed
+          // across the sidebar (no mx, no rounded pill). The active row is a
+          // full-bleed bg-sidebar-accent band. Rows with hover menus
           // (agents/projects) reserve extra right padding via className.
-          "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
+          primarySidebarStyles.row,
+          // Collapsed rail: center the icon in the fixed rail width.
+          rail && "justify-center px-0",
           (active ?? isActive)
-            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-            : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            ? primarySidebarStyles.rowActive
+            : primarySidebarStyles.rowMuted,
           className,
         )
       }

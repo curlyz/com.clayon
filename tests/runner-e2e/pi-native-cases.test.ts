@@ -43,7 +43,7 @@ describe("Pi native Product qualification", () => {
   it("binds the remote memory read to the exact agent and current run", () => {
     const nonce = "0123456789abcdef0123456789abcdef";
     const remoteRun = { agentId: "11111111-1111-4111-8111-111111111111", runId: "22222222-2222-4222-8222-222222222222" };
-    const target = `.paperclip-runtime/agent-files/${remoteRun.agentId}/${remoteRun.runId}/memory/pi-native.txt`;
+    const target = `.clayon-runtime/agent-files/${remoteRun.agentId}/${remoteRun.runId}/memory/pi-native.txt`;
     const read = (patch: Record<string, unknown> = {}) => ({ eventType: "tool.execution.completed", payload: { prpEvent: { payload: {
       schema: "paperclip.tool.execution.v1", transport: "builtin", name: "read", operation: "read", status: "completed", executionId: "remote-read-1", target, readOnly: true, outputTruncated: false, output: JSON.stringify({ content: [{ type: "text", text: `${nonce}\n` }] }), ...patch,
     } } } });
@@ -81,11 +81,11 @@ describe("Pi native Product qualification", () => {
 
   it("admits explicit local and remote Pi native candidates and discards ambient admission", () => {
     const cell = runnerMatrix.find(row => row.suite.id === "pi-native")!;
-    const source = { PAPERCLIP_RUNNER_ACPX_QUALIFICATION: "ambient" };
-    expect(buildRunnerE2EProcessEnvironment(source, [cell]).PAPERCLIP_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
+    const source = { CLAYON_RUNNER_ACPX_QUALIFICATION: "ambient" };
+    expect(buildRunnerE2EProcessEnvironment(source, [cell]).CLAYON_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
     const remote = runnerMatrix.find(row => row.suite.id === "pi-native" && row.environment.id === "daytona")!;
-    expect(buildRunnerE2EProcessEnvironment(source, [remote]).PAPERCLIP_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
-    expect(buildRunnerE2EProcessEnvironment(source, []).PAPERCLIP_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
+    expect(buildRunnerE2EProcessEnvironment(source, [remote]).CLAYON_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
+    expect(buildRunnerE2EProcessEnvironment(source, []).CLAYON_RUNNER_ACPX_QUALIFICATION).toBeUndefined();
     for (const changed of [
       { ...cell, suite: { ...cell.suite, manualOnly: false } },
       { ...cell, suite: { ...cell.suite, id: "implicit" } },

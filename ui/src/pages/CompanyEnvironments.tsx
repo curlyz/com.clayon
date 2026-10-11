@@ -18,7 +18,7 @@ import {
   type EnvironmentProbeResult,
   type EnvironmentCustomImageSetupSession,
   type JsonSchema,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   environmentsApi,
   type EnvironmentCustomImageActiveTemplateDrift,
@@ -46,6 +46,9 @@ import {
   EnvironmentVariablesEditor,
   type EnvironmentVariablesEditorHandle,
 } from "@/components/environment-variables-editor";
+import { SaveStatus } from "@/components/SaveStatus";
+import { useAutosave } from "@/hooks/useAutosave";
+import { SettingsPageTabs } from "@/components/SettingsPageTabs";
 import { JsonSchemaForm, getDefaultValues, validateJsonSchemaForm } from "@/components/JsonSchemaForm";
 import {
   SecretRefHintsContext,
@@ -107,7 +110,7 @@ function environmentDeleteBlockMessage(impact: EnvironmentDeleteBlastRadius): st
     return "Cannot delete this environment while a sandbox cleanup is pending. Wait for the cleanup sweep to destroy the orphan sandbox, then retry.";
   }
   if (impact.reusableSandboxLeaseCount > 0) {
-    return "Cannot delete this environment while it has a reusable sandbox lease. Remove the associated execution workspace or issue so Paperclip can destroy the sandbox, then retry.";
+    return "Cannot delete this environment while it has a reusable sandbox lease. Remove the associated execution workspace or issue so Clayon can destroy the sandbox, then retry.";
   }
   return null;
 }
@@ -255,8 +258,6 @@ function createEnvironmentFormFromEnvironment(environment: Environment): Environ
     envVars: environment.envVars ?? {},
   };
 }
-
-const DISCARD_ENVIRONMENT_CHANGES_MESSAGE = "Discard unsaved environment changes?";
 
 function stableJsonStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -1200,7 +1201,7 @@ function EnvironmentImageTemplatePanel({
               <span
                 className="break-all font-mono text-foreground"
                 title={templateRef
-                  ? `Provider ${activeTemplate.templateKind} ref ${templateRef} (Paperclip template ${activeTemplate.id})`
+                  ? `Provider ${activeTemplate.templateKind} ref ${templateRef} (Clayon template ${activeTemplate.id})`
                   : activeTemplate.id}
               >
                 {templateRef ?? `id ${formatShortId(activeTemplate.id)}`}
@@ -1418,38 +1419,36 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     },
   });
 
+  const editingEnvironment = editingEnvironmentId
+    ? savedEnvironments.find((environment) => environment.id === editingEnvironmentId) ?? null
+    : null;
+
   // Managed (platform-provisioned) environments accept exactly one tenant
   // edit: the env var map. The server's write floor rejects everything
-  // else, so this mutation sends an envVars-only PATCH — the one body
-  // shape the floor admits.
-  const managedEnvironmentEnvVarsMutation = useMutation({
-    mutationFn: async (envVars: EnvironmentFormState["envVars"]) => {
-      if (!editingEnvironmentId) throw new Error("No environment selected");
-      return await environmentsApi.update(editingEnvironmentId, { envVars }, selectedCompanyId);
-    },
-    onSuccess: async (environment) => {
+  // else, so autosave sends an envVars-only PATCH — the one body shape the
+  // floor admits — on every change.
+  const isManagedEnvironmentView =
+    isEnvironmentFormPage &&
+    mode === "edit" &&
+    Boolean(editingEnvironment && isPlatformManagedEnvironment(editingEnvironment));
+  const managedEnvVarsAutosave = useAutosave({
+    value: isManagedEnvironmentView ? stableJsonStringify(environmentForm.envVars) : null,
+    savedValue: isManagedEnvironmentView
+      ? stableJsonStringify(editingEnvironment?.envVars ?? {})
+      : null,
+    save: async () => {
+      if (!editingEnvironmentId) return;
+      await environmentsApi.update(
+        editingEnvironmentId,
+        { envVars: flushEnvironmentForm().envVars },
+        selectedCompanyId,
+      );
       if (selectedCompanyId) {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.environments.list(selectedCompanyId),
         });
       }
-      initializedFormKeyRef.current = null;
-      setEnvironmentForm(createEmptyEnvironmentForm());
-      setEnvironmentFormBaselineKey(null);
       setEnvironmentVariablesDirty(false);
-      navigate(ENVIRONMENTS_PATH, { replace: true });
-      pushToast({
-        title: "Environment variables updated",
-        body: `${environment.name} will inject the updated variables into future runs.`,
-        tone: "success",
-      });
-    },
-    onError: (error) => {
-      pushToast({
-        title: "Failed to save environment variables",
-        body: error instanceof Error ? error.message : "Environment variables save failed.",
-        tone: "error",
-      });
     },
   });
 
@@ -1710,75 +1709,18 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     selectedCompanyId,
   ]);
 
-  function confirmDiscardEnvironmentChanges() {
-    return (
-      !environmentHasUnsavedChanges ||
-      typeof window === "undefined" ||
-      window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)
-    );
-  }
-
   // The form page is routed, so leaving it (tab close, reload, or an in-app
-  // link) silently drops the draft. Intercept both exits while dirty.
-  useEffect(() => {
+  // link) could drop a pending autosave. Flush both exits while dirty.
+  function flushPendingEnvironmentEdits() {
     if (!environmentHasUnsavedChanges) return;
-
-    function handleBeforeUnload(event: BeforeUnloadEvent) {
-      event.preventDefault();
-      event.returnValue = "";
+    environmentAutosave.flush();
+    managedEnvVarsAutosave.flush();
+    // The variables editor keeps its own pending draft; commit it to the form
+    // so the flush above saves it too.
+    const flushedEnvVars = environmentVariablesEditorRef.current?.flushPendingDraft();
+    if (flushedEnvVars) {
+      setEnvironmentForm((current) => ({ ...current, envVars: flushedEnvVars }));
     }
-
-    function handleDocumentClick(event: MouseEvent) {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey
-      ) {
-        return;
-      }
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const anchor = target.closest("a[href]");
-      if (!(anchor instanceof HTMLAnchorElement)) return;
-      if (anchor.target && anchor.target !== "_self") return;
-
-      const nextUrl = new URL(anchor.href, window.location.href);
-      const currentUrl = new URL(window.location.href);
-      if (nextUrl.origin !== currentUrl.origin) return;
-      if (
-        nextUrl.pathname === currentUrl.pathname &&
-        nextUrl.search === currentUrl.search &&
-        nextUrl.hash === currentUrl.hash
-      ) {
-        return;
-      }
-
-      if (window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)) return;
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("click", handleDocumentClick, true);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      document.removeEventListener("click", handleDocumentClick, true);
-    };
-  }, [environmentHasUnsavedChanges]);
-
-  function closeEnvironmentForm() {
-    if (environmentMutation.isPending) return;
-    if (!confirmDiscardEnvironmentChanges()) return;
-    initializedFormKeyRef.current = null;
-    setEnvironmentForm(createEmptyEnvironmentForm());
-    setEnvironmentFormBaselineKey(null);
-    setEnvironmentVariablesDirty(false);
-    environmentMutation.reset();
-    draftEnvironmentProbeMutation.reset();
-    navigate(ENVIRONMENTS_PATH);
   }
 
   function flushEnvironmentForm(): EnvironmentFormState {
@@ -1845,9 +1787,60 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
       environmentForm.sandboxProvider !== "fake" &&
       Object.keys(sandboxConfigErrors).length === 0);
 
-  const editingEnvironment = editingEnvironmentId
-    ? savedEnvironments.find((environment) => environment.id === editingEnvironmentId) ?? null
-    : null;
+  // Autosave the whole environment payload while editing (create keeps its
+  // explicit Create action). An invalid draft is not saveable, matching the
+  // old disabled Save button. Payload fingerprint keys keep this cosmetic-
+  // state-insensitive.
+  const environmentAutosave = useAutosave({
+    value: editingEnvironmentId && !isManagedEnvironmentView
+      ? environmentFormKey(environmentForm)
+      : null,
+    savedValue: editingEnvironmentId && !isManagedEnvironmentView
+      ? environmentFormBaselineKey ?? environmentFormKey(environmentForm)
+      : null,
+    isSaveable: () => environmentFormValid,
+    save: async () => {
+      if (!editingEnvironmentId) return;
+      const form = flushEnvironmentForm();
+      await environmentsApi.update(
+        editingEnvironmentId,
+        buildEnvironmentPayload(form),
+        selectedCompanyId,
+      );
+      if (selectedCompanyId) {
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.environments.list(selectedCompanyId),
+        });
+      }
+      setEnvironmentFormBaselineKey(environmentFormKey(form));
+      setEnvironmentVariablesDirty(false);
+    },
+  });
+
+  // The form page is routed, so an in-app link away from it could drop a
+  // pending autosave (including the editor's staged draft). The page's own
+  // exit links flush on click; any other navigation unmounts the page, where
+  // the autosave hooks' cleanup flush fires, and the variables editor
+  // auto-commits staged rows after its idle debounce.
+
+  // Staged rows still inside the editor's debounce window on unmount cannot
+  // land in this component's state anymore (it is going away), so they are
+  // read straight off the editor and saved directly on the way out. Best
+  // effort: the inline Retry surfaced the failure while the page was alive.
+  const savePendingOnExitRef = useRef<() => void>(() => {});
+  savePendingOnExitRef.current = () => {
+    if (!editingEnvironmentId || !environmentHasUnsavedChanges) return;
+    const stagedEnvVars = environmentVariablesEditorRef.current?.readPendingDraft();
+    const form = stagedEnvVars ? { ...environmentForm, envVars: stagedEnvVars } : environmentForm;
+    if (isManagedEnvironmentView) {
+      void environmentsApi.update(editingEnvironmentId, { envVars: form.envVars }, selectedCompanyId);
+      return;
+    }
+    if (!environmentFormValid) return;
+    void environmentsApi.update(editingEnvironmentId, buildEnvironmentPayload(form), selectedCompanyId);
+  };
+  useEffect(() => () => savePendingOnExitRef.current(), []);
+
   const editingSandboxProvider = editingEnvironment ? readEnvironmentSandboxProvider(editingEnvironment) : null;
   const editingSandboxCapability = editingSandboxProvider
     ? environmentCapabilities?.sandboxProviders?.[editingSandboxProvider]
@@ -1955,6 +1948,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
   return (
     <div className="max-w-6xl space-y-6" data-testid="instance-settings-environments-section">
+      <SettingsPageTabs />
       {!isEnvironmentFormPage ? (
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2022,7 +2016,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       {isPlatformManagedEnvironment(environment) ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
                           <Lock className="h-3 w-3" aria-hidden />
-                          Managed by Paperclip
+                          Managed by Clayon
                         </span>
                       ) : null}
                     </div>
@@ -2039,7 +2033,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         {(() => {
                           const summary = summarizeSandboxConfig(environment.config as Record<string, unknown>);
                           // The managed row's badge already says "Managed by
-                          // Paperclip"; repeating provider vocabulary like
+                          // Clayon"; repeating provider vocabulary like
                           // "sandbox provider" next to the default environment
                           // is noise the product avoids.
                           if (isPlatformManagedEnvironment(environment)) {
@@ -2049,7 +2043,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         })()}
                       </div>
                     ) : (
-                      <div className="text-xs text-muted-foreground">Runs on this Paperclip host.</div>
+                      <div className="text-xs text-muted-foreground">Runs on this Clayon host.</div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -2115,7 +2109,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
           <div className="pb-4">
             <div className="mb-4">
               <Button size="sm" variant="ghost" asChild>
-                <Link to={ENVIRONMENTS_PATH}>
+                <Link to={ENVIRONMENTS_PATH} onClick={flushPendingEnvironmentEdits}>
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
                   Environments
                 </Link>
@@ -2125,15 +2119,15 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               <h1 className="text-lg font-semibold">{editingEnvironment.name}</h1>
               <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 <Lock className="h-3 w-3" aria-hidden />
-                Managed by Paperclip
+                Managed by Clayon
               </span>
             </div>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              {editingEnvironment.description ?? "Your agent runs on a computer managed by Paperclip."}
+              {editingEnvironment.description ?? "Your agent runs on a computer managed by Clayon."}
             </p>
             <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
               This environment is provisioned and maintained for you. You can add environment
-              variables for your agents; its name and configuration are managed by Paperclip.
+              variables for your agents; its name and configuration are managed by Clayon.
             </p>
           </div>
           <div className="py-4">
@@ -2151,28 +2145,15 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                 onDirtyChange={setEnvironmentVariablesDirty}
               />
             </Field>
-            {managedEnvironmentEnvVarsMutation.isError ? (
-              <div className="mt-3 text-xs text-destructive">
-                {managedEnvironmentEnvVarsMutation.error instanceof Error
-                  ? managedEnvironmentEnvVarsMutation.error.message
-                  : "Failed to save environment variables"}
+            {managedEnvVarsAutosave.status !== "idle" ? (
+              <div className="mt-3">
+                <SaveStatus
+                  status={managedEnvVarsAutosave.status}
+                  errorMessage={managedEnvVarsAutosave.errorMessage}
+                  onRetry={managedEnvVarsAutosave.retry}
+                />
               </div>
             ) : null}
-          </div>
-          <div className="flex flex-wrap justify-end gap-2 py-4">
-            <Button
-              variant="outline"
-              onClick={closeEnvironmentForm}
-              disabled={managedEnvironmentEnvVarsMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => managedEnvironmentEnvVarsMutation.mutate(flushEnvironmentForm().envVars)}
-              disabled={managedEnvironmentEnvVarsMutation.isPending}
-            >
-              {managedEnvironmentEnvVarsMutation.isPending ? "Saving..." : "Save environment variables"}
-            </Button>
           </div>
         </div>
         </SecretRefHintsContext.Provider>
@@ -2185,7 +2166,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
           <div className="pb-4">
             <div className="mb-4 flex items-center justify-between gap-2">
               <Button size="sm" variant="ghost" asChild>
-                <Link to={ENVIRONMENTS_PATH}>
+                <Link to={ENVIRONMENTS_PATH} onClick={flushPendingEnvironmentEdits}>
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
                   Environments
                 </Link>
@@ -2209,7 +2190,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
             </div>
             <h1 className="text-lg font-semibold">{editingEnvironmentId ? "Edit environment" : "Add environment"}</h1>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              Configure a reusable execution target for your agents. Saved changes affect future runs; Paperclip may start fresh sessions or sandbox leases after environment config changes.
+              Configure a reusable execution target for your agents. Saved changes affect future runs; Clayon may start fresh sessions or sandbox leases after environment config changes.
             </p>
           </div>
 
@@ -2295,16 +2276,16 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   </Field>
                   {/*
                     This path lives on the user's own remote SSH host, not on a
-                    Paperclip execution host, so it stays visible under the
+                    Clayon execution host, so it stays visible under the
                     managed-sandbox-only policy. The policy hides host paths that
                     the platform-managed environment owns; an SSH environment the
                     user configured is outside that contract.
                   */}
-                  <Field label="Remote workspace path" hint="Absolute path that Paperclip will verify during SSH connection tests.">
+                  <Field label="Remote workspace path" hint="Absolute path that Clayon will verify during SSH connection tests.">
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       type="text"
-                      placeholder="/Users/paperclip/workspace"
+                      placeholder="/Users/clayon/workspace"
                       value={environmentForm.sshRemoteWorkspacePath}
                       onChange={(e) =>
                         setEnvironmentForm((current) => ({ ...current, sshRemoteWorkspacePath: e.target.value }))}
@@ -2462,14 +2443,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-end gap-2 py-4">
-            <Button
-              variant="outline"
-              onClick={closeEnvironmentForm}
-              disabled={environmentMutation.isPending}
-            >
-              Cancel
-            </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2 py-4">
+            {editingEnvironmentId ? (
+              <SaveStatus
+                status={environmentAutosave.status}
+                errorMessage={environmentAutosave.errorMessage}
+                onRetry={environmentAutosave.retry}
+              />
+            ) : null}
             {environmentForm.driver !== "local" ? (
               <Button
                 variant="outline"
@@ -2479,18 +2460,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                 {draftEnvironmentProbeMutation.isPending ? "Testing..." : "Test"}
               </Button>
             ) : null}
-            <Button
-              onClick={() => environmentMutation.mutate(flushEnvironmentForm())}
-              disabled={environmentMutation.isPending || !environmentFormValid}
-            >
-              {environmentMutation.isPending
-                ? editingEnvironmentId
-                  ? "Saving..."
-                  : "Creating..."
-                : editingEnvironmentId
-                  ? "Save environment"
-                  : "Create environment"}
-            </Button>
+            {editingEnvironmentId ? null : (
+              <Button
+                onClick={() => environmentMutation.mutate(flushEnvironmentForm())}
+                disabled={environmentMutation.isPending || !environmentFormValid}
+              >
+                {environmentMutation.isPending ? "Creating..." : "Create environment"}
+              </Button>
+            )}
           </div>
 
           {editingEnvironment ? (
@@ -2550,7 +2527,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     <div className="text-xs text-muted-foreground">
                       {reusableLeaseOnlyBlock
                         ? "Deleting destroys these sandboxes; the workspaces stay open."
-                        : "Close these workspaces to let Paperclip destroy their sandboxes, then retry the delete."}
+                        : "Close these workspaces to let Clayon destroy their sandboxes, then retry the delete."}
                     </div>
                   </div>
                 ) : null}

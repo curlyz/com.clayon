@@ -23,7 +23,8 @@ it("consumes an added connection once and preserves a later choice across refetc
     await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent?.includes("Company OpenRouter"))!.click());
     await act(async () => root.render(render(true)));
     expect(container.querySelector('[aria-pressed="true"]')?.textContent).toContain("Company OpenRouter refreshed");
-    await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent === "Save decision model")!.click());
+    // selection autosaves (no Save button anymore)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ connectionId: choices[1]!.id, grantId: choices[1]!.grantId, allowBackground: false }));
   } finally { act(() => root.unmount()); container.remove(); }
 });

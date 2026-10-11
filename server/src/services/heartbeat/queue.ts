@@ -16,7 +16,7 @@ import {
 import {
   compareCents,
   hasWorkspaceRestoreFailure,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { nonIdleSlackIssueCondition } from "../slack-conversation-state.js";
 import { readQueuedInteractionResponse } from "../queued-interaction-response.js";
 import {
@@ -49,7 +49,7 @@ import {
   unadmittedChatWakeupCondition,
 } from "../durable-chat-wakeup.js";
 import { agentService } from "../agents.js";
-import { normalizeLegacyRunnerProvider } from "@paperclipai/adapter-utils";
+import { normalizeLegacyRunnerProvider } from "@clayon/adapter-utils";
 import { randomUUID } from "node:crypto";
 import {
   and,
@@ -67,8 +67,8 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { AGENT_DEFAULT_MAX_CONCURRENT_RUNS } from "@paperclipai/shared";
+import type { Db } from "@clayon/db";
+import { AGENT_DEFAULT_MAX_CONCURRENT_RUNS } from "@clayon/shared";
 import {
   agents,
   agentWakeupRequests,
@@ -86,7 +86,7 @@ import {
   issueRelations,
   issues,
   nativeRunFinalizations,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   conflict,
   HttpError,
@@ -150,7 +150,7 @@ import {
   type AgentOrgRow,
 } from "../agent-invokability.js";
 import { isHeartbeatWakeOnDemandEnabled } from "../heartbeat-policy.js";
-import { isUuidLike } from "@paperclipai/shared";
+import { isUuidLike } from "@clayon/shared";
 import { retryChatControlAdmission } from "../chat-control-admission-retry.js";
 
 import type { HeartbeatServiceOptions } from "../heartbeat.js";
@@ -214,7 +214,7 @@ const HEARTBEAT_MAX_CONCURRENT_RUNS_MIN = 1;
 
 const HEARTBEAT_MAX_CONCURRENT_RUNS_MAX = 50;
 
-export const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
+export const DEFERRED_WAKE_CONTEXT_KEY = "_clayonWakeContext";
 
 export const EXECUTION_PATH_HEARTBEAT_RUN_STATUSES = [
   "queued",
@@ -1695,7 +1695,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
   ) {
     const now = new Date();
     const reason =
-      "Cancelled because issue dependencies are still blocked; Paperclip will wake the assignee when blockers resolve";
+      "Cancelled because issue dependencies are still blocked; Clayon will wake the assignee when blockers resolve";
     const cancelled = await setRunStatus(run.id, "cancelled", {
       finishedAt: now,
       error: reason,
@@ -1778,8 +1778,8 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
       .where(and(eq(agentWakeupRequests.status, "deferred_issue_execution"),
         isNull(issues.executionRunId),
         or(and(
-          sql`jsonb_typeof(${agentWakeupRequests.payload} #> '{_paperclipWakeContext,wakeCommentIds}') = 'array'`,
-          sql`${agentWakeupRequests.payload} #> '{_paperclipWakeContext,wakeCommentIds}' <> '[]'::jsonb`,
+          sql`jsonb_typeof(${agentWakeupRequests.payload} #> '{_clayonWakeContext,wakeCommentIds}') = 'array'`,
+          sql`${agentWakeupRequests.payload} #> '{_clayonWakeContext,wakeCommentIds}' <> '[]'::jsonb`,
         ), sql`${agentWakeupRequests.payload}->>'mutation' = 'interaction'`),
         sql`${agentWakeupRequests.payload}->'queuedCommentInterrupt' is null`,
         cutoff ? gte(agentWakeupRequests.requestedAt, cutoff) : undefined))
@@ -3574,7 +3574,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
                 issue.id,
               );
               const blockedComment = [
-                `Paperclip blocked ${issueLabel} before dispatch because its workspace settings are not runnable.`,
+                `Clayon blocked ${issueLabel} before dispatch because its workspace settings are not runnable.`,
                 "",
                 `- Code: \`${WORKSPACE_WORKTREE_REQUIRES_PROJECT_CODE}\``,
                 `- Reason: ${WORKSPACE_WORKTREE_REQUIRES_PROJECT_MESSAGE}`,
@@ -4466,7 +4466,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
       if (claimed.length === 0) continue;
 
       const payload = parseObject(candidate.payload);
-      const wakeContext = parseObject(payload._paperclipWakeContext);
+      const wakeContext = parseObject(payload._clayonWakeContext);
       const issueId =
         readNonEmptyString(payload.issueId) ??
         readNonEmptyString(payload.taskId) ??

@@ -5,24 +5,24 @@ import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { and, eq } from "drizzle-orm";
-import { heartbeatRuns, type Db } from "@paperclipai/db";
-import type { PaperclipSkillEntry } from "@paperclipai/adapter-utils/server-utils";
-import { isToolConnectionAttentionHealth } from "@paperclipai/shared";
+import { heartbeatRuns, type Db } from "@clayon/db";
+import type { ClayonSkillEntry } from "@clayon/adapter-utils/server-utils";
+import { isToolConnectionAttentionHealth } from "@clayon/shared";
 import {
-  PAPERCLIP_OPERATIONAL_SKILL_KEY,
-  resolvePaperclipDesiredSkillNames,
-} from "@paperclipai/adapter-utils/server-utils";
+  CLAYON_OPERATIONAL_SKILL_KEY,
+  resolveClayonDesiredSkillNames,
+} from "@clayon/adapter-utils/server-utils";
 import {
   NATIVE_RUNTIME_ASSET_SCHEMA,
-  PAPERCLIP_EXECUTION_PROMPT,
-  PAPERCLIP_EXECUTION_PROMPT_REVISION,
+  CLAYON_EXECUTION_PROMPT,
+  CLAYON_EXECUTION_PROMPT_REVISION,
   canonicalNativeRuntimeContextDigest,
   nativeRuntimePromptDigest,
   parseNativeRuntimeContext,
   type NativeRuntimeAssetReference,
   type NativeRuntimeContextSnapshot,
-} from "../../vendor/paperclip-runner/index.js";
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+} from "../../vendor/clayon-runner/index.js";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 import { agentInstructionsService, agentInstructionsBundleMode } from "../agent-instructions.js";
 import { agentInstructionRevisionService } from "../agent-instruction-revisions.js";
 import { toolAccessService } from "../tool-access.js";
@@ -99,7 +99,7 @@ export async function materializeAsset(files: AssetFile[]): Promise<NativeRuntim
   const assetDigest = sha256(JSON.stringify(manifestFiles));
   const manifestText = `${JSON.stringify({ schema: "paperclip.runtime-asset-manifest.v1", digest: assetDigest, fileCount: manifestFiles.length, totalBytes, files: manifestFiles })}\n`;
   const manifestDigest = sha256(manifestText);
-  const assetsRoot = path.join(resolvePaperclipInstanceRoot(), "runtime-context-assets");
+  const assetsRoot = path.join(resolveClayonInstanceRoot(), "runtime-context-assets");
   const rootPath = path.join(assetsRoot, "bundles", assetDigest);
   const manifestPath = path.join(assetsRoot, "manifests", `${assetDigest}.json`);
   const existing = await fs.readFile(manifestPath, "utf8").catch(() => null);
@@ -172,9 +172,9 @@ async function materializeInstructionBundle(db: Db, agent: RuntimeAgent, agentFi
   return { entryPath, bundle: await materializeAsset(files) };
 }
 
-async function materializeSelectedSkills(runtimeConfig: Record<string, unknown>, entries: PaperclipSkillEntry[], omitLegacy: boolean) {
-  const desiredKeys = resolvePaperclipDesiredSkillNames(runtimeConfig, entries).filter(
-    (key) => !omitLegacy || key !== PAPERCLIP_OPERATIONAL_SKILL_KEY,
+async function materializeSelectedSkills(runtimeConfig: Record<string, unknown>, entries: ClayonSkillEntry[], omitLegacy: boolean) {
+  const desiredKeys = resolveClayonDesiredSkillNames(runtimeConfig, entries).filter(
+    (key) => !omitLegacy || key !== CLAYON_OPERATIONAL_SKILL_KEY,
   );
   const byKey = new Map(entries.map((entry) => [entry.key, entry]));
   return Promise.all(desiredKeys.sort().map(async (key) => {
@@ -244,19 +244,19 @@ export async function resolveNativeRuntimeMcpSnapshot(input: { db: Db; agent: Pi
   return { assignmentSetId: `sha256:${assignmentDigest}`, digest: assignmentDigest, bindingId: assignment.connections.length ? `native-mcp:${input.runId}` : null };
 }
 
-export async function buildNativeRuntimeContext(input: { db: Db; agent: RuntimeAgent; runId: string; runtimeConfig: Record<string, unknown>; runtimeSkillEntries: PaperclipSkillEntry[]; instructionWorkingCopy?: { rootPath: string; entryPath: string; kind?: "agent_files" } }): Promise<NativeRuntimeContextSnapshot> {
+export async function buildNativeRuntimeContext(input: { db: Db; agent: RuntimeAgent; runId: string; runtimeConfig: Record<string, unknown>; runtimeSkillEntries: ClayonSkillEntry[]; instructionWorkingCopy?: { rootPath: string; entryPath: string; kind?: "agent_files" } }): Promise<NativeRuntimeContextSnapshot> {
   const [instructions, skills, mcp] = await Promise.all([
     materializeInstructionBundle(input.db, input.agent, input.instructionWorkingCopy?.kind === "agent_files"),
     materializeSelectedSkills(input.runtimeConfig, input.runtimeSkillEntries, input.agent.adapterType === "paperclip_runner"),
     resolveNativeRuntimeMcpSnapshot({ db: input.db, agent: input.agent, runId: input.runId }),
   ]);
   const snapshot = {
-    prompt: { revision: PAPERCLIP_EXECUTION_PROMPT_REVISION, text: PAPERCLIP_EXECUTION_PROMPT, digest: nativeRuntimePromptDigest() },
+    prompt: { revision: CLAYON_EXECUTION_PROMPT_REVISION, text: CLAYON_EXECUTION_PROMPT, digest: nativeRuntimePromptDigest() },
     instructions: { ...instructions, ...(input.instructionWorkingCopy ? { workingCopy: input.instructionWorkingCopy } : {}) },
     skills,
     mcp,
-    ...(input.runtimeConfig.paperclipConnectionInstructions ? {
-      connectionInstructions: input.runtimeConfig.paperclipConnectionInstructions as { text: string; digest: string },
+    ...(input.runtimeConfig.clayonConnectionInstructions ? {
+      connectionInstructions: input.runtimeConfig.clayonConnectionInstructions as { text: string; digest: string },
     } : {}),
   };
   return parseNativeRuntimeContext({ ...snapshot, aggregateDigest: canonicalNativeRuntimeContextDigest(snapshot) });

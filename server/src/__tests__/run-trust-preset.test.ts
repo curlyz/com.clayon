@@ -17,8 +17,8 @@ import {
   heartbeatRuns,
   issues,
   projects,
-} from "@paperclipai/db";
-import { LOW_TRUST_REVIEW_PRESET } from "@paperclipai/shared";
+} from "@clayon/db";
+import { LOW_TRUST_REVIEW_PRESET } from "@clayon/shared";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -83,7 +83,7 @@ it("dispatch retains raw trust before workspace and broker setup", () => {
 
     beforeAll(async () => {
       database = await startEmbeddedPostgresTestDatabase(
-        "paperclip-run-trust-",
+        "clayon-run-trust-",
       );
       db = createDb(database.connectionString);
     }, 30_000);

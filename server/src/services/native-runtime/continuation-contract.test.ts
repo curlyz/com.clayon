@@ -9,12 +9,12 @@ import {
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
 } from "../../__tests__/helpers/embedded-postgres.js";
-import { parseNativeExecutionInput } from "../../vendor/paperclip-runner/index.js";
+import { parseNativeExecutionInput } from "../../vendor/clayon-runner/index.js";
 import { ensureNativeCompletionContract } from "./completion-contracts.js";
 import { rebindContinuationContract } from "./continuation-contract.js";
 const support = await getEmbeddedPostgresTestSupport();

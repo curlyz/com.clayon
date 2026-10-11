@@ -44,12 +44,12 @@ async function exerciseGitHubReviewSetup(page: Page, mock: ChatMock, seed: Seed,
   await expect(page.getByLabel("GitHub account")).toHaveValue("personal");
   await expect(page.getByLabel("App name", { exact: true })).toHaveValue("Maya");
   await page.getByLabel("GitHub account").selectOption("organization");
-  await page.getByLabel("Organization", { exact: true }).fill("paperclip-ai");
+  await page.getByLabel("Organization", { exact: true }).fill("clayon-ai");
   await testInfo.attach("Connect GitHub — organization", { body: await page.screenshot(), contentType: "image/png" });
   await page.getByRole("button", { name: "Save & exit", exact: true }).click();
   await page.goto(`/${seed.prefix}/apps/chat/connect?provider=github&purpose=chat&resume=endpoint-github`);
   await expect(page.getByLabel("GitHub account")).toHaveValue("organization");
-  await expect(page.getByLabel("Organization", { exact: true })).toHaveValue("paperclip-ai");
+  await expect(page.getByLabel("Organization", { exact: true })).toHaveValue("clayon-ai");
   await expect(page.getByRole("button", { name: "Select agent…", exact: true })).toHaveCount(0);
   // Existing-App recovery stays available and preserves entered credentials after failure.
   await page.getByRole("button", { name: "I already have an App" }).click();
@@ -200,7 +200,7 @@ test.describe.serial("native chat adapter UI", () => {
     await page.getByRole("button", { name: "Choose an active agent" }).click();
     await page.getByRole("button", { name: "Select Maya", exact: true }).click();
     await page.locator("summary:visible").filter({ hasText: "Advanced" }).click();
-    await expect(page.getByLabel("Slack app name", { exact: true })).toHaveValue("maya-paperclip");
+    await expect(page.getByLabel("Slack app name", { exact: true })).toHaveValue("maya-clayon");
     await expect(page.getByLabel("Bot display name", { exact: true })).toHaveValue("maya");
     await expect(page.getByLabel("Slash command", { exact: true })).toHaveValue("/maya");
     await page.getByRole("button", { name: "Continue", exact: true }).click();
@@ -245,7 +245,7 @@ test.describe.serial("native chat adapter UI", () => {
     mock.setWebhookVerified();
     await expect(page.getByRole("heading", { name: "Success", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Download avatar" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /Link .* to my Paperclip account/ })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Link .* to my Clayon account/ })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Open your Slack DM" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Copy message" })).toHaveCount(0);
     await page.reload();
@@ -494,11 +494,11 @@ test.describe.serial("native chat adapter UI", () => {
 
       if (provider.provider === "slack") {
         await expect(page.getByRole("heading", { name: "Verify Slack connection" })).toBeVisible();
-        await expect(page.getByText("Slack needs to confirm that it can reach your Paperclip instance.")).toBeVisible();
+        await expect(page.getByText("Slack needs to confirm that it can reach your Clayon instance.")).toBeVisible();
         mock.setWebhookVerified();
         await expect(page.getByRole("heading", { name: "Connect your Slack account" })).toBeVisible();
         await expect(page.getByText("/maya connect", { exact: true })).toBeVisible();
-        await page.getByRole("button", { name: "Link Test operator to my Paperclip account" }).click();
+        await page.getByRole("button", { name: "Link Test operator to my Clayon account" }).click();
         await page.getByRole("button", { name: "Continue to message test" }).click();
       }
 
@@ -574,7 +574,7 @@ test.describe.serial("native chat adapter UI", () => {
       ).toBeVisible();
       if (provider.provider === "slack") {
         await page.locator("summary").filter({ hasText: "Message in a channel" }).click();
-        await expect(page.getByText("@maya-paperclip you there?", { exact: true })).toBeVisible();
+        await expect(page.getByText("@maya-clayon you there?", { exact: true })).toBeVisible();
         await expect(page.getByRole("button", { name: "Copy message" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "Allowed Channels" })).toBeVisible();
         await page.locator("summary").filter({ hasText: /^Agent avatar$/ }).click();
@@ -584,7 +584,7 @@ test.describe.serial("native chat adapter UI", () => {
         await expect(avatarSection.getByRole("link", { name: "Open Slack app Settings" })).toBeVisible();
         const settingsDownloadEvent = page.waitForEvent("download");
         await avatarSection.getByRole("link", { name: "Download avatar" }).click();
-        expect((await settingsDownloadEvent).suggestedFilename()).toBe("maya-paperclip-avatar.png");
+        expect((await settingsDownloadEvent).suggestedFilename()).toBe("maya-clayon-avatar.png");
       }
 
       await expect(
@@ -694,7 +694,7 @@ test.describe.serial("native chat adapter UI", () => {
       await expect
         .poll(() => mock.linkIntentPrincipalId)
         .toBe(`principal-${provider.provider}`);
-      const confirmationUrl = `https://paperclip.example.test/${seed.prefix}/chat-identity/confirm?token=e2e-redacted`;
+      const confirmationUrl = `https://clayon.example.test/${seed.prefix}/chat-identity/confirm?token=e2e-redacted`;
       await expect(
         page.getByText(confirmationUrl, { exact: true }),
       ).toBeVisible();
@@ -983,7 +983,7 @@ test.describe("iMessage Photon setup and management", () => {
         enableChatConnectors: true,
       });
       await page.addInitScript(
-        (value) => localStorage.setItem("paperclip.theme", value),
+        (value) => localStorage.setItem("clayon.theme", value),
         theme,
       );
       await page.goto(`/${seed.prefix}/apps`);

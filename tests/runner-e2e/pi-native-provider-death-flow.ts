@@ -52,7 +52,7 @@ export function gradePiProviderDeath(state: State, events: readonly Row[], pendi
     && of("turn.started").length === 1 && !of("run.result.proposed").length, "wrong terminal or replacement turn");
   const card = state.interactions.find(card => card.id === pending.interactionId);
   demand(card?.companyId === pending.companyId && card.issueId === pending.issueId && card.sourceRunId === pending.runId
-    && card.idempotencyKey === `paperclip-runner-question:${pending.runId}:${pending.requestId}` && card.continuationPolicy === "none"
+    && card.idempotencyKey === `clayon-runner-question:${pending.runId}:${pending.requestId}` && card.continuationPolicy === "none"
     && card.status === "expired" && card.result?.version === 1 && Array.isArray(card.result.answers) && card.result.answers.length === 0
     && card.kind === "ask_user_questions" && card.resolverPolicy === "human_only" && card.payload?.runtimeRequestId === pending.requestId && hash(card.payload.questionSet) === hash(originalQuestion), "original durable card did not expire");
   const fallback = state.interactions.filter(card => card.id !== pending.interactionId);
@@ -93,7 +93,7 @@ export async function runPiPendingProviderDeath(input: {
     const workspaceId = run.contextSnapshot?.executionWorkspaceId;
     demand(typeof workspaceId === "string" && workspaceId.length > 0
       && run.runnerProfileJson?.nativeExecutionInput?.binding?.executionWorkspaceId === workspaceId
-      && run.contextSnapshot?.paperclipEnvironment?.leaseId === input.fixture.binding.leaseId
+      && run.contextSnapshot?.clayonEnvironment?.leaseId === input.fixture.binding.leaseId
       && input.fixture.baseline.scope.observedPrpEnvironmentLeaseId === workspaceId, "native run/lease/workspace binding unavailable");
     await expect(input.page.getByTestId("question-text-answer-composer").filter({ visible: true })).toHaveCount(1);
     await input.capture("pi-provider-death-pending", "Unanswered native Pi input before provider loss", "pi-provider-death-pending.png");

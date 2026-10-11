@@ -1,10 +1,10 @@
-import { CodexSessionState } from "../../packages/paperclip-runner/src/drivers/codex/codex-session-state.js";
-import { mapTerminalTurn } from "../../packages/paperclip-runner/src/drivers/codex/codex-session-terminal.js";
+import { CodexSessionState } from "../../packages/clayon-runner/src/drivers/codex/codex-session-state.js";
+import { mapTerminalTurn } from "../../packages/clayon-runner/src/drivers/codex/codex-session-terminal.js";
 import { observePiControlPending } from "./pi-controls-evidence.js";
 import { readActiveStopCaller } from "./native-active-stop-evidence.js";
 
 type Row = Record<string, any>;
-export const piControlCaller = readActiveStopCaller({ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "paperclip:local_implicit:local-board" } });
+export const piControlCaller = readActiveStopCaller({ deploymentMode: "local_trusted" }, { session: { userId: "local-board", id: "clayon:local_implicit:local-board" } });
 export const piCancellationId = "11111111-2222-4333-8444-555555555555";
 export function piControlFixture(target = "target.txt") {
   const scope = { companyId: "company", issueId: "issue", runId: "run", target };

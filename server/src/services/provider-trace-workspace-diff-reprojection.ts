@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
-import { heartbeatRunEvents } from "@paperclipai/db";
-import { parseCodexTurnDiff } from "../vendor/paperclip-runner/index.js";
+import type { Db } from "@clayon/db";
+import { heartbeatRunEvents } from "@clayon/db";
+import { parseCodexTurnDiff } from "../vendor/clayon-runner/index.js";
 import { appendHeartbeatRunEvent } from "./heartbeat-run-events.js";
 
 type WorkspaceDiffPayload = {

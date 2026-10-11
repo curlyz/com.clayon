@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, ExternalLink, Loader2, MoreHorizontal, Plus, Search, Trash2, X } from "lucide-react";
-import { aiConnectionRouterAppDefinition, type AiConnectionPool, type AiConnectionPoolConfig, type AiConnectionPoolMember, type AiManagedConnectionSummary, type ToolConnection } from "@paperclipai/shared";
+import { aiConnectionRouterAppDefinition, type AiConnectionPool, type AiConnectionPoolConfig, type AiConnectionPoolMember, type AiManagedConnectionSummary, type ToolConnection } from "@clayon/shared";
 import { aiConnectionsApi } from "@/api/ai-connections";
 import { aiConnectionPoolsApi, type PoolInspection } from "@/api/ai-connection-pools";
 import { toolsApi } from "@/api/tools";
@@ -22,6 +22,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AiConnectionUsagePanel } from "./AiConnectionUsagePanel";
+import { SaveStatus } from "@/components/SaveStatus";
+import { autosaveJsonEqual, useAutosave } from "@/hooks/useAutosave";
 import { AI_PROVIDERS, aiMethodLabel } from "./model";
 
 const configOf = ({ name, enabled, members, mode, thresholdPercent }: AiConnectionPoolConfig): AiConnectionPoolConfig => ({ name, enabled, members, mode, thresholdPercent });
@@ -111,6 +113,25 @@ function PoolConnector({ companyId, pluginKey, connection }: { companyId: string
   function move(index: number, offset: number) {
     setDraft(value => { const members = [...value.members]; [members[index], members[index + offset]] = [members[index + offset]!, members[index]!]; return { ...value, members }; });
   }
+  // Autosave for an existing pool: edits persist on their own (an invalid
+  // threshold or an empty member list is not saveable, matching the old
+  // disabled Save button). The create wizard keeps its explicit steps.
+  const thresholdValid = Number.isInteger(draft.thresholdPercent) && draft.thresholdPercent >= 1 && draft.thresholdPercent <= 100;
+  const draftConfig = configOf(draft);
+  const poolAutosave = useAutosave({
+    value: draftConfig,
+    savedValue: editing ? configOf(editing) : draftConfig,
+    isEqual: autosaveJsonEqual,
+    isSaveable: () => Boolean(editing) && thresholdValid && draft.members.length > 0,
+    save: async (config) => {
+      if (!editing) return;
+      const saved = await aiConnectionPoolsApi.save(companyId, { pluginKey, id: editing.id, expectedRevision: editing.revision, config });
+      setEditing(saved);
+      setDraft(configOf(saved));
+      setRenaming(false);
+      await invalidate();
+    },
+  });
   const loadError = accountsQuery.error ?? poolsQuery.error ?? galleryQuery.error;
   if (accountsQuery.isSuccess && !canManage) return <p role="alert" className="text-sm text-muted-foreground">A connection manager can view and edit connection pools.</p>;
   if (loadError) return <div className="space-y-4"><p role="alert" className="text-sm text-destructive">{loadError.message}</p><Button variant="outline" onClick={() => { void accountsQuery.refetch(); void poolsQuery.refetch(); void galleryQuery.refetch(); }}>Try again</Button></div>;
@@ -137,14 +158,14 @@ function PoolConnector({ companyId, pluginKey, connection }: { companyId: string
   </ol>;
   return <div className={connection ? "space-y-6" : "mx-auto max-w-2xl"}>
     {connection ? <div className="flex items-start justify-between gap-4">
-      <AppDetailHeader appName={draft.name} connection={connection} logoEntry={logoEntry} brandKey={logoEntry.slug} allowRemoteLogo canRename={!disabled} status={editing?.enabled ? { label: "Connected", tone: "connected" } : { label: "Paused", tone: "paused" }} actionCount={null} renaming={renaming} nameDraft={nameDraft} renamePending={disabled} onNameDraftChange={setNameDraft} onRenameStart={() => { if (!disabled) { setNameDraft(draft.name); setRenaming(true); } }} onRenameCancel={() => setRenaming(false)} onRenameSubmit={value => void save({ ...draft, name: value })} />
+      <AppDetailHeader appName={draft.name} connection={connection} logoEntry={logoEntry} brandKey={logoEntry.slug} allowRemoteLogo canRename={!disabled} status={editing?.enabled ? { label: "Connected", tone: "connected" } : { label: "Paused", tone: "paused" }} actionCount={null} renaming={renaming} nameDraft={nameDraft} renamePending={disabled} onNameDraftChange={setNameDraft} onRenameStart={() => { if (!disabled) { setNameDraft(draft.name); setRenaming(true); } }} onRenameCancel={() => setRenaming(false)} onRenameSubmit={value => { setDraft({ ...draft, name: value }); setRenaming(false); }} />
       <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon-sm" aria-label="Manage connection pool"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem variant="destructive" disabled={busy || !canManage} onSelect={() => { setError(""); setRemoving(true); }}><Trash2 />Remove connection</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
     </div> : <StepHeader title="Add a connection pool" subtitle={step === 0 ? "Choose connections you already use." : "New tasks rotate in this order."} step="connect" activeIndex={step} labels={["Connections", "Order"]} appIdentity={{ name, logoUrl: logoEntry.branding.logoUrl }} />}
     {unavailable && <p role="alert" className="text-sm text-destructive">{entry?.availability?.reason ?? "Enable the connection pool plugin in Plugins."}</p>}
     {!canManage && <p role="alert" className="text-sm text-muted-foreground">A connection manager can edit this pool.</p>}
     {error && !removing && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {!connection && step === 0 ? <ConnectionPicker accounts={accounts} selected={draft.members} disabled={disabled} onChange={members => setDraft({ ...draft, members })} onRefresh={() => void accountsQuery.refetch()} /> : <div className="space-y-4">
-      {connection && <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-semibold">Connections</h2><Button variant="outline" size="sm" disabled={disabled} onClick={() => { setPickerMembers(draft.members); setPickerOpen(true); }}><Plus className="size-4" />Add connections</Button></div>}
+      {connection && <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><h2 className="text-sm font-semibold">Connections</h2><SaveStatus status={poolAutosave.status} errorMessage={poolAutosave.errorMessage} onRetry={poolAutosave.retry} /></div><Button variant="outline" size="sm" disabled={disabled} onClick={() => { setPickerMembers(draft.members); setPickerOpen(true); }}><Plus className="size-4" />Add connections</Button></div>}
       {orderedMembers}
       <p className="text-xs text-muted-foreground">{connection ? "Order changes apply to new tasks." : "Created paused. Enable it when you’re ready."}</p>
       {connection && <>
@@ -163,10 +184,10 @@ function PoolConnector({ companyId, pluginKey, connection }: { companyId: string
         </section>
       </>}
     </div>}
-    <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
-      <Button variant="ghost" disabled={busy} onClick={() => connection ? navigate("/apps") : step ? setStep(0) : navigate("/apps")}>{!connection && step ? "Back" : "Cancel"}</Button>
-      <Button disabled={disabled || draft.members.length === 0 || !Number.isInteger(draft.thresholdPercent) || draft.thresholdPercent < 1 || draft.thresholdPercent > 100} onClick={() => !connection && step === 0 ? setStep(1) : void save()}>{busy && <Loader2 className="size-4 animate-spin" />}{busy ? "Saving…" : connection ? "Save changes" : step ? "Create pool" : "Continue"}</Button>
-    </div>
+    {!connection && <div className="mt-6 flex items-center justify-between gap-3 border-t border-border pt-4">
+      <Button variant="ghost" disabled={busy} onClick={() => step ? setStep(0) : navigate("/apps")}>{step ? "Back" : "Cancel"}</Button>
+      <Button disabled={disabled || draft.members.length === 0 || !thresholdValid} onClick={() => step === 0 ? setStep(1) : void save()}>{busy && <Loader2 className="size-4 animate-spin" />}{busy ? "Creating…" : step ? "Create pool" : "Continue"}</Button>
+    </div>}
     <Dialog open={pickerOpen} onOpenChange={setPickerOpen}><DialogContent className="sm:max-w-2xl"><DialogHeader><DialogTitle>Add connections</DialogTitle><DialogDescription>Choose connections you already use.</DialogDescription></DialogHeader><ConnectionPicker accounts={accounts} selected={pickerMembers} disabled={disabled} onChange={setPickerMembers} onRefresh={() => void accountsQuery.refetch()} /><div className="flex items-center justify-between gap-3"><Button variant="ghost" onClick={() => setPickerOpen(false)}>Cancel</Button><Button onClick={() => { setDraft({ ...draft, members: pickerMembers }); setPickerOpen(false); }}>Done</Button></div></DialogContent></Dialog>
     <AlertDialog open={removing} onOpenChange={open => { if (!busy) setRemoving(open); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Remove {draft.name}?</AlertDialogTitle><AlertDialogDescription>The connections in this pool are kept.</AlertDialogDescription></AlertDialogHeader>{error && <p role="alert" className="text-sm text-destructive">{error}</p>}<AlertDialogFooter className="sm:justify-between"><AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={busy} onClick={event => { event.preventDefault(); void remove(); }}>{busy ? "Removing…" : "Remove connection"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </div>;

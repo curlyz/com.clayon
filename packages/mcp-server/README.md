@@ -1,32 +1,32 @@
-# Paperclip MCP Server
+# Clayon MCP Server
 
-Model Context Protocol server for Paperclip.
+Model Context Protocol server for Clayon.
 
-This package is a thin MCP wrapper over the existing Paperclip REST API. It does
+This package is a thin MCP wrapper over the existing Clayon REST API. It does
 not talk to the database directly and it does not reimplement business logic.
 
 ## Authentication
 
 The server reads its configuration from environment variables:
 
-- `PAPERCLIP_API_URL` - Paperclip base URL, for example `http://localhost:3100`
-- `PAPERCLIP_API_KEY` - bearer token used for `/api` requests
-- `PAPERCLIP_COMPANY_ID` - optional default company for company-scoped tools
-- `PAPERCLIP_AGENT_ID` - optional default agent for checkout helpers
-- `PAPERCLIP_RUN_ID` - optional run id forwarded on mutating requests
+- `CLAYON_API_URL` - Clayon base URL, for example `http://localhost:3100`
+- `CLAYON_API_KEY` - bearer token used for `/api` requests
+- `CLAYON_COMPANY_ID` - optional default company for company-scoped tools
+- `CLAYON_AGENT_ID` - optional default agent for checkout helpers
+- `CLAYON_RUN_ID` - optional run id forwarded on mutating requests
 
-Inside an active heartbeat, Paperclip also injects `PAPERCLIP_RUNTIME_TOOLS_*` variables. They enable the run-scoped `connections_search` and `connection_request` tools and expire with the run.
+Inside an active heartbeat, Clayon also injects `CLAYON_RUNTIME_TOOLS_*` variables. They enable the run-scoped `connections_search` and `connection_request` tools and expire with the run.
 
 ## Usage
 
 ```sh
-npx -y @paperclipai/mcp-server
+npx -y @clayon/mcp-server
 ```
 
 Or locally in this repo:
 
 ```sh
-pnpm --filter @paperclipai/mcp-server build
+pnpm --filter @clayon/mcp-server build
 node packages/mcp-server/dist/stdio.js
 ```
 
@@ -39,52 +39,52 @@ Run-scoped connection tools:
 
 Read tools:
 
-- `paperclipMe`
-- `paperclipInboxLite`
-- `paperclipListAgents`
-- `paperclipGetAgent`
-- `paperclipListIssues`
-- `paperclipGetIssue`
-- `paperclipGetHeartbeatContext`
-- `paperclipListComments`
-- `paperclipGetComment`
-- `paperclipListIssueApprovals`
-- `paperclipListDocuments`
-- `paperclipGetDocument`
-- `paperclipListDocumentRevisions`
-- `paperclipListProjects`
-- `paperclipGetProject`
-- `paperclipGetIssueWorkspaceRuntime`
-- `paperclipWaitForIssueWorkspaceService`
-- `paperclipListGoals`
-- `paperclipGetGoal`
-- `paperclipListApprovals`
-- `paperclipGetApproval`
-- `paperclipGetApprovalIssues`
-- `paperclipListApprovalComments`
+- `clayonMe`
+- `clayonInboxLite`
+- `clayonListAgents`
+- `clayonGetAgent`
+- `clayonListIssues`
+- `clayonGetIssue`
+- `clayonGetHeartbeatContext`
+- `clayonListComments`
+- `clayonGetComment`
+- `clayonListIssueApprovals`
+- `clayonListDocuments`
+- `clayonGetDocument`
+- `clayonListDocumentRevisions`
+- `clayonListProjects`
+- `clayonGetProject`
+- `clayonGetIssueWorkspaceRuntime`
+- `clayonWaitForIssueWorkspaceService`
+- `clayonListGoals`
+- `clayonGetGoal`
+- `clayonListApprovals`
+- `clayonGetApproval`
+- `clayonGetApprovalIssues`
+- `clayonListApprovalComments`
 
 Write tools:
 
-- `paperclipCreateIssue`
-- `paperclipUpdateIssue`
-- `paperclipCheckoutIssue`
-- `paperclipReleaseIssue`
-- `paperclipAddComment`
-- `paperclipSuggestTasks`
-- `paperclipAskUserQuestions`
-- `paperclipRequestConfirmation`
-- `paperclipUpsertIssueDocument`
-- `paperclipRestoreIssueDocumentRevision`
-- `paperclipControlIssueWorkspaceServices`
-- `paperclipCreateApproval`
-- `paperclipLinkIssueApproval`
-- `paperclipUnlinkIssueApproval`
-- `paperclipApprovalDecision`
-- `paperclipAddApprovalComment`
+- `clayonCreateIssue`
+- `clayonUpdateIssue`
+- `clayonCheckoutIssue`
+- `clayonReleaseIssue`
+- `clayonAddComment`
+- `clayonSuggestTasks`
+- `clayonAskUserQuestions`
+- `clayonRequestConfirmation`
+- `clayonUpsertIssueDocument`
+- `clayonRestoreIssueDocumentRevision`
+- `clayonControlIssueWorkspaceServices`
+- `clayonCreateApproval`
+- `clayonLinkIssueApproval`
+- `clayonUnlinkIssueApproval`
+- `clayonApprovalDecision`
+- `clayonAddApprovalComment`
 
 Escape hatch:
 
-- `paperclipApiRequest`
+- `clayonApiRequest`
 
-`paperclipApiRequest` is limited to paths under `/api` and JSON bodies. It is
+`clayonApiRequest` is limited to paths under `/api` and JSON bodies. It is
 meant for endpoints that do not yet have a dedicated MCP tool.

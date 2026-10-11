@@ -4,9 +4,9 @@ import {
   type NativeStatusDecision,
 } from "./status-arbiter.js";
 import {
-  PaperclipRunnerProviderProfileError,
-  resolvePaperclipRunnerProviderProfile,
-  type PaperclipRunnerProviderProfile,
+  ClayonRunnerProviderProfileError,
+  resolveClayonRunnerProviderProfile,
+  type ClayonRunnerProviderProfile,
 } from "./provider-profile.js";
 
 /**
@@ -14,7 +14,7 @@ import {
  * original heartbeat selection seam and must remain stable for existing runs
  * and downstream importers.
  */
-export const NATIVE_RUNTIME_RESOLVER_VERSION = "paperclip-runner-v1" as const;
+export const NATIVE_RUNTIME_RESOLVER_VERSION = "clayon-runner-v1" as const;
 
 /** Resolver version for the richer native runtime profile used by runnerd. */
 export const NATIVE_RUNTIME_PROFILE_RESOLVER_VERSION = "phase6-v1" as const;
@@ -29,7 +29,7 @@ export type HeartbeatRuntimeResolution =
       kind: "native";
       resolverVersion: typeof NATIVE_RUNTIME_RESOLVER_VERSION;
       reason: "explicit_paperclip_runner" | "persisted_native_selection";
-      provider: PaperclipRunnerProviderProfile["provider"];
+      provider: ClayonRunnerProviderProfile["provider"];
     };
 
 export type NativeRuntimeResolution =
@@ -117,11 +117,11 @@ export function resolveNativeRuntimeMode(input: {
       reason: "direct_adapter",
     };
   }
-  let runnerProfile: PaperclipRunnerProviderProfile;
+  let runnerProfile: ClayonRunnerProviderProfile;
   try {
-    runnerProfile = resolvePaperclipRunnerProviderProfile(input.adapterConfig);
+    runnerProfile = resolveClayonRunnerProviderProfile(input.adapterConfig);
   } catch (error) {
-    if (error instanceof PaperclipRunnerProviderProfileError) {
+    if (error instanceof ClayonRunnerProviderProfileError) {
       throw ineligible(error.code, error.message);
     }
     throw error;
@@ -132,7 +132,7 @@ export function resolveNativeRuntimeMode(input: {
   } else if (!input.enabled) {
     throw ineligible(
       "paperclip_runner_rollout_disabled",
-      "Paperclip Runner is experimental and disabled on this instance.",
+      "Clayon Runner is experimental and disabled on this instance.",
     );
   }
   if (
@@ -141,14 +141,14 @@ export function resolveNativeRuntimeMode(input: {
   ) {
     throw ineligible(
       "paperclip_runner_agent_ineligible",
-      "Paperclip Runner requires an active agent.",
+      "Clayon Runner requires an active agent.",
     );
   }
   const allowedWorkModes = ["standard", "planning", "ask"];
   if (!input.issue || !allowedWorkModes.includes(input.issue.workMode)) {
     throw ineligible(
       "paperclip_runner_issue_ineligible",
-      "Paperclip Runner requires a standard, planning, or ask task.",
+      "Clayon Runner requires a standard, planning, or ask task.",
     );
   }
   const rollout = resolveNativeMigrationStatus({
@@ -282,7 +282,7 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
       if (input.agent.adapterType !== "paperclip_runner") {
         throw ineligible(
           "paperclip_runner_adapter_binding_mismatch",
-          "A persisted native run must remain bound to the Paperclip Runner adapter.",
+          "A persisted native run must remain bound to the Clayon Runner adapter.",
         );
       }
       if (
@@ -291,7 +291,7 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
       ) {
         throw ineligible(
           "paperclip_runner_agent_ineligible",
-          "A persisted Paperclip Runner run cannot recover through a non-invokable agent.",
+          "A persisted Clayon Runner run cannot recover through a non-invokable agent.",
         );
       }
       const driverKind = input.persisted.driverKind;
@@ -313,7 +313,7 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
       if (backend === null) {
         throw ineligible(
           "paperclip_runner_driver_unsupported",
-          `Persisted Paperclip Runner driver is unsupported: ${driverKind}`,
+          `Persisted Clayon Runner driver is unsupported: ${driverKind}`,
         );
       }
       return {

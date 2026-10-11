@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createHash } from "node:crypto";
 
-import { runWithRuntimeParent } from "@paperclipai/adapter-utils/acpx-engine/startup-timing";
+import { runWithRuntimeParent } from "@clayon/adapter-utils/acpx-engine/startup-timing";
 import type { AdapterRuntimeEvent } from "../../adapters/index.js";
 import {
   getStartupTraceContext,
@@ -191,7 +191,7 @@ function safeAttributes(
 }
 
 /**
- * Run-scoped tracing for the native Paperclip runner path.
+ * Run-scoped tracing for the native Clayon runner path.
  *
  * A scope owns a real OpenTelemetry parent context. While work runs inside a
  * scope, nested native measurements and the existing sandbox/provider tracing
@@ -205,7 +205,7 @@ export function createNativeRunTrace(input: {
   traceContext?: StartupTraceContextHandle;
 }) {
   const tracing =
-    input.traceContext ?? getStartupTraceContext("paperclip.native-runner");
+    input.traceContext ?? getStartupTraceContext("clayon.native-runner");
   const traceStartedAtMs = finiteMs(input.startedAtMs ?? Date.now());
   const runIdHash = hashedId(input.runId);
   let rootSpan: SpanHandle;
@@ -213,9 +213,9 @@ export function createNativeRunTrace(input: {
     rootSpan = tracing.tracer.startSpan("task.run", {
       startTime: traceStartedAtMs,
       attributes: {
-        "paperclip.task.run.run_id": runIdHash,
-        "paperclip.task.run.runtime": "paperclip_runner",
-        "paperclip.task.run.trace_schema_version":
+        "clayon.task.run.run_id": runIdHash,
+        "clayon.task.run.runtime": "paperclip_runner",
+        "clayon.task.run.trace_schema_version":
           NATIVE_RUN_TRACE_SCHEMA_VERSION,
       },
     });
@@ -271,7 +271,7 @@ export function createNativeRunTrace(input: {
   ): void => {
     for (const [key, value] of Object.entries(attributes)) {
       try {
-        span.setAttribute(`paperclip.native.span.${key}`, value);
+        span.setAttribute(`clayon.native.span.${key}`, value);
       } catch {
         // Tracing is diagnostic-only and must never change runner control flow.
       }
@@ -328,11 +328,11 @@ export function createNativeRunTrace(input: {
         {
           startTime: startedAtMs,
           attributes: {
-            "paperclip.native.span.trace_schema_version":
+            "clayon.native.span.trace_schema_version":
               NATIVE_RUN_TRACE_SCHEMA_VERSION,
             ...Object.fromEntries(
               Object.entries(attributes).map(([key, value]) => [
-                `paperclip.native.span.${key}`,
+                `clayon.native.span.${key}`,
                 value,
               ]),
             ),
@@ -496,10 +496,10 @@ export function createNativeRunTrace(input: {
     }
     try {
       rootSpan.setAttribute(
-        "paperclip.task.run.wall_ms",
+        "clayon.task.run.wall_ms",
         endedAtMs - traceStartedAtMs,
       );
-      rootSpan.setAttribute("paperclip.task.run.outcome", outcome);
+      rootSpan.setAttribute("clayon.task.run.outcome", outcome);
       if (outcome === "failed") rootSpan.setStatus({ code: 2 });
       rootSpan.end(endedAtMs);
     } catch {

@@ -7,7 +7,7 @@ import {
   instanceExperimentalSettingsSchema,
   instanceGeneralSettingsSchema,
   type WorkTimelineResult,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { MemoryRouter } from "@/lib/router";
 import { ONBOARDING_STORAGE_KEY } from "@/components/OnboardingWizard";
 import { STORYBOOK_COMPANY_ID } from "../fixtures/onboardingDraft";
@@ -46,7 +46,7 @@ import {
   storybookSecretProviders,
   storybookSecrets,
   storybookSidebarBadges,
-} from "../fixtures/paperclipData";
+} from "../fixtures/clayonData";
 import timelineSample from "../fixtures/workTimeline.human.sample.json";
 import "@mdxeditor/editor/style.css";
 import "./tailwind-entry.css";
@@ -95,12 +95,12 @@ installStorybookApiFixtures();
 function installStorybookApiFixtures() {
   if (typeof window === "undefined") return;
   const currentWindow = window as typeof window & {
-    __paperclipStorybookFetchInstalled?: boolean;
+    __clayonStorybookFetchInstalled?: boolean;
   };
-  if (currentWindow.__paperclipStorybookFetchInstalled) return;
+  if (currentWindow.__clayonStorybookFetchInstalled) return;
 
   const originalFetch = window.fetch.bind(window);
-  currentWindow.__paperclipStorybookFetchInstalled = true;
+  currentWindow.__clayonStorybookFetchInstalled = true;
 
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const rawUrl =
@@ -135,7 +135,7 @@ function installStorybookApiFixtures() {
             status: "active",
             user: {
               id: "user-board",
-              email: "board@paperclip.local",
+              email: "board@clayon.local",
               name: "Board Operator",
               image: null,
             },
@@ -145,7 +145,7 @@ function installStorybookApiFixtures() {
             status: "active",
             user: {
               id: "user-product",
-              email: "product@paperclip.local",
+              email: "product@clayon.local",
               name: "Product Lead",
               image: null,
             },
@@ -330,8 +330,8 @@ function installStorybookApiFixtures() {
     if (/^\/api\/companies\/[^/]+\/ai-connections\/local\/attempts$/.test(url.pathname)) {
       const body = typeof init?.body === "string" ? JSON.parse(init.body) : {};
       return Response.json({ sessionId: "local-storybook", expiresAt: new Date(Date.now() + 1_800_000).toISOString(), command: body.provider === "anthropic"
-        ? "CLAUDE_CONFIG_DIR='/paperclip/login' claude auth login"
-        : "CODEX_HOME='/paperclip/login' codex login --device-auth" });
+        ? "CLAUDE_CONFIG_DIR='/clayon/login' claude auth login"
+        : "CODEX_HOME='/clayon/login' codex login --device-auth" });
     }
     if (/^\/api\/companies\/[^/]+\/ai-connections\/local\/check$/.test(url.pathname)) {
       return Response.json({ status: onboardingFixtureState.localLoginStatus });
@@ -558,9 +558,9 @@ function installStorybookApiFixtures() {
       const [, adapterType] = adapterSchemaMatch;
       const schemas = (
         window as typeof window & {
-          __paperclipStorybookAdapterSchemas?: Record<string, unknown>;
+          __clayonStorybookAdapterSchemas?: Record<string, unknown>;
         }
-      ).__paperclipStorybookAdapterSchemas;
+      ).__clayonStorybookAdapterSchemas;
       const schema = schemas?.[adapterType];
       if (schema) return Response.json(schema);
     }
@@ -836,7 +836,7 @@ const preview: Preview = {
   ],
   globalTypes: {
     theme: {
-      description: "Paperclip color mode",
+      description: "Clayon color mode",
       defaultValue: "dark",
       toolbar: {
         title: "Theme",

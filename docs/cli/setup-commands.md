@@ -5,35 +5,35 @@ summary: Onboard, run, doctor, and configure
 
 Instance setup and diagnostics commands.
 
-## `paperclipai run`
+## `clayon run`
 
 One-command bootstrap and start:
 
 ```sh
-pnpm paperclipai run
+pnpm clayon run
 ```
 
 Does:
 
 1. Auto-onboards if config is missing
-2. Runs `paperclipai doctor` with repair enabled
+2. Runs `clayon doctor` with repair enabled
 3. Starts the server when checks pass
 
 Choose a specific instance:
 
 ```sh
-npx paperclipai run --instance dev
+npx clayon run --instance dev
 ```
 
-## `paperclipai onboard`
+## `clayon onboard`
 
 Interactive first-time setup:
 
 ```sh
-pnpm paperclipai onboard
+pnpm clayon onboard
 ```
 
-If Paperclip is already configured, rerunning `onboard` keeps the existing config in place. Use `paperclipai configure` to change settings on an existing install.
+If Clayon is already configured, rerunning `onboard` keeps the existing config in place. Use `clayon configure` to change settings on an existing install.
 
 First prompt:
 
@@ -43,34 +43,34 @@ First prompt:
 Start immediately after onboarding:
 
 ```sh
-pnpm paperclipai onboard --run
+pnpm clayon onboard --run
 ```
 
 Quickstart defaults + immediate start:
 
 ```sh
-pnpm paperclipai onboard --yes
+pnpm clayon onboard --yes
 ```
 
-When onboarding starts Paperclip from an interactive terminal, it opens the
+When onboarding starts Clayon from an interactive terminal, it opens the
 onboarding page in your browser once. Non-interactive terminals stay silent.
 Suppress browser opening explicitly for headless or automated runs with either
 environment variable:
 
 ```sh
-PAPERCLIP_NO_BROWSER=1 pnpm paperclipai onboard --yes
-PAPERCLIP_OPEN_ON_LISTEN=false pnpm paperclipai onboard --yes
+CLAYON_NO_BROWSER=1 pnpm clayon onboard --yes
+CLAYON_OPEN_ON_LISTEN=false pnpm clayon onboard --yes
 ```
 
-On an existing install, `--yes` now preserves the current config and just starts Paperclip with that setup.
+On an existing install, `--yes` now preserves the current config and just starts Clayon with that setup.
 
-## `paperclipai doctor`
+## `clayon doctor`
 
 Health checks with optional auto-repair:
 
 ```sh
-pnpm paperclipai doctor
-pnpm paperclipai doctor --repair
+pnpm clayon doctor
+pnpm clayon doctor --repair
 ```
 
 Validates:
@@ -82,14 +82,14 @@ Validates:
 - Storage configuration
 - Missing key files
 
-## `paperclipai configure`
+## `clayon configure`
 
 Update configuration sections:
 
 ```sh
-pnpm paperclipai configure --section server
-pnpm paperclipai configure --section secrets
-pnpm paperclipai configure --section storage
+pnpm clayon configure --section server
+pnpm clayon configure --section secrets
+pnpm clayon configure --section storage
 ```
 
 `--section secrets` updates the deployment-level provider used as the fallback
@@ -99,43 +99,43 @@ coming-soon GCP/Vault) live in the board UI under
 `Company Settings → Secrets → Provider vaults` and the
 `/api/companies/{companyId}/secret-provider-configs` API.
 
-## `paperclipai env`
+## `clayon env`
 
 Show resolved environment configuration:
 
 ```sh
-pnpm paperclipai env
+pnpm clayon env
 ```
 
-This now includes bind-oriented deployment settings such as `PAPERCLIP_BIND` and `PAPERCLIP_BIND_HOST` when configured.
+This now includes bind-oriented deployment settings such as `CLAYON_BIND` and `CLAYON_BIND_HOST` when configured.
 
-## `paperclipai allowed-hostname`
+## `clayon allowed-hostname`
 
 Allow a private hostname for authenticated/private mode:
 
 ```sh
-npx paperclipai allowed-hostname my-tailscale-host
+npx clayon allowed-hostname my-tailscale-host
 ```
 
 ## Local Storage Paths
 
 | Data | Default Path |
 |------|-------------|
-| Config | `~/.paperclip/instances/default/config.json` |
-| Database | `~/.paperclip/instances/default/db` |
-| Logs | `~/.paperclip/instances/default/logs` |
-| Storage | `~/.paperclip/instances/default/data/storage` |
-| Secrets key | `~/.paperclip/instances/default/secrets/master.key` |
+| Config | `~/.clayon/instances/default/config.json` |
+| Database | `~/.clayon/instances/default/db` |
+| Logs | `~/.clayon/instances/default/logs` |
+| Storage | `~/.clayon/instances/default/data/storage` |
+| Secrets key | `~/.clayon/instances/default/secrets/master.key` |
 
 Override with:
 
 ```sh
-PAPERCLIP_HOME=/custom/home PAPERCLIP_INSTANCE_ID=dev pnpm paperclipai run
+CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev pnpm clayon run
 ```
 
 Or pass `--data-dir` directly on any command:
 
 ```sh
-npx paperclipai run --data-dir ./tmp/paperclip-dev
-npx paperclipai doctor --data-dir ./tmp/paperclip-dev
+npx clayon run --data-dir ./tmp/clayon-dev
+npx clayon doctor --data-dir ./tmp/clayon-dev
 ```

@@ -9,7 +9,7 @@ import {
   createDb,
   heartbeatRuns,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import {
   getEmbeddedPostgresTestSupport,
@@ -32,7 +32,7 @@ describeEmbeddedPostgres("runner goal service", () => {
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-runner-goals-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-runner-goals-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 

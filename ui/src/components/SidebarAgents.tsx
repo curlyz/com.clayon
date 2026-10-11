@@ -47,7 +47,10 @@ import {
 } from "../lib/agent-order";
 import { BudgetSidebarMarker } from "./BudgetSidebarMarker";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { SidebarSection, type SidebarSectionRadioChoice } from "./SidebarSection";
+import { SidebarSubNav } from "./SidebarSubNav";
+import { buildAgentSectionTabs } from "../lib/section-tabs/agentSectionTabs";
 import { StarToggle } from "./StarToggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,7 +61,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { Agent } from "@paperclipai/shared";
+import type { Agent } from "@clayon/shared";
 
 /**
  * When no agent is running, the sidebar falls back to showing at most this many
@@ -174,8 +177,8 @@ function SidebarAgentItem({
       className={cn(
         "min-w-0 flex-1",
         // Reserve room for the hover ⋯ menu; starred rows widen it for the
-        // inline unstar star.
-        starred && !isMobile ? "pr-14" : "pr-8",
+        // inline unstar star. The rail centers its icon, so no reserve there.
+        rail ? "" : starred && !isMobile ? "pr-14" : "pr-8",
       )}
       trailing={
         showBuiltInLifecycle || hasInvalidOrgChain ? (
@@ -614,26 +617,40 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
     ? visibleAgents.find(agent => agent.id === primary.primaryAgentId)
     : undefined;
 
-  const renderAgentRow = (agent: Agent, isStarredRow: boolean) => (
-    <SidebarAgentItem
-      key={agent.id}
-      activeAgentId={activeAgentId}
-      activeTab={activeTab}
-      agent={agent}
-      disabled={pendingAgentIds.has(agent.id)}
-      isMobile={isMobile}
-      leaving={agentLeaving(agent)}
-      onLeaveAgent={leaveAgent}
-      onPauseResume={(targetAgent, action) => pauseResumeAgent.mutate({ agent: targetAgent, action })}
-      rail={rail}
-      runCount={liveCountByAgent.get(agent.id) ?? 0}
-      setSidebarOpen={setSidebarOpen}
-      builtInStatus={builtInStatusByAgentId.get(agent.id)}
-      starred={isStarredRow || isStarred(membershipsQuery.data, "agent", agent.id)}
-      onToggleStar={toggleStarAgent}
-      starPending={agentStarPending(agent)}
-    />
-  );
+  const renderAgentRow = (agent: Agent, isStarredRow: boolean) => {
+    // Sidebar-layout nested sub-nav (redesign ADDENDUM 2/3): under the
+    // active agent row, the agent surface's section list hash-anchors into
+    // the long agent page at the agent's base route.
+    const routeRef = agentRouteRef(agent);
+    const isActiveRow = activeAgentId === routeRef;
+    return (
+      <div key={agent.id} className="flex flex-col gap-0.5">
+        <SidebarAgentItem
+          activeAgentId={activeAgentId}
+          activeTab={activeTab}
+          agent={agent}
+          disabled={pendingAgentIds.has(agent.id)}
+          isMobile={isMobile}
+          leaving={agentLeaving(agent)}
+          onLeaveAgent={leaveAgent}
+          onPauseResume={(targetAgent, action) => pauseResumeAgent.mutate({ agent: targetAgent, action })}
+          rail={rail}
+          runCount={liveCountByAgent.get(agent.id) ?? 0}
+          setSidebarOpen={setSidebarOpen}
+          builtInStatus={builtInStatusByAgentId.get(agent.id)}
+          starred={isStarredRow || isStarred(membershipsQuery.data, "agent", agent.id)}
+          onToggleStar={toggleStarAgent}
+          starPending={agentStarPending(agent)}
+        />
+        {isActiveRow ? (
+          <SidebarSubNav
+            basePath={agentUrl(agent)}
+            sections={buildAgentSectionTabs(routeRef, agent.id)}
+          />
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <SidebarSection
@@ -672,7 +689,12 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
             onClick={() => {
               if (isMobile) setSidebarOpen(false);
             }}
-            className="flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={cn(
+              primarySidebarStyles.row,
+              // Leaf row, full-bleed (no mx, no pill); quiet muted affordance.
+              rail && "justify-center px-0",
+              "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+            )}
           >
             <Users className="shrink-0 h-4 w-4" />
             <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : undefined}>See all agents</span>

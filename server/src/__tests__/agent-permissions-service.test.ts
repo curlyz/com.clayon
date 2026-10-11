@@ -3,7 +3,7 @@ import {
   LOW_TRUST_REVIEW_PRESET,
   agentPermissionsSchema,
   updateAgentPermissionsSchema,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   defaultAgentPermissions,
   normalizeAgentPermissions,

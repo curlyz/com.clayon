@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { assertValidAdapterLoginCapability } from "@paperclipai/adapter-utils";
+import { assertValidAdapterLoginCapability } from "@clayon/adapter-utils";
 import { listServerAdapters, requireServerAdapter } from "./registry.js";
-import * as executionTarget from "@paperclipai/adapter-utils/execution-target";
+import * as executionTarget from "@clayon/adapter-utils/execution-target";
 import { BUILTIN_ADAPTER_TYPES } from "./builtin-adapter-types.js";
 
 const { probeInstallation, probeGrokInstallation, probePiInstallation } = vi.hoisted(() => ({
@@ -9,7 +9,7 @@ const { probeInstallation, probeGrokInstallation, probePiInstallation } = vi.hoi
   probeGrokInstallation: vi.fn(),
   probePiInstallation: vi.fn(),
 }));
-vi.mock("../vendor/paperclip-runner/live/index.js", () => ({
+vi.mock("../vendor/clayon-runner/live/index.js", () => ({
   probeAcpxClaudeInstallation: probeInstallation,
   probeAcpxGrokInstallation: probeGrokInstallation,
   probeAcpxPiInstallation: probePiInstallation,

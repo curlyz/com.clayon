@@ -13,12 +13,12 @@ import {
   recordWorkspaceConfigFreshnessOperation,
   prepareProjectRepositoryWorkspaces,
 } from "./workspaces.js";
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { and, asc, eq } from "drizzle-orm";
-import { type ExecutionWorkspace } from "@paperclipai/shared";
-import { heartbeatRuns, projectWorkspaces } from "@paperclipai/db";
+import { type ExecutionWorkspace } from "@clayon/shared";
+import { heartbeatRuns, projectWorkspaces } from "@clayon/db";
 import { getStartupTracer } from "../../instrumentation.js";
 import { createHostDuplexObservabilityRecorder } from "../duplex-observability-recorder.js";
 import { incrementToolRuntimeMetricCounter } from "../tool-runtime-metrics.js";
@@ -45,13 +45,13 @@ import {
   resolveEffectiveWorkspaceStrategyType,
 } from "../execution-workspace-policy.js";
 import { evaluateExecutionAllowlist } from "../execution-allowlist.js";
-import type { Db, agents } from "@paperclipai/db";
+import type { Db, agents } from "@clayon/db";
 import type {
   Environment,
   IssueExecutionWorkspaceSettings,
   ProjectExecutionWorkspacePolicy,
-} from "@paperclipai/shared";
-import type { NativeExecutionInput } from "../../vendor/paperclip-runner/index.js";
+} from "@clayon/shared";
+import type { NativeExecutionInput } from "../../vendor/clayon-runner/index.js";
 import type { NativeRunHistoricalSpan } from "../native-runtime/native-run-trace.js";
 import type { NativeRestartRecoveryClaim } from "../native-runtime/index.js";
 import type { NativeChatWorkspaceScope } from "../native-runtime/native-chat-workspace.js";
@@ -221,7 +221,7 @@ export async function prepareHeartbeatWorkspace(db: Db, input: HeartbeatWorkspac
       if (isDotRun) {
         // This is private controller storage, never a provider filesystem.
         // v6 projects workspace.access=none and cwd=null to Dot.
-        const cwd = path.resolve(resolvePaperclipInstanceRoot(), "runtime", "paperclip-runner", "dot-controllers", agent.companyId, run.id);
+        const cwd = path.resolve(resolveClayonInstanceRoot(), "runtime", "clayon-runner", "dot-controllers", agent.companyId, run.id);
         await fs.mkdir(cwd, { recursive: true, mode: 0o700 });
         return { cwd, source: "agent_home" as const, projectId: null, workspaceId: null, repoUrl: null, repoRef: null,
           workspaceHints: [], warnings: [], baseCwdFallback: false, materializationFailures: [], additionalWorkspaces: [], referencedProjectFailures: [] };

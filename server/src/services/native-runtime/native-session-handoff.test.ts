@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { agents, companies, createDb, documents, heartbeatRunEvents, heartbeatRuns, issueComments, issueDocuments, issues, issueThreadInteractions } from "@paperclipai/db";
+import { agents, companies, createDb, documents, heartbeatRunEvents, heartbeatRuns, issueComments, issueDocuments, issues, issueThreadInteractions } from "@clayon/db";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import { buildNativeSessionHandoff, createNativeSessionHandoffLoader, NATIVE_HANDOFF_MAX_BYTES, renderNativeSessionHandoff } from "./native-session-handoff.js";
 import { buildNativeExecutionInput } from "./native-execution-input.js";
-import { buildNativeModelEnvelope } from "@paperclipai/paperclip-runner";
+import { buildNativeModelEnvelope } from "@clayon/clayon-runner";
 import { nativeRuntimeContextFixture } from "./runtime-context.test-fixture.js";
 
 describe("bounded fresh-session handoff", () => {
@@ -16,7 +16,7 @@ describe("bounded fresh-session handoff", () => {
     expect(rendered).toContain('"truncated":true');
     expect(rendered).toContain("content omitted");
     expect(rendered).toContain("get_task_history");
-    expect(rendered).toContain("Legacy adapters can use the equivalent Paperclip");
+    expect(rendered).toContain("Legacy adapters can use the equivalent Clayon");
   });
 
   it("restores the handoff on fresh bootstrap and resume failure, without replaying it on resume", () => {
@@ -43,7 +43,7 @@ const support = await getEmbeddedPostgresTestSupport();
   let db: ReturnType<typeof createDb>;
   const companyId = randomUUID(), agentId = randomUUID(), issueId = randomUUID(), boundaryId = randomUUID(), requestId = randomUUID();
   beforeAll(async () => {
-    database = await startEmbeddedPostgresTestDatabase("paperclip-native-handoff-");
+    database = await startEmbeddedPostgresTestDatabase("clayon-native-handoff-");
     db = createDb(database.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Handoff", issuePrefix: "HAND" });
     await db.insert(agents).values({ id: agentId, companyId, name: "Dickens", role: "general", adapterType: "paperclip_runner" });

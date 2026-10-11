@@ -8,7 +8,7 @@ import type { ChatEndpoint, ChatProvider } from "@/api/chatEndpoints";
 import { queryKeys } from "@/lib/queryKeys";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatSetupSidebarProvider } from "@/context/ChatSetupSidebarContext";
-import { ChatSetupSidebar } from "@/components/chat/ChatSetupNavigation";
+import { SetupWizardSidebar } from "@/components/SetupWizard";
 import { ChatEndpointSetup } from "./ChatEndpointSetup";
 import { ChatEndpointDetail } from "./ChatEndpointDetail";
 
@@ -162,7 +162,7 @@ describe("chat setup and identity-link clipboard actions", () => {
           {detail ? <ChatEndpointDetail /> : (
             <TooltipProvider>
             <ChatSetupSidebarProvider>
-              <ChatSetupSidebar />
+              <SetupWizardSidebar />
               <main><ChatEndpointSetup /></main>
             </ChatSetupSidebarProvider>
             </TooltipProvider>
@@ -450,7 +450,7 @@ describe("chat setup and identity-link clipboard actions", () => {
   it("resumes event configuration on the saved app and clears the retry token", async () => {
     const endpoint = await render("slack");
     const saved: ChatEndpoint = { ...endpoint, status: "draft", setup: {
-      ...endpoint.setup!, slackSetupMethod: "automatic", slackOAuthCallbackUri: "https://paperclip.example/api/chat-slack/oauth/callback",
+      ...endpoint.setup!, slackSetupMethod: "automatic", slackOAuthCallbackUri: "https://clayon.example/api/chat-slack/oauth/callback",
       slackRegistration: { status: "install", appId: "ATEST", errorCode: "slack_manifest_update_pending" },
     } };
     mocks.get.mockResolvedValue(saved);
@@ -478,7 +478,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     const saved: ChatEndpoint = { ...endpoint, status: "verifying", providerAccountId: "workspace-a", setup: {
       ...endpoint.setup!, step: "test", slackSetupMethod: "automatic",
       slackRegistration: { status: "configured", appId: "ATEST", managementUrl: "https://api.slack.com/apps/ATEST" },
-      slackAccount: { externalUserId: "UPERSON", paperclipUserId: "owner-user", status: "linked", welcomeStatus: "sent", dmChannelId: "DTEST" },
+      slackAccount: { externalUserId: "UPERSON", clayonUserId: "owner-user", status: "linked", welcomeStatus: "sent", dmChannelId: "DTEST" },
       slackAvatar: status === "uploaded" ? { status, uploadedAt: "2026-10-07T12:00:00Z" } : status === "failed" ? { status, errorCode: "slack_avatar_upload_failed" } : { status },
     } };
     mocks.get.mockResolvedValue(saved);
@@ -498,7 +498,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     flushSync(() => root.unmount());
     client.clear();
     root = createRoot(container);
-    flushSync(() => root.render(<QueryClientProvider client={client}><TooltipProvider><ChatSetupSidebarProvider><ChatSetupSidebar /><ChatEndpointSetup /></ChatSetupSidebarProvider></TooltipProvider></QueryClientProvider>));
+    flushSync(() => root.render(<QueryClientProvider client={client}><TooltipProvider><ChatSetupSidebarProvider><SetupWizardSidebar /><ChatEndpointSetup /></ChatSetupSidebarProvider></TooltipProvider></QueryClientProvider>));
     await settle();
     expect(container.querySelector('aside button[aria-current="step"]')?.textContent).toBe("4Send a message");
   });
@@ -508,7 +508,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     mocks.listAgents.mockResolvedValue([]);
     mocks.getAgent.mockResolvedValue({ id: "agent-a", name: "Maya", status: "terminated", appearance: { schemaVersion: 1, characterVersion: "cap-v1", paletteId: "orchid-peach" } });
     await render("slack", true);
-    expect(container.querySelector('a[download]')?.getAttribute("href")).toBe("/api/agent-avatars/cap-v1/orchid-peach/rest.png?size=512&scale=1&background=paperclip-dark");
+    expect(container.querySelector('a[download]')?.getAttribute("href")).toBe("/api/agent-avatars/cap-v1/orchid-peach/rest.png?size=512&scale=1&background=clayon-dark");
     expect(mocks.getAgent).toHaveBeenCalledWith("agent-a", "company-a");
   });
 
@@ -558,7 +558,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     expect(container.textContent).toContain("Owner");
     expect(mocks.confirmIdentityLink).not.toHaveBeenCalled();
     mocks.confirmIdentityLink.mockImplementationOnce(async () => {
-      mocks.listPrincipals.mockResolvedValue([{ ...identity, status: "linked", paperclipUserId: "owner-user" }]);
+      mocks.listPrincipals.mockResolvedValue([{ ...identity, status: "linked", clayonUserId: "owner-user" }]);
       return { ok: true };
     });
     await click("This is my Slack account");
@@ -599,7 +599,7 @@ describe("chat setup and identity-link clipboard actions", () => {
   });
 
   it("does not offer to claim a Slack identity linked to someone else", async () => {
-    mocks.listPrincipals.mockResolvedValue([{ id: "link-a", principalId: "principal-a", externalLabel: "Someone else", status: "linked", paperclipUserId: "another-user", paperclipUserLabel: "Another Person", lastConnectAt: "2026-09-18T20:01:00Z" }]);
+    mocks.listPrincipals.mockResolvedValue([{ id: "link-a", principalId: "principal-a", externalLabel: "Someone else", status: "linked", clayonUserId: "another-user", clayonUserLabel: "Another Person", lastConnectAt: "2026-09-18T20:01:00Z" }]);
     await renderSlackIdentityStep();
     expect(container.textContent).toContain("Linked to Another Person");
     expect(container.textContent).not.toContain("This is my Slack account");
@@ -613,7 +613,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     expect(warning.textContent).toContain("Public HTTPS URL required");
     const link = warning.querySelector("a")!;
     expect(link.textContent).toBe("Learn how to set up HTTPS");
-    expect(link.href).toBe("https://docs.paperclip.ing/reference/deploy/https/");
+    expect(link.href).toBe("https://docs.clayon.ing/reference/deploy/https/");
   });
 
   it("cancels the delayed Slack advance when returning to the agent step", async () => {

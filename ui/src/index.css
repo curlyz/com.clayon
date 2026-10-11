@@ -190,16 +190,16 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
   --chip-match-identifier-bg: var(--muted);
   --chip-match-identifier-fg: var(--muted-foreground);
   --chip-match-identifier-border: var(--border);
-  --paperclip-doc-annotation-highlight-source: oklch(0.78 0.16 89);
-  --paperclip-doc-annotation-highlight-open: color-mix(in srgb, var(--paperclip-doc-annotation-highlight-source) 58%, var(--background));
-  --paperclip-doc-annotation-highlight-focused: color-mix(in srgb, var(--paperclip-doc-annotation-highlight-source) 60%, var(--background));
-  --paperclip-doc-annotation-highlight-stale: color-mix(in srgb, var(--paperclip-doc-annotation-highlight-source) 48%, var(--background));
-  --paperclip-doc-annotation-highlight-resolved: color-mix(in srgb, var(--paperclip-doc-annotation-highlight-source) 28%, var(--background));
-  --paperclip-doc-annotation-highlight-x-outset: 0.25rem;
-  --paperclip-doc-annotation-highlight-y-outset: 0.125rem;
-  --paperclip-doc-annotation-highlight-radius: 0.1875rem;
+  --clayon-doc-annotation-highlight-source: oklch(0.78 0.16 89);
+  --clayon-doc-annotation-highlight-open: color-mix(in srgb, var(--clayon-doc-annotation-highlight-source) 58%, var(--background));
+  --clayon-doc-annotation-highlight-focused: color-mix(in srgb, var(--clayon-doc-annotation-highlight-source) 60%, var(--background));
+  --clayon-doc-annotation-highlight-stale: color-mix(in srgb, var(--clayon-doc-annotation-highlight-source) 48%, var(--background));
+  --clayon-doc-annotation-highlight-resolved: color-mix(in srgb, var(--clayon-doc-annotation-highlight-source) 28%, var(--background));
+  --clayon-doc-annotation-highlight-x-outset: 0.25rem;
+  --clayon-doc-annotation-highlight-y-outset: 0.125rem;
+  --clayon-doc-annotation-highlight-radius: 0.1875rem;
 
-  /* Brand agent-capsule gradient stops (paperclip.ing/brand/).
+  /* Brand agent-capsule gradient stops (clayon.ing/brand/).
      "The capsule is the agent" — each agent gets a 2-stop gradient,
      --agent-Na (top) → --agent-Nb (bottom). Brand-fixed hex, identical
      across themes. Indices 1–10; consumed by AgentCapsule. */
@@ -442,6 +442,21 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
   --tc-composer-hidden-nav-offset: calc(var(--sz-safe-bottom) + var(--spacing) * 2);
 }
 
+/* Mobile pinned-composer nav-offset pair (PAP-495): applied on the scroll
+   owner <main> instead of an inline style cast — one class while the
+   auto-hiding nav is on screen, the other while it is hidden. Desktop and
+   the classic thread keep the :root default above. */
+.tc-composer-nav-visible {
+  --tc-composer-bottom: var(--tc-composer-visible-nav-offset);
+  --mobile-nav-motion-duration: var(--motion-mobile-nav-enter);
+  --mobile-nav-motion-ease: var(--motion-ease-out-expo);
+}
+.tc-composer-nav-hidden {
+  --tc-composer-bottom: var(--tc-composer-hidden-nav-offset);
+  --mobile-nav-motion-duration: var(--motion-mobile-nav-exit);
+  --mobile-nav-motion-ease: var(--motion-ease-standard);
+}
+
 .dark {
   --background: oklch(0.165 0.008 264);
   --foreground: oklch(0.97 0.006 264);
@@ -509,50 +524,50 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
   background-color: var(--streamlined-task-detail-bg);
 }
 
-::highlight(paperclip-doc-annotation-open) {
+::highlight(clayon-doc-annotation-open) {
   background-color: transparent;
   color: inherit;
 }
 
-::highlight(paperclip-doc-annotation-focused) {
+::highlight(clayon-doc-annotation-focused) {
   background-color: transparent;
   color: inherit;
 }
 
-::highlight(paperclip-doc-annotation-stale) {
+::highlight(clayon-doc-annotation-stale) {
   background-color: transparent;
   color: inherit;
 }
 
-::highlight(paperclip-doc-annotation-resolved) {
+::highlight(clayon-doc-annotation-resolved) {
   background-color: transparent;
   color: inherit;
 }
 
-.paperclip-doc-annotation-highlight::before {
+.clayon-doc-annotation-highlight::before {
   position: absolute;
   inset:
-    calc(-1 * var(--paperclip-doc-annotation-highlight-y-outset))
-    calc(-1 * var(--paperclip-doc-annotation-highlight-x-outset));
-  border-radius: var(--paperclip-doc-annotation-highlight-radius);
-  background-color: var(--paperclip-doc-annotation-highlight-open);
+    calc(-1 * var(--clayon-doc-annotation-highlight-y-outset))
+    calc(-1 * var(--clayon-doc-annotation-highlight-x-outset));
+  border-radius: var(--clayon-doc-annotation-highlight-radius);
+  background-color: var(--clayon-doc-annotation-highlight-open);
   content: "";
   transition-property: background-color;
   transition-duration: var(--motion-duration-fast);
   transition-timing-function: var(--motion-ease-standard);
 }
 
-.paperclip-doc-annotation-highlight[data-focused="true"]:not([data-anchor-state="stale"]):not([data-status="resolved"])::before,
-.paperclip-doc-annotation-highlight[data-hovered="true"]:not([data-anchor-state="stale"]):not([data-status="resolved"])::before {
-  background-color: var(--paperclip-doc-annotation-highlight-focused);
+.clayon-doc-annotation-highlight[data-focused="true"]:not([data-anchor-state="stale"]):not([data-status="resolved"])::before,
+.clayon-doc-annotation-highlight[data-hovered="true"]:not([data-anchor-state="stale"]):not([data-status="resolved"])::before {
+  background-color: var(--clayon-doc-annotation-highlight-focused);
 }
 
-.paperclip-doc-annotation-highlight[data-anchor-state="stale"]:not([data-status="resolved"])::before {
-  background-color: var(--paperclip-doc-annotation-highlight-stale);
+.clayon-doc-annotation-highlight[data-anchor-state="stale"]:not([data-status="resolved"])::before {
+  background-color: var(--clayon-doc-annotation-highlight-stale);
 }
 
-.paperclip-doc-annotation-highlight[data-status="resolved"]::before {
-  background-color: var(--paperclip-doc-annotation-highlight-resolved);
+.clayon-doc-annotation-highlight[data-status="resolved"]::before {
+  background-color: var(--clayon-doc-annotation-highlight-resolved);
 }
 
 @layer base {
@@ -622,8 +637,8 @@ html[data-reader-font="monolisa-nerd"] { --reader-font: var(--reader-font-monoli
     }
   }
   /* Let font-mono (utilities layer) override for monospace editors */
-  .paperclip-mdxeditor [class*="_placeholder_"],
-  .paperclip-mdxeditor-content {
+  .clayon-mdxeditor [class*="_placeholder_"],
+  .clayon-mdxeditor-content {
     font-family: inherit;
   }
 }
@@ -750,27 +765,27 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
     flex-shrink: 0;
   }
 
-  .paperclip-task-list-toolbar > :first-child {
+  .clayon-task-list-toolbar > :first-child {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .paperclip-task-list-toolbar [data-slot="collection-toolbar-search"] {
+  .clayon-task-list-toolbar [data-slot="collection-toolbar-search"] {
     grid-column: 1;
     grid-row: 1;
   }
 
-  .paperclip-task-list-toolbar [data-slot="collection-toolbar-search"] input {
+  .clayon-task-list-toolbar [data-slot="collection-toolbar-search"] input {
     height: var(--sz-44px);
   }
 
-  .paperclip-task-list-toolbar [data-slot="collection-toolbar-context"] {
+  .clayon-task-list-toolbar [data-slot="collection-toolbar-context"] {
     grid-column: 2;
     grid-row: 1;
   }
 
-  .paperclip-task-list-toolbar [data-slot="collection-toolbar-context"] button,
-  .paperclip-task-list-toolbar [data-slot="collection-toolbar-controls"] button {
+  .clayon-task-list-toolbar [data-slot="collection-toolbar-context"] button,
+  .clayon-task-list-toolbar [data-slot="collection-toolbar-controls"] button {
     width: var(--sz-44px);
     height: var(--sz-44px);
     min-height: var(--sz-44px);
@@ -778,7 +793,7 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
     flex-shrink: 0;
   }
 
-  .paperclip-task-list-toolbar > :first-child > :last-child {
+  .clayon-task-list-toolbar > :first-child > :last-child {
     grid-column: 1 / -1;
     grid-row: 2;
   }
@@ -1455,8 +1470,8 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   animation: tc-live-ping var(--motion-approval-pulse) var(--motion-ease-standard) infinite;
 }
 
-.paperclip-markdown.task-chat-reasoning-markdown,
-.paperclip-markdown.task-chat-reasoning-markdown :is(h1, h2, h3, h4, h5, h6, strong) {
+.clayon-markdown.task-chat-reasoning-markdown,
+.clayon-markdown.task-chat-reasoning-markdown :is(h1, h2, h3, h4, h5, h6, strong) {
   font-size: inherit;
   font-weight: inherit;
   line-height: inherit;
@@ -1484,8 +1499,8 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 }
 
 .task-chat-expanded-line-wrap,
-.paperclip-markdown.task-chat-reasoning-markdown,
-.paperclip-markdown.task-chat-reasoning-markdown :is(p, strong, em, a, code) {
+.clayon-markdown.task-chat-reasoning-markdown,
+.clayon-markdown.task-chat-reasoning-markdown :is(p, strong, em, a, code) {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -1522,11 +1537,11 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   animation: shimmer-text-slide 2.5s linear infinite;
 }
 
-.paperclip-thinking-icon {
+.clayon-thinking-icon {
   transform-origin: 50% 50%;
 }
 
-@keyframes paperclip-thinking-draw {
+@keyframes clayon-thinking-draw {
   0% {
     stroke-dasharray: 0 85.717;
     stroke-dashoffset: -85.717;
@@ -1554,8 +1569,8 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   }
 }
 
-.paperclip-thinking-icon-path {
-  animation: paperclip-thinking-draw 1s linear infinite;
+.clayon-thinking-icon-path {
+  animation: clayon-thinking-draw 1s linear infinite;
 }
 
 /* Muted variant (task-chat v7 activity rows): the sweep runs over the
@@ -1611,7 +1626,7 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
     background: none;
   }
 
-  .paperclip-thinking-icon-path {
+  .clayon-thinking-icon-path {
     animation: none;
     opacity: 1;
     stroke-dasharray: 85.717 85.717;
@@ -1727,8 +1742,8 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 }
 
 /* MDXEditor theme integration */
-.paperclip-mdxeditor-scope,
-.paperclip-mdxeditor {
+.clayon-mdxeditor-scope,
+.clayon-mdxeditor {
   --baseBase: var(--background);
   --baseBg: transparent;
   --baseBgSubtle: color-mix(in oklab, var(--accent) 35%, transparent);
@@ -1760,37 +1775,37 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 }
 
 @media (min-width: 768px) {
-  .paperclip-mdxeditor-scope,
-  .paperclip-mdxeditor {
+  .clayon-mdxeditor-scope,
+  .clayon-mdxeditor {
     font-size: 0.875rem;
   }
 }
 
-.paperclip-mdxeditor-scope [class*="_iconButton_"],
-.paperclip-mdxeditor [class*="_iconButton_"] {
+.clayon-mdxeditor-scope [class*="_iconButton_"],
+.clayon-mdxeditor [class*="_iconButton_"] {
   color: var(--baseText);
 }
 
-.paperclip-mdxeditor-scope [class*="_iconButton_"]:hover,
-.paperclip-mdxeditor [class*="_iconButton_"]:hover {
+.clayon-mdxeditor-scope [class*="_iconButton_"]:hover,
+.clayon-mdxeditor [class*="_iconButton_"]:hover {
   color: var(--baseTextContrast);
 }
 
-.paperclip-mdxeditor .mdxeditor-root-contenteditable {
+.clayon-mdxeditor .mdxeditor-root-contenteditable {
   min-height: 2.5rem;
   padding: 0;
   line-height: 1.5;
 }
 
-.paperclip-mdxeditor [class*="_contentEditable_"] {
+.clayon-mdxeditor [class*="_contentEditable_"] {
   padding: 0.375rem 0.625rem !important;
 }
 
-.paperclip-mdxeditor--borderless [class*="_contentEditable_"] {
+.clayon-mdxeditor--borderless [class*="_contentEditable_"] {
   padding: 0 !important;
 }
 
-.paperclip-mdxeditor [class*="_placeholder_"] {
+.clayon-mdxeditor [class*="_placeholder_"] {
   font-size: inherit;
   line-height: 1.5;
   color: var(--muted-foreground);
@@ -1799,54 +1814,54 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 /* MDXEditor defaults placeholders to a single clipped line. The task-chat
    composer uses longer, assignee-aware copy, so keep it inside the editor by
    giving the absolutely positioned placeholder a wrapping inline size. */
-.paperclip-task-chat-composer .paperclip-mdxeditor [class*="_placeholder_"] {
+.clayon-task-chat-composer .clayon-mdxeditor [class*="_placeholder_"] {
   display: block;
   width: 100%;
   overflow-wrap: anywhere;
   white-space: normal;
 }
 
-.paperclip-mdxeditor-content {
+.clayon-mdxeditor-content {
   font-size: inherit;
   line-height: inherit;
   color: inherit;
 }
 
-.paperclip-edit-in-place-content {
+.clayon-edit-in-place-content {
   font-size: 0.9375rem;
   line-height: 1.75rem;
 }
 
-.paperclip-mdxeditor-content > *:first-child {
+.clayon-mdxeditor-content > *:first-child {
   margin-top: 0;
 }
 
-.paperclip-mdxeditor-content > *:last-child {
+.clayon-mdxeditor-content > *:last-child {
   margin-bottom: 0;
 }
 
-.paperclip-mdxeditor-content p {
+.clayon-mdxeditor-content p {
   margin: 0;
   line-height: inherit;
 }
 
-.paperclip-mdxeditor-content p + p {
+.clayon-mdxeditor-content p + p {
   margin-top: 1.1em;
 }
 
-.paperclip-mdxeditor-content a:not(.paperclip-mention-chip):not(.paperclip-project-mention-chip) {
+.clayon-mdxeditor-content a:not(.clayon-mention-chip):not(.clayon-project-mention-chip) {
   color: color-mix(in oklab, var(--foreground) 76%, #0969da 24%);
   text-decoration: underline;
   text-underline-offset: 0.15em;
   cursor: pointer;
 }
 
-.dark .paperclip-mdxeditor-content a:not(.paperclip-mention-chip):not(.paperclip-project-mention-chip) {
+.dark .clayon-mdxeditor-content a:not(.clayon-mention-chip):not(.clayon-project-mention-chip) {
   color: color-mix(in oklab, var(--foreground) 80%, #58a6ff 20%);
 }
 
-.paperclip-mdxeditor-content a.paperclip-mention-chip,
-.paperclip-mdxeditor-content a.paperclip-project-mention-chip {
+.clayon-mdxeditor-content a.clayon-mention-chip,
+.clayon-mdxeditor-content a.clayon-project-mention-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -1866,89 +1881,89 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 
 /* Strip the MDXEditor's default inline-code styling from the text inside chips
    (the link label otherwise picks up a monospace font + gray tint). */
-.paperclip-mdxeditor-content a.paperclip-mention-chip code,
-.paperclip-mdxeditor-content a.paperclip-project-mention-chip code {
+.clayon-mdxeditor-content a.clayon-mention-chip code,
+.clayon-mdxeditor-content a.clayon-project-mention-chip code {
   font-family: inherit;
   background: none;
   color: inherit;
   padding: 0;
 }
 
-.paperclip-mdxeditor-content a.paperclip-mention-chip::before,
-a.paperclip-mention-chip::before {
+.clayon-mdxeditor-content a.clayon-mention-chip::before,
+a.clayon-mention-chip::before {
   content: "";
   flex: none;
 }
 
-.paperclip-mdxeditor-content a.paperclip-mention-chip[data-mention-kind="project"]::before,
-a.paperclip-mention-chip[data-mention-kind="project"]::before {
+.clayon-mdxeditor-content a.clayon-mention-chip[data-mention-kind="project"]::before,
+a.clayon-mention-chip[data-mention-kind="project"]::before {
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 999px;
-  background-color: var(--paperclip-mention-project-color, currentColor);
+  background-color: var(--clayon-mention-project-color, currentColor);
 }
 
-.paperclip-mdxeditor-content a.paperclip-mention-chip[data-mention-kind="agent"]::before,
-a.paperclip-mention-chip[data-mention-kind="agent"]::before {
+.clayon-mdxeditor-content a.clayon-mention-chip[data-mention-kind="agent"]::before,
+a.clayon-mention-chip[data-mention-kind="agent"]::before {
   width: 1rem;
   height: 1rem;
-  background-image: var(--paperclip-mention-avatar-image);
+  background-image: var(--clayon-mention-avatar-image);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
 }
 
-.paperclip-mdxeditor-content ul,
-.paperclip-mdxeditor-content ol {
+.clayon-mdxeditor-content ul,
+.clayon-mdxeditor-content ol {
   margin: 1.1em 0;
   padding-left: 1.6em;
 }
 
-.paperclip-mdxeditor-content ul {
+.clayon-mdxeditor-content ul {
   list-style: disc;
 }
 
-.paperclip-mdxeditor-content ol {
+.clayon-mdxeditor-content ol {
   list-style: decimal;
 }
 
-.paperclip-mdxeditor-content li {
+.clayon-mdxeditor-content li {
   display: list-item;
   margin: 0.3em 0;
   line-height: inherit;
 }
 
-.paperclip-mdxeditor-content li::marker {
+.clayon-mdxeditor-content li::marker {
   color: var(--muted-foreground);
 }
 
-.paperclip-mdxeditor-content h1 {
+.clayon-mdxeditor-content h1 {
   margin: 1.4em 0 0.9em;
   font-size: 1.75em;
   font-weight: 700;
   line-height: 1.2;
 }
 
-.paperclip-mdxeditor-content h2 {
+.clayon-mdxeditor-content h2 {
   margin: 1.3em 0 0.85em;
   font-size: 1.35em;
   font-weight: 700;
   line-height: 1.3;
 }
 
-.paperclip-mdxeditor-content h3 {
+.clayon-mdxeditor-content h3 {
   margin: 1.2em 0 0.8em;
   font-size: 1.15em;
   font-weight: 600;
   line-height: 1.35;
 }
 
-.paperclip-mdxeditor-content img {
+.clayon-mdxeditor-content img {
   max-height: 18rem;
   border-radius: calc(var(--radius) - 2px);
 }
 
-.paperclip-mdxeditor-content blockquote {
+.clayon-mdxeditor-content blockquote {
   margin: 1.2em 0;
   padding-left: 1em;
   border-left: 3px solid var(--border);
@@ -1956,12 +1971,12 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   line-height: inherit;
 }
 
-.paperclip-mdxeditor-content code {
+.clayon-mdxeditor-content code {
   font-family: var(--font-mono);
   font-size: 1em;
 }
 
-.paperclip-mdxeditor-content pre {
+.clayon-mdxeditor-content pre {
   margin: 0.4rem 0;
   padding: 0;
   border: 1px solid var(--border);
@@ -1973,50 +1988,50 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
 
 /* Dark theme for CodeMirror code blocks inside the MDXEditor.
    Overrides the default cm6-theme-basic-light that MDXEditor bundles. */
-.paperclip-mdxeditor .cm-editor {
+.clayon-mdxeditor .cm-editor {
   background-color: #1e1e2e !important;
   color: #cdd6f4 !important;
   font-size: 1em;
 }
 
-.paperclip-mdxeditor .cm-gutters {
+.clayon-mdxeditor .cm-gutters {
   background-color: #181825 !important;
   color: #585b70 !important;
   border-right: 1px solid #313244 !important;
 }
 
-.paperclip-mdxeditor .cm-activeLineGutter {
+.clayon-mdxeditor .cm-activeLineGutter {
   background-color: #1e1e2e !important;
 }
 
-.paperclip-mdxeditor .cm-activeLine {
+.clayon-mdxeditor .cm-activeLine {
   background-color: color-mix(in oklab, #cdd6f4 5%, transparent) !important;
 }
 
-.paperclip-mdxeditor .cm-cursor,
-.paperclip-mdxeditor .cm-dropCursor {
+.clayon-mdxeditor .cm-cursor,
+.clayon-mdxeditor .cm-dropCursor {
   border-left-color: #cdd6f4 !important;
 }
 
-.paperclip-mdxeditor .cm-selectionBackground {
+.clayon-mdxeditor .cm-selectionBackground {
   background-color: color-mix(in oklab, #89b4fa 25%, transparent) !important;
 }
 
-.paperclip-mdxeditor .cm-focused .cm-selectionBackground {
+.clayon-mdxeditor .cm-focused .cm-selectionBackground {
   background-color: color-mix(in oklab, #89b4fa 30%, transparent) !important;
 }
 
-.paperclip-mdxeditor .cm-content {
+.clayon-mdxeditor .cm-content {
   caret-color: #cdd6f4;
 }
 
 /* MDXEditor code block language selector – show on hover only */
-.paperclip-mdxeditor-content [class*="_codeMirrorWrapper_"] {
+.clayon-mdxeditor-content [class*="_codeMirrorWrapper_"] {
   position: relative;
 }
 
-.paperclip-mdxeditor-content [class*="_codeMirrorToolbar_"],
-.paperclip-mdxeditor-content [class*="_codeBlockToolbar_"] {
+.clayon-mdxeditor-content [class*="_codeMirrorToolbar_"],
+.clayon-mdxeditor-content [class*="_codeBlockToolbar_"] {
   position: absolute;
   top: 0.25rem;
   right: 0.25rem;
@@ -2025,17 +2040,17 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   transition: opacity 150ms ease;
 }
 
-.paperclip-mdxeditor-content [class*="_codeMirrorToolbar_"] select,
-.paperclip-mdxeditor-content [class*="_codeBlockToolbar_"] select {
+.clayon-mdxeditor-content [class*="_codeMirrorToolbar_"] select,
+.clayon-mdxeditor-content [class*="_codeBlockToolbar_"] select {
   background-color: #313244;
   color: #cdd6f4;
   border-color: #45475a;
 }
 
-.paperclip-mdxeditor-content [class*="_codeMirrorWrapper_"]:hover [class*="_codeMirrorToolbar_"],
-.paperclip-mdxeditor-content [class*="_codeMirrorWrapper_"]:hover [class*="_codeBlockToolbar_"],
-.paperclip-mdxeditor-content [class*="_codeMirrorWrapper_"]:focus-within [class*="_codeMirrorToolbar_"],
-.paperclip-mdxeditor-content [class*="_codeMirrorWrapper_"]:focus-within [class*="_codeBlockToolbar_"] {
+.clayon-mdxeditor-content [class*="_codeMirrorWrapper_"]:hover [class*="_codeMirrorToolbar_"],
+.clayon-mdxeditor-content [class*="_codeMirrorWrapper_"]:hover [class*="_codeBlockToolbar_"],
+.clayon-mdxeditor-content [class*="_codeMirrorWrapper_"]:focus-within [class*="_codeMirrorToolbar_"],
+.clayon-mdxeditor-content [class*="_codeMirrorWrapper_"]:focus-within [class*="_codeBlockToolbar_"] {
   opacity: 1;
 }
 
@@ -2044,7 +2059,7 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
    light and dark instead of pinning the old Catppuccin #1e1e2e/#cdd6f4 in
    both modes. Override prose CSS variables so prose-invert can't revert to
    defaults. */
-.paperclip-markdown {
+.clayon-markdown {
   --tw-prose-pre-bg: var(--muted);
   --tw-prose-pre-code: var(--foreground);
   --tw-prose-code: var(--foreground);
@@ -2053,7 +2068,7 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   --tw-prose-invert-code: var(--foreground);
 }
 
-.paperclip-markdown pre {
+.clayon-markdown pre {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius-lg) !important;
   background-color: var(--muted) !important;
@@ -2065,23 +2080,23 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   white-space: pre;
 }
 
-.paperclip-markdown code {
+.clayon-markdown code {
   font-family: var(--font-mono);
   font-size: 1em;
 }
 
-.paperclip-markdown pre code {
+.clayon-markdown pre code {
   font-size: inherit;
   color: inherit;
   background: none;
 }
 
 /* Actions for fenced and indented preformatted markdown blocks */
-.paperclip-markdown-codeblock {
+.clayon-markdown-codeblock {
   position: relative;
 }
 
-.paperclip-markdown-codeblock-actions {
+.clayon-markdown-codeblock-actions {
   position: absolute;
   top: 0.4rem;
   right: 0.4rem;
@@ -2092,7 +2107,7 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   transition: opacity 0.12s ease;
 }
 
-.paperclip-markdown-codeblock-action {
+.clayon-markdown-codeblock-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2109,28 +2124,28 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
-.paperclip-markdown-codeblock:hover .paperclip-markdown-codeblock-actions,
-.paperclip-markdown-codeblock-actions:focus-within,
-.paperclip-markdown-codeblock-actions[data-active] {
+.clayon-markdown-codeblock:hover .clayon-markdown-codeblock-actions,
+.clayon-markdown-codeblock-actions:focus-within,
+.clayon-markdown-codeblock-actions[data-active] {
   opacity: 1;
 }
 
-.paperclip-markdown-codeblock-action:hover {
+.clayon-markdown-codeblock-action:hover {
   background-color: var(--accent);
   color: var(--accent-foreground);
 }
 
-.paperclip-markdown-codeblock-action[data-active],
-.paperclip-markdown-codeblock-action[data-copied] {
+.clayon-markdown-codeblock-action[data-active],
+.clayon-markdown-codeblock-action[data-copied] {
   border-color: color-mix(in oklab, var(--primary) 38%, transparent);
   color: var(--primary);
 }
 
-.paperclip-markdown-codeblock-action[data-failed] {
+.clayon-markdown-codeblock-action[data-failed] {
   color: var(--destructive);
 }
 
-.paperclip-markdown-codeblock-action-label {
+.clayon-markdown-codeblock-action-label {
   font-weight: 500;
 }
 
@@ -2152,18 +2167,18 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   background-color: #ffffff0f;
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent :not(pre) > code {
+.clayon-markdown.clayon-markdown-on-accent :not(pre) > code {
   background-color: color-mix(in oklab, currentColor 24%, transparent);
   color: currentColor;
 }
 
-.paperclip-markdown {
+.clayon-markdown {
   color: var(--foreground);
   font-size: 0.9375rem;
   line-height: 1.6;
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent {
+.clayon-markdown.clayon-markdown-on-accent {
   color: inherit;
   --tw-prose-body: currentColor;
   --tw-prose-headings: currentColor;
@@ -2195,62 +2210,62 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   --tw-prose-invert-td-borders: color-mix(in oklab, currentColor 22%, transparent);
 }
 
-.paperclip-markdown > :first-child {
+.clayon-markdown > :first-child {
   margin-top: 0;
 }
 
-.paperclip-markdown > :last-child {
+.clayon-markdown > :last-child {
   margin-bottom: 0;
 }
 
-.paperclip-markdown :where(p, ul, ol, blockquote, pre, .paperclip-markdown-table-scroll) {
+.clayon-markdown :where(p, ul, ol, blockquote, pre, .clayon-markdown-table-scroll) {
   margin-top: 0.7rem;
   margin-bottom: 0.7rem;
 }
 
-.paperclip-markdown :where(ul, ol) {
+.clayon-markdown :where(ul, ol) {
   padding-left: 1.5rem;
 }
 
-.paperclip-markdown ul {
+.clayon-markdown ul {
   list-style-type: disc;
 }
 
-.paperclip-markdown ol {
+.clayon-markdown ol {
   /* Enough inline start room to hold outside markers without clipped digits
      when markdown lists sit flush against an overflow-constrained container. */
   list-style-type: decimal;
   padding-left: 2.5rem;
 }
 
-.paperclip-markdown li {
+.clayon-markdown li {
   margin: 0.14rem 0;
   padding-left: 0.2rem;
 }
 
 @media (width < 48rem) {
-  .paperclip-mobile-thread .paperclip-markdown :where(ul, ol) {
+  .clayon-mobile-thread .clayon-markdown :where(ul, ol) {
     padding-left: calc(var(--spacing) * 5);
   }
 }
 
-.paperclip-markdown li > :where(p, ul, ol) {
+.clayon-markdown li > :where(p, ul, ol) {
   margin-top: 0.3rem;
   margin-bottom: 0.3rem;
 }
 
-.paperclip-markdown li::marker {
+.clayon-markdown li::marker {
   color: var(--muted-foreground);
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent li::marker {
+.clayon-markdown.clayon-markdown-on-accent li::marker {
   color: currentColor;
 }
 
-.paperclip-markdown h1,
-.paperclip-markdown h2,
-.paperclip-markdown h3,
-.paperclip-markdown h4 {
+.clayon-markdown h1,
+.clayon-markdown h2,
+.clayon-markdown h3,
+.clayon-markdown h4 {
   margin-top: 1.75rem;
   margin-bottom: 0.45rem;
   color: var(--foreground);
@@ -2259,147 +2274,147 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   line-height: 1.3;
 }
 
-.paperclip-markdown h1 {
+.clayon-markdown h1 {
   font-size: 1.5rem;
 }
 
-.paperclip-markdown h2 {
+.clayon-markdown h2 {
   font-size: 1.25rem;
 }
 
-.paperclip-markdown h3 {
+.clayon-markdown h3 {
   font-size: 1.05rem;
 }
 
-.paperclip-markdown h4 {
+.clayon-markdown h4 {
   font-size: 0.95rem;
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent :where(h1, h2, h3, h4, strong, b) {
+.clayon-markdown.clayon-markdown-on-accent :where(h1, h2, h3, h4, strong, b) {
   color: currentColor;
 }
 
-.paperclip-markdown :where(strong, b) {
+.clayon-markdown :where(strong, b) {
   color: var(--foreground);
   font-weight: 600;
 }
 
-.paperclip-markdown a {
+.clayon-markdown a {
   color: color-mix(in oklab, var(--foreground) 76%, #0969da 24%);
   text-decoration: underline;
   text-underline-offset: 0.15em;
   cursor: pointer;
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent :where(a, a:visited) {
+.clayon-markdown.clayon-markdown-on-accent :where(a, a:visited) {
   color: currentColor;
   text-decoration-color: color-mix(in oklab, currentColor 72%, transparent);
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent :where(a:hover, a:focus-visible) {
+.clayon-markdown.clayon-markdown-on-accent :where(a:hover, a:focus-visible) {
   color: currentColor;
   text-decoration-color: currentColor;
 }
 
-.paperclip-markdown a.paperclip-mention-chip {
+.clayon-markdown a.clayon-mention-chip {
   text-decoration: none;
 }
 
-.paperclip-markdown a.paperclip-mention-chip[data-mention-kind="issue"] {
+.clayon-markdown a.clayon-mention-chip[data-mention-kind="issue"] {
   border-color: color-mix(in oklab, var(--foreground) 14%, var(--border) 86%);
   background: color-mix(in oklab, var(--accent) 42%, transparent);
 }
 
 /* Inline issue references in markdown: no pill chrome, just a status icon
    beside the link label — keeps the pair from splitting across lines. */
-.paperclip-markdown-issue-ref {
+.clayon-markdown-issue-ref {
   display: inline;
   white-space: nowrap;
 }
 
 /* External object URL decorations follow the same pattern: the host renders
    the icon prefix, the link text is left untouched (Postel's Law). */
-.paperclip-markdown-external-ref {
+.clayon-markdown-external-ref {
   display: inline;
   white-space: nowrap;
 }
 
-.dark .paperclip-markdown a {
+.dark .clayon-markdown a {
   color: color-mix(in oklab, var(--foreground) 80%, #58a6ff 20%);
 }
 
-.dark .paperclip-markdown.paperclip-markdown-on-accent :where(a, a:visited) {
+.dark .clayon-markdown.clayon-markdown-on-accent :where(a, a:visited) {
   color: currentColor;
 }
 
-.paperclip-markdown blockquote {
+.clayon-markdown blockquote {
   margin-left: 0;
   padding-left: 0.95rem;
   border-left: 0.24rem solid color-mix(in oklab, var(--border) 84%, var(--muted-foreground) 16%);
   color: var(--muted-foreground);
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent blockquote {
+.clayon-markdown.clayon-markdown-on-accent blockquote {
   border-left-color: color-mix(in oklab, currentColor 56%, transparent);
   color: color-mix(in oklab, currentColor 88%, transparent);
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent .paperclip-workspace-file-link {
+.clayon-markdown.clayon-markdown-on-accent .clayon-workspace-file-link {
   border-color: color-mix(in oklab, currentColor 34%, transparent);
   background-color: color-mix(in oklab, currentColor 16%, transparent);
   color: currentColor;
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent .paperclip-workspace-file-link:hover {
+.clayon-markdown.clayon-markdown-on-accent .clayon-workspace-file-link:hover {
   background-color: color-mix(in oklab, currentColor 24%, transparent);
 }
 
-.paperclip-markdown.paperclip-markdown-on-accent :where(a.paperclip-mention-chip, a.paperclip-project-mention-chip) {
+.clayon-markdown.clayon-markdown-on-accent :where(a.clayon-mention-chip, a.clayon-project-mention-chip) {
   border-color: color-mix(in oklab, currentColor 34%, transparent) !important;
   background: color-mix(in oklab, currentColor 16%, transparent) !important;
   color: currentColor !important;
 }
 
-.paperclip-markdown hr {
+.clayon-markdown hr {
   margin: 1.25rem 0;
   border-color: var(--border);
 }
 
-.paperclip-markdown img {
+.clayon-markdown img {
   border-radius: calc(var(--radius) + 2px);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
 }
 
-.paperclip-markdown-table-scroll {
+.clayon-markdown-table-scroll {
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
 }
 
-.paperclip-markdown-table-scroll:focus-visible {
+.clayon-markdown-table-scroll:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
-.paperclip-markdown-table-scroll table {
+.clayon-markdown-table-scroll table {
   width: max-content;
   min-width: 100%;
   margin: 0;
 }
 
-.paperclip-markdown-table-scroll :where(th, td) {
+.clayon-markdown-table-scroll :where(th, td) {
   min-width: 8rem;
   max-width: 18rem;
   vertical-align: top;
 }
 
-.paperclip-markdown th {
+.clayon-markdown th {
   font-weight: 600;
   text-align: left;
 }
 
-.paperclip-mermaid {
+.clayon-mermaid {
   margin: 0.5rem 0;
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--border);
@@ -2408,7 +2423,7 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   overflow-x: auto;
 }
 
-.paperclip-mermaid svg {
+.clayon-mermaid svg {
   display: block;
   width: max-content;
   max-width: none;
@@ -2416,17 +2431,17 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
   height: auto;
 }
 
-.paperclip-mermaid-status {
+.clayon-mermaid-status {
   margin: 0 0 0.45rem;
   font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
-.paperclip-mermaid-status-error {
+.clayon-mermaid-status-error {
   color: var(--destructive);
 }
 
-.paperclip-mermaid-source {
+.clayon-mermaid-source {
   margin: 0;
   padding: 0;
   border: 0;
@@ -2434,10 +2449,10 @@ a.paperclip-mention-chip[data-mention-kind="agent"]::before {
 }
 
 /* Mention chips rendered inline in prose (MarkdownBody or inline anchors) */
-a.paperclip-mention-chip,
-a.paperclip-project-mention-chip,
-span.paperclip-mention-chip,
-span.paperclip-project-mention-chip {
+a.clayon-mention-chip,
+a.clayon-project-mention-chip,
+span.clayon-mention-chip,
+span.clayon-project-mention-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -2461,28 +2476,28 @@ span.paperclip-project-mention-chip {
 /* Touch target floor: WCAG 2.5.5 expects ≥24px on coarse pointers. The base
    chip is 22px; bump it on touch viewports without disturbing inline metrics. */
 @media (pointer: coarse) {
-  a.paperclip-mention-chip,
-  a.paperclip-project-mention-chip,
-  span.paperclip-mention-chip,
-  span.paperclip-project-mention-chip {
+  a.clayon-mention-chip,
+  a.clayon-project-mention-chip,
+  span.clayon-mention-chip,
+  span.clayon-project-mention-chip {
     min-height: 24px;
   }
 }
 
 /* External object pills: variant marker the host renders for known-resolved
    external URLs. Inline status icon is rendered by ExternalObjectStatusIcon. */
-a.paperclip-mention-chip[data-mention-kind="external-object"],
-span.paperclip-mention-chip[data-mention-kind="external-object"] {
+a.clayon-mention-chip[data-mention-kind="external-object"],
+span.clayon-mention-chip[data-mention-kind="external-object"] {
   /* Inherit base chip styling; status colour comes from inline classes so the
      host can vary tone per category without defining a CSS variant per state. */
 }
 
 /* When the identifier inside a chip is backtick-wrapped in markdown, strip the
    inline-code monospace/gray styling so the pill label reads cleanly. */
-.paperclip-markdown a.paperclip-mention-chip code,
-.paperclip-markdown a.paperclip-project-mention-chip code,
-.paperclip-markdown span.paperclip-mention-chip code,
-.paperclip-markdown span.paperclip-project-mention-chip code {
+.clayon-markdown a.clayon-mention-chip code,
+.clayon-markdown a.clayon-project-mention-chip code,
+.clayon-markdown span.clayon-mention-chip code,
+.clayon-markdown span.clayon-project-mention-chip code {
   font-family: inherit;
   background: none;
   color: inherit;
@@ -2545,7 +2560,7 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
    - components/IssueColumns.tsx (accentColor fallback) — also feeds pickTextColorForPillBg() contrast math.
    - components/CompanyPatternIcon.tsx — canvas fillStyle computed at runtime from numeric props, not a static literal.
    - pages/InviteUxLab.tsx (brandColor prop, x2) — demo/showcase-only prop feeding CompanyPatternIcon's hexToHue() color math, not a rendered CSS value. REMOVED: the brandColor prop was deleted, so the props no longer exist.
-   - components/FileViewerSheet.tsx — half-migrated var(--paperclip-code-highlight-*, fallback) pattern at the time of Batch 1; RESOLVED in Batch 4 via *-resolved wrapper tokens (see the Batch 4 MISC token block below) — no longer allowlisted.
+   - components/FileViewerSheet.tsx — half-migrated var(--clayon-code-highlight-*, fallback) pattern at the time of Batch 1; RESOLVED in Batch 4 via *-resolved wrapper tokens (see the Batch 4 MISC token block below) — no longer allowlisted.
 */
 :root {
   --hex-959596: #959596; /* Muted feed actor/verb/title text (ActivityFeed.tsx, FeedCard.tsx) — PRIOR-ART-flagged gap cluster, no existing token match. */
@@ -2984,12 +2999,12 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
   --blur-1px: 1px; /* Extracted from ui/src/components/ChatComposer.tsx (backdrop-blur-[1px]). */
   --blur-2px: 2px; /* Extracted from ui/src/components/IssueChatThread.tsx (backdrop-blur-[2px]). */
   --drop-shadow-extract-1: 0 1px 2px rgba(0,0,0,0.65); /* Extracted from ui/src/components/CompanyPatternIcon.tsx (drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]). */
-  --code-bg-resolved: var(--paperclip-code-bg, var(--muted)); /* Extracted from ui/src/components/FileViewerSheet.tsx (bg-[var(--paperclip-code-bg,theme(colors.muted.DEFAULT))]). */
-  --paperclip-code-highlight-bg: rgba(250,204,21,0.12); /* DECISION-SHEET.md A5: FileViewerSheet.tsx referenced this var without it ever being defined, relying on the var() fallback; minted here at exactly the former fallback value (zero pixels). */
-  --paperclip-code-highlight-border: rgb(234,179,8); /* DECISION-SHEET.md A5: same as --paperclip-code-highlight-bg — minted at the former fallback value. */
-  --code-highlight-bg-resolved: var(--paperclip-code-highlight-bg); /* Extracted from ui/src/components/FileViewerSheet.tsx; fallback dropped in A5 now that --paperclip-code-highlight-bg is a real token (was var(--paperclip-code-highlight-bg, rgba(250,204,21,0.12))). */
-  --code-gutter-fg-resolved: var(--paperclip-code-gutter-fg, var(--muted-foreground)); /* Extracted from ui/src/components/FileViewerSheet.tsx (text-[var(--paperclip-code-gutter-fg,theme(colors.muted.foreground))]). */
-  --code-highlight-border-resolved: var(--paperclip-code-highlight-border); /* Extracted from ui/src/components/FileViewerSheet.tsx; fallback dropped in A5 now that --paperclip-code-highlight-border is a real token (was var(--paperclip-code-highlight-border, rgb(234,179,8))). */
+  --code-bg-resolved: var(--clayon-code-bg, var(--muted)); /* Extracted from ui/src/components/FileViewerSheet.tsx (bg-[var(--clayon-code-bg,theme(colors.muted.DEFAULT))]). */
+  --clayon-code-highlight-bg: rgba(250,204,21,0.12); /* DECISION-SHEET.md A5: FileViewerSheet.tsx referenced this var without it ever being defined, relying on the var() fallback; minted here at exactly the former fallback value (zero pixels). */
+  --clayon-code-highlight-border: rgb(234,179,8); /* DECISION-SHEET.md A5: same as --clayon-code-highlight-bg — minted at the former fallback value. */
+  --code-highlight-bg-resolved: var(--clayon-code-highlight-bg); /* Extracted from ui/src/components/FileViewerSheet.tsx; fallback dropped in A5 now that --clayon-code-highlight-bg is a real token (was var(--clayon-code-highlight-bg, rgba(250,204,21,0.12))). */
+  --code-gutter-fg-resolved: var(--clayon-code-gutter-fg, var(--muted-foreground)); /* Extracted from ui/src/components/FileViewerSheet.tsx (text-[var(--clayon-code-gutter-fg,theme(colors.muted.foreground))]). */
+  --code-highlight-border-resolved: var(--clayon-code-highlight-border); /* Extracted from ui/src/components/FileViewerSheet.tsx; fallback dropped in A5 now that --clayon-code-highlight-border is a real token (was var(--clayon-code-highlight-border, rgb(234,179,8))). */
   --gradient-extract-25: linear-gradient(135deg,var(--primary) 0%,var(--accent) 55%,var(--muted) 100%); /* Extracted from ui/src/components/SidebarAccountMenu.tsx; corrected for full-color semantic tokens. */
   --gradient-extract-26: linear-gradient(135deg,var(--primary) 0%,var(--accent) 58%,color-mix(in oklab,var(--background) 76%,white 24%) 100%); /* Extracted from ui/src/pages/ProfileSettings.tsx; corrected for full-color semantic tokens. */
 }
@@ -3064,6 +3079,7 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
    * allow ui/src/pages/ProjectWorkspaceDetail.test.tsx — mock project color fixture
    * allow ui/src/pages/Projects.test.tsx — mock project color fixture
    * allow ui/src/pages/Routines.test.tsx — mock routine/label color fixtures
+   * allow ui/src/components/GoogleMark.tsx — Google logo colours are a brand mark, not theme values; the official four-colour "G" SVG fills must stay exact per Google's brand guidelines
    ── end allowlist ── */
 
 /* Agent settings composition, shared with Storybook. */
@@ -3341,7 +3357,7 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
 
 :root {
   /* Browser Use live viewer chrome: 30px tab strip + 40px navigation bar.
-     Provider integration measurement (2026-09-29), not Paperclip spacing.
+     Provider integration measurement (2026-09-29), not Clayon spacing.
      Keep navigation visible; the cross-origin viewer exposes no sizing message. */
   --browser-use-viewer-chrome-height: 70px;
 }
@@ -3456,4 +3472,55 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
 }
 @media (max-height: 420px) {
   .agent-setup-popover { overflow-y: auto; }
+}
+
+/* ===== Bottom dock (Liquid Gold dock shape, 2026-10-11 redesign) =====
+   One appended block, DOCK peer scope: --bottomnav-*, dock z, dock shadow,
+   and the size tokens the dock components consume (panel width/height caps,
+   scroll-owner clearance). Values follow the Gold dock facts. */
+:root {
+  --bottomnav-height: 3.5rem;
+  --bottomnav-footprint: calc(var(--bottomnav-height) + 1.5rem + env(safe-area-inset-bottom));
+  /* The dock floats this far above the device inset. */
+  --bottomnav-bottom-offset: calc(0.75rem + env(safe-area-inset-bottom));
+  /* Every scroll owner ends with this so the overlay dock never covers content. */
+  --sz-dock-clearance: calc(var(--bottomnav-footprint) + 0.75rem);
+  /* Dock panel size rule (Gold DockPanel): at most 24rem wide, 60dvh tall,
+     clamped to the room Radix measures above the dock. */
+  --sz-dock-panel: min(24rem, calc(100vw - 2rem));
+  --sz-dock-panel-max-h: min(60dvh, var(--radix-popover-content-available-height));
+  --shadow-dock: 0 12px 32px -12px rgb(0 0 0 / 70%);
+  --z-dock: 30;
+}
+
+/* ===== Status token utilities (leader directive, 2026-10-11) =====
+   Text/bg utilities generated from the existing --status-* base hues so
+   status components pick a class and never set an inline custom property
+   (this removes the CSSProperties custom-property cast). Also --sc setter
+   classes for the .status-chip / .status-fill helpers, and the --z-sticky
+   step of the z scale (content 10, sticky 20, dock 30). OVERVIEW peer. */
+@theme {
+  --color-status-idle: var(--status-agent-idle);
+  --color-status-running: var(--status-agent-running);
+  --color-status-paused: var(--status-agent-paused);
+  --color-status-error: var(--status-agent-error);
+  --color-status-todo: var(--status-task-todo);
+  --color-status-in-progress: var(--status-task-in_progress);
+  --color-status-in-review: var(--status-task-in_review);
+  --color-status-done: var(--status-task-done);
+  --color-status-blocked: var(--status-task-blocked);
+}
+.status-sc-agent-idle { --sc: var(--status-agent-idle); }
+.status-sc-agent-running { --sc: var(--status-agent-running); }
+.status-sc-agent-paused { --sc: var(--status-agent-paused); }
+.status-sc-agent-error { --sc: var(--status-agent-error); }
+.status-sc-task-backlog { --sc: var(--status-task-backlog); }
+.status-sc-task-todo { --sc: var(--status-task-todo); }
+.status-sc-task-in_progress { --sc: var(--status-task-in_progress); }
+.status-sc-task-in_review { --sc: var(--status-task-in_review); }
+.status-sc-task-done { --sc: var(--status-task-done); }
+.status-sc-task-blocked { --sc: var(--status-task-blocked); }
+.status-sc-task-cancelled { --sc: var(--status-task-cancelled); }
+:root {
+  --z-sticky: 20;
 }

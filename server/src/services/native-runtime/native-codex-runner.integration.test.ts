@@ -17,7 +17,7 @@ import {
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import {
   getEmbeddedPostgresTestSupport,
@@ -41,14 +41,14 @@ if (!embeddedPostgresSupport.supported) {
 
 const runnerWorkspace = resolve(
   import.meta.dirname,
-  "../../../../packages/paperclip-runner/runner",
+  "../../../../packages/clayon-runner/runner",
 );
 const executableSuffix = process.platform === "win32" ? ".exe" : "";
 const runnerBinary = resolve(
   runnerWorkspace,
   "target",
   "release",
-  `paperclip-runnerd${executableSuffix}`,
+  `clayon-runnerd${executableSuffix}`,
 );
 const fakeCodexBinary = resolve(
   runnerWorkspace,
@@ -65,9 +65,9 @@ function ensureRunnerTestBinaries(): void {
     "--release",
     "--locked",
     "-p",
-    "paperclip-runner-core",
+    "clayon-runner-core",
     "--bin",
-    "paperclip-runnerd",
+    "clayon-runnerd",
     "--bin",
     "fake-codex-app-server",
   ], {
@@ -251,7 +251,7 @@ describeEmbeddedPostgres("native Codex server vertical slice", () => {
         },
       },
     });
-    expect(logs.join("\n")).not.toContain("PAPERCLIP_RUNNER_BOOTSTRAP_TICKET");
+    expect(logs.join("\n")).not.toContain("CLAYON_RUNNER_BOOTSTRAP_TICKET");
 
     const [persistedResult] = await db
       .select()

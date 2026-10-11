@@ -1,18 +1,18 @@
 import {
   NATIVE_RUNTIME_ASSET_SCHEMA,
-  PAPERCLIP_EXECUTION_PROMPT,
-  PAPERCLIP_EXECUTION_PROMPT_REVISION,
+  CLAYON_EXECUTION_PROMPT,
+  CLAYON_EXECUTION_PROMPT_REVISION,
   canonicalNativeRuntimeContextDigest,
   nativeRuntimePromptDigest,
   type NativeRuntimeContextSnapshot,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 
 export function nativeRuntimeContextFixture(): NativeRuntimeContextSnapshot {
   const digest = "0".repeat(64);
   const context = {
     prompt: {
-      revision: PAPERCLIP_EXECUTION_PROMPT_REVISION,
-      text: PAPERCLIP_EXECUTION_PROMPT,
+      revision: CLAYON_EXECUTION_PROMPT_REVISION,
+      text: CLAYON_EXECUTION_PROMPT,
       digest: nativeRuntimePromptDigest(),
     },
     instructions: {
@@ -21,7 +21,7 @@ export function nativeRuntimeContextFixture(): NativeRuntimeContextSnapshot {
         schema: NATIVE_RUNTIME_ASSET_SCHEMA,
         digest,
         manifestDigest: digest,
-        rootPath: "/tmp/paperclip-runtime-context-fixture",
+        rootPath: "/tmp/clayon-runtime-context-fixture",
         fileCount: 1,
         totalBytes: 1,
       },

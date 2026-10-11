@@ -8,7 +8,7 @@ import type {
   CompanySkillDetail,
   CompanySkillLastEditor,
   CompanySkillListItem,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SkillStudio } from "./SkillStudio";
 
@@ -211,7 +211,7 @@ function makeSkill(overrides: Partial<CompanySkillDetail> = {}): CompanySkillDet
   return {
     id: "source-skill",
     companyId: "company-1",
-    key: "paperclip/demo-skill",
+    key: "clayon/demo-skill",
     slug: "demo-skill",
     name: "Demo Skill",
     description: "A demo skill.",
@@ -480,7 +480,7 @@ describe("SkillStudio landing", () => {
   });
 
   it("renders recently-visited and recently-updated sections, gating avatars to humans", async () => {
-    localStorage.setItem("paperclip:recent-studio-skills", JSON.stringify(["visited-1"]));
+    localStorage.setItem("clayon:recent-studio-skills", JSON.stringify(["visited-1"]));
     mockCompanySkillsApi.list.mockResolvedValue([
       makeListItem({
         id: "visited-1",
@@ -628,12 +628,7 @@ describe("SkillStudio editor frontmatter", () => {
 
     await keyDown(bodyEditor as HTMLElement, "E");
 
-    await waitFor(() => expect(node.textContent).toContain("Unsaved"));
-
-    const saveButton = buttonsNamed(node, "Save").find((button) => !button.disabled);
-    expect(saveButton).toBeTruthy();
-    await click(saveButton as HTMLButtonElement);
-
+    // Autosave: the edit persists after the debounce (no Save button anymore).
     await waitFor(() => {
       expect(mockCompanySkillsApi.updateFile).toHaveBeenCalledWith(
         "company-1",

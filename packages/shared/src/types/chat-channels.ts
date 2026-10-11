@@ -1,4 +1,4 @@
-/** Provider-neutral contracts for Paperclip's native external chat subsystem. */
+/** Provider-neutral contracts for Clayon's native external chat subsystem. */
 export const CHAT_PROVIDERS = [
   "slack",
   "github",
@@ -329,8 +329,8 @@ export interface ChatIdentityLink {
   lastConnectAt?: string | null;
   externalLabel: string;
   externalDetail?: string | null;
-  paperclipUserId?: string | null;
-  paperclipUserLabel?: string | null;
+  clayonUserId?: string | null;
+  clayonUserLabel?: string | null;
   status: ChatIdentityLinkStatus;
   expiresAt?: string | null;
   confirmedAt?: string | null;

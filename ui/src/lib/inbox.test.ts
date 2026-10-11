@@ -10,7 +10,7 @@ import type {
   Issue,
   JoinRequest,
   ProjectWorkspace,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   DEFAULT_INBOX_ISSUE_COLUMNS,
   buildGroupedInboxSections,
@@ -1184,7 +1184,7 @@ describe("inbox helpers", () => {
   });
 
   it("normalizes invalid inbox filter storage back to safe defaults", () => {
-    localStorage.setItem("paperclip:inbox:filters:company-1", JSON.stringify({
+    localStorage.setItem("clayon:inbox:filters:company-1", JSON.stringify({
       allCategoryFilter: "bogus",
       allApprovalFilter: "bogus",
       issueFilters: {
@@ -1353,7 +1353,7 @@ describe("inbox helpers", () => {
   });
 
   it("maps legacy new-tab storage to mine", () => {
-    localStorage.setItem("paperclip:inbox:last-tab", "new");
+    localStorage.setItem("clayon:inbox:last-tab", "new");
     expect(loadLastInboxTab()).toBe("mine");
   });
 
@@ -1480,8 +1480,8 @@ describe("inbox helpers", () => {
   });
 
   it("groups project sections by latest issue activity while preserving non-issue sections", () => {
-    const paperclipIssue = makeIssue("paperclip", true);
-    paperclipIssue.projectId = "project-1";
+    const clayonIssue = makeIssue("clayon", true);
+    clayonIssue.projectId = "project-1";
 
     const onboardingIssue = makeIssue("onboarding", false);
     onboardingIssue.projectId = "project-2";
@@ -1489,7 +1489,7 @@ describe("inbox helpers", () => {
     const noProjectIssue = makeIssue("no-project", false);
 
     const items: InboxWorkItem[] = [
-      { kind: "issue", timestamp: 9, issue: paperclipIssue },
+      { kind: "issue", timestamp: 9, issue: clayonIssue },
       { kind: "issue", timestamp: 4, issue: onboardingIssue },
       { kind: "join_request", timestamp: 6, joinRequest: makeJoinRequest("join-1") },
       { kind: "issue", timestamp: 2, issue: noProjectIssue },
@@ -1497,11 +1497,11 @@ describe("inbox helpers", () => {
 
     expect(groupInboxWorkItems(items, "project", {
       projectById: new Map([
-        ["project-1", { name: "Paperclip App" }],
+        ["project-1", { name: "Clayon App" }],
         ["project-2", { name: "Onboarding" }],
       ]),
     })).toEqual([
-      { key: "project:project-1", label: "Paperclip App", items: [items[0]] },
+      { key: "project:project-1", label: "Clayon App", items: [items[0]] },
       { key: "kind:join_request", label: "Join requests", items: [items[2]] },
       { key: "project:project-2", label: "Onboarding", items: [items[1]] },
       { key: "project:none", label: "No project", items: [items[3]] },
@@ -1582,7 +1582,7 @@ describe("inbox helpers", () => {
 
   it("returns empty collapsed inbox groups for missing or invalid storage", () => {
     expect(loadCollapsedInboxGroupKeys("company-1")).toEqual(new Set());
-    localStorage.setItem("paperclip:inbox:collapsed-groups:company-1", JSON.stringify({ nope: true }));
+    localStorage.setItem("clayon:inbox:collapsed-groups:company-1", JSON.stringify({ nope: true }));
     expect(loadCollapsedInboxGroupKeys("company-1")).toEqual(new Set());
   });
 
@@ -1599,7 +1599,7 @@ describe("inbox helpers", () => {
 
   it("returns empty collapsed inbox parents for missing or invalid storage", () => {
     expect(loadCollapsedInboxParentIds("company-1")).toEqual(new Set());
-    localStorage.setItem("paperclip:inbox:collapsed-parents:company-1", JSON.stringify({ nope: true }));
+    localStorage.setItem("clayon:inbox:collapsed-parents:company-1", JSON.stringify({ nope: true }));
     expect(loadCollapsedInboxParentIds("company-1")).toEqual(new Set());
   });
 

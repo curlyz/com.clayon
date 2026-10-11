@@ -3,13 +3,13 @@ import { addons } from "storybook/preview-api";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { expect, userEvent, within, waitFor } from "storybook/test";
-import { CONNECTABLE_APP_DEFINITIONS, type ConnectionIntentInteraction, type ToolConnection } from "@paperclipai/shared";
+import { CONNECTABLE_APP_DEFINITIONS, type ConnectionIntentInteraction, type ToolConnection } from "@clayon/shared";
 import { ConnectionIntentInteractionBody } from "@/features/connections/ConnectionIntentInteractionBody";
 import { ConnectionSetupFlow, ConnectionSetupCompletionScreen, AccessStep, OAuthConnectStateScreen, type OAuthConnectPhase } from "@/features/connections/ConnectionSetupFlow";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { TaskChatComposer } from "@/components/task-chat/TaskChatComposer";
 import { TaskChatInteractionCard } from "@/components/task-chat/TaskChatInteractionCard";
-import { storybookAgentMap, storybookAgents } from "../fixtures/paperclipData";
+import { storybookAgentMap, storybookAgents } from "../fixtures/clayonData";
 import { useNavigate } from "@/lib/router";
 import {
   pendingConnectionIntentInteraction as pending,

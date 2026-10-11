@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Settings2, X } from "lucide-react";
-import type { Agent, AttentionItem } from "@paperclipai/shared";
+import type { Agent, AttentionItem } from "@clayon/shared";
 import { useParams } from "@/lib/router";
 import { attentionApi } from "../api/attention";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { agentsApi } from "../api/agents";
 import { authApi } from "../api/auth";
 import { decisionQueuesApi } from "../api/decisionQueues";
@@ -221,25 +222,25 @@ export function DecisionQueuePage() {
   const isEmpty = activeItems.length === 0;
 
   return (
-    <div className="max-w-3xl space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold">{queue?.title ?? queueKey}</h1>
-          {queue?.description && <p className="mt-0.5 text-sm text-muted-foreground">{queue.description}</p>}
-        </div>
-        <DecisionsToolbar
-          visibleCount={visibleCount}
-          filterOptions={filterOptions}
-          filters={filters}
-          onFiltersChange={updateFilters}
-          groupBy={groupBy}
-          onGroupByChange={updateGroupBy}
-          sortOrder={sortOrder}
-          onSortOrderChange={updateSortOrder}
-        />
-      </div>
-
-      <div className="space-y-2">
+    <div className="flex flex-col">
+      <PageHeaderBand
+        title={queue?.title ?? queueKey}
+        actions={(
+          <DecisionsToolbar
+            visibleCount={visibleCount}
+            filterOptions={filterOptions}
+            filters={filters}
+            onFiltersChange={updateFilters}
+            groupBy={groupBy}
+            onGroupByChange={updateGroupBy}
+            sortOrder={sortOrder}
+            onSortOrderChange={updateSortOrder}
+          />
+        )}
+      >
+        {queue?.description ? (
+          <p className="text-sm text-muted-foreground">{queue.description}</p>
+        ) : null}
         <DecisionQueueRail companyId={selectedCompanyId} activeQueueKey={queueKey} />
         <DecisionDateChips
           value={dateRange}
@@ -249,28 +250,30 @@ export function DecisionQueuePage() {
             setCustomRange(custom);
           }}
         />
-      </div>
+      </PageHeaderBand>
 
       {queue && queue.seedRules.length > 0 && (
-        <SeedRulesCard
-          enabled={queue.seedRulesEnabled}
-          rules={queue.seedRules.map((rule) => rule.description)}
-          pending={toggleSeedRules.isPending}
-          onToggle={() => toggleSeedRules.mutate(!queue.seedRulesEnabled)}
-        />
+        <div className="px-4 py-3">
+          <SeedRulesCard
+            enabled={queue.seedRulesEnabled}
+            rules={queue.seedRules.map((rule) => rule.description)}
+            pending={toggleSeedRules.isPending}
+            onToggle={() => toggleSeedRules.mutate(!queue.seedRulesEnabled)}
+          />
+        </div>
       )}
 
-      {error && <p className="text-sm text-destructive">{(error as Error).message}</p>}
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
 
       {isEmpty ? (
-        <div className="rounded-xl border border-dashed border-border py-14 text-center">
+        <div className="mx-4 my-4 rounded-xl border border-dashed border-border py-14 text-center">
           <p className="text-sm font-medium text-foreground">This queue is empty.</p>
           <p className="mt-1 text-xs text-muted-foreground">
             Decisions land here when they match the queue's rules or an agent adds them.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4 px-4 py-4">
           {visibleCount === 0 ? (
             <div className="rounded-xl border border-dashed border-border py-10 text-center">
               <p className="text-sm font-medium text-foreground">No decisions match your filters.</p>

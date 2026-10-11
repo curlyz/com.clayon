@@ -2,8 +2,8 @@ import type {
   SecretProvider,
   SecretProviderConfigDiscoveryPreviewResult,
   SecretProviderDescriptor,
-} from "@paperclipai/shared";
-import type { DeploymentMode } from "@paperclipai/shared";
+} from "@clayon/shared";
+import type { DeploymentMode } from "@clayon/shared";
 
 export interface StoredSecretVersionMaterial {
   [key: string]: unknown;

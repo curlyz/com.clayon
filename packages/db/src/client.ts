@@ -150,7 +150,7 @@ export interface DatabaseClientOptions {
   maxLifetimeSeconds?: number;
   /**
    * postgres.js `connection.application_name`, shown in
-   * `pg_stat_activity.application_name`. Lets an operator tell Paperclip's
+   * `pg_stat_activity.application_name`. Lets an operator tell Clayon's
    * pool apart from other clients of the same database (driver default:
    * `postgres.js`).
    */
@@ -166,7 +166,7 @@ export interface DatabaseClientOptions {
  */
 export const DEFAULT_DATABASE_IDLE_TIMEOUT_SECONDS = 60;
 /** `application_name` reported to PostgreSQL unless `DATABASE_APPLICATION_NAME` overrides it. */
-export const DEFAULT_DATABASE_APPLICATION_NAME = "paperclip";
+export const DEFAULT_DATABASE_APPLICATION_NAME = "clayon";
 
 function envBoolean(env: NodeJS.ProcessEnv, name: string): boolean | undefined {
   const value = env[name]?.trim().toLowerCase();
@@ -205,7 +205,7 @@ function envNonEmptyString(env: NodeJS.ProcessEnv, name: string): string | undef
  * adapt to their connection topology (pooled endpoints, network latency)
  * without editing source. Every variable is optional. This function returns
  * only the values the environment sets; `resolveDatabaseClientOptions` adds
- * Paperclip's own defaults on top, and the driver defaults apply to the rest
+ * Clayon's own defaults on top, and the driver defaults apply to the rest
  * — self-hosted setups need none of these.
  */
 export function databaseClientOptionsFromEnv(env: NodeJS.ProcessEnv = process.env): DatabaseClientOptions {
@@ -227,7 +227,7 @@ export function databaseClientOptionsFromEnv(env: NodeJS.ProcessEnv = process.en
 }
 
 /**
- * Fills in Paperclip's defaults for the options the caller left unset: idle
+ * Fills in Clayon's defaults for the options the caller left unset: idle
  * connections are reaped after `DEFAULT_DATABASE_IDLE_TIMEOUT_SECONDS`, and the
  * pool identifies itself as `DEFAULT_DATABASE_APPLICATION_NAME`. Everything
  * else stays at the driver default. An explicit value (including
@@ -282,7 +282,7 @@ function createDbClient(url: string, resolved: DatabaseClientOptions, owner?: ob
   // that know the complete operation is idempotent.
   const db = installDatabaseWorkSignals(drizzlePg(sql, { schema }), owner);
   dedicatedDbFactories.set(db, () => createDbClient(url, {
-    ...resolved, maxConnections: 1, applicationName: "paperclip-workspace-finalization-lock",
+    ...resolved, maxConnections: 1, applicationName: "clayon-workspace-finalization-lock",
   }, db));
   return db;
 }
@@ -493,7 +493,7 @@ async function applyPendingMigrationsManually(
     try {
       // A session lock survives each batch COMMIT. Reserve the connection so
       // pool rotation cannot release it while another migrator is waiting.
-      await sql`SELECT pg_advisory_lock(hashtextextended('paperclip:migrations', 0))`;
+      await sql`SELECT pg_advisory_lock(hashtextextended('clayon:migrations', 0))`;
       const { migrationTableSchema, columnNames } = await ensureMigrationJournalTable(sql);
       const qualifiedTable = `${quoteIdentifier(migrationTableSchema)}.${quoteIdentifier(DRIZZLE_MIGRATIONS_TABLE)}`;
 
@@ -553,7 +553,7 @@ async function applyPendingMigrationsManually(
       }
     } finally {
       try {
-        await sql`SELECT pg_advisory_unlock(hashtextextended('paperclip:migrations', 0))`;
+        await sql`SELECT pg_advisory_unlock(hashtextextended('clayon:migrations', 0))`;
       } catch {
         // Preserve the migration error if the session died; PostgreSQL releases
         // its lock on disconnect, and pool.end() closes any remaining connection.

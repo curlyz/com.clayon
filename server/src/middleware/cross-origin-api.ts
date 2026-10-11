@@ -3,7 +3,7 @@ import type { RequestHandler } from "express";
 /**
  * Credential-bearing CORS for cross-origin API callers (the native mobile
  * shell's WebView origin). Only origins listed in
- * `server.crossOriginApiOrigins` (env `PAPERCLIP_CROSS_ORIGIN_API_ORIGINS`)
+ * `server.crossOriginApiOrigins` (env `CLAYON_CROSS_ORIGIN_API_ORIGINS`)
  * receive CORS headers; every other request passes through untouched, which
  * preserves today's same-origin behavior. Mounted before all /api routes.
  */
@@ -12,8 +12,8 @@ const CORS_ALLOW_HEADERS = [
   "Content-Type",
   "Authorization",
   "If-None-Match",
-  "X-Paperclip-*",
-  "x-paperclip-*",
+  "X-Clayon-*",
+  "x-clayon-*",
 ].join(", ");
 
 const CORS_ALLOW_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS";

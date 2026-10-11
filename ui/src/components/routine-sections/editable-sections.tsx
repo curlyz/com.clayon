@@ -31,7 +31,7 @@ import { MarkdownEditor } from "../MarkdownEditor";
 import { RoutineVariablesEditor, RoutineVariablesHint } from "../RoutineVariablesEditor";
 import { EnvironmentVariablesEditor } from "../environment-variables-editor";
 import { useRoutineDetail } from "./context";
-import type { EnvBinding, RoutineDetail as RoutineDetailType } from "@paperclipai/shared";
+import type { EnvBinding, RoutineDetail as RoutineDetailType } from "@clayon/shared";
 
 const concurrencyPolicyOptions = [
   {
@@ -115,7 +115,7 @@ export function OverviewSection({
     descriptionEditorRef,
     routineRuns,
     activity,
-    saveRoutine,
+    autosave,
     saveConflict,
     isSectionDirty,
     navigateToSection,
@@ -253,7 +253,7 @@ export function OverviewSection({
             doc={routine.descriptionDocument}
             target={{ kind: "routine", routineId: routine.id, documentKey: "description" }}
             bodyMarkdown={editDraft.description}
-            draftDirty={isSectionDirty("overview") || saveRoutine.isPending}
+            draftDirty={isSectionDirty("overview") || autosave.status === "saving"}
             draftConflicted={saveConflict}
             historicalPreview={false}
             locationHash={typeof window === "undefined" ? "" : window.location.hash}
@@ -269,8 +269,8 @@ export function OverviewSection({
               contentClassName="min-h-(--sz-120px) text-sm leading-7"
               mentions={mentionOptions}
               onSubmit={() => {
-                if (!saveRoutine.isPending && editDraft.title.trim()) {
-                  saveRoutine.mutate();
+                if (autosave.status !== "saving" && editDraft.title.trim()) {
+                  autosave.flush();
                 }
               }}
             />
@@ -285,8 +285,8 @@ export function OverviewSection({
             contentClassName="min-h-(--sz-120px) text-sm leading-7"
             mentions={mentionOptions}
             onSubmit={() => {
-              if (!saveRoutine.isPending && editDraft.title.trim()) {
-                saveRoutine.mutate();
+              if (autosave.status !== "saving" && editDraft.title.trim()) {
+                autosave.flush();
               }
             }}
           />
@@ -455,7 +455,7 @@ export function SecretsSection() {
     <div className="space-y-4">
       <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
         Routine secrets apply to every task this routine creates. They override matching keys in
-        project and agent env. <span className="font-mono">PAPERCLIP_*</span> names are reserved.
+        project and agent env. <span className="font-mono">CLAYON_*</span> names are reserved.
       </div>
 
 

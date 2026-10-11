@@ -2,7 +2,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { pipeline } from "node:stream/promises";
 import express, { Router } from "express";
 import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
-import { type Db, mcpAttachmentUploads, mcpFileTickets, mcpOauthGrants, issues } from "@paperclipai/db";
+import { type Db, mcpAttachmentUploads, mcpFileTickets, mcpOauthGrants, issues } from "@clayon/db";
 import { z } from "zod";
 import { MAX_ATTACHMENT_BYTES, isAllowedContentType } from "../../attachment-types.js";
 import type { StorageService } from "../../storage/types.js";
@@ -20,9 +20,9 @@ const uploadSchema = z.object({ ...task, requestId,
   sha256: z.string().regex(/^[a-f0-9]{64}$/).describe("SHA-256 of the exact file bytes. The upload must match this digest and byteSize."),
 }).strict();
 const attachmentFields = ["id", "issueId", "originalFilename", "contentType", "byteSize", "sha256", "createdAt"];
-const unavailable = () => new McpCapabilityError("This transfer is expired, revoked, invalid or no longer authorized. Request a new transfer link from Paperclip.");
+const unavailable = () => new McpCapabilityError("This transfer is expired, revoked, invalid or no longer authorized. Request a new transfer link from Clayon.");
 function requireWrite(p: McpPrincipal) {
-  if (!p.grant.scopes.includes("paperclip:write") || p.actor.memberships?.[0]?.membershipRole === "viewer") throw unavailable();
+  if (!p.grant.scopes.includes("clayon:write") || p.actor.memberships?.[0]?.membershipRole === "viewer") throw unavailable();
 }
 
 export function createPublicMcpTransfers(db: Db, oauth: PublicMcpOAuth, api: ApiDispatch, storage: StorageService) {

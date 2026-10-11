@@ -20,6 +20,7 @@ import { projectsApi } from "../api/projects";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { queryKeys } from "../lib/queryKeys";
 import { cn, projectRouteRef, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
+import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useProjectOrder } from "../hooks/useProjectOrder";
 import { resourceMembershipState, useResourceMembershipMutation, useResourceMemberships } from "../hooks/useResourceMemberships";
 import { useProjectExternalObjectSummary } from "../hooks/useIssueExternalObjects";
@@ -44,7 +45,7 @@ import {
   type ProjectSidebarSortMode,
   writeProjectSortMode,
 } from "../lib/project-order";
-import type { Project } from "@paperclipai/shared";
+import type { Project } from "@clayon/shared";
 
 type ProjectSidebarSlot = ReturnType<typeof usePluginSlots>["slots"][number];
 
@@ -138,10 +139,14 @@ function ProjectItem({
         if (isMobile) setSidebarOpen(false);
       }}
       className={cn(
-        "flex min-w-0 flex-1 items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pr-8 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
+        // Leaf row, full-bleed (no mx, no pill); the active project is a
+        // flat bg-sidebar-accent band (operator directive 2026-10-11).
+        primarySidebarStyles.row,
+        "min-w-0 flex-1",
+        rail ? "justify-center px-0" : "pr-8",
         activeProjectRef === routeRef || activeProjectRef === project.id
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          ? primarySidebarStyles.rowActive
+          : primarySidebarStyles.rowMuted,
       )}
     >
       <ProjectTile color={project.color ?? null} icon={project.icon ?? null} size="xs" />

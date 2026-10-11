@@ -1,5 +1,5 @@
-import { parsePaperclipQuestionResponse } from "../../packages/paperclip-runner/src/contracts/question-set.js";
-import { normalizeCursorPlanRequest } from "../../packages/paperclip-runner/src/drivers/acpx/cursor-extensions.js";
+import { parseClayonQuestionResponse } from "../../packages/clayon-runner/src/contracts/question-set.js";
+import { normalizeCursorPlanRequest } from "../../packages/clayon-runner/src/drivers/acpx/cursor-extensions.js";
 import { cursorNativePlanResponse, findCursorNativeRequest, hasCursorNativeCardBinding } from "./cursor-native-flow.js";
 import { cursorDeniedCommand, type CursorToolNotice } from "./cursor-native-evidence.js";
 import { describe, expect, it } from "vitest";
@@ -74,7 +74,7 @@ it.each(["accept", "cancel", "reject"] as const)("recognizes canonical delivered
   const native = normalizeCursorPlanRequest({ toolCallId: "native-plan", plan: "Verify the revised plan.", todos: [] });
   const planId = native.questionSet.questions[0]!.id;
   const response = cursorNativePlanResponse(planId, decision, "  Keep exact feedback 漢字\nSecond line  ");
-  const delivered = parsePaperclipQuestionResponse(native.questionSet, response);
+  const delivered = parseClayonQuestionResponse(native.questionSet, response);
   const rows = proof();
   (rows[0]!.payload.prpEvent.payload as any).request.origin.method = "cursor/create_plan";
   (rows[1]!.payload.prpEvent.payload as any).response = delivered;

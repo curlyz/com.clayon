@@ -7,8 +7,8 @@ import request from "supertest";
 import sharp from "sharp";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
-import { createDb, agents, companies, assets, activityLog, authUsers, companyMemberships, mcpOauthClients, mcpOauthGrants, dotAgentBindings, principalPermissionGrants } from "@paperclipai/db";
-import { appearanceForPalette, MAX_AGENT_AVATAR_BYTES } from "@paperclipai/shared";
+import { createDb, agents, companies, assets, activityLog, authUsers, companyMemberships, mcpOauthClients, mcpOauthGrants, dotAgentBindings, principalPermissionGrants } from "@clayon/db";
+import { appearanceForPalette, MAX_AGENT_AVATAR_BYTES } from "@clayon/shared";
 import { startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { createLocalDiskStorageProvider } from "../storage/local-disk-provider.js";
 import { createStorageService } from "../storage/service.js";
@@ -29,7 +29,7 @@ let db: ReturnType<typeof createDb>;
 let root: string;
 let imageBase64: string;
 beforeAll(async () => {
-  temporary = await startEmbeddedPostgresTestDatabase("paperclip-profile-avatar-");
+  temporary = await startEmbeddedPostgresTestDatabase("clayon-profile-avatar-");
   db = createDb(temporary.connectionString);
   root = await mkdtemp(join(tmpdir(), "profile-avatar-"));
   storage = createStorageService(createLocalDiskStorageProvider(root));
@@ -136,7 +136,7 @@ it("lets a paired Dot upload without an assignment, with feature and current gra
   await db.insert(authUsers).values({ id: userId, name: "Owner", email: `${userId}@example.test`, createdAt: new Date(), updatedAt: new Date() });
   await db.insert(companyMemberships).values({ companyId: f.company.id, principalType: "user", principalId: userId, membershipRole: "owner", status: "active" });
   await db.insert(mcpOauthClients).values({ id: clientId, name: "Dot", redirectUris: [] });
-  const [grant] = await db.insert(mcpOauthGrants).values({ companyId: f.company.id, userId, clientId, resource: "https://paperclip.example/mcp/runner", purpose: "agent", agentId: f.agent.id, scopes: ["paperclip:agent"] }).returning();
+  const [grant] = await db.insert(mcpOauthGrants).values({ companyId: f.company.id, userId, clientId, resource: "https://clayon.example/mcp/runner", purpose: "agent", agentId: f.agent.id, scopes: ["clayon:agent"] }).returning();
   await db.insert(dotAgentBindings).values({ companyId: f.company.id, agentId: f.agent.id, operatorId: userId, grantId: grant!.id, status: "connected" });
   const principal: McpPrincipal = { grant: grant!, company: f.company, actor: { type: "agent", companyId: f.company.id, agentId: f.agent.id } };
   const tools = createDotRunnerMcpTools(db);

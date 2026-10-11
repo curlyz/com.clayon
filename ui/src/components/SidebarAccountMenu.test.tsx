@@ -7,6 +7,10 @@ import { queryKeys } from "../lib/queryKeys";
 import { SidebarAccountMenu } from "./SidebarAccountMenu";
 import { SidebarAccountMenu as ProductionSidebarAccountMenu } from "./SidebarAccountMenu.production";
 import { TooltipProvider } from "@/components/ui/tooltip";
+// Harness repair (authorized by the redesign leader, 2026-10-11): FontPicker
+// inside the account popover requires ReadingFontProvider; wrapping every
+// render repairs tests broken by the reading-font switcher commit.
+import { ReadingFontProvider } from "@/context/ReadingFontContext";
 
 const mockAuthApi = vi.hoisted(() => ({
   getSession: vi.fn(),
@@ -159,11 +163,11 @@ describe("SidebarAccountMenu", () => {
     const commit = "8751e2de4626ff5e7355fe28b30509991cfff920";
 
     it.each([
-      ["paperclip.staging.paperclip.app", true],
-      ["another.staging.paperclip.app", true],
-      ["paperclip.paperclip.app", false],
+      ["clayon.staging.clayon.app", true],
+      ["another.staging.clayon.app", true],
+      ["clayon.clayon.app", false],
       ["localhost", false],
-      ["paperclip.staging.paperclip.app.example.com", false],
+      ["clayon.staging.clayon.app.example.com", false],
     ])("shows the running SHA only on staging: %s", async (hostname, visible) => {
       vi.stubGlobal("location", new URL(`https://${hostname}`));
       mockHealthApi.get.mockResolvedValue({ status: "ok", commit });
@@ -174,7 +178,7 @@ describe("SidebarAccountMenu", () => {
       await act(async () => {
         root.render(
           <QueryClientProvider client={queryClient}>
-            <TooltipProvider><AccountMenu open /></TooltipProvider>
+            <TooltipProvider><ReadingFontProvider><AccountMenu open /></ReadingFontProvider></TooltipProvider>
           </QueryClientProvider>,
         );
       });
@@ -196,7 +200,7 @@ describe("SidebarAccountMenu", () => {
     });
 
     it("refreshes the running SHA each time the staging menu opens", async () => {
-      vi.stubGlobal("location", new URL("https://paperclip.staging.paperclip.app"));
+      vi.stubGlobal("location", new URL("https://clayon.staging.clayon.app"));
       const nextCommit = "3447609d2247e75e55d91493dda91a608364f672";
       mockHealthApi.get
         .mockResolvedValueOnce({ status: "ok", commit })
@@ -207,7 +211,7 @@ describe("SidebarAccountMenu", () => {
         await act(() => {
           root.render(
             <QueryClientProvider client={queryClient}>
-              <TooltipProvider><AccountMenu open={open} /></TooltipProvider>
+              <TooltipProvider><ReadingFontProvider><AccountMenu open={open} /></ReadingFontProvider></TooltipProvider>
             </QueryClientProvider>,
           );
         });
@@ -228,7 +232,7 @@ describe("SidebarAccountMenu", () => {
     });
 
     it("does not change the board health state when a menu refresh fails", async () => {
-      vi.stubGlobal("location", new URL("https://paperclip.staging.paperclip.app"));
+      vi.stubGlobal("location", new URL("https://clayon.staging.clayon.app"));
       mockHealthApi.get.mockRejectedValueOnce(new Error("Deploy in progress"));
       const queryClient = new QueryClient();
       const boardHealth = { status: "ok", commit };
@@ -238,7 +242,7 @@ describe("SidebarAccountMenu", () => {
       await act(() => {
         root.render(
           <QueryClientProvider client={queryClient}>
-            <TooltipProvider><AccountMenu open /></TooltipProvider>
+            <TooltipProvider><ReadingFontProvider><AccountMenu open /></ReadingFontProvider></TooltipProvider>
           </QueryClientProvider>,
         );
       });
@@ -254,14 +258,14 @@ describe("SidebarAccountMenu", () => {
     });
 
     it.each([null, undefined])("omits unavailable commit metadata (%s)", async (commit) => {
-      vi.stubGlobal("location", new URL("https://paperclip.staging.paperclip.app"));
+      vi.stubGlobal("location", new URL("https://clayon.staging.clayon.app"));
       mockHealthApi.get.mockResolvedValue({ status: "ok", commit });
       const queryClient = new QueryClient();
       const root = createRoot(container);
       await act(() => {
         root.render(
           <QueryClientProvider client={queryClient}>
-            <TooltipProvider><AccountMenu open /></TooltipProvider>
+            <TooltipProvider><ReadingFontProvider><AccountMenu open /></ReadingFontProvider></TooltipProvider>
           </QueryClientProvider>,
         );
       });
@@ -279,30 +283,34 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <SidebarAccountMenu deploymentMode="local_trusted" />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
     await flushReact();
 
     const accountSurface = container.firstElementChild;
-    expect(accountSurface?.className).toContain("bg-border/50");
-    expect(accountSurface?.className).toContain("dark:bg-muted");
-    expect(accountSurface?.className).not.toContain("border-t");
-    expect(accountSurface?.className).not.toContain("border-r");
-    expect(accountSurface?.className).not.toContain("border-border");
+    // Sidebar column law (operator directive 2026-10-10/11): the account
+    // footer is a hairline band on the sidebar surface — border-t, no extra
+    // tinted fill, and the band itself adds no padding (the trigger row is
+    // the leaf that pads).
+    expect(accountSurface?.className).toContain("border-t");
+    expect(accountSurface?.className).toContain("border-border");
+    expect(accountSurface?.className).not.toContain("bg-border/50");
+    expect(accountSurface?.className).not.toContain("dark:bg-muted");
+    expect(accountSurface?.className).not.toContain("px-3");
     const accountTrigger = container.querySelector('button[aria-label="Open account menu"]');
-    expect(accountTrigger?.classList).toContain("rounded-lg");
-    expect(accountTrigger?.classList).toContain("hover:bg-sidebar-accent");
+    expect(accountTrigger?.classList).toContain("px-3");
+    expect(accountTrigger?.classList).toContain("hover:bg-sidebar-accent/60");
     expect(accountTrigger?.classList).toContain("hover:text-sidebar-accent-foreground");
     expect(accountTrigger?.classList).not.toContain("hover:bg-background");
 
     const feedbackButton = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="Share feedback"]',
     );
-    expect(feedbackButton?.getAttribute("href")).toBe("https://paperclip.ing/feedback");
+    expect(feedbackButton?.getAttribute("href")).toBe("https://clayon.ing/feedback");
     expect(feedbackButton?.getAttribute("target")).toBe("_blank");
     expect(feedbackButton?.classList).toContain("text-muted-foreground/50");
     expect(feedbackButton?.classList).not.toContain("text-border");
@@ -324,9 +332,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <ProductionSidebarAccountMenu deploymentMode="local_trusted" />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -335,13 +343,13 @@ describe("SidebarAccountMenu", () => {
     const accountTrigger = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Open account menu"]',
     );
-    expect(accountTrigger?.classList).toContain("rounded-lg");
-    expect(accountTrigger?.classList).toContain("hover:bg-accent/50");
+    expect(accountTrigger?.classList).toContain("px-3");
+    expect(accountTrigger?.classList).toContain("hover:bg-sidebar-accent/60");
 
     const feedbackButton = container.querySelector<HTMLAnchorElement>(
       'a[aria-label="Share feedback"]',
     );
-    expect(feedbackButton?.getAttribute("href")).toBe("https://paperclip.ing/feedback");
+    expect(feedbackButton?.getAttribute("href")).toBe("https://clayon.ing/feedback");
     expect(feedbackButton?.getAttribute("target")).toBe("_blank");
     expect(feedbackButton?.classList).toContain("text-muted-foreground/50");
     expect(feedbackButton?.classList).not.toContain("text-border");
@@ -357,7 +365,7 @@ describe("SidebarAccountMenu", () => {
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
     expect(popover?.textContent).not.toContain("Feedback");
-    expect(popover?.querySelector('a[href="https://paperclip.ing/feedback"]')).toBeNull();
+    expect(popover?.querySelector('a[href="https://clayon.ing/feedback"]')).toBeNull();
 
     await act(async () => root.unmount());
   });
@@ -375,9 +383,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <SidebarAccountMenu deploymentMode="authenticated" />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -402,7 +410,7 @@ describe("SidebarAccountMenu", () => {
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
     expect(popover?.textContent).not.toContain("Feedback");
-    expect(popover?.querySelector('a[href="https://paperclip.ing/feedback"]')).toBeNull();
+    expect(popover?.querySelector('a[href="https://clayon.ing/feedback"]')).toBeNull();
 
     // Profile access moved off the action list: the header links to the
     // profile, and the separate view/edit rows are gone. Editing lives on the
@@ -441,7 +449,7 @@ describe("SidebarAccountMenu", () => {
 
     // The popover header stays down to name + email: no "Account" badge, no version line.
     expect(popover?.textContent).not.toContain("Account");
-    expect(popover?.textContent).not.toContain("Paperclip v");
+    expect(popover?.textContent).not.toContain("Clayon v");
     expect(document.body.textContent).toContain("jane@example.com");
     expect(document.body.querySelector('[data-slot="popover-content"]')?.className)
       .toContain("w-(--profile-popover-width)");
@@ -483,7 +491,7 @@ describe("SidebarAccountMenu", () => {
       deploymentMode: "authenticated",
       cloud: {
         managed: true,
-        managedBy: "paperclip-cloud",
+        managedBy: "clayon-cloud",
         stackSlug: "acme-labs",
         cloudBaseUrl: "https://cloud.example.test",
       },
@@ -493,13 +501,13 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <AccountMenu
               deploymentMode="authenticated"
               open
               onOpenChange={onOpenChange}
             />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -549,7 +557,7 @@ describe("SidebarAccountMenu", () => {
       deploymentMode: "authenticated",
       cloud: {
         managed: true,
-        managedBy: "paperclip-cloud",
+        managedBy: "clayon-cloud",
         stackSlug: "acme-labs",
         cloudBaseUrl: "https://cloud.example.test",
       },
@@ -562,9 +570,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <AccountMenu deploymentMode="authenticated" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -594,7 +602,7 @@ describe("SidebarAccountMenu", () => {
       deploymentMode: "authenticated",
       cloud: {
         managed: true,
-        managedBy: "paperclip-cloud",
+        managedBy: "clayon-cloud",
         stackSlug: null,
         cloudBaseUrl: "https://cloud.example.test",
       },
@@ -604,9 +612,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <AccountMenu deploymentMode="authenticated" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -636,9 +644,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <AccountMenu deploymentMode="authenticated" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -671,9 +679,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <AccountMenu deploymentMode="authenticated" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -711,9 +719,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <SidebarAccountMenu deploymentMode="authenticated" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });
@@ -740,9 +748,9 @@ describe("SidebarAccountMenu", () => {
     await act(async () => {
       root.render(
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+          <TooltipProvider><ReadingFontProvider>
             <SidebarAccountMenu deploymentMode="local_trusted" open />
-          </TooltipProvider>
+          </ReadingFontProvider></TooltipProvider>
         </QueryClientProvider>,
       );
     });

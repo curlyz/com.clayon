@@ -20,7 +20,6 @@ import { isPlatformManagedEnvironment } from "../lib/managed-sandbox-environment
 import { AgentStatusBadge, AgentStatusCapsule } from "../components/StatusBadge";
 import { AGENT_GRADIENT_COUNT } from "../components/AgentCapsule";
 import { hasWebGL, type AgentWorldAgent } from "../components/agentWorld/agentWorldScene";
-import { EntityRow } from "../components/EntityRow";
 import { BuiltInLifecycleChip } from "../components/BuiltInAgentBadges";
 import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
@@ -30,7 +29,7 @@ import { PageTabBar } from "../components/PageTabBar";
 import { Tabs } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Bot, Plus, List, Network } from "lucide-react";
-import { AGENT_ROLE_LABELS, type Agent, type Environment, type EnvironmentCapabilities } from "@paperclipai/shared";
+import { AGENT_ROLE_LABELS, type Agent, type Environment, type EnvironmentCapabilities } from "@clayon/shared";
 import {
   resourceMembershipState,
   useResourceMemberships,
@@ -98,8 +97,8 @@ interface EnvironmentDescriptor {
 
 const localEnvironmentDescriptor: EnvironmentDescriptor = {
   label: "Local",
-  detail: "Paperclip host",
-  title: "Local - Paperclip host",
+  detail: "Clayon host",
+  title: "Local - Clayon host",
 };
 
 const loadingEnvironmentDescriptor: EnvironmentDescriptor = {
@@ -160,11 +159,11 @@ function describeEnvironment(
   capabilities?: EnvironmentCapabilities | null,
 ): EnvironmentDescriptor {
   const detail = isPlatformManagedEnvironment(environment)
-    ? "Managed by Paperclip"
+    ? "Managed by Clayon"
     : environment.driver === "sandbox"
       ? `${getSandboxProviderLabel(environment, capabilities)} sandbox provider`
       : environment.driver === "local"
-        ? "Paperclip host"
+        ? "Clayon host"
         : formatEnvironmentDriver(environment.driver);
 
   return {
@@ -386,93 +385,117 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
       : environmentByAgentId.get(agentId) ?? localEnvironmentDescriptor
   );
 
-  const renderAgentRow = (agent: Agent) => {
+  // Leaf-tile renderer for the roster grid (per-page review criteria #1: a
+  // collection that can tile, tiles). The tile is one leaf band — it pads as a
+  // leaf, carries every datum the old row carried (role/title, model, adapter,
+  // environment, heartbeat, status, live run, lifecycle chip), and splits the
+  // meta block from the identity block with one hairline.
+  const renderAgentTile = (agent: Agent) => {
     const hasInvalidOrgChain = agent.orgChainHealth?.status === "invalid_org_chain";
     const builtInState = builtInByAgentId.get(agent.id);
     const showBuiltInLifecycle = builtInState?.status === "needs_setup" || builtInState?.status === "pending_approval";
-    // Keep lifecycle controls with the metadata only when the content area
-    // has enough room; the sidebar can leave less space than the viewport suggests.
-    const builtInCluster = builtInState && showBuiltInLifecycle ? (
-      <>
-        <BuiltInLifecycleChip status={builtInState.status} />
-        {builtInState.status === "needs_setup" && (
-          <span
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => setConfigureState(builtInState)}
-            >
-              Set up
-            </Button>
-          </span>
-        )}
-      </>
-    ) : null;
+    const liveRun = liveRunByAgent.get(agent.id);
+    const model = getConfiguredModel(agent);
+    const adapterLabel = getAdapterLabel(agent.adapterType);
+    const environment = resolveRenderedEnvironment(agent.id);
+    const heartbeat = agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : null;
     return (
-      <EntityRow
+      <Link
         key={agent.id}
-        title={agent.name}
-        titleAccessory={<PrimaryAgentIndicator agentId={agent.id} companyId={agent.companyId} />}
-        titleClassName="flex-1 @5xl:flex-none @5xl:w-56"
-        titleTextClassName="truncate"
-        subtitleClassName="truncate"
-        subtitle={`${roleLabels[agent.role] ?? agent.role}${agent.title ? ` - ${agent.title}` : ""}`}
         to={agentUrl(agent)}
         className={cn(
-          "group py-3",
+          "group flex flex-col gap-3 rounded-lg p-4 text-inherit no-underline transition-colors hover:bg-accent/50",
           agent.pausedAt && tab !== "paused" ? "opacity-50" : "",
           resourceMembershipState(membershipsQuery.data, "agent", agent.id) === "left" ? "sm:text-foreground/55" : "",
         )}
-        leading={hasInvalidOrgChain ? (
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" aria-label="Invalid reporting chain" />
-        ) : (
-          <AgentAvatar agent={agent} size={32} />
-        )}
-        secondaryRow={builtInCluster && (
-          <div className="@5xl:hidden flex flex-wrap items-center gap-1.5">
-            {builtInCluster}
+      >
+        <div className="flex items-start gap-3">
+          {hasInvalidOrgChain ? (
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" aria-label="Invalid reporting chain" />
+          ) : (
+            <AgentAvatar agent={agent} size={32} />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-sm font-medium" title={agent.name}>{agent.name}</span>
+              <PrimaryAgentIndicator agentId={agent.id} companyId={agent.companyId} />
+            </div>
+            <p className="truncate text-xs text-muted-foreground">
+              {`${roleLabels[agent.role] ?? agent.role}${agent.title ? ` - ${agent.title}` : ""}`}
+            </p>
           </div>
-        )}
-        meta={
-          <div className="flex items-center gap-3">
-            {builtInCluster && (
-              <div className="hidden @5xl:flex items-center gap-1.5">
-                {builtInCluster}
-              </div>
-            )}
-            <div className="hidden @5xl:flex items-center gap-3">
-              <AgentMetaColumns
-                agent={agent}
-                environment={resolveRenderedEnvironment(agent.id)}
-                showEnvironment={showEnvironmentColumn}
+        </div>
+        {(liveRun || (builtInState && showBuiltInLifecycle)) && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {liveRun && (
+              <LiveRunIndicator
+                agentRef={agentRouteRef(agent)}
+                runId={liveRun.runId}
+                liveCount={liveRun.liveCount}
               />
-            </div>
+            )}
+            {builtInState && showBuiltInLifecycle && (
+              <>
+                <BuiltInLifecycleChip status={builtInState.status} />
+                {builtInState.status === "needs_setup" && (
+                  <span
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() => setConfigureState(builtInState)}
+                    >
+                      Set up
+                    </Button>
+                  </span>
+                )}
+              </>
+            )}
           </div>
-        }
-        metaSpacerClassName="hidden @5xl:block"
-        trailing={
-          <div className="flex items-center gap-3">
-            {agentChat.enabled && <Button variant="ghost" size="sm" onClick={event => { event.preventDefault(); event.stopPropagation(); navigate(`/chats/${agentRouteRef(agent)}`); }}>Chat</Button>}
-            <div className="hidden sm:flex items-center gap-3">
-              {liveRunByAgent.has(agent.id) && (
-                <LiveRunIndicator
-                  agentRef={agentRouteRef(agent)}
-                  runId={liveRunByAgent.get(agent.id)!.runId}
-                  liveCount={liveRunByAgent.get(agent.id)!.liveCount}
-                />
-              )}
-              <span className="w-20 flex justify-end">
-                <AgentStatusBadge status={agent.status} />
-              </span>
-            </div>
+        )}
+        <div className="mt-auto flex flex-col gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 truncate font-mono" title={model ?? undefined}>{model ?? "—"}</span>
+            {heartbeat && <span className="whitespace-nowrap">{heartbeat}</span>}
           </div>
-        }
-      />
+          <div className="flex items-baseline justify-between gap-3">
+            <span
+              className="min-w-0 truncate font-mono text-(length:--text-micro) text-muted-foreground/70"
+              title={adapterLabel}
+            >
+              {adapterLabel}
+            </span>
+            {showEnvironmentColumn && (
+              <span className="min-w-0 truncate text-right" title={environment.title}>{environment.label}</span>
+            )}
+          </div>
+          {showEnvironmentColumn && (
+            <span className="truncate text-right text-(length:--text-micro) text-muted-foreground/70">
+              {environment.detail}
+            </span>
+          )}
+          <div className="flex items-center justify-between gap-3">
+            <AgentStatusBadge status={agent.status} />
+            {agentChat.enabled && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  navigate(`/chats/${agentRouteRef(agent)}`);
+                }}
+              >
+                Chat
+              </Button>
+            )}
+          </div>
+        </div>
+      </Link>
     );
   };
 
@@ -553,12 +576,12 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         />
       )}
 
-      {/* List view — Grid audit: stays a list by design. Rows carry aligned
-          meta columns (model, environment, heartbeat, status) and alphabetical
-          scan order; tiling would break the columnar scan. */}
+      {/* List view — leaf-tile grid: the roster tiles like every collection
+          (md:2 / xl:4), each tile one leaf band carrying the full agent
+          metadata set the old rows carried. */}
       {effectiveView === "list" && filtered.length > 0 && (
-        <div>
-          {filtered.map(renderAgentRow)}
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {filtered.map(renderAgentTile)}
         </div>
       )}
 
@@ -798,14 +821,14 @@ function LiveRunIndicator({
   return (
     <Link
       to={`/agents/${agentRef}/runs/${runId}`}
-      className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors no-underline"
+      className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-(--status-agent-running)/10 transition-colors no-underline hover:bg-(--status-agent-running)/20"
       onClick={(e) => e.stopPropagation()}
     >
       <span className="relative flex h-2 w-2">
-        <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+        <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-(--status-agent-running) opacity-75" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-(--status-agent-running)" />
       </span>
-      <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">
+      <span className="text-(length:--text-micro) font-medium text-(--status-agent-running)">
         Live{liveCount > 1 ? ` (${liveCount})` : ""}
       </span>
     </Link>

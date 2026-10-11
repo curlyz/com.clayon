@@ -10,14 +10,14 @@ import {
   heartbeatRuns,
   issueComments,
   issues,
-} from "@paperclipai/db";
+} from "@clayon/db";
 
 import {
   assertCurrentWakeCommentsRead,
   readCurrentWakeComments,
   resolveCurrentWakeCommentsBinding,
 } from "./current-wake-comments.js";
-import { buildPaperclipTaskMarkdown } from "../heartbeat.js";
+import { buildClayonTaskMarkdown } from "../heartbeat.js";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -46,7 +46,7 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
 
   beforeAll(async () => {
     const started = await startEmbeddedPostgresTestDatabase(
-      "paperclip-current-wake-comments-",
+      "clayon-current-wake-comments-",
     );
     db = createDb(started.connectionString);
     tempDb = started;
@@ -69,7 +69,7 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
     const issuePrefix = `W${companyId.replaceAll("-", "").slice(0, 6)}`;
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix,
       requireBoardApprovalForNewAgents: false,
       defaultResponsibleUserId: "local-board",
@@ -121,7 +121,7 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
       contextSnapshot: {
         issueId,
         taskId: issueId,
-        paperclipWake: {
+        clayonWake: {
           reason: "External chat message received",
           externalChatProvider: "slack",
           checkedOutByHarness: true,
@@ -302,11 +302,11 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
     const page = await readCurrentWakeComments(db, binding, {});
     expect(page.complete).toBe(true);
     expect(page.comments[0]?.attachmentImportNotice).toBe(
-      "Paperclip could not import every attachment from this exact external message: 2 attachments were omitted (unsupported type: 1, processing failed: 1). Treat omitted attachments as unavailable; do not infer their contents or substitute an older workspace file.",
+      "Clayon could not import every attachment from this exact external message: 2 attachments were omitted (unsupported type: 1, processing failed: 1). Treat omitted attachments as unavailable; do not infer their contents or substitute an older workspace file.",
     );
     expect(JSON.stringify(page)).not.toContain("credential_token");
     expect(
-      buildPaperclipTaskMarkdown({
+      buildClayonTaskMarkdown({
         issue: {
           id: seeded.issueId,
           identifier: "WAKE-1",
@@ -341,7 +341,7 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
     const contextSnapshot = structuredClone(
       run!.contextSnapshot as Record<string, unknown>,
     );
-    const wake = contextSnapshot.paperclipWake as Record<string, unknown>;
+    const wake = contextSnapshot.clayonWake as Record<string, unknown>;
     wake.attachmentOmissions = [
       {
         commentId: seeded.commentIds[0],
@@ -389,7 +389,7 @@ describeEmbeddedPostgres("current external-chat wake comment reader", () => {
               contextSnapshot: {
                 issueId: seeded.issueId,
                 taskId: seeded.issueId,
-                paperclipWake: {
+                clayonWake: {
                   reason: "External chat message received",
                   externalChatProvider: "slack",
                   checkedOutByHarness: true,

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it, vi } from "vitest";
 import { gradePiRestartCompletion, observePiRestartPending, runPiPendingControllerRestart } from "./pi-native-restart-flow.js";
-import { validatePrpStructuredRunResult } from "../../packages/paperclip-runner/src/protocol/replay-contract.js";
+import { validatePrpStructuredRunResult } from "../../packages/clayon-runner/src/protocol/replay-contract.js";
 
 type Row = Record<string, any>;
 vi.mock("@playwright/test", () => ({ expect: (locator: { count(): number }) => ({
@@ -20,7 +20,7 @@ function fixture(adapter = "acpx-runtime-sidecar") {
   const state = { issue: { id: "issue", companyId: "company", status: "in_progress" },
     runs: [{ id: "run", companyId: "company", nativeIssueId: "issue", runtimeMode: "native", status: "running", nativeSessionId: "session", runnerInstanceId: "runner", processPid: 200, processGroupId: 200, processStartedAt: "2026-10-02T13:55:27.000Z" } as Row],
     interactions: [{ id: "interaction", companyId: "company", issueId: "issue", kind: "ask_user_questions", status: "pending", result: null,
-      sourceRunId: "run", continuationPolicy: "none", resolverPolicy: "human_only", idempotencyKey: "paperclip-runner-question:run:request",
+      sourceRunId: "run", continuationPolicy: "none", resolverPolicy: "human_only", idempotencyKey: "clayon-runner-question:run:request",
       payload: { runtimeRequestId: "request", questionSet } } as Row] };
   const events = [wrap("runtime_request.created", 1, { request })];
   const control = (eventType: string, sourceSeq: number, payload: Row): Row => {

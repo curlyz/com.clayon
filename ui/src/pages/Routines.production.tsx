@@ -28,7 +28,7 @@ import { PageSkeleton } from "../components/PageSkeleton";
 import { PageTabBar } from "../components/PageTabBar";
 import { InlineEntitySelector, type InlineEntityOption } from "../components/InlineEntitySelector";
 import { MarkdownEditor, type MarkdownEditorRef, type MentionOption } from "../components/MarkdownEditor";
-import { RoutineListRow, nextRoutineStatus } from "../components/RoutineList";
+import { RoutineTile, nextRoutineStatus } from "../components/RoutineList";
 import {
   RoutineRunVariablesDialog,
   type RoutineRunDialogSubmitData,
@@ -47,8 +47,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import type { RoutineListItem, RoutineVariable } from "@paperclipai/shared";
-import type { FolderListItem } from "@paperclipai/shared";
+import type { RoutineListItem, RoutineVariable } from "@clayon/shared";
+import type { FolderListItem } from "@clayon/shared";
 import {
   AllUnfiledBanner,
   BulkBar,
@@ -362,8 +362,8 @@ export function Routines() {
     variables: [],
   });
   const routineViewStateKey = selectedCompanyId
-    ? `paperclip:routines-view:${selectedCompanyId}`
-    : "paperclip:routines-view";
+    ? `clayon:routines-view:${selectedCompanyId}`
+    : "clayon:routines-view";
   const [routineViewState, setRoutineViewState] = useState<RoutineViewState>(() => getRoutineViewState(routineViewStateKey));
   const folderSelection = normalizeFolderSelection(searchParams.get("folder"));
 
@@ -484,7 +484,7 @@ export function Routines() {
         } catch (moveError) {
           pushToast({
             title: "Folder created, move failed",
-            body: moveError instanceof Error ? moveError.message : "Paperclip could not move the selected routines.",
+            body: moveError instanceof Error ? moveError.message : "Clayon could not move the selected routines.",
             tone: "error",
           });
           return;
@@ -497,7 +497,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Failed to save folder",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not save the folder.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not save the folder.",
         tone: "error",
       });
     },
@@ -513,7 +513,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Folder save failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not update the folder.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not update the folder.",
         tone: "error",
       });
     },
@@ -532,7 +532,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Folder delete failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not delete the folder.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not delete the folder.",
         tone: "error",
       });
     },
@@ -549,7 +549,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Move failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not move the routine.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not move the routine.",
         tone: "error",
       });
     },
@@ -579,7 +579,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Failed to update routine",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not update the routine.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not update the routine.",
         tone: "error",
       });
     },
@@ -614,7 +614,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Routine run failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not start the routine run.",
+        body: mutationError instanceof Error ? mutationError.message : "Clayon could not start the routine run.",
         tone: "error",
       });
     },
@@ -763,7 +763,7 @@ export function Routines() {
     } catch (moveError) {
       pushToast({
         title: "Failed to move routines",
-        body: moveError instanceof Error ? moveError.message : "Paperclip could not move the selected routines.",
+        body: moveError instanceof Error ? moveError.message : "Clayon could not move the selected routines.",
         tone: "error",
       });
     }
@@ -940,7 +940,7 @@ export function Routines() {
             agents={agents}
             projects={projects}
             liveIssueIds={liveIssueIds}
-            viewStateKey="paperclip:routine-recent-runs-view"
+            viewStateKey="clayon:routine-recent-runs-view"
             issueLinkState={recentRunsIssueLinkState}
             onUpdateIssue={(id, data) => updateIssue.mutate({ id, data })}
           />
@@ -1199,7 +1199,7 @@ export function Routines() {
 
           <div className="shrink-0 flex flex-col gap-3 border-t border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-muted-foreground">
-              After creation, Paperclip takes you straight to trigger setup. Draft routines stay paused until you add a default agent.
+              After creation, Clayon takes you straight to trigger setup. Draft routines stay paused until you add a default agent.
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
               <Button
@@ -1263,7 +1263,7 @@ export function Routines() {
           ) : null}
           {routineViewState.groupBy === "folder" && !hasRoutineFolders && !foldersLoading && visibleRoutines.length > 0 ? (
             <AllUnfiledBanner
-              storageKey={`paperclip:routines-folder-nudge:${selectedCompanyId ?? "none"}`}
+              storageKey={`clayon:routines-folder-nudge:${selectedCompanyId ?? "none"}`}
               itemLabelPlural="routines"
               onCreateFolder={() => openCreateFolder()}
             />
@@ -1327,8 +1327,9 @@ export function Routines() {
                       />
                     ) : null}
                     <CollapsibleContent>
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                       {group.items.map((routine) => (
-                        <RoutineListRow
+                        <RoutineTile
                           key={routine.id}
                           routine={routine}
                           projectById={projectById}
@@ -1337,7 +1338,6 @@ export function Routines() {
                           statusMutationRoutineId={statusMutationRoutineId}
                           href={`/routines/${routine.id}`}
                           runNowButton
-                          divider={false}
                           onRunNow={handleRunNow}
                           onToggleEnabled={handleToggleEnabled}
                           onToggleArchived={handleToggleArchived}
@@ -1374,6 +1374,7 @@ export function Routines() {
                           }
                         />
                       ))}
+                      </div>
                     </CollapsibleContent>
                   </Collapsible>
                 );

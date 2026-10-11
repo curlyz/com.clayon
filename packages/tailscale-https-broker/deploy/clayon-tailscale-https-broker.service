@@ -1,0 +1,26 @@
+[Unit]
+Description=Clayon Tailscale HTTPS broker
+After=tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+User=clayon-tsbroker
+Group=clayon-tsbroker-sock
+EnvironmentFile=/etc/clayon/tailscale-https-broker.env
+ExecStart=/usr/bin/node /opt/clayon/packages/tailscale-https-broker/dist/main.js
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RuntimeDirectory=clayon-tailscale-broker
+RuntimeDirectoryMode=0750
+StateDirectory=clayon-tailscale-broker
+StateDirectoryMode=0700
+LogsDirectory=clayon-tailscale-broker
+LogsDirectoryMode=0700
+ReadWritePaths=/run/clayon-tailscale-broker /var/lib/clayon-tailscale-broker /var/log/clayon-tailscale-broker
+
+[Install]
+WantedBy=multi-user.target

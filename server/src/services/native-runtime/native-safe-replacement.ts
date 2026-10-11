@@ -12,7 +12,7 @@ import {
   nativeRunFinalizations,
   toolInvocations,
   type Db,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { decideNativeReplacement } from "./native-replacement-evidence.js";
 import { issueService } from "../issues.js";
 import { issueRecoveryActionService } from "../issue-recovery-actions.js";
@@ -374,8 +374,8 @@ export async function reconcileSafeNativeReplacements(
         for (const key of [
           "explicitUserContinuation", "wakeCommentId", "wakeCommentIds", "commentId",
           "commentIds", "latestCommentId", "resumeIntent", "followUpRequested",
-          "paperclipWake", "paperclipWakeComment", "paperclipTaskMarkdown", "paperclipTaskMarkdownCompact",
-          "paperclipTaskMarkdownAssignment", "paperclipTaskMarkdownAssignmentCompact", "paperclipTurnContext",
+          "clayonWake", "clayonWakeComment", "clayonTaskMarkdown", "clayonTaskMarkdownCompact",
+          "clayonTaskMarkdownAssignment", "clayonTaskMarkdownAssignmentCompact", "clayonTurnContext",
         ]) delete predecessorContext[key];
         const context = {
           ...predecessorContext,

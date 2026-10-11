@@ -21,6 +21,7 @@ import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 import { StatusIcon } from "../components/StatusIcon";
 import { usePublishSharedQueryData, useSharedPollingQuery } from "../hooks/useSharedPolling";
 
@@ -34,7 +35,7 @@ import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRa
 import { PageSkeleton } from "../components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { InlineBanner } from "../components/InlineBanner";
-import type { Agent, Issue } from "@paperclipai/shared";
+import type { Agent, Issue } from "@clayon/shared";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { SmokeLabDashboardCard } from "../components/SmokeLabDashboardCard";
 
@@ -296,7 +297,7 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message="Welcome to Paperclip. Set up your first organization and agent to get started."
+          message="Welcome to Clayon. Set up your first organization and agent to get started."
           action="Get Started"
           onAction={openOnboarding}
         />
@@ -320,13 +321,15 @@ export function Dashboard() {
     pausedBanner?.kind === "imported" ? pausedBanner.pausedImportedAgentIds.length : 0;
 
   return (
-    <div className="space-y-6">
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+    <div className="flex flex-col">
+      <PageHeaderBand title="Dashboard" />
+      {error && <p className="px-4 py-3 text-sm text-destructive">{error.message}</p>}
 
       {pausedBanner?.kind === "imported" ? (
         <InlineBanner
           tone="warning"
           icon={PauseCircle}
+          className="mx-4 my-4"
           title={`${pausedImportedCount} imported agent${pausedImportedCount === 1 ? " is" : "s are"} paused and will not run.`}
           actions={
             <Button
@@ -345,6 +348,7 @@ export function Dashboard() {
         <InlineBanner
           tone="warning"
           icon={PauseCircle}
+          className="mx-4 my-4"
           title="All agents in this organization are paused — nothing will run."
           actions={
             <Button variant="ghost" size="sm" asChild>
@@ -360,6 +364,7 @@ export function Dashboard() {
         <InlineBanner
           tone="warning"
           icon={Bot}
+          className="mx-4 my-4"
           title="You have no agents."
           actions={
             <Button
@@ -373,7 +378,9 @@ export function Dashboard() {
         />
       )}
 
-      <ActiveAgentsPanel companyId={selectedCompanyId!} dedupeLinkedTasks />
+      <section className="border-t border-border py-4">
+        <ActiveAgentsPanel companyId={selectedCompanyId!} dedupeLinkedTasks />
+      </section>
 
       {data && (
         <>
@@ -381,6 +388,7 @@ export function Dashboard() {
             <InlineBanner
               tone="danger"
               icon={PauseCircle}
+              className="mx-4 my-4"
               title={`${data.budgets.activeIncidents} active budget incident${data.budgets.activeIncidents === 1 ? "" : "s"}`}
               actions={
                 <Button variant="link" size="sm" asChild>
@@ -392,7 +400,7 @@ export function Dashboard() {
             </InlineBanner>
           ) : null}
 
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-1 sm:gap-2">
+          <div className="grid gap-4 border-t border-border md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
@@ -446,22 +454,24 @@ export function Dashboard() {
             />
           </div>
 
-          <SmokeLabDashboardCard companyId={selectedCompanyId!} />
+          <section className="border-t border-border py-4">
+            <SmokeLabDashboardCard companyId={selectedCompanyId!} />
+          </section>
 
-          <div className={cn("grid grid-cols-2 gap-4", SHOW_TASK_PRIORITY_UI ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+          <div className={cn("grid grid-cols-2 gap-4 border-t border-border", SHOW_TASK_PRIORITY_UI ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
+            <ChartCard title="Run Activity" subtitle="Last 14 days" className="p-4">
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
             {/* PAP-411: "Tasks by Priority" chart hidden behind SHOW_TASK_PRIORITY_UI. */}
             {SHOW_TASK_PRIORITY_UI && (
-              <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
+              <ChartCard title="Tasks by Priority" subtitle="Last 14 days" className="p-4">
                 <PriorityChart issues={issues ?? []} />
               </ChartCard>
             )}
-            <ChartCard title="Tasks by Status" subtitle="Last 14 days">
+            <ChartCard title="Tasks by Status" subtitle="Last 14 days" className="p-4">
               <IssueStatusChart issues={issues ?? []} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title="Success Rate" subtitle="Last 14 days" className="p-4">
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
@@ -469,19 +479,21 @@ export function Dashboard() {
           <PluginSlotOutlet
             slotTypes={["dashboardWidget"]}
             context={{ companyId: selectedCompanyId }}
-            className="grid gap-4 md:grid-cols-2"
+            className="grid gap-4 border-t border-border md:grid-cols-2"
             // design-allow(card-pattern): class-string prop consumed by the plugin outlet; a component can't be passed here (C5a Run 3)
             itemClassName="rounded-lg border bg-card p-4 shadow-sm"
           />
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid border-t border-border md:grid-cols-2">
             {/* Recent Activity — chronological scan order, list justified
                 (per-page review criterion 1). */}
             {recentActivity.length > 0 && (
-              <section className="flex min-w-0 flex-col gap-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Recent Activity
-                </h3>
+              <section className="flex min-w-0 flex-col">
+                <div className="bg-muted/50 px-4 py-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Recent Activity
+                  </h3>
+                </div>
                 <div className="@container divide-y divide-border">
                   {recentActivity.map((event) => (
                     <ActivityRow
@@ -499,12 +511,14 @@ export function Dashboard() {
             )}
 
             {/* Recent Tasks — recency order, list justified (criterion 1). */}
-            <section className="flex min-w-0 flex-col gap-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Recent Tasks
-              </h3>
+            <section className="flex min-w-0 flex-col border-t border-border md:border-t-0 md:border-l">
+              <div className="bg-muted/50 px-4 py-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Recent Tasks
+                </h3>
+              </div>
               {recentIssues.length === 0 ? (
-                <p className="py-4 text-sm text-muted-foreground">No tasks yet.</p>
+                <p className="px-4 py-4 text-sm text-muted-foreground">No tasks yet.</p>
               ) : (
                 <div className="@container divide-y divide-border">
                   {recentIssues.slice(0, 10).map((issue) => (

@@ -1,5 +1,5 @@
-import type { Db } from "@paperclipai/db";
-import { issues, heartbeatRuns } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { issues, heartbeatRuns } from "@clayon/db";
 import { and, eq } from "drizzle-orm";
 import { canActorReadExecutionWorkspace, type AuthorizationActor, type AuthorizationDecision } from "./authorization.js";
 

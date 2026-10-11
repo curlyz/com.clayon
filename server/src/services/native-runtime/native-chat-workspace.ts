@@ -1,8 +1,8 @@
 import { lstat, mkdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { and, eq, sql } from "drizzle-orm";
-import { chatConversations, issues, type Db } from "@paperclipai/db";
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+import { chatConversations, issues, type Db } from "@clayon/db";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 
 export type NativeChatWorkspaceScope = {
   companyId: string;
@@ -58,7 +58,7 @@ export async function findNativeChatWorkspaceScope(
   if (issue.originKind !== "chat_channel" && !issue.hasConversation)
     return null;
   const instanceRoot = await realpath(
-    input.instanceRoot ?? resolvePaperclipInstanceRoot(),
+    input.instanceRoot ?? resolveClayonInstanceRoot(),
   );
   return {
     companyId: input.companyId,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Project } from "@paperclipai/shared";
+import type { Project } from "@clayon/shared";
 import { projectsApi } from "../api/projects";
 import { useCompany } from "../context/CompanyContext";
 import { useDialogActions } from "../context/DialogContext";
@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ArrowUpDown, Check, Hexagon, Plus } from "lucide-react";
 import { Lock } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { PageHeaderBand } from "../components/PageHeaderBand";
 
 type ProjectSortField = "name" | "updated" | "created" | "targetDate";
 type ProjectSortDir = "asc" | "desc";
@@ -128,9 +128,12 @@ export function Projects() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Popover>
+    <div className="flex flex-col">
+      <PageHeaderBand
+        title="Projects"
+        actions={(
+          <>
+            <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="w-fit text-xs" title="Sort">
               <ArrowUpDown className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
@@ -173,9 +176,11 @@ export function Projects() {
           <Plus className="h-4 w-4 mr-1" />
           Add Project
         </Button>
-      </div>
+          </>
+        )}
+      />
 
-      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      {error && <p className="px-4 py-2 text-sm text-destructive">{error.message}</p>}
 
       {!isLoading && projects.length === 0 && (
         <EmptyState
@@ -187,7 +192,7 @@ export function Projects() {
       )}
 
       {projects.length > 0 && (
-        <div className="space-y-6">
+        <div className="flex flex-col">
           {([
             ["My Projects", groupedProjects.mine],
             ["Other Projects", groupedProjects.other],
@@ -195,14 +200,14 @@ export function Projects() {
             if (sectionProjects.length === 0) return null;
 
             return (
-              <section key={label} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-medium">{label}</h2>
+              <section key={label} className="border-t border-border">
+                <div className="flex items-center justify-between bg-muted/50 px-4 py-3">
+                  <h2 className="text-sm font-semibold">{label}</h2>
                   <span className="text-xs text-muted-foreground">
                     {sectionProjects.length} project{sectionProjects.length === 1 ? "" : "s"}
                   </span>
                 </div>
-                <Card className="block py-0 overflow-hidden divide-y divide-border">
+                <div className="divide-y divide-border">
                   {sectionProjects.map((project) => {
                     const state = resourceMembershipState(membershipsQuery.data, "project", project.id);
                     const pending = membershipMutation.isPending &&
@@ -275,7 +280,7 @@ export function Projects() {
                       />
                     );
                   })}
-                </Card>
+                </div>
               </section>
             );
           })}

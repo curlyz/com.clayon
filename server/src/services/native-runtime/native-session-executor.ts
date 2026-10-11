@@ -1,10 +1,10 @@
-import { configuredEnvironment } from "../../vendor/paperclip-runner/index.js";
-import { agents } from "@paperclipai/db";
+import { configuredEnvironment } from "../../vendor/clayon-runner/index.js";
+import { agents } from "@clayon/db";
 import { isCloudManagedInstance } from "../cloud-instance.js";
 import { dotRunnerBroker } from "../dot-runner-broker.js";
-import { CURSOR_DISTRIBUTION_PINS, QUALIFIED_ACPX_PROFILES, QUALIFIED_ACPX_VERSION } from "../../vendor/paperclip-runner/index.js";
-import { isProviderMode } from "../../vendor/paperclip-runner/index.js";
-import { bundledRemoteProviderPackManifestPath, bundledRemoteRunnerBinary } from "../../vendor/paperclip-runner/index.js";
+import { CURSOR_DISTRIBUTION_PINS, QUALIFIED_ACPX_PROFILES, QUALIFIED_ACPX_VERSION } from "../../vendor/clayon-runner/index.js";
+import { isProviderMode } from "../../vendor/clayon-runner/index.js";
+import { bundledRemoteProviderPackManifestPath, bundledRemoteRunnerBinary } from "../../vendor/clayon-runner/index.js";
 import { nativeRetryCancellationEligible, rethrowNativeCancellationLockConflict, assertCancellationRequest, cancellationIntentId as callerCancellationIntentId, cancellationRequestId } from "./native-cancellation-request.js";
 import { readNativePlanWait } from "./native-plan-wait.js";
 import { nativeProviderLifecycle } from "./provider-lifecycle.js";
@@ -13,9 +13,9 @@ import { activeIssueInteractionCondition } from "../issue-question-context.js";
 import { resolveAcpxQualification } from "./acpx-qualification.js";
 import { readLocalAiCredentialFile } from "../local-ai-credential-file.js";
 import { prepareGrokRunnerCredentials } from "./grok-runner-credentials.js";
-import { copyBackGrokAuth } from "@paperclipai/adapter-grok-local/server";
+import { copyBackGrokAuth } from "@clayon/adapter-grok-local/server";
 
-import { inferOpenAiCompatibleBiller, type AdapterUsageCheckpoint } from "@paperclipai/adapter-utils";
+import { inferOpenAiCompatibleBiller, type AdapterUsageCheckpoint } from "@clayon/adapter-utils";
 import { createAgentIdentityRedactor } from "../agent-identity-redaction.js";
 import {
   isSupportedRemoteCodexVersion,
@@ -29,12 +29,12 @@ import { resolveGitHubOperationCredentials } from "../github-operation-credentia
 import { bindManagedNativeCredentialTurn, completeManagedNativeCredentialTurn } from "./managed-native-credentials.js";
 import { createLocalNativeQuestionBridge } from "./local-native-question-bridge.js";
 import { readVerifiedRemoteWorkspaceFile } from "./remote-deliverable-file.js";
-import { copyBackCodexAuth } from "@paperclipai/adapter-codex-local/server";
+import { copyBackCodexAuth } from "@clayon/adapter-codex-local/server";
 import {
   codexCliVersionAtLeast,
   minimumCodexCliVersionForModel,
   normalizeCodexModel,
-} from "@paperclipai/adapter-codex-local";
+} from "@clayon/adapter-codex-local";
 import { nativeCompletionFeedback } from "./native-completion-feedback.js";
 import { hasAcknowledgedNativeReassignmentStopIntent, hasAcknowledgedNativeStopIntent } from "../acknowledged-native-stop.js";
 import { stoppedCodexTurnIsTextOnly } from "./stopped-codex-turn.js";
@@ -76,18 +76,18 @@ import type {
   AdapterExecutionResult,
   AdapterRuntimeEvent,
 } from "../../adapters/index.js";
-import { usdToUnits, type NativeFinalizationResult } from "@paperclipai/shared";
+import { usdToUnits, type NativeFinalizationResult } from "@clayon/shared";
 import type {
   HarnessRuntimeRequestResolution,
   NativeExecutionInput,
   NativeRuntimeContextSnapshot,
   NativeSession,
   NativeSessionBackend,
-  PaperclipQuestionSet,
+  ClayonQuestionSet,
   PersistedNativeSession,
   PrpEvent,
   PrpStructuredRunResult,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import {
   NativeProviderTerminalFailure,
   NativeSessionCleanupQuarantinedError,
@@ -101,7 +101,7 @@ import {
   applyNativeSessionGoalControl,
   inspectWarmRunTransition,
   parseNativeExecutionInput,
-  parsePaperclipQuestionSet,
+  parseClayonQuestionSet,
   resolveSourceCodexHome,
   readRunnerdArtifactBinding,
   retainedRunnerdMaintenanceIsIdle,
@@ -111,17 +111,17 @@ import {
   type RunnerProcessHandle,
   type RunnerProcessLaunchSpec,
   type NativeSessionGoalControl,
-} from "../../vendor/paperclip-runner/index.js";
-import type { AdapterExecutionTarget } from "@paperclipai/adapter-utils/execution-target";
+} from "../../vendor/clayon-runner/index.js";
+import type { AdapterExecutionTarget } from "@clayon/adapter-utils/execution-target";
 import { createNativeSshCommandRunner } from "./native-ssh-command-runner.js";
 import { discoverRemoteExecutable, parseRemoteExecutableCandidate } from "./codex-model-fallback.js";
 export { parseRemoteExecutableCandidate } from "./codex-model-fallback.js";
-import type { CommandManagedRuntimeRunner } from "@paperclipai/adapter-utils/command-managed-runtime";
+import type { CommandManagedRuntimeRunner } from "@clayon/adapter-utils/command-managed-runtime";
 import {
-  resolvePaperclipRunnerTransport,
-  type PaperclipRunnerTransport,
-} from "@paperclipai/adapter-utils/runner-connectivity";
-import type { Db } from "@paperclipai/db";
+  resolveClayonRunnerTransport,
+  type ClayonRunnerTransport,
+} from "@clayon/adapter-utils/runner-connectivity";
+import type { Db } from "@clayon/db";
 import {
   and,
   desc,
@@ -145,11 +145,11 @@ import {
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
-import { PaperclipControlPlanePort } from "./paperclip-control-plane-port.js";
+} from "@clayon/db";
+import { ClayonControlPlanePort } from "./clayon-control-plane-port.js";
 import { appendHeartbeatRunEvent } from "../heartbeat-run-events.js";
 import { nativeSha256 } from "./canonical.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 import { createAssignedMcpTools, getAssignedMcpGateway } from "./assigned-mcp-tools.js";
 import { getNativeReviewAssignment, readNativeReviewAssignmentContext } from "./native-review-participant.js";
 import { NativeChatAttachmentReadScope } from "./chat-attachment-read.js";
@@ -169,7 +169,7 @@ import { issueRecoveryActionService } from "../issue-recovery-actions.js";
 import { reportRunFailure } from "../run-failure-report.js";
 import { persistActivity, publishActivity } from "../activity-log.js";
 import { commitNativeStatusDecision } from "./status-decision-committer.js";
-import { resolvePaperclipInstanceRoot } from "../../home-paths.js";
+import { resolveClayonInstanceRoot } from "../../home-paths.js";
 import { documentService } from "../documents.js";
 import { issueThreadInteractionService } from "../issue-thread-interactions.js";
 import { issueService } from "../issues.js";
@@ -180,7 +180,7 @@ import {
 } from "./status-arbiter.js";
 import { conflict, HttpError } from "../../errors.js";
 import { redactSensitiveText } from "../../redaction.js";
-import { resolvePaperclipRunnerBinary } from "./native-codex-runner.js";
+import { resolveClayonRunnerBinary } from "./native-codex-runner.js";
 import {
   createNativeRunTrace,
   isNativeRunRootHistoricalSpan,
@@ -764,7 +764,7 @@ export function buildNativeProviderEnvironment(
   );
   const environment = { ...inherited, ...configured };
   if (assignedWorkspaceCwd?.trim()) {
-    environment.PAPERCLIP_WORKSPACE_CWD = assignedWorkspaceCwd;
+    environment.CLAYON_WORKSPACE_CWD = assignedWorkspaceCwd;
   }
   return environment;
 }
@@ -812,7 +812,7 @@ type RuntimeQuestionFallback = {
     submitLabel?: string;
     supersedeOnUserComment: false;
     runtimeRequestId: string;
-    questionSet: PaperclipQuestionSet;
+    questionSet: ClayonQuestionSet;
     questions: Array<{
       id: string;
       prompt: string;
@@ -855,9 +855,9 @@ export function runtimeQuestionFallbackFromEvent(
     typeof request.itemId !== "string"
   )
     return null;
-  let questionSet: PaperclipQuestionSet;
+  let questionSet: ClayonQuestionSet;
   try {
-    questionSet = parsePaperclipQuestionSet(request.input);
+    questionSet = parseClayonQuestionSet(request.input);
   } catch {
     return null;
   }
@@ -1528,7 +1528,7 @@ export async function synchronizeCompletedProviderPlan(input: {
         idempotencyKey: `runner-plan-approval:v1:${input.execution.binding.runId}:${planId}:${providerRevision}:${digest}`,
         sourceRunId: input.execution.binding.runId,
         title: `Review plan revision ${revision.revisionNumber}`,
-        summary: "Review the synchronized Paperclip plan.",
+        summary: "Review the synchronized Clayon plan.",
         continuationPolicy: "wake_assignee",
         payload: {
           version: 1,
@@ -1621,10 +1621,10 @@ export async function synchronizeCompletedProviderPlan(input: {
 
 class SessionToolAuthorityEpoch {
   readonly runId: string;
-  #authority: PaperclipRunnerToolAuthority;
+  #authority: ClayonRunnerToolAuthority;
   #revoked = false;
 
-  constructor(runId: string, authority: PaperclipRunnerToolAuthority, private readonly toolTrace?: NativeToolTrace) {
+  constructor(runId: string, authority: ClayonRunnerToolAuthority, private readonly toolTrace?: NativeToolTrace) {
     this.runId = runId;
     this.#authority = authority;
   }
@@ -1645,7 +1645,7 @@ class SessionToolAuthorityEpoch {
     return this.#authority.definitions();
   }
 
-  async execute(call: Parameters<PaperclipRunnerToolAuthority["execute"]>[0]) {
+  async execute(call: Parameters<ClayonRunnerToolAuthority["execute"]>[0]) {
     this.#assertCurrent();
     return this.toolTrace
       ? await this.toolTrace.execute(call, () => this.#authority.execute(call))
@@ -1780,11 +1780,11 @@ function legacyCompanyNativeSessionScopeKey(
 
 function runnerdStateBase(): string {
   return (
-    process.env.PAPERCLIP_RUNNER_STATE_DIR ??
+    process.env.CLAYON_RUNNER_STATE_DIR ??
     resolve(
-      resolvePaperclipInstanceRoot(),
+      resolveClayonInstanceRoot(),
       "runtime",
-      "paperclip-runner",
+      "clayon-runner",
       "durable-sessions",
     )
   );
@@ -4421,7 +4421,7 @@ async function verifyWarmTransitionRestart(input: {
     return deny();
   const root = scopedRunnerdStateRoot(input.execution);
   const snapshot = readWarmTransitionSnapshot(root);
-  const artifact = readRunnerdArtifactBinding(resolvePaperclipRunnerBinary());
+  const artifact = readRunnerdArtifactBinding(resolveClayonRunnerBinary());
   const controller = await currentNativeControllerIdentity();
   const binding = input.execution.binding;
   let finalAuthorityCheck: (() => boolean) | undefined;
@@ -4723,7 +4723,7 @@ async function verifyWarmTransitionRestart(input: {
       )
         return false;
       const selected = readRunnerdArtifactBinding(
-        resolvePaperclipRunnerBinary(),
+        resolveClayonRunnerBinary(),
       );
       if (
         selected.version !== artifact.version ||
@@ -5072,7 +5072,7 @@ async function recoverQuiescentRunnerdState(input: {
           nativeSessionScopeKey(input.execution) ||
         nativeSessionConfigDigest(previous) !==
           nativeSessionConfigDigest(input.execution) ||
-        record(record(prior.contextSnapshot).paperclipEnvironment).driver !==
+        record(record(prior.contextSnapshot).clayonEnvironment).driver !==
           "local" ||
         checkpointIdentity.runId !== identity.runId ||
         checkpointIdentity.sessionId !== identity.normalizedSessionId ||
@@ -5192,7 +5192,7 @@ async function recoverQuiescentRunnerdState(input: {
   renameSync(temporary, statePath);
   await input.onLog?.(
     "stdout",
-    `[paperclip-runner] Automatically recovered settled session from run ${candidate.runId}; preserving the existing provider thread.\n`,
+    `[clayon-runner] Automatically recovered settled session from run ${candidate.runId}; preserving the existing provider thread.\n`,
   );
 }
 
@@ -5633,7 +5633,7 @@ export function providerSessionIdentityFromDurableProviderState(input: {
         identity.permissionMode !== input.execution.provider.permissionMode ||
         !acpxRecoveryModeMatches(input.execution.provider, descriptor.mode, identity.mode) ||
         !acpxRecoveryPiThinkingMatches(input.execution.provider, descriptor.piThinkingLevel, identity.piThinkingLevel) ||
-        !["approve-all", "approve-paperclip", "approve-reads", "deny-all"].includes(
+        !["approve-all", "approve-clayon", "approve-reads", "deny-all"].includes(
           String(identity.permissionMode),
         ) ||
         !Array.isArray(identity.providerLifetimeFenceCandidates) ||
@@ -5990,9 +5990,9 @@ export function verifyNativeHarnessBackup(input: {
 
 function nativeSessionCheckpointDirectory(): string {
   const directory = resolve(
-    resolvePaperclipInstanceRoot(),
+    resolveClayonInstanceRoot(),
     "runtime",
-    "paperclip-runner",
+    "clayon-runner",
     "sessions",
   );
   mkdirSync(directory, { recursive: true, mode: 0o700 });
@@ -6355,7 +6355,7 @@ export function nativeSessionFailureSourceCode(
 }
 
 const NATIVE_CLEANUP_OPERATOR_RECOVERY_MESSAGE =
-  "Send a new message to continue after Paperclip verifies that the previous provider and its tools have stopped. If cleanup cannot be verified, inspect the run and its environment. Clearing a task session does not resolve this quarantine. Automatic retries are stopped.";
+  "Send a new message to continue after Clayon verifies that the previous provider and its tools have stopped. If cleanup cannot be verified, inspect the run and its environment. Clearing a task session does not resolve this quarantine. Automatic retries are stopped.";
 
 const PROVIDER_DURABLE_EVENT_TYPES = new Set([
   "harness.ready",
@@ -7423,7 +7423,7 @@ function startNativeSessionExecutionLeaseRenewal(input: {
   };
 }
 
-export async function executePaperclipNativeSession(input: {
+export async function executeClayonNativeSession(input: {
   getFreshSessionHandoff?: () => Promise<string | null>;
   /** Retire a retained transport so recovery can replace provider tool declarations. */
   refreshTools?: boolean;
@@ -7444,7 +7444,7 @@ export async function executePaperclipNativeSession(input: {
   /** Test seam at the provider boundary; production uses a qualified package backend. */
   backend?: NativeSessionBackend;
   useRunnerd?: boolean;
-  /** Paperclip adapter identity used to scope the durable goal projection. */
+  /** Clayon adapter identity used to scope the durable goal projection. */
   adapterType?: string;
   /** Internal, run-owned file inspection lifetime; never supplied by tool arguments. */
   chatAttachmentReadScope?: NativeChatAttachmentReadScope;
@@ -7493,7 +7493,7 @@ export async function executePaperclipNativeSession(input: {
     },
   ) => Promise<unknown>;
 }): Promise<AdapterExecutionResult> {
-  const agentKeyId = input.runnerEnvironment?.PAPERCLIP_AGENT_KEY_ID;
+  const agentKeyId = input.runnerEnvironment?.CLAYON_AGENT_KEY_ID;
   if (agentKeyId) {
     // Recovered pre-upgrade inputs also need the current public identity marker
     // before deciding whether an already-running provider can be reused.
@@ -7541,7 +7541,7 @@ export async function executePaperclipNativeSession(input: {
       throw new Error("dot_cloud_requires_managed_runner");
     }
     if (!input.useRunnerd) {
-      return await executePaperclipNativeSessionWithinScope(input);
+      return await executeClayonNativeSessionWithinScope(input);
     }
     // The session scope is unaffected by appending server-staged attachment
     // descriptors. Claim it before any workspace scrub/write so a duplicate
@@ -7561,7 +7561,7 @@ export async function executePaperclipNativeSession(input: {
     await closingWarmNativeSessions.get(sessionScopeId);
 
     if (input.execution.provider.kind === "openai_dot") {
-      return await executePaperclipNativeSessionWithinScope(input);
+      return await executeClayonNativeSessionWithinScope(input);
     }
     const workspaceRoot = input.execution.workspace.cwd;
     if (workspaceRoot === null) throw new Error("native_workspace_required");
@@ -7609,7 +7609,7 @@ export async function executePaperclipNativeSession(input: {
         }),
       };
     }
-    return await executePaperclipNativeSessionWithinScope(preparedInput);
+    return await executeClayonNativeSessionWithinScope(preparedInput);
   } catch (error) {
     executionFailure = error;
     throw error;
@@ -7653,10 +7653,10 @@ export async function executePaperclipNativeSession(input: {
   }
 }
 
-async function executePaperclipNativeSessionWithinScope(
-  input: Parameters<typeof executePaperclipNativeSession>[0],
+async function executeClayonNativeSessionWithinScope(
+  input: Parameters<typeof executeClayonNativeSession>[0],
 ): Promise<AdapterExecutionResult> {
-  const identityRedactor = createAgentIdentityRedactor(input.runnerEnvironment?.PAPERCLIP_AGENT_PRIVATE_KEY);
+  const identityRedactor = createAgentIdentityRedactor(input.runnerEnvironment?.CLAYON_AGENT_PRIVATE_KEY);
   const redactIdentityText = (text: string) => redactSensitiveText(
     identityRedactor.chunk("diagnostic", text) + identityRedactor.finish("diagnostic"),
   );
@@ -8022,7 +8022,7 @@ async function executePaperclipNativeSessionWithinScope(
     if (input.onLog)
       await input.onLog(
         "stdout",
-        `${JSON.stringify({ type: "paperclip.plan.synchronization", synchronization })}\n`,
+        `${JSON.stringify({ type: "clayon.plan.synchronization", synchronization })}\n`,
       );
   };
   let nativeSessionExecuteStartedAtMs = Date.now();
@@ -8140,7 +8140,7 @@ async function executePaperclipNativeSessionWithinScope(
       throw new NativeControllerDetachedForRestartError();
     }
   };
-  const controlPlane = new PaperclipControlPlanePort(
+  const controlPlane = new ClayonControlPlanePort(
     input.db,
     {
       companyId: input.execution.binding.companyId,
@@ -8154,7 +8154,7 @@ async function executePaperclipNativeSessionWithinScope(
       controlPlaneSourceInstanceId: controlPlaneInstanceId,
     },
     {
-      privateKeyPem: input.runnerEnvironment?.PAPERCLIP_AGENT_PRIVATE_KEY,
+      privateKeyPem: input.runnerEnvironment?.CLAYON_AGENT_PRIVATE_KEY,
       assertControllerActive,
       onCommittedEvent: async (event) => {
         await observeAccountingEvent(event);
@@ -8288,7 +8288,7 @@ async function executePaperclipNativeSessionWithinScope(
         if (input.onLog)
           await input.onLog(
             "stdout",
-            `${JSON.stringify({ type: "paperclip.prp.event", event })}\n`,
+            `${JSON.stringify({ type: "clayon.prp.event", event })}\n`,
           );
         if (
           input.onEvent &&
@@ -8320,7 +8320,7 @@ async function executePaperclipNativeSessionWithinScope(
           await input.onLog(
             "stdout",
             `${JSON.stringify({
-              type: "paperclip.runtime_input.metric",
+              type: "clayon.runtime_input.metric",
               ...inputMetric,
             })}\n`,
           );
@@ -8336,7 +8336,7 @@ async function executePaperclipNativeSessionWithinScope(
             await input.onLog(
               "stdout",
               `${JSON.stringify({
-                type: "paperclip.runtime_input.metric",
+                type: "clayon.runtime_input.metric",
                 outcome:
                   record(event.payload).reason === "durable_handoff"
                     ? "durable_handoff_materialized"
@@ -8442,7 +8442,7 @@ async function executePaperclipNativeSessionWithinScope(
       // Old run-scoped environments still require process replacement. A
       // session-owned broker can change run authority without replacing it.
       const hasBrokerCapability = Boolean(
-        !input.managedGitHub && input.runnerEnvironment?.PAPERCLIP_GITHUB_BROKER_TOKEN,
+        !input.managedGitHub && input.runnerEnvironment?.CLAYON_GITHUB_BROKER_TOKEN,
       );
       const credentialRunChanged =
         Boolean(entry.credentialRunId) !== hasBrokerCapability ||
@@ -8459,9 +8459,9 @@ async function executePaperclipNativeSessionWithinScope(
         Boolean(entry.githubAccess) !== Boolean(input.managedGitHub) ||
         entry.githubAccess?.ready === false ||
         entry.githubAuthenticationMode !==
-          input.runnerEnvironment?.PAPERCLIP_GITHUB_AUTH_MODE ||
+          input.runnerEnvironment?.CLAYON_GITHUB_AUTH_MODE ||
         entry.networkAccess !==
-          (input.runnerEnvironment?.PAPERCLIP_RUNNER_NETWORK_ACCESS ===
+          (input.runnerEnvironment?.CLAYON_RUNNER_NETWORK_ACCESS ===
             "enabled")
       ) {
         const preparedCopy = entry.instructionPreparationRunId === input.execution.binding.runId;
@@ -8549,7 +8549,7 @@ async function executePaperclipNativeSessionWithinScope(
           activeIssueInteractionCondition({ runId: input.execution.binding.runId }),
           // Live provider questions resume their current turn; only durable
           // wake-based cards park it. A timeout creates a separate fallback.
-          sql`not (${issueThreadInteractions.kind} = 'ask_user_questions' and ${issueThreadInteractions.continuationPolicy} = 'none' and coalesce(${issueThreadInteractions.idempotencyKey}, '') like 'paperclip-runner-question:%')`,
+          sql`not (${issueThreadInteractions.kind} = 'ask_user_questions' and ${issueThreadInteractions.continuationPolicy} = 'none' and coalesce(${issueThreadInteractions.idempotencyKey}, '') like 'clayon-runner-question:%')`,
         ),
       )
       .orderBy(
@@ -8691,15 +8691,15 @@ async function executePaperclipNativeSessionWithinScope(
                 opencodeEnvironment: resolveNativeProviderEnvironment(input.execution.provider, input.runnerEnvironment),
                 acpxEnvironment: resolveNativeProviderEnvironment(input.execution.provider, input.runnerEnvironment),
                 opencodeRuntimeDirectory: resolve(
-                  resolvePaperclipInstanceRoot(),
+                  resolveClayonInstanceRoot(),
                   "runtime",
-                  "paperclip-runner",
+                  "clayon-runner",
                   "opencode",
                 ),
                 acpxRuntimeDirectory: resolve(
-                  resolvePaperclipInstanceRoot(),
+                  resolveClayonInstanceRoot(),
                   "runtime",
-                  "paperclip-runner",
+                  "clayon-runner",
                   "acpx",
                 ),
               }),
@@ -8779,13 +8779,13 @@ async function executePaperclipNativeSessionWithinScope(
               ).slice(-4_096);
               await input.onLog?.(
                 "stderr",
-                `[paperclip-runner] post-completion ${stage} enrichment failed: ${detail}\n`,
+                `[clayon-runner] post-completion ${stage} enrichment failed: ${detail}\n`,
               );
             },
             onSessionQuarantined: async (reason) => {
               await input.onLog?.(
                 "stderr",
-                `[paperclip-runner] warm native session quarantined: ${redactIdentityText(reason).slice(-1_000)}\n`,
+                `[clayon-runner] warm native session quarantined: ${redactIdentityText(reason).slice(-1_000)}\n`,
               );
             },
             onContinuityBreak: async (continuity) => {
@@ -8809,7 +8809,7 @@ async function executePaperclipNativeSessionWithinScope(
               });
               await input.onLog?.(
                 "stderr",
-                `[paperclip-runner] provider session continuity break: exact resume failed (${continuity.reason}); old driver session=${continuity.previousDriverSessionId}, old provider session=${continuity.previousProviderSessionId ?? "unavailable"}, replacement driver session=${continuity.replacementDriverSessionId}, replacement provider session=${continuity.replacementProviderSessionId ?? "unavailable"}\n`,
+                `[clayon-runner] provider session continuity break: exact resume failed (${continuity.reason}); old driver session=${continuity.previousDriverSessionId}, old provider session=${continuity.previousProviderSessionId ?? "unavailable"}, replacement driver session=${continuity.replacementDriverSessionId}, replacement provider session=${continuity.replacementProviderSessionId ?? "unavailable"}\n`,
               );
             },
             onSession: async (session) => {
@@ -8851,13 +8851,13 @@ async function executePaperclipNativeSessionWithinScope(
                     agentId: input.execution.binding.agentId,
                     managedAiCredentialIdentity: input.managedAiCredentialIdentity,
                     githubAuthenticationMode:
-                      input.runnerEnvironment?.PAPERCLIP_GITHUB_AUTH_MODE,
+                      input.runnerEnvironment?.CLAYON_GITHUB_AUTH_MODE,
                     networkAccess:
                       input.runnerEnvironment
-                        ?.PAPERCLIP_RUNNER_NETWORK_ACCESS === "enabled",
+                        ?.CLAYON_RUNNER_NETWORK_ACCESS === "enabled",
                     githubAccess,
                     credentialRunId: !input.managedGitHub && input.runnerEnvironment
-                      ?.PAPERCLIP_GITHUB_BROKER_TOKEN
+                      ?.CLAYON_GITHUB_BROKER_TOKEN
                       ? input.execution.binding.runId
                       : undefined,
                     session,
@@ -8976,7 +8976,7 @@ async function executePaperclipNativeSessionWithinScope(
       if (warmSessionId !== null && lifecyclePolicy.mode === "warm") {
         await releaseWarmNativeSession(warmSessionId, warmSessionOwnerToken, lifecyclePolicy.idleTimeoutMs, true);
       }
-      await input.onLog?.("stderr", "[paperclip-runner] managed credential refresh failed; provider session retired.\n");
+      await input.onLog?.("stderr", "[clayon-runner] managed credential refresh failed; provider session retired.\n");
     }
     if (native.terminal.runTerminalState === "succeeded") {
       // A truncated, verified external-chat wake cannot settle from the
@@ -9427,7 +9427,7 @@ async function executePaperclipNativeSessionWithinScope(
         await attemptFailureStep(() =>
           input.onLog?.(
             "stderr",
-            `[paperclip-runner] native session execution failed: ${executionFailureMessage}\n`,
+            `[clayon-runner] native session execution failed: ${executionFailureMessage}\n`,
           ),
         );
         if (runnerSessionStartupScope) {
@@ -9872,10 +9872,10 @@ export function mayUsePreinstalledRunnerArtifact(
 }
 
 const RUNNERD_BUILD_METADATA_SCHEMA =
-  "paperclip-runner/runnerd-build-metadata/v1";
+  "clayon-runner/runnerd-build-metadata/v1";
 const RUNNERD_BINARY_CONTRACT_VERSION = 2;
 
-const REMOTE_PROVIDER_PACK_SCHEMA = "paperclip-runner/remote-provider-pack/v1";
+const REMOTE_PROVIDER_PACK_SCHEMA = "clayon-runner/remote-provider-pack/v1";
 const REMOTE_PROVIDER_PACK_PINS = {
   nodeMinimum: "24.11.0",
   codex: QUALIFIED_ACPX_PROFILES.codex.agentRuntimeVersion,
@@ -10153,8 +10153,8 @@ export function assertRemoteRunnerBuildMetadata(
   const metadata = value as Record<string, unknown>;
   if (
     metadata.schema !== RUNNERD_BUILD_METADATA_SCHEMA ||
-    metadata.binaryName !== "paperclip-runnerd" ||
-    metadata.packageName !== "@paperclipai/paperclip-runner" ||
+    metadata.binaryName !== "clayon-runnerd" ||
+    metadata.packageName !== "@clayon/clayon-runner" ||
     metadata.binaryContractVersion !== RUNNERD_BINARY_CONTRACT_VERSION
   ) {
     throw new Error("runner_remote_artifact_contract_incompatible");
@@ -10164,7 +10164,7 @@ export function assertRemoteRunnerBuildMetadata(
   // Reject them before launch so preparation stages the bundled runner instead.
   if (requiredExternalProvider && (!Array.isArray(metadata.externalProviderCapabilities)
       || !metadata.externalProviderCapabilities.includes(requiredExternalProvider))) {
-    throw new Error("runner_remote_dot_capability_missing: install the current Paperclip Runner artifact");
+    throw new Error("runner_remote_dot_capability_missing: install the current Clayon Runner artifact");
   }
   const sessionCapabilities = Array.isArray(metadata.durableSessionCapabilities)
     ? metadata.durableSessionCapabilities
@@ -10259,7 +10259,7 @@ export async function stageRemoteRunnerDirectory(input: {
     let sourcePath = input.sourcePath;
     try {
       if (excludeArgs.length > 0) {
-        stagingRoot = mkdtempSync(join(tmpdir(), "paperclip-runner-restore-"));
+        stagingRoot = mkdtempSync(join(tmpdir(), "clayon-runner-restore-"));
         const archive = execFileSync(
           "tar",
           [...excludeArgs, "-czf", "-", "-C", input.sourcePath, "."],
@@ -10454,7 +10454,7 @@ export async function syncRemoteRunnerDirectoryOut(input: {
       const checkpointId = randomUUID();
       snapshotPath = posix.join(
         posix.dirname(input.sourcePath),
-        `.paperclip-checkpoint-${checkpointId}`,
+        `.clayon-checkpoint-${checkpointId}`,
       );
       const archivePath = `${snapshotPath}.tar`;
       const escapedSource = input.sourcePath.replaceAll("'", "'\\''");
@@ -10519,11 +10519,11 @@ export async function syncRemoteRunnerDirectoryOut(input: {
   const archive = Buffer.from(result.stdout.replace(/\s+/g, ""), "base64");
   assertSafeRemoteCheckpointArchive(archive);
   const parent = resolve(input.targetPath, "..");
-  const stagingRoot = mkdtempSync(join(parent, ".paperclip-checkpoint-"));
+  const stagingRoot = mkdtempSync(join(parent, ".clayon-checkpoint-"));
   const stagedTarget = join(stagingRoot, "payload");
   const previousTarget = join(
     parent,
-    `.paperclip-checkpoint-previous-${randomUUID()}`,
+    `.clayon-checkpoint-previous-${randomUUID()}`,
   );
   let previousMoved = false;
   let replacementInstalled = false;
@@ -10697,8 +10697,8 @@ export async function verifyRemoteRunnerReattachment(input: {
   const runner = target.runner;
   const stateDirectory = posix.join(
     target.remoteCwd,
-    ".paperclip-runtime",
-    "paperclip-runner",
+    ".clayon-runtime",
+    "clayon-runner",
     "sessions",
     createHash("sha256").update(input.normalizedSessionId).digest("hex"),
     "runner",
@@ -10726,7 +10726,7 @@ export async function verifyRemoteRunnerReattachment(input: {
     args: [
       "-c",
       'test -f "$1" && test ! -L "$1" && cat -- "$1"',
-      "paperclip-runner-recovery-identity",
+      "clayon-runner-recovery-identity",
       identityPath,
     ],
     bypassSession: true,
@@ -10751,7 +10751,7 @@ export async function verifyRemoteRunnerReattachment(input: {
         "-c",
         `${REMOTE_RUNNER_IDENTITY_CHECK_SCRIPT}; ${REMOTE_RUNNER_PROCESS_FINGERPRINT_SCRIPT}; test "$process_fingerprint" = "$5" || exit 4` +
           (signal ? '; kill -"$6" "$pid"' : ""),
-        "paperclip-runner-recovery-check",
+        "clayon-runner-recovery-check",
         identityPath,
         nonce,
         runnerInstanceId,
@@ -10791,7 +10791,7 @@ async function waitForRemoteRunnerProcessIdentity(input: {
         args: [
           "-c",
           'test -f "$1" && test ! -L "$1" && cat -- "$1"',
-          "paperclip-runner-process-identity",
+          "clayon-runner-process-identity",
           input.identityPath,
         ],
         bypassSession: true,
@@ -10820,7 +10820,7 @@ async function cleanupRemoteRunnerAfterIdentityFailure(input: {
       args: [
         "-c",
         REMOTE_RUNNER_FAILED_IDENTITY_CLEANUP_SCRIPT,
-        "paperclip-runner-identity-failure-cleanup",
+        "clayon-runner-identity-failure-cleanup",
         input.identityPath,
         input.nonce,
         input.runnerInstanceId,
@@ -10880,7 +10880,7 @@ export function createRemoteRunnerProcessLauncher(input: {
           args: [
             "-c",
             `${REMOTE_RUNNER_IDENTITY_CHECK_SCRIPT}; kill -${signal} "$expected_pid"`,
-            "paperclip-runner-signal",
+            "clayon-runner-signal",
             input.processIdentityPath,
             identity.nonce,
             input.runnerInstanceId,
@@ -10939,7 +10939,7 @@ export function createRemoteRunnerProcessLauncher(input: {
       }
       // Do not keep runnerd as the foreground command of a provider RPC. Some
       // sandbox command/session transports impose a provider-side lifetime on
-      // that RPC even when Paperclip requests a longer timeout. Detach runnerd
+      // that RPC even when Clayon requests a longer timeout. Detach runnerd
       // into its own session instead; its own bounded diagnostics directory and
       // durable PRP state remain the authorities, and the controller monitors
       // the exact persisted process identity below.
@@ -10947,8 +10947,8 @@ export function createRemoteRunnerProcessLauncher(input: {
         command: "sh",
         args: [
           "-c",
-          'set -eu; identity_path=$1; identity_nonce=$2; runner_instance_id=$3; child_script=$4; shift 4; umask 077; identity_dir=$(dirname -- "$identity_path"); mkdir -p -- "$identity_dir"; if command -v setsid >/dev/null 2>&1; then nohup setsid sh -c "$child_script" paperclip-runner-child "$identity_path" "$identity_nonce" "$runner_instance_id" "$@" </dev/null >/dev/null 2>&1 & else nohup sh -c "$child_script" paperclip-runner-child "$identity_path" "$identity_nonce" "$runner_instance_id" "$@" </dev/null >/dev/null 2>&1 & fi',
-          "paperclip-runner-launch",
+          'set -eu; identity_path=$1; identity_nonce=$2; runner_instance_id=$3; child_script=$4; shift 4; umask 077; identity_dir=$(dirname -- "$identity_path"); mkdir -p -- "$identity_dir"; if command -v setsid >/dev/null 2>&1; then nohup setsid sh -c "$child_script" clayon-runner-child "$identity_path" "$identity_nonce" "$runner_instance_id" "$@" </dev/null >/dev/null 2>&1 & else nohup sh -c "$child_script" clayon-runner-child "$identity_path" "$identity_nonce" "$runner_instance_id" "$@" </dev/null >/dev/null 2>&1 & fi',
+          "clayon-runner-launch",
           input.processIdentityPath,
           identityNonce,
           input.runnerInstanceId,
@@ -11022,7 +11022,7 @@ export function createRemoteRunnerProcessLauncher(input: {
           args: [
             "-c",
             REMOTE_RUNNER_IDENTITY_CHECK_SCRIPT,
-            "paperclip-runner-monitor",
+            "clayon-runner-monitor",
             input.processIdentityPath,
             identityNonce,
             input.runnerInstanceId,
@@ -11045,7 +11045,7 @@ export function createRemoteRunnerProcessLauncher(input: {
             args: [
               "-c",
               'set -eu; directory=$1; file="$directory/runnerd.stderr.log"; test -d "$directory" && test ! -L "$directory" && test -f "$file" && test ! -L "$file"; tail -c 65536 -- "$file"',
-              "paperclip-runner-diagnostics",
+              "clayon-runner-diagnostics",
               input.diagnosticsDirectory,
             ],
             bypassSession: true,
@@ -11185,7 +11185,7 @@ export async function createRunnerdBackend(input: {
   initializingSessionToolAuthorities.add(sessionScopeId);
   try {
     let retainedTransition: VerifiedWarmTransitionBinding | undefined;
-    // executePaperclipNativeSession holds the full session-scope claim and
+    // executeClayonNativeSession holds the full session-scope claim and
     // verifies/migrates the durable root before it acquires the coordinator
     // lease. Avoid reclassifying the same root after that path has marked its
     // retained warm owner busy for this run. Direct backend construction still
@@ -11227,9 +11227,9 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
   root: string;
   identity: NonNullable<NonNullable<Parameters<typeof createNativeSessionBackend>[1]>["dotRunnerOptions"]>["identity"];
 }) {
-  const runnerBinary = input.runnerRemoteBinaryPath?.trim() || resolvePaperclipRunnerBinary();
-  const remoteRoot = posix.join(target.remoteCwd, ".paperclip-runtime", "paperclip-runner");
-  const remoteBinary = posix.join(remoteRoot, "bin", "paperclip-runnerd");
+  const runnerBinary = input.runnerRemoteBinaryPath?.trim() || resolveClayonRunnerBinary();
+  const remoteRoot = posix.join(target.remoteCwd, ".clayon-runtime", "clayon-runner");
+  const remoteBinary = posix.join(remoteRoot, "bin", "clayon-runnerd");
   const runnerStateDirectory = posix.join(remoteRoot, "sessions",
     createHash("sha256").update(identity.normalizedSessionId).digest("hex"), "runner");
   const requiredMode = resolveRemoteRunnerTransportMode({ target, runnerIngressAuthorized: input.runnerIngressAuthorized === true });
@@ -11241,7 +11241,7 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
         const [os, arch] = platform.stdout.trim().split(/\r?\n/);
         if (platform.exitCode !== 0 || platform.timedOut || os !== (process.platform === "darwin" ? "Darwin" : "Linux")
           || ![process.arch === "x64" ? "x86_64" : "aarch64", process.arch].includes(arch)) {
-          throw new Error("runner_remote_artifact_platform_mismatch: configure PAPERCLIP_RUNNER_REMOTE_BINARY_PATH for the sandbox platform");
+          throw new Error("runner_remote_artifact_platform_mismatch: configure CLAYON_RUNNER_REMOTE_BINARY_PATH for the sandbox platform");
         }
       }
       await stageRemoteRunnerFile({ target, runner, sourcePath: runnerBinary, targetPath: remoteBinary, mode: 0o700 });
@@ -11250,7 +11250,7 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
     if (metadata.exitCode !== 0 || metadata.timedOut) throw new Error("runner_remote_artifact_verification_failed");
     assertRemoteRunnerBuildMetadata(JSON.parse(metadata.stdout), requiredMode, "openai_dot_mcp");
     const checksum = await runner.execute({ command: "sh", args: ["-c",
-      'if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi', "paperclip-dot-artifact", remoteBinary],
+      'if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi', "clayon-dot-artifact", remoteBinary],
       bypassSession: true, timeoutMs: 10000 });
     if (checksum.exitCode !== 0 || checksum.timedOut || `sha256:${checksum.stdout.trim().split(/\s+/)[0]}` !== artifact.digest) {
       throw new Error("runner_remote_artifact_verification_failed");
@@ -11259,7 +11259,7 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
   const readProviderState = async () => {
     const result = await runner.execute({ command: "sh", args: ["-c",
       'set -eu; if test ! -e "$1" && test ! -L "$1"; then exit 3; fi; test -f "$1" && test ! -L "$1"; test "$(wc -c < "$1")" -le 33554432; base64 < "$1"',
-      "paperclip-dot-checkpoint", posix.join(runnerStateDirectory, "dot-provider-state.json")], bypassSession: true, timeoutMs: 10000 });
+      "clayon-dot-checkpoint", posix.join(runnerStateDirectory, "dot-provider-state.json")], bypassSession: true, timeoutMs: 10000 });
     if (result.exitCode === 3 && !result.timedOut) return null;
     if (result.exitCode !== 0 || result.timedOut) throw new Error("dot_provider_checkpoint_unavailable");
     const state = record(JSON.parse(Buffer.from(result.stdout.replace(/\s+/g, ""), "base64").toString("utf8")));
@@ -11298,20 +11298,20 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
     return handle;
   };
   const controlPlaneRegistration: NonNullable<NonNullable<NonNullable<Parameters<typeof createNativeSessionBackend>[1]>["dotRunnerOptions"]>["controlPlaneRegistration"]> = async authority => {
-    let transport: PaperclipRunnerTransport;
+    let transport: ClayonRunnerTransport;
     // Validate outbound URL before staging; provider ingress needs the staged
     // listener binary before requesting the provider's private endpoint.
     if (requiredMode === "dial_wss") {
-      transport = await resolvePaperclipRunnerTransport({ target, runId: input.execution.binding.runId,
+      transport = await resolveClayonRunnerTransport({ target, runId: input.execution.binding.runId,
         localConnectUrl: "ws://127.0.0.1/unused", runnerPublicUrl: input.runnerPublicUrl,
         runnerCaBundlePath: input.runnerCaBundlePath, runnerIngressAuthorized: input.runnerIngressAuthorized === true });
       await prepare();
     } else {
       await prepare();
-      transport = await resolvePaperclipRunnerTransport({ target, runId: input.execution.binding.runId,
+      transport = await resolveClayonRunnerTransport({ target, runId: input.execution.binding.runId,
         localConnectUrl: "ws://127.0.0.1/unused", runnerIngressAuthorized: input.runnerIngressAuthorized === true });
     }
-    await input.onLog?.("stderr", `[paperclip-runner] Dot controller target=remote transport=${transport.mode}\n`);
+    await input.onLog?.("stderr", `[clayon-runner] Dot controller target=remote transport=${transport.mode}\n`);
     if (transport.mode !== "provider_ingress") {
       const registration = await registerRunnerPrpAuthority({ companyId: input.execution.binding.companyId,
         issueId: input.execution.binding.issueId, agentId: input.execution.binding.agentId,
@@ -11382,9 +11382,9 @@ async function createRunnerdBackendWithinSessionClaim(
   // the assigned gateway on the control plane instead of asking the sandbox to
   // reach the host's HTTP origin (which may be private or loopback-only).
   const relayAssignedMcp = (remoteTarget !== null && input.execution.provider.kind === "codex") || input.execution.provider.kind === "openai_dot";
-  const assignedMcpUrl = input.runnerEnvironment?.PAPERCLIP_NATIVE_MCP_URL;
-  const assignedMcpToken = input.runnerEnvironment?.PAPERCLIP_NATIVE_MCP_TOKEN;
-  const assignedMcpName = input.runnerEnvironment?.PAPERCLIP_NATIVE_MCP_NAME;
+  const assignedMcpUrl = input.runnerEnvironment?.CLAYON_NATIVE_MCP_URL;
+  const assignedMcpToken = input.runnerEnvironment?.CLAYON_NATIVE_MCP_TOKEN;
+  const assignedMcpName = input.runnerEnvironment?.CLAYON_NATIVE_MCP_NAME;
   const hasAssignedMcp = Boolean(assignedMcpName || assignedMcpUrl || assignedMcpToken);
   if (relayAssignedMcp && hasAssignedMcp && (!assignedMcpName?.trim() || !assignedMcpUrl?.trim() || !assignedMcpToken?.trim())) {
     throw new Error("assigned native MCP launch binding is incomplete");
@@ -11407,7 +11407,7 @@ async function createRunnerdBackendWithinSessionClaim(
     ? await input.db.select({ config: agents.adapterConfig }).from(agents).where(and(
         eq(agents.id, input.execution.binding.agentId), eq(agents.companyId, input.execution.binding.companyId),
       )).limit(1).then(rows => rows[0]) : undefined;
-  const authority = new PaperclipRunnerToolAuthority(input.db, {
+  const authority = new ClayonRunnerToolAuthority(input.db, {
     ...(nativeReview ? { nativeReview } : {}),
     connectorAssignments: connectorAssignments.filter((assignment) => pinnedSkills.has(assignment.skillKey)),
     assignedMcpTools,
@@ -11425,7 +11425,7 @@ async function createRunnerdBackendWithinSessionClaim(
     workspaceBridge: input.execution.provider.kind === "openai_dot" && !!input.dotWorkspaceRoot,
     taskAttachmentRead: dotAttachmentActor?.config.dotAttachmentAccess === true,
     dotRuntime: input.execution.provider.kind === "openai_dot",
-    assertBridgeAuthority: input.execution.provider.kind === "openai_dot" ? () => dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/paperclip-runner/index.js").NativeExecutionInputV6) : undefined,
+    assertBridgeAuthority: input.execution.provider.kind === "openai_dot" ? () => dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/clayon-runner/index.js").NativeExecutionInputV6) : undefined,
     workspaceRoot: input.dotWorkspaceRoot ?? remoteTarget?.remoteCwd ?? input.execution.workspace.cwd ?? undefined,
     executionTargetKind: target.kind,
     readRemoteWorkspaceFile: remoteTarget && remoteCommandRunner
@@ -11476,10 +11476,10 @@ async function createRunnerdBackendWithinSessionClaim(
     const recoveredProcess = input.restartRecovery?.kind === "reattach_existing_runner" ? input.restartRecovery.process : null;
     const backend = createNativeSessionBackend(input.execution, {
       onSpawn: input.onSpawn, dynamicTools,
-      dynamicToolHandler: async call => { await dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/paperclip-runner/index.js").NativeExecutionInputV6); return authorityEpoch.execute(call); },
-      completionFeedback: async result => { await dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/paperclip-runner/index.js").NativeExecutionInputV6); await authorityEpoch.definitions(); return nativeCompletionFeedback(input.db, input.execution.binding.runId, result); },
+      dynamicToolHandler: async call => { await dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/clayon-runner/index.js").NativeExecutionInputV6); return authorityEpoch.execute(call); },
+      completionFeedback: async result => { await dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/clayon-runner/index.js").NativeExecutionInputV6); await authorityEpoch.definitions(); return nativeCompletionFeedback(input.db, input.execution.binding.runId, result); },
       dotRunnerOptions: {
-        stateDirectory: root, runnerBinary: remoteDot?.runnerBinary ?? resolvePaperclipRunnerBinary(),
+        stateDirectory: root, runnerBinary: remoteDot?.runnerBinary ?? resolveClayonRunnerBinary(),
         ...(remoteDot ?? {}),
         identity: { runnerInstanceId: effectiveRunnerInstanceId, environmentLeaseId: effectiveEnvironmentLeaseId,
           runId: input.execution.binding.runId, normalizedSessionId: nativeSessionKey(input.execution),
@@ -11501,8 +11501,8 @@ async function createRunnerdBackendWithinSessionClaim(
   const remoteRuntimeRoot = remoteTarget
     ? posix.join(
         remoteTarget.remoteCwd,
-        ".paperclip-runtime",
-        "paperclip-runner",
+        ".clayon-runtime",
+        "clayon-runner",
       )
     : null;
   const requiresRemoteProviderPack =
@@ -11532,7 +11532,7 @@ async function createRunnerdBackendWithinSessionClaim(
       !lstatSync(configuredProviderPackRoot).isDirectory()
     ) {
       throw new Error(
-        "runner_remote_provider_artifact_incompatible: configure PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH with the build-owned provider pack",
+        "runner_remote_provider_artifact_incompatible: configure CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH with the build-owned provider pack",
       );
     }
     expectedProviderPackManifest = readRemoteProviderPackManifest(
@@ -11544,7 +11544,7 @@ async function createRunnerdBackendWithinSessionClaim(
     : null;
   let activeRemoteProviderPackRoot: string | null = null;
   const remoteBinary = remoteRuntimeRoot
-    ? posix.join(remoteRuntimeRoot, "bin", "paperclip-runnerd")
+    ? posix.join(remoteRuntimeRoot, "bin", "clayon-runnerd")
     : null;
   // The transport hashes runnerBinary on the controller before an external
   // launcher starts runnerd. Keep that artifact identity in the controller's
@@ -11552,8 +11552,8 @@ async function createRunnerdBackendWithinSessionClaim(
   // When an explicit remote artifact is configured, prepareRemoteRunner stages
   // these exact bytes at remoteBinary before launch.
   const controllerRunnerBinary = remoteTarget
-    ? input.runnerRemoteBinaryPath?.trim() || remotePiCompanion?.runnerBinary || (useBundledRemoteImageAssets ? bundledRemoteRunnerBinary() : resolvePaperclipRunnerBinary())
-    : resolvePaperclipRunnerBinary();
+    ? input.runnerRemoteBinaryPath?.trim() || remotePiCompanion?.runnerBinary || (useBundledRemoteImageAssets ? bundledRemoteRunnerBinary() : resolveClayonRunnerBinary())
+    : resolveClayonRunnerBinary();
   const explicitRemoteCodex = input.runnerRemoteCodexPath?.trim() || null;
   const remoteCodexNpmSpec = input.runnerRemoteCodexNpmSpec?.trim() || null;
   if (explicitRemoteCodex && remoteCodexNpmSpec) {
@@ -11685,7 +11685,7 @@ async function createRunnerdBackendWithinSessionClaim(
     const version = parseCodexCliVersion(versionOutput);
     if (!version || !isSupportedRemoteCodexVersion(version)) {
       throw new Error(
-        `runner_remote_provider_artifact_incompatible: supported Codex versions ${REMOTE_CODEX_SUPPORTED_RANGE}, received ${version ?? "an unrecognized or prerelease version"}; install a supported stable Codex release or configure PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@${REMOTE_PROVIDER_PACK_PINS.codex}`,
+        `runner_remote_provider_artifact_incompatible: supported Codex versions ${REMOTE_CODEX_SUPPORTED_RANGE}, received ${version ?? "an unrecognized or prerelease version"}; install a supported stable Codex release or configure CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@${REMOTE_PROVIDER_PACK_PINS.codex}`,
       );
     }
     // A Codex inside the compatibility window can still be too old for the
@@ -11700,14 +11700,14 @@ async function createRunnerdBackendWithinSessionClaim(
     const modelMinimum = minimumCodexCliVersionForModel(configuredModel);
     if (modelMinimum && !codexCliVersionAtLeast(version, modelMinimum)) {
       throw new Error(
-        `runner_remote_provider_artifact_incompatible: ${normalizeCodexModel(configuredModel)} requires Codex ${modelMinimum} or newer with ChatGPT sign-in, received ${version} from the sandbox image; promote a sandbox image with Codex ${REMOTE_PROVIDER_PACK_PINS.codex} or configure PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@${REMOTE_PROVIDER_PACK_PINS.codex}`,
+        `runner_remote_provider_artifact_incompatible: ${normalizeCodexModel(configuredModel)} requires Codex ${modelMinimum} or newer with ChatGPT sign-in, received ${version} from the sandbox image; promote a sandbox image with Codex ${REMOTE_PROVIDER_PACK_PINS.codex} or configure CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC=@openai/codex@${REMOTE_PROVIDER_PACK_PINS.codex}`,
       );
     }
     if (version !== REMOTE_PROVIDER_PACK_PINS.codex && !reportedCodexVersions.has(version)) {
       reportedCodexVersions.add(version);
       await input.onLog?.(
         "stderr",
-        `[paperclip-runner] using compatible Codex ${version} (supported ${REMOTE_CODEX_SUPPORTED_RANGE}; install pin ${REMOTE_PROVIDER_PACK_PINS.codex})\n`,
+        `[clayon-runner] using compatible Codex ${version} (supported ${REMOTE_CODEX_SUPPORTED_RANGE}; install pin ${REMOTE_PROVIDER_PACK_PINS.codex})\n`,
       );
     }
   };
@@ -11786,7 +11786,7 @@ async function createRunnerdBackendWithinSessionClaim(
       command: "sh",
       args: [
         "-c",
-        'for candidate in /opt/paperclip-runner/provider-pack "$HOME/.local/share/paperclip-runner/provider-pack"; do if [ -f "$candidate/provider-pack.json" ]; then printf \'%s\\n\' "$candidate"; break; fi; done',
+        'for candidate in /opt/clayon-runner/provider-pack "$HOME/.local/share/clayon-runner/provider-pack"; do if [ -f "$candidate/provider-pack.json" ]; then printf \'%s\\n\' "$candidate"; break; fi; done',
       ],
       cwd: remoteTarget.remoteCwd,
       bypassSession: true,
@@ -11800,7 +11800,7 @@ async function createRunnerdBackendWithinSessionClaim(
   // local adapters. Preferred bin entries must point to that same installation;
   // never bake an older global CLI alongside a private runner-only version.
   const discoverPreinstalledExecutable = async (
-    name: "paperclip-runnerd" | "codex",
+    name: "clayon-runnerd" | "codex",
   ) => {
     if (!remoteTarget || !remoteCommandRunner) return null;
     return discoverRemoteExecutable(remoteCommandRunner, remoteTarget.remoteCwd, name);
@@ -11864,7 +11864,7 @@ async function createRunnerdBackendWithinSessionClaim(
           args: [
             "-c",
             'test -x "$1" || exit 1; if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi',
-            "paperclip-runner-artifact",
+            "clayon-runner-artifact",
             executable,
           ],
           cwd: remoteTarget.remoteCwd,
@@ -11895,7 +11895,7 @@ async function createRunnerdBackendWithinSessionClaim(
       const preinstalledRunner = await measureNativeRunnerSpan(
         input.trace,
         "runner.artifact.discover",
-        () => discoverPreinstalledExecutable("paperclip-runnerd"),
+        () => discoverPreinstalledExecutable("clayon-runnerd"),
       );
       if (preinstalledRunner) {
         try {
@@ -11916,7 +11916,7 @@ async function createRunnerdBackendWithinSessionClaim(
           runnerArtifactPrepared = true;
           await input.onLog?.(
             "stderr",
-            "[paperclip-runner] using preinstalled runnerd from the sandbox image\n",
+            "[clayon-runner] using preinstalled runnerd from the sandbox image\n",
           );
         } catch {
           runnerArtifactPrepared = false;
@@ -11925,7 +11925,7 @@ async function createRunnerdBackendWithinSessionClaim(
     }
     if (!runnerArtifactPrepared) {
       // Upload the same artifact used for the controller identity. The server
-      // vendors the runner under vendor/paperclip-runner/bin, so the package
+      // vendors the runner under vendor/clayon-runner/bin, so the package
       // development fallback cannot locate it in a deployed server.
       const sourceBinary = controllerRunnerBinary;
       if (!existsSync(sourceBinary)) {
@@ -11964,7 +11964,7 @@ async function createRunnerdBackendWithinSessionClaim(
           !archMatches
         ) {
           throw new Error(
-            "runner_remote_artifact_platform_mismatch: configure PAPERCLIP_RUNNER_REMOTE_BINARY_PATH for the remote OS and architecture",
+            "runner_remote_artifact_platform_mismatch: configure CLAYON_RUNNER_REMOTE_BINARY_PATH for the remote OS and architecture",
           );
         }
       }
@@ -12015,7 +12015,7 @@ async function createRunnerdBackendWithinSessionClaim(
           usedPreinstalledCodex = true;
           await input.onLog?.(
             "stderr",
-            "[paperclip-runner] using preinstalled Codex from the sandbox image\n",
+            "[clayon-runner] using preinstalled Codex from the sandbox image\n",
           );
         } catch {
           usedPreinstalledCodex = false;
@@ -12059,7 +12059,7 @@ async function createRunnerdBackendWithinSessionClaim(
       );
       if (!preinstalledCodex) {
         throw new Error(
-          "runner_remote_codex_artifact_unavailable: install codex in the sandbox image or configure PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC",
+          "runner_remote_codex_artifact_unavailable: install codex in the sandbox image or configure CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC",
         );
       }
       await measureNativeRunnerSpan(
@@ -12077,7 +12077,7 @@ async function createRunnerdBackendWithinSessionClaim(
       );
       await input.onLog?.(
         "stderr",
-        "[paperclip-runner] using preinstalled Codex from the sandbox image\n",
+        "[clayon-runner] using preinstalled Codex from the sandbox image\n",
       );
     }
     if (
@@ -12129,7 +12129,7 @@ async function createRunnerdBackendWithinSessionClaim(
               activeRemoteProviderPackRoot = stagedRemoteProviderPackRoot;
               await input.onLog?.(
                 "stderr",
-                "[paperclip-runner] using manifest-matched provider pack from the sandbox image\n",
+                "[clayon-runner] using manifest-matched provider pack from the sandbox image\n",
               );
             } catch {
               preinstalledProviderPack = null;
@@ -12139,7 +12139,7 @@ async function createRunnerdBackendWithinSessionClaim(
         },
         stageAndVerify: async () => {
           if (!configuredProviderPackRoot) {
-            throw new Error("runner_remote_provider_artifact_incompatible: install the matching Paperclip package and Daytona image; the image provider pack did not match the bundled release identity");
+            throw new Error("runner_remote_provider_artifact_incompatible: install the matching Clayon package and Daytona image; the image provider pack did not match the bundled release identity");
           }
           if (!remoteCommandRunner.syncIn) {
             throw new Error(
@@ -12179,7 +12179,7 @@ async function createRunnerdBackendWithinSessionClaim(
       if (packSource === "staged") {
         await input.onLog?.(
           "stderr",
-          "[paperclip-runner] reusing manifest-matched provider pack from the workspace\n",
+          "[clayon-runner] reusing manifest-matched provider pack from the workspace\n",
         );
       }
     }
@@ -12312,7 +12312,7 @@ async function createRunnerdBackendWithinSessionClaim(
       command: "sh",
       args: ["-c",
         'set -eu; umask 077; test -d "$1" && test ! -L "$1" && test -r "$1" && test -x "$1" || exit 1; if test ! -e "$2" && test ! -L "$2"; then mkdir -- "$2"; fi; test -d "$2" && test ! -L "$2" && test -r "$2" && test -x "$2" || exit 1; mkdir -- "$3"',
-        "paperclip-runner-claim-unstarted-session", remoteRuntimeRoot,
+        "clayon-runner-claim-unstarted-session", remoteRuntimeRoot,
         posix.dirname(remoteSessionRoot), remoteSessionRoot],
       bypassSession: true,
       timeoutMs: 10_000,
@@ -12795,7 +12795,7 @@ async function createRunnerdBackendWithinSessionClaim(
       );
       await input.onLog?.(
         "stderr",
-        `[paperclip-runner] remote checkpoint ${incompleteFailure ? "failed" : "skipped"}: exact suspended harness state unavailable (process=${settlement} reason=${checkpointable.incompleteReason})\n`,
+        `[clayon-runner] remote checkpoint ${incompleteFailure ? "failed" : "skipped"}: exact suspended harness state unavailable (process=${settlement} reason=${checkpointable.incompleteReason})\n`,
       );
       if (incompleteFailure) throw incompleteFailure;
       return;
@@ -12929,7 +12929,7 @@ async function createRunnerdBackendWithinSessionClaim(
         .slice(0, 512);
       await input.onLog?.(
         "stderr",
-        `[paperclip-runner] remote checkpoint failed: ${detail || "unknown failure"}\n`,
+        `[clayon-runner] remote checkpoint failed: ${detail || "unknown failure"}\n`,
       );
       throw error;
     }
@@ -12969,7 +12969,7 @@ async function createRunnerdBackendWithinSessionClaim(
             args: [
               "-c",
               'set -eu; if test -L "$2" || { test -e "$2" && test ! -d "$2"; }; then exit 1; fi; if test -f "$1" && test ! -L "$1" && test ! -e "$3" && test ! -L "$3"; then umask 077; install -d -m 0700 "$2"; mv -- "$1" "$3"; elif test ! -e "$1" && test ! -L "$1" && test -f "$3" && test ! -L "$3"; then :; else exit 1; fi; base64 < "$3"',
-              "paperclip-runner-authority-archive",
+              "clayon-runner-authority-archive",
               sourcePath,
               archiveDirectory,
               archivedStatePath,
@@ -13038,14 +13038,14 @@ async function createRunnerdBackendWithinSessionClaim(
   if (relayAssignedMcp) {
     // The server-held tool authority owns this credential. Do not deliver a
     // duplicate HTTP MCP server or its bearer token to the remote provider.
-    delete effectiveRunnerEnvironmentBase.PAPERCLIP_NATIVE_MCP_NAME;
-    delete effectiveRunnerEnvironmentBase.PAPERCLIP_NATIVE_MCP_URL;
-    delete effectiveRunnerEnvironmentBase.PAPERCLIP_NATIVE_MCP_TOKEN;
+    delete effectiveRunnerEnvironmentBase.CLAYON_NATIVE_MCP_NAME;
+    delete effectiveRunnerEnvironmentBase.CLAYON_NATIVE_MCP_URL;
+    delete effectiveRunnerEnvironmentBase.CLAYON_NATIVE_MCP_TOKEN;
   }
   // This authority bit is derived only from the selected execution target.
   // Never let an agent, environment binding, or host variable disable the
   // Codex sandbox for a local runner by supplying the same key.
-  delete effectiveRunnerEnvironmentBase.PAPERCLIP_RUNNER_EXTERNAL_SANDBOX;
+  delete effectiveRunnerEnvironmentBase.CLAYON_RUNNER_EXTERNAL_SANDBOX;
   const effectiveRunnerEnvironment: NodeJS.ProcessEnv = remoteRuntimeRoot
     ? {
         ...effectiveRunnerEnvironmentBase,
@@ -13055,14 +13055,14 @@ async function createRunnerdBackendWithinSessionClaim(
         // grant and the provider cannot initialize its shell sandbox or edit.
         HOME: posix.join(remoteRunnerFilesystemRoot!, "codex-home"),
         CODEX_HOME: posix.join(remoteRunnerFilesystemRoot!, "codex-home"),
-        PAPERCLIP_WORKSPACE_CWD: remoteTarget!.remoteCwd,
+        CLAYON_WORKSPACE_CWD: remoteTarget!.remoteCwd,
         ...(remoteTarget!.transport === "sandbox"
-          ? { PAPERCLIP_RUNNER_EXTERNAL_SANDBOX: "1" }
+          ? { CLAYON_RUNNER_EXTERNAL_SANDBOX: "1" }
           : {}),
       }
     : {
         ...effectiveRunnerEnvironmentBase,
-        PAPERCLIP_WORKSPACE_CWD: input.execution.workspace.cwd,
+        CLAYON_WORKSPACE_CWD: input.execution.workspace.cwd,
       };
   const archiveContinuityState = async () => {
     if (hasRetainedWarmTransitionEvidence(root)) {
@@ -13154,15 +13154,15 @@ async function createRunnerdBackendWithinSessionClaim(
     dynamicToolHandler: executeCurrentToolAuthority,
     acpxDynamicToolHandler: executeCurrentToolAuthority,
     opencodeRuntimeDirectory: resolve(
-      resolvePaperclipInstanceRoot(),
+      resolveClayonInstanceRoot(),
       "runtime",
-      "paperclip-runner",
+      "clayon-runner",
       "opencode",
     ),
     acpxRuntimeDirectory: resolve(
-      resolvePaperclipInstanceRoot(),
+      resolveClayonInstanceRoot(),
       "runtime",
-      "paperclip-runner",
+      "clayon-runner",
       "acpx",
     ),
     codexTransportFactory: (recoveryContext) =>
@@ -13196,9 +13196,9 @@ async function createRunnerdBackendWithinSessionClaim(
               acpxRuntimeDirectory: remoteRunnerFilesystemRoot
                 ? posix.join(remoteRunnerFilesystemRoot, "acpx")
                 : resolve(
-                    resolvePaperclipInstanceRoot(),
+                    resolveClayonInstanceRoot(),
                     "runtime",
-                    "paperclip-runner",
+                    "clayon-runner",
                     "acpx",
                   ),
             }
@@ -13293,7 +13293,7 @@ async function createRunnerdBackendWithinSessionClaim(
         onDiagnostic: (message) => {
           void input.onLog?.(
             "stderr",
-            `[paperclip-runner] runnerd diagnostic: ${redactSensitiveText(message).slice(-4_096)}\n`,
+            `[clayon-runner] runnerd diagnostic: ${redactSensitiveText(message).slice(-4_096)}\n`,
           );
         },
         lifecyclePolicy: input.execution.session.lifecyclePolicy,
@@ -13400,7 +13400,7 @@ async function createRunnerdBackendWithinSessionClaim(
                 });
                 await input.onLog?.(
                   "stderr",
-                  "[paperclip-runner] transport mode=local_loopback state=connecting\n",
+                  "[clayon-runner] transport mode=local_loopback state=connecting\n",
                 );
                 const registration = await measureNativeRunnerSpan(
                   input.trace,
@@ -13426,14 +13426,14 @@ async function createRunnerdBackendWithinSessionClaim(
                 target,
                 runnerIngressAuthorized: input.runnerIngressAuthorized === true,
               });
-              let transport: PaperclipRunnerTransport;
+              let transport: ClayonRunnerTransport;
               if (requiredMode === "dial_wss") {
                 // Validate eligibility before staging any artifact.
                 transport = await measureNativeRunnerSpan(
                   input.trace,
                   "runner.transport.resolve",
                   () =>
-                    resolvePaperclipRunnerTransport({
+                    resolveClayonRunnerTransport({
                       target,
                       runId:
                         attachmentIdentity?.runId ??
@@ -13471,7 +13471,7 @@ async function createRunnerdBackendWithinSessionClaim(
                   input.trace,
                   "runner.ingress.acquire",
                   () =>
-                    resolvePaperclipRunnerTransport({
+                    resolveClayonRunnerTransport({
                       target,
                       runId:
                         attachmentIdentity?.runId ??
@@ -13494,14 +13494,14 @@ async function createRunnerdBackendWithinSessionClaim(
                   mode: transport.mode,
                   connectionOwner:
                     transport.mode === "provider_ingress"
-                      ? "paperclip"
+                      ? "clayon"
                       : "runnerd",
                 },
               });
 
               await input.onLog?.(
                 "stderr",
-                `[paperclip-runner] transport mode=${transport.mode} state=connecting\n`,
+                `[clayon-runner] transport mode=${transport.mode} state=connecting\n`,
               );
 
               if (transport.mode === "direct_outbound") {
@@ -13573,7 +13573,7 @@ async function createRunnerdBackendWithinSessionClaim(
                         onStateChange: (state, failureCode) => {
                           void input.onLog?.(
                             "stderr",
-                            `[paperclip-runner] transport mode=provider_ingress state=${state}${failureCode ? ` failure=${failureCode}` : ""}\n`,
+                            `[clayon-runner] transport mode=provider_ingress state=${state}${failureCode ? ` failure=${failureCode}` : ""}\n`,
                           );
                         },
                       });
@@ -13627,7 +13627,7 @@ async function createRunnerdBackendWithinSessionClaim(
       // The launch runtime directory already ends in "acpx"; ACPX adds its
       // own namespace beneath it in resolveAcpxRuntimeRoot.
       const relativeHome = `acpx/acpx/${acpxRuntimeSessionDirectoryName(nativeSessionKey(input.execution))}/grok-home`;
-      const localHome = resolve(resolvePaperclipInstanceRoot(), "runtime", "paperclip-runner", relativeHome);
+      const localHome = resolve(resolveClayonInstanceRoot(), "runtime", "clayon-runner", relativeHome);
       const remoteHome = remoteRunnerFilesystemRoot ? posix.join(remoteRunnerFilesystemRoot, relativeHome) : null;
       const readAuth = async (name: string): Promise<Buffer> => {
         if (!remoteHome || !remoteCommandRunner) return Buffer.from(await readLocalAiCredentialFile(join(localHome, name)));

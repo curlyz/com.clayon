@@ -11,6 +11,7 @@ import { AuthPage } from "./Auth";
 const getSessionMock = vi.hoisted(() => vi.fn());
 const signInEmailMock = vi.hoisted(() => vi.fn());
 const signUpEmailMock = vi.hoisted(() => vi.fn());
+const signInSocialMock = vi.hoisted(() => vi.fn());
 const healthMock = vi.hoisted(() => vi.fn());
 const beginCloudSignInMock = vi.hoisted(() => vi.fn());
 
@@ -25,6 +26,7 @@ vi.mock("../api/auth", () => ({
     getSession: () => getSessionMock(),
     signInEmail: (input: unknown) => signInEmailMock(input),
     signUpEmail: (input: unknown) => signUpEmailMock(input),
+    signInSocial: (input: unknown) => signInSocialMock(input),
   },
 }));
 
@@ -124,8 +126,8 @@ describe("AuthPage", () => {
     return { root, queryClient };
   }
 
-  it.each(["https://my.paperclip.app", "https://my-staging.paperclip.app"])("recovers Cloud auth through %s without rendering an instance form", async (origin) => {
-    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "paperclip-cloud", cloudBaseUrl: origin, stackSlug: "team" } });
+  it.each(["https://my.clayon.app", "https://my-staging.clayon.app"])("recovers Cloud auth through %s without rendering an instance form", async (origin) => {
+    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "clayon-cloud", cloudBaseUrl: origin, stackSlug: "team" } });
     const { root } = await mount("/auth?next=%2FTEST%2Fissues%2FTEST-1%3Ftab%3Dactivity%23comment");
     await vi.waitFor(() => expect(beginCloudSignInMock).toHaveBeenCalledTimes(1));
     const target = new URL(beginCloudSignInMock.mock.calls[0][0]);
@@ -140,7 +142,8 @@ describe("AuthPage", () => {
     healthMock.mockReturnValue(new Promise(() => {}));
     const { root } = await mount();
     expect(container.querySelector("form")).toBeNull();
-    expect(container.textContent).toContain("Loading");
+    // The loading state renders the Clayon wordmark (no spinner text).
+    expect(container.textContent).toContain("Clayon");
     await act(() => root.unmount());
   });
 
@@ -153,16 +156,16 @@ describe("AuthPage", () => {
   });
 
   it("offers a manual Cloud retry after the automatic recovery limit", async () => {
-    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "paperclip-cloud", cloudBaseUrl: "https://my.paperclip.app", stackSlug: "team" } });
+    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "clayon-cloud", cloudBaseUrl: "https://my.clayon.app", stackSlug: "team" } });
     beginCloudSignInMock.mockReturnValue(false);
     const { root } = await mount();
-    await vi.waitFor(() => expect(container.textContent).toContain("Continue to Paperclip Cloud"));
+    await vi.waitFor(() => expect(container.textContent).toContain("Continue to Clayon Cloud"));
     expect(container.querySelector("form")).toBeNull();
     await act(() => root.unmount());
   });
 
   it("keeps incomplete Cloud configuration out of the instance form", async () => {
-    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "paperclip-cloud", cloudBaseUrl: null, stackSlug: null } });
+    healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "clayon-cloud", cloudBaseUrl: null, stackSlug: null } });
     const { root } = await mount();
     await vi.waitFor(() => expect(container.textContent).toContain("Cloud sign-in is unavailable"));
     expect(container.querySelector("form")).toBeNull();
@@ -201,6 +204,31 @@ describe("AuthPage", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it("hides the Google button when the health payload lists no social providers", async () => {
+    const { root } = await mount();
+    expect(container.textContent).not.toContain("Continue with Google");
+    await act(() => root.unmount());
+  });
+
+  it("offers Google sign-in when health advertises it and forwards the return path", async () => {
+    healthMock.mockResolvedValue({ status: "ok", deploymentMode: "authenticated", authSocialProviders: ["google"] });
+    signInSocialMock.mockResolvedValue(undefined);
+    const { root } = await mount("/auth?next=%2FTEST%2Fissues%2FTEST-1");
+
+    const googleButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("Continue with Google"),
+    );
+    expect(googleButton).toBeDefined();
+
+    await act(async () => {
+      googleButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushReact();
+
+    expect(signInSocialMock).toHaveBeenCalledWith({ provider: "google", callbackURL: "/TEST/issues/TEST-1" });
+    await act(() => root.unmount());
   });
 
   it("uses new-password autocomplete in sign-up mode", async () => {

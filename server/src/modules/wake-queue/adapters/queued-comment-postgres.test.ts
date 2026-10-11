@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import type { Db } from "@paperclipai/db";
-import { activityLog, agentWakeupRequests, agents, companies, createDb, heartbeatRuns, issueComments, issues } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
+import { activityLog, agentWakeupRequests, agents, companies, createDb, heartbeatRuns, issueComments, issues } from "@clayon/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -39,7 +39,7 @@ describeEmbeddedPostgres("queued-comment postgres adapter", () => {
   };
 
   beforeAll(async () => {
-    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-queued-comment-postgres-adapter-");
+    tempDb = await startEmbeddedPostgresTestDatabase("clayon-queued-comment-postgres-adapter-");
     db = createDb(tempDb.connectionString);
   }, 20_000);
 
@@ -63,7 +63,7 @@ describeEmbeddedPostgres("queued-comment postgres adapter", () => {
     const companyId = randomUUID();
     await db.insert(companies).values({
       id: companyId,
-      name: "Paperclip",
+      name: "Clayon",
       issuePrefix: `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
       requireBoardApprovalForNewAgents: false,
       defaultResponsibleUserId: "responsible-user",
@@ -129,7 +129,7 @@ describeEmbeddedPostgres("queued-comment postgres adapter", () => {
       requestedByActorType: "user",
       payload: {
         issueId: input.issueId,
-        _paperclipWakeContext: { wakeCommentIds: input.commentIds },
+        _clayonWakeContext: { wakeCommentIds: input.commentIds },
       },
     });
     return id;

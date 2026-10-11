@@ -17,7 +17,7 @@ import {
   issues,
   nativeRunFinalizations,
   nativeRunResults,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
@@ -25,7 +25,7 @@ import {
   createRunnerdCodexTransport,
   defaultCapabilityRunnerdBinary,
   parseNativeExecutionInput,
-} from "../../vendor/paperclip-runner/index.js";
+} from "../../vendor/clayon-runner/index.js";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -56,8 +56,8 @@ import {
 
 // Exact v5 wire prompt from before the task-monitor upgrade (#15446).
 const historicalPrompt = {
-  revision: "paperclip-execution.v5",
-  text: "You are running as a Paperclip agent. Complete the assigned task in the provided execution environment. Follow the attached agent instructions and use assigned skills and tools when relevant. Use Paperclip tools for coordination. To hire or reuse a persistent teammate, use list_agents, then search_api for agent-hires and call_api if a hire is needed. Provider helper threads do not create Paperclip agents. When the user assigns work or a revision to a teammate, use create_task with that agent's ID; review their result rather than doing their assigned work yourself. When remaining work depends on a child task, use set_dependencies to add its ID while preserving existing blocker IDs. Complete independent work, then call paperclip_block with the child agent as owner and child completion as the unblock action. End the turn so the child can use the workspace. Do not sleep or poll for child results while holding the workspace. Paperclip resumes the parent when the dependency completes. When the user asks to connect a service, call connections_search before any service tool, even when that tool is already installed. Follow the returned instruction and wait for any required user choice before executing. For other tasks needing a service, use installed tools if available; otherwise use connections_search and follow its instruction. The request appears as a card in the task. Finish independent work before yielding for access; do not poll or request the same connection repeatedly. Paperclip will continue automatically with updated tools after resolution. After a decline, pursue alternatives unless the user explicitly asks to retry. Finish exactly once with `paperclip_finish` or `paperclip_block`.",
+  revision: "clayon-execution.v5",
+  text: "You are running as a Clayon agent. Complete the assigned task in the provided execution environment. Follow the attached agent instructions and use assigned skills and tools when relevant. Use Clayon tools for coordination. To hire or reuse a persistent teammate, use list_agents, then search_api for agent-hires and call_api if a hire is needed. Provider helper threads do not create Clayon agents. When the user assigns work or a revision to a teammate, use create_task with that agent's ID; review their result rather than doing their assigned work yourself. When remaining work depends on a child task, use set_dependencies to add its ID while preserving existing blocker IDs. Complete independent work, then call paperclip_block with the child agent as owner and child completion as the unblock action. End the turn so the child can use the workspace. Do not sleep or poll for child results while holding the workspace. Clayon resumes the parent when the dependency completes. When the user asks to connect a service, call connections_search before any service tool, even when that tool is already installed. Follow the returned instruction and wait for any required user choice before executing. For other tasks needing a service, use installed tools if available; otherwise use connections_search and follow its instruction. The request appears as a card in the task. Finish independent work before yielding for access; do not poll or request the same connection repeatedly. Clayon will continue automatically with updated tools after resolution. After a decline, pursue alternatives unless the user explicitly asks to retry. Finish exactly once with `paperclip_finish` or `paperclip_block`.",
   digest: "bec3e633d8d828103ce50b3a8b8dc9991c8ef65e07538bdab1a7663957c2ef9b",
 } as const;
 
@@ -75,7 +75,7 @@ const describeEmbeddedPostgres = embeddedPostgresSupport.supported
 
 const fakeCodexAppServer = resolve(
   import.meta.dirname,
-  "../../../../packages/paperclip-runner/runner/target/debug/fake-codex-app-server",
+  "../../../../packages/clayon-runner/runner/target/debug/fake-codex-app-server",
 );
 const binariesAvailable =
   existsSync(defaultCapabilityRunnerdBinary()) && existsSync(fakeCodexAppServer);
@@ -133,10 +133,10 @@ async function stopOwnedProcessGroup(
 describeEmbeddedPostgres("native runner restart recovery with real processes", () => {
   let temporary: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>>;
   let runtimeRoot: string;
-  let paperclipHome: string;
+  let clayonHome: string;
   let server: Server | null = null;
   let apiUrl: string;
-  let originalPaperclipHome: string | undefined;
+  let originalClayonHome: string | undefined;
 
   const companyId = randomUUID();
   const agentId = randomUUID();
@@ -147,9 +147,9 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
       "native-runner-restart-recovery-",
     );
     runtimeRoot = await mkdtemp(resolve(tmpdir(), "native-restart-runtime-"));
-    paperclipHome = await mkdtemp(resolve(tmpdir(), "native-restart-home-"));
-    originalPaperclipHome = process.env.PAPERCLIP_HOME;
-    process.env.PAPERCLIP_HOME = paperclipHome;
+    clayonHome = await mkdtemp(resolve(tmpdir(), "native-restart-home-"));
+    originalClayonHome = process.env.CLAYON_HOME;
+    process.env.CLAYON_HOME = clayonHome;
     const controllerStartedAt = await readProcessStartedAt(process.pid);
     successor = {
       bootId: randomUUID(),
@@ -195,10 +195,10 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
     await temporary.cleanup();
     await Promise.all([
       rm(runtimeRoot, { recursive: true, force: true }),
-      rm(paperclipHome, { recursive: true, force: true }),
+      rm(clayonHome, { recursive: true, force: true }),
     ]);
-    if (originalPaperclipHome === undefined) delete process.env.PAPERCLIP_HOME;
-    else process.env.PAPERCLIP_HOME = originalPaperclipHome;
+    if (originalClayonHome === undefined) delete process.env.CLAYON_HOME;
+    else process.env.CLAYON_HOME = originalClayonHome;
   });
 
   async function seedRun(
@@ -389,7 +389,7 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
       processStartedAt: new Date("2020-01-01T00:00:00Z"),
       runnerProfileJson: {
         nativeWorkspaceSync: {
-          schema: "paperclip.native-workspace-sync/v1", state: "prepared",
+          schema: "clayon.native-workspace-sync/v1", state: "prepared",
           descriptorSha256: "a".repeat(64), baselineSha256: "b".repeat(64),
           workspaceId: "workspace", leaseId: "lease", providerLeaseId: "sandbox",
           remoteCwd: "/workspace",

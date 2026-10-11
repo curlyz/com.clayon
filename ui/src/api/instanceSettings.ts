@@ -5,7 +5,7 @@ import type {
   PatchInstanceSettings,
   PatchInstanceGeneralSettings,
   PatchInstanceExperimentalSettings,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { api } from "./client";
 
 export const instanceSettingsApi = {

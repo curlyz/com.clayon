@@ -2,12 +2,12 @@ import { createHash, randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
-import { activityLog, agents, assets, companies, createDb, heartbeatRuns, issueAttachments, issues, runnerApiResponseReservations } from "@paperclipai/db";
+import { activityLog, agents, assets, companies, createDb, heartbeatRuns, issueAttachments, issues, runnerApiResponseReservations } from "@clayon/db";
 import { startEmbeddedPostgresTestDatabase } from "../../__tests__/helpers/embedded-postgres.js";
 import type { StorageService } from "../../storage/types.js";
 import { TaskAttachmentReadCache } from "./runner-task-attachments.js";
 import { runnerApiCatalog } from "./runner-api-catalog.js";
-import { PaperclipRunnerToolAuthority } from "./paperclip-runner-tool-authority.js";
+import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 
 const sha = (body: Buffer) => createHash("sha256").update(body).digest("hex");
 describe("Dot assigned-task attachment reading", () => {
@@ -30,7 +30,7 @@ describe("Dot assigned-task attachment reading", () => {
     const storage = { provider: "local_disk", getObject } as unknown as StorageService;
     const assertBridgeAuthority = vi.fn().mockResolvedValue(undefined);
     const binding = { companyId, agentId, issueId, runId, dotRuntime: true, taskAttachmentRead: enabled, storage, assertBridgeAuthority };
-    const authority = new PaperclipRunnerToolAuthority(db, binding);
+    const authority = new ClayonRunnerToolAuthority(db, binding);
     const call = (tool: string, args: unknown = {}) => authority.execute({ tool, callId: randomUUID(), arguments: args });
     return { ...binding, authority, call, asset: asset!, attachment: attachment!, body, getObject };
   }
@@ -135,8 +135,8 @@ describe("Dot assigned-task attachment reading", () => {
       { companyId: f.companyId, runId: f.runId, assetId: f.asset.id, reservedBytes: f.body.length },
       { companyId: other.companyId, runId: other.runId, assetId: other.asset.id, reservedBytes: other.body.length },
     ]);
-    vi.stubEnv("PAPERCLIP_AGENT_JWT_SECRET", "synthetic-test-key-not-a-live-credential");
-    vi.stubEnv("PAPERCLIP_API_URL", "http://127.0.0.1:3217");
+    vi.stubEnv("CLAYON_AGENT_JWT_SECRET", "synthetic-test-key-not-a-live-credential");
+    vi.stubEnv("CLAYON_API_URL", "http://127.0.0.1:3217");
     const fetch = vi.fn().mockResolvedValue(new Response(f.body, { status: 206, headers: { "Content-Type": "text/plain", "Content-Range": `bytes 0-${f.body.length - 1}/${f.body.length}` } }));
     vi.stubGlobal("fetch", fetch);
     const operation = runnerApiCatalog().find(o => o.method === "GET" && o.path === "/api/assets/{assetId}/content")!;

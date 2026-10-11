@@ -49,7 +49,7 @@ jobs:
           set -u
 
           github_runner='ubuntu-latest'
-          aws_runner='runs-on/fleet=paperclip-public-pr-x64/env=public-ci'
+          aws_runner='runs-on/fleet=clayon-public-pr-x64/env=public-ci'
 
           fail_closed() {
             echo "runner=$github_runner" >> "$GITHUB_OUTPUT"
@@ -327,8 +327,8 @@ jobs:
       - name: Test e2e shard partition
         run: node --test ./scripts/__tests__/e2e-shard.test.mjs
 
-      - name: Test release verify workflow wiring
-        run: node --test ./scripts/__tests__/release-verify-workflow.test.mjs ./scripts/cloud-source-verification.test.mjs ./scripts/standard-image-contract.test.mjs
+      - name: Test standard image contract
+        run: node --test ./scripts/standard-image-contract.test.mjs
 
       - name: Test standalone package build concurrency
         run: node --test ./scripts/__tests__/build-standalone-concurrency.test.mjs
@@ -339,7 +339,7 @@ jobs:
       - name: Verify release package bootstrap for changed manifests
         run: |
           mapfile -t changed_paths < <(git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
-          PAPERCLIP_RELEASE_BOOTSTRAP_BASE_SHA="${{ github.event.pull_request.base.sha }}" \
+          CLAYON_RELEASE_BOOTSTRAP_BASE_SHA="${{ github.event.pull_request.base.sha }}" \
             node ./scripts/check-release-package-bootstrap.mjs "${changed_paths[@]}"
 
       # Each lane resolves a stale lockfile inline; this early check still
@@ -403,10 +403,10 @@ jobs:
             pnpm install --frozen-lockfile
           fi
 
-      # typecheck:build-gaps builds @paperclipai/server, whose build script
+      # typecheck:build-gaps builds @clayon/server, whose build script
       # rebuilds the Runner release binary; without the shared Rust cache that
       # is a ~3m40s cold compile of all third-party crates (run 35036001734,
-      # 2026-09-15). Same restore-only contract as Verify Paperclip Runner.
+      # 2026-09-15). Same restore-only contract as Verify Clayon Runner.
 
       # rust-cache hashes its absolute cache paths into the entry's version,
       # and GitHub only serves an entry whose key and version both match. The
@@ -423,14 +423,14 @@ jobs:
         id: runner_rust_workspace
         run: |
           set -euo pipefail
-          pinned="$HOME/paperclip-runner-rust"
+          pinned="$HOME/clayon-runner-rust"
           # A symlink here is removed as a link, never followed into the checkout.
           rm -rf "$pinned"
-          ln -s "$GITHUB_WORKSPACE/packages/paperclip-runner/runner" "$pinned"
+          ln -s "$GITHUB_WORKSPACE/packages/clayon-runner/runner" "$pinned"
           echo "path=$pinned" >> "$GITHUB_OUTPUT"
 
       - name: Select the pinned Runner Rust toolchain
-        working-directory: packages/paperclip-runner
+        working-directory: packages/clayon-runner
         run: |
           set -uo pipefail
 
@@ -564,7 +564,7 @@ jobs:
             shard_count: 3
           # workspaces-a was the slowest check in the fully-green PR run
           # 31371439296 (2026-08-10) at 319s, with the ui project's single
-          # vitest invocation accounting for ~224s and the paperclipai CLI
+          # vitest invocation accounting for ~224s and the clayon CLI
           # ~37s. Two shards use Vitest's native --shard on each project's
           # file list (ui: 439 files, cli: 54), bringing each job to roughly
           # half the suite time (~130s + setup) without a duration manifest.
@@ -708,7 +708,7 @@ jobs:
           esac
 
   verify_paperclip_runner:
-    name: Verify Paperclip Runner (${{ matrix.lane_label }})
+    name: Verify Clayon Runner (${{ matrix.lane_label }})
     needs: [gate]
     if: ${{ needs.gate.outputs.full_ci == 'true' }}
     runs-on: ${{ needs.gate.outputs.runner }}
@@ -809,14 +809,14 @@ jobs:
         id: runner_rust_workspace
         run: |
           set -euo pipefail
-          pinned="$HOME/paperclip-runner-rust"
+          pinned="$HOME/clayon-runner-rust"
           # A symlink here is removed as a link, never followed into the checkout.
           rm -rf "$pinned"
-          ln -s "$GITHUB_WORKSPACE/packages/paperclip-runner/runner" "$pinned"
+          ln -s "$GITHUB_WORKSPACE/packages/clayon-runner/runner" "$pinned"
           echo "path=$pinned" >> "$GITHUB_OUTPUT"
 
       - name: Select the pinned Runner Rust toolchain
-        working-directory: packages/paperclip-runner
+        working-directory: packages/clayon-runner
         run: |
           set -uo pipefail
 
@@ -861,12 +861,12 @@ jobs:
           # Restore only. Never let a pull request evict master's entry.
           save-if: false
 
-      - name: Verify Paperclip Runner
+      - name: Verify Clayon Runner
         # pnpm appends trailing args to the end of the script's shell chain,
         # so the vitest lanes' --shard lands on `vitest run`. Do not add a
         # `--` separator: pnpm forwards it literally and vitest would then
         # read the shard flag as a test filter.
-        run: pnpm --filter @paperclipai/paperclip-runner ${{ matrix.command }}
+        run: pnpm --filter @clayon/clayon-runner ${{ matrix.command }}
 
   build:
     name: Build
@@ -927,7 +927,7 @@ jobs:
       # pnpm build reaches the Runner package's build:binary step; without the
       # shared Rust cache that is a ~3m40s cold compile of all third-party
       # crates (run 35036001734, 2026-09-15). Same restore-only contract as
-      # Verify Paperclip Runner.
+      # Verify Clayon Runner.
 
       # rust-cache hashes its absolute cache paths into the entry's version,
       # and GitHub only serves an entry whose key and version both match. The
@@ -944,14 +944,14 @@ jobs:
         id: runner_rust_workspace
         run: |
           set -euo pipefail
-          pinned="$HOME/paperclip-runner-rust"
+          pinned="$HOME/clayon-runner-rust"
           # A symlink here is removed as a link, never followed into the checkout.
           rm -rf "$pinned"
-          ln -s "$GITHUB_WORKSPACE/packages/paperclip-runner/runner" "$pinned"
+          ln -s "$GITHUB_WORKSPACE/packages/clayon-runner/runner" "$pinned"
           echo "path=$pinned" >> "$GITHUB_OUTPUT"
 
       - name: Select the pinned Runner Rust toolchain
-        working-directory: packages/paperclip-runner
+        working-directory: packages/clayon-runner
         run: |
           set -uo pipefail
 
@@ -997,7 +997,7 @@ jobs:
           save-if: false
 
       - name: Build Runner Evalbook viewer
-        run: pnpm --filter @paperclipai/paperclip-runner build:issue-thread
+        run: pnpm --filter @clayon/clayon-runner build:issue-thread
 
       - name: Build
         run: pnpm build
@@ -1159,7 +1159,7 @@ jobs:
       # release.sh's Step 2/7 workspace build reaches the Runner package's
       # build:binary step; without the shared Rust cache that is a ~3m40s cold
       # compile of all third-party crates (run 35036001734, 2026-09-15). Same
-      # restore-only contract as Verify Paperclip Runner.
+      # restore-only contract as Verify Clayon Runner.
 
       # rust-cache hashes its absolute cache paths into the entry's version,
       # and GitHub only serves an entry whose key and version both match. The
@@ -1176,14 +1176,14 @@ jobs:
         id: runner_rust_workspace
         run: |
           set -euo pipefail
-          pinned="$HOME/paperclip-runner-rust"
+          pinned="$HOME/clayon-runner-rust"
           # A symlink here is removed as a link, never followed into the checkout.
           rm -rf "$pinned"
-          ln -s "$GITHUB_WORKSPACE/packages/paperclip-runner/runner" "$pinned"
+          ln -s "$GITHUB_WORKSPACE/packages/clayon-runner/runner" "$pinned"
           echo "path=$pinned" >> "$GITHUB_OUTPUT"
 
       - name: Select the pinned Runner Rust toolchain
-        working-directory: packages/paperclip-runner
+        working-directory: packages/clayon-runner
         run: |
           set -uo pipefail
 
@@ -1242,7 +1242,7 @@ jobs:
             git checkout -- pnpm-lock.yaml
           else
             git add pnpm-lock.yaml
-            git -c user.email=ci@paperclip.local -c user.name=CI \
+            git -c user.email=ci@clayon.local -c user.name=CI \
               commit --no-verify -m "ci(canary): stage regenerated lockfile"
           fi
           ./scripts/release.sh canary --skip-verify --dry-run
@@ -1352,10 +1352,10 @@ jobs:
         # browser bundles inside the 30 minute job budget.
         run: google-chrome --version
 
-      - name: Generate Paperclip config
+      - name: Generate Clayon config
         run: |
-          mkdir -p ~/.paperclip/instances/default
-          cat > ~/.paperclip/instances/default/config.json << 'CONF'
+          mkdir -p ~/.clayon/instances/default
+          cat > ~/.clayon/instances/default/config.json << 'CONF'
           {
             "$meta": { "version": 1, "updatedAt": "2026-01-01T00:00:00.000Z", "source": "onboard" },
             "database": { "mode": "embedded-postgres" },
@@ -1369,8 +1369,8 @@ jobs:
 
       - name: Run e2e tests
         env:
-          PAPERCLIP_E2E_SKIP_LLM: "true"
-          PAPERCLIP_PLAYWRIGHT_CHANNEL: "chrome"
+          CLAYON_E2E_SKIP_LLM: "true"
+          CLAYON_PLAYWRIGHT_CHANNEL: "chrome"
         run: |
           # Playwright's own --shard balances by test count, and one spec
           # (smoke-lab) is ~40% of the lane's wall clock. Partition by recorded

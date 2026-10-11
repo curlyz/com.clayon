@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const authUsers = pgTable("user", {
   id: text("id").primaryKey(),
@@ -66,3 +66,30 @@ export const authVerifications = pgTable("verification", {
   createdAt: timestamp("created_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }),
 });
+
+/**
+ * Better Auth's `passkey` model (the `@better-auth/passkey` plugin). Same
+ * adapter rule as `account`: every field the plugin declares must exist here
+ * or the drizzle adapter rejects writes. Field names map 1:1 to the plugin's
+ * camelCase model (`credentialID`, `publicKey`, ...); the unique index on
+ * `credential_id` mirrors the plugin's credentialID index.
+ */
+export const authPasskeys = pgTable(
+  "passkey",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    aaguid: text("aaguid"),
+    createdAt: timestamp("created_at", { withTimezone: true }),
+  },
+  (table) => ({
+    credentialIdUq: uniqueIndex("passkey_credential_id_uq").on(table.credentialID),
+  }),
+);

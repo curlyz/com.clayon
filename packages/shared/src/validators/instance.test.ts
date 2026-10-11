@@ -31,11 +31,11 @@ describe("instance experimental settings validators", () => {
     expect(settings.enableServerInfoDebugView).toBe(false);
   });
 
-  it("defaults Paperclip developer mode off and accepts explicit patches", () => {
-    expect(instanceExperimentalSettingsSchema.parse({}).enablePaperclipDeveloperMode).toBe(false);
+  it("defaults Clayon developer mode off and accepts explicit patches", () => {
+    expect(instanceExperimentalSettingsSchema.parse({}).enableClayonDeveloperMode).toBe(false);
     expect(
-      patchInstanceExperimentalSettingsSchema.parse({ enablePaperclipDeveloperMode: true }),
-    ).toEqual({ enablePaperclipDeveloperMode: true });
+      patchInstanceExperimentalSettingsSchema.parse({ enableClayonDeveloperMode: true }),
+    ).toEqual({ enableClayonDeveloperMode: true });
   });
 
   it("strips retired watchdog and liveness auto-recovery settings", () => {

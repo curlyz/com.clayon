@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { issues, type Db } from "@paperclipai/db";
-import type { StalledReviewDecisionAction } from "@paperclipai/shared";
+import { issues, type Db } from "@clayon/db";
+import type { StalledReviewDecisionAction } from "@clayon/shared";
 import { conflict, notFound } from "../errors.js";
 import {
   logActivity,

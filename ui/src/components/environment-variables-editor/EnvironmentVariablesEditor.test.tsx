@@ -4,7 +4,7 @@ import { useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import type { CompanySecret, EnvBinding } from "@paperclipai/shared";
+import type { CompanySecret, EnvBinding } from "@clayon/shared";
 import { EnvironmentVariablesEditor } from "./index";
 import { SecretPicker } from "./SecretPicker";
 
@@ -143,6 +143,14 @@ describe("EnvironmentVariablesEditor", () => {
     return [...container.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.trim() === "Save")!;
   }
 
+  // The Save/Revert bar is gone (autosave, operator directive); staged drafts
+  // commit into the parent value after the debounce window.
+  async function commitAutosave() {
+    await new Promise((resolve) => window.setTimeout(resolve, 850));
+    flushSync(() => {});
+    await flush();
+  }
+
   it("renders header + a row per binding, no trailing ghost row", () => {
     render(
       <EnvironmentVariablesEditor
@@ -165,7 +173,7 @@ describe("EnvironmentVariablesEditor", () => {
 
   it("keeps long secret names clear of the latest version control", () => {
     const longSecret = makeSecret("long", {
-      name: "/paperclip-cloud/prod/provider/resend/api-key-with-a-very-long-name",
+      name: "/clayon-cloud/prod/provider/resend/api-key-with-a-very-long-name",
       latestVersion: 4,
     });
 
@@ -214,7 +222,7 @@ describe("EnvironmentVariablesEditor", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("saves plain bindings only when Save is clicked", async () => {
+  it("autosaves plain bindings after the debounce", async () => {
     const onChange = vi.fn();
     render(<EnvironmentVariablesEditor value={{ FOO: { type: "plain", value: "" } }} secrets={secrets} onChange={onChange} onCreateSecret={async () => secrets[0]} />);
     const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!;
@@ -223,9 +231,21 @@ describe("EnvironmentVariablesEditor", () => {
     valueInput.dispatchEvent(new Event("input", { bubbles: true }));
     await flush();
     expect(onChange).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("Unsaved changes");
-    saveButton().click();
+    await commitAutosave();
+    expect(onChange).toHaveBeenLastCalledWith({ FOO: { type: "plain", value: "bar" } });
+  });
+
+  it("commits staged rows on unmount inside the debounce window", async () => {
+    const onChange = vi.fn();
+    render(<EnvironmentVariablesEditor value={{ FOO: { type: "plain", value: "" } }} secrets={secrets} onChange={onChange} onCreateSecret={async () => secrets[0]} />);
+    const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    setter.call(valueInput, "bar");
+    valueInput.dispatchEvent(new Event("input", { bubbles: true }));
     await flush();
+    expect(onChange).not.toHaveBeenCalled();
+    // Unmount before the 800 ms debounce fires: the draft still commits.
+    flushSync(() => root?.unmount());
     expect(onChange).toHaveBeenLastCalledWith({ FOO: { type: "plain", value: "bar" } });
   });
 
@@ -308,7 +328,7 @@ describe("EnvironmentVariablesEditor", () => {
     expect(savedValues).toEqual([{ FOO: { type: "plain", value: "bar" } }]);
   });
 
-  it("makes unsaved fields and save controls prominent while editing", async () => {
+  it("keeps unsaved fields visually prominent while editing", async () => {
     render(<EnvironmentVariablesEditor value={{ FOO: { type: "plain", value: "" } }} secrets={secrets} onChange={() => {}} onCreateSecret={async () => secrets[0]} />);
     const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!;
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
@@ -316,61 +336,18 @@ describe("EnvironmentVariablesEditor", () => {
     valueInput.dispatchEvent(new Event("input", { bubbles: true }));
     await flush();
 
-    const unsavedBar = [...container.querySelectorAll<HTMLElement>('[role="status"]')].find((node) =>
-      node.textContent?.includes("Unsaved changes"),
-    );
     const valueCell = valueInput.closest<HTMLDivElement>(".relative.flex");
-    const save = saveButton();
-    const revert = [...container.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.trim() === "Revert")!;
-
-    expect(unsavedBar?.className).toContain("bg-amber-500/10");
     expect(valueCell?.className).toContain("border-amber-500/70");
-    expect(save.className).toContain("h-9");
-    expect(save.className).toContain("px-4");
-    expect(revert.className).toContain("h-9");
+    // Autosave law: no Save/Revert controls anywhere.
+    expect(saveButton()).toBeUndefined();
+    expect([...container.querySelectorAll("button")].some((button) => button.textContent?.trim() === "Revert")).toBe(false);
   });
 
-  it("lists which variables changed in the unsaved-changes banner", async () => {
-    render(
-      <EnvironmentVariablesEditor
-        value={{ FOO: { type: "plain", value: "old" }, BAR: { type: "plain", value: "keep" } }}
-        secrets={secrets}
-        onChange={() => {}}
-        onCreateSecret={async () => secrets[0]}
-      />,
-    );
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-
-    // Edit FOO's value.
-    const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Variable value"]')!;
-    setter.call(valueInput, "new");
-    valueInput.dispatchEvent(new Event("input", { bubbles: true }));
-    await flush();
-    expect(container.textContent).toContain("Edited: FOO");
-
-    // Remove BAR.
-    const removeButtons = [...container.querySelectorAll<HTMLButtonElement>('button[aria-label^="Remove"]')];
-    removeButtons.at(-1)!.click();
-    await flush();
-    expect(container.textContent).toContain("Removed: BAR");
-
-    // Add a brand-new variable.
-    const addButton = [...container.querySelectorAll("button")].find((b) => b.textContent?.includes("Add variable"))!;
-    addButton.click();
-    await flush();
-    const newNameInput = nameInputs().at(-1)!;
-    setter.call(newNameInput, "API_TOKEN");
-    newNameInput.dispatchEvent(new Event("input", { bubbles: true }));
-    await flush();
-    expect(container.textContent).toContain("New: API_TOKEN");
-    expect(container.textContent).toContain("Edited: FOO");
-    expect(container.textContent).toContain("Removed: BAR");
-  });
-
-  it("does not show a phantom unsaved-changes banner for a saved value that round-trips lossily", () => {
+  it("does not autosave a saved value that round-trips lossily", async () => {
     // Incomplete refs and unpadded names are dropped by the editor's emit
-    // semantics — the committed baseline must drop them too, or the banner
-    // shows the moment the form opens with no user edits.
+    // semantics — the committed baseline must drop them too, or autosave
+    // would fire the moment the form opens with no user edits.
+    const onChange = vi.fn();
     render(
       <EnvironmentVariablesEditor
         value={{
@@ -379,22 +356,27 @@ describe("EnvironmentVariablesEditor", () => {
           DANGLING_USER_SECRET: { type: "user_secret_ref", key: "", version: "latest", required: true },
         }}
         secrets={secrets}
-        onChange={() => {}}
+        onChange={onChange}
         onCreateSecret={async () => secrets[0]}
       />,
     );
-    expect(container.textContent).not.toContain("Unsaved changes");
+    await commitAutosave();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("warns via beforeunload only while the draft is dirty", async () => {
-    render(
-      <EnvironmentVariablesEditor
-        value={{ FOO: { type: "plain", value: "" } }}
-        secrets={secrets}
-        onChange={() => {}}
-        onCreateSecret={async () => secrets[0]}
-      />,
-    );
+    function EchoHarness() {
+      const [value, setValue] = useState<Record<string, EnvBinding>>({ FOO: { type: "plain", value: "" } });
+      return (
+        <EnvironmentVariablesEditor
+          value={value}
+          secrets={secrets}
+          onChange={(next) => setValue(next ?? {})}
+          onCreateSecret={async () => secrets[0]}
+        />
+      );
+    }
+    render(<EchoHarness />);
 
     function dispatchBeforeUnload(): boolean {
       const event = new Event("beforeunload", { cancelable: true });
@@ -411,11 +393,8 @@ describe("EnvironmentVariablesEditor", () => {
     await flush();
     expect(dispatchBeforeUnload()).toBe(true);
 
-    const revert = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent?.trim() === "Revert",
-    )!;
-    revert.click();
-    await flush();
+    // The autosave commit clears the dirty state once the parent echoes it.
+    await commitAutosave();
     expect(dispatchBeforeUnload()).toBe(false);
   });
 
@@ -432,7 +411,6 @@ describe("EnvironmentVariablesEditor", () => {
     await flush();
 
     expect(nameInput.className).toContain("border-amber-500/70");
-    expect(container.textContent).toContain("Unsaved changes");
   });
 
   it("does not emit or remount while typing a new variable before manual save", async () => {
@@ -482,8 +460,7 @@ describe("EnvironmentVariablesEditor", () => {
     await flush();
     expect(onChange).not.toHaveBeenCalled();
 
-    saveButton().click();
-    await flush();
+    await commitAutosave();
     expect(onChange).toHaveBeenLastCalledWith({
       ZED: { type: "plain", value: "z" },
       ALPHA: { type: "plain", value: "a" },
@@ -520,8 +497,7 @@ describe("EnvironmentVariablesEditor", () => {
     await flush();
     expect(document.activeElement).toBe(valueInput);
     expect(onChange).not.toHaveBeenCalled();
-    saveButton().click();
-    await flush();
+    await commitAutosave();
     expect(onChange).toHaveBeenLastCalledWith(savedValue);
 
     rerender(
@@ -545,8 +521,7 @@ describe("EnvironmentVariablesEditor", () => {
     removeButton.click();
     await flush();
     expect(onChange).not.toHaveBeenCalled();
-    saveButton().click();
-    await flush();
+    await commitAutosave();
     expect(onChange).toHaveBeenLastCalledWith(undefined);
   });
 
@@ -567,7 +542,7 @@ describe("EnvironmentVariablesEditor", () => {
   it("renders name warnings as a row spanning the name and value columns", () => {
     render(
       <EnvironmentVariablesEditor
-        value={{ PAPERCLIP_PAGE_BASE_URL: { type: "plain", value: "https://pages.paperclip.ing" } }}
+        value={{ CLAYON_PAGE_BASE_URL: { type: "plain", value: "https://pages.clayon.ing" } }}
         secrets={secrets}
         onChange={() => {}}
         onCreateSecret={async () => secrets[0]}
@@ -601,8 +576,7 @@ describe("EnvironmentVariablesEditor", () => {
     nameInput.dispatchEvent(pasteEvent);
     await flush();
     expect(onChange).not.toHaveBeenCalled();
-    saveButton().click();
-    await flush();
+    await commitAutosave();
     expect(onChange).toHaveBeenLastCalledWith({
       A: { type: "plain", value: "1" },
       B: { type: "plain", value: "2" },
@@ -862,8 +836,8 @@ describe("EnvironmentVariablesEditor", () => {
   });
 
   it("lets slash-delimited secrets be browsed by folder and exposes full paths on hover", async () => {
-    const cloudProviderKey = "/paperclip-cloud/prod/provider/aws-access-key-id";
-    const cloudMigrationKey = "/paperclip-cloud/prod/migration/postgres-url";
+    const cloudProviderKey = "/clayon-cloud/prod/provider/aws-access-key-id";
+    const cloudMigrationKey = "/clayon-cloud/prod/migration/postgres-url";
     const onSelect = vi.fn();
     render(
       <SecretPicker
@@ -871,7 +845,7 @@ describe("EnvironmentVariablesEditor", () => {
         secrets={[
           makeSecret("provider-key", { name: cloudProviderKey, key: cloudProviderKey }),
           makeSecret("migration-key", { name: cloudMigrationKey, key: cloudMigrationKey }),
-          makeSecret("plain-key", { name: "paperclip-page-aws-access-key-id", key: "paperclip-page-aws-access-key-id" }),
+          makeSecret("plain-key", { name: "clayon-page-aws-access-key-id", key: "clayon-page-aws-access-key-id" }),
         ]}
         onSelect={onSelect}
         onCreateNew={() => {}}
@@ -889,19 +863,19 @@ describe("EnvironmentVariablesEditor", () => {
       );
     const rowTitle = (item: HTMLElement | undefined) => item?.querySelector<HTMLElement>("[title]")?.getAttribute("title");
 
-    expect(rowTitle(itemByText("paperclip-cloud"))).toBe("/paperclip-cloud");
-    expect(rowTitle(itemByText("paperclip-page-aws-access-key-id"))).toBe(
-      "paperclip-page-aws-access-key-id",
+    expect(rowTitle(itemByText("clayon-cloud"))).toBe("/clayon-cloud");
+    expect(rowTitle(itemByText("clayon-page-aws-access-key-id"))).toBe(
+      "clayon-page-aws-access-key-id",
     );
 
-    itemByText("paperclip-cloud")!.click();
+    itemByText("clayon-cloud")!.click();
     await flush();
-    expect(rowTitle(itemByText("prod"))).toBe("/paperclip-cloud/prod");
+    expect(rowTitle(itemByText("prod"))).toBe("/clayon-cloud/prod");
 
     itemByText("prod")!.click();
     await flush();
-    expect(rowTitle(itemByText("provider"))).toBe("/paperclip-cloud/prod/provider");
-    expect(rowTitle(itemByText("migration"))).toBe("/paperclip-cloud/prod/migration");
+    expect(rowTitle(itemByText("provider"))).toBe("/clayon-cloud/prod/provider");
+    expect(rowTitle(itemByText("migration"))).toBe("/clayon-cloud/prod/migration");
 
     itemByText("provider")!.click();
     await flush();
@@ -914,14 +888,14 @@ describe("EnvironmentVariablesEditor", () => {
   });
 
   it("keeps secret search global while browsing starts at slash folders", async () => {
-    const cloudMigrationKey = "/paperclip-cloud/prod/migration/postgres-url";
+    const cloudMigrationKey = "/clayon-cloud/prod/migration/postgres-url";
     render(
       <SecretPicker
         secretId=""
         secrets={[
           makeSecret("provider-key", {
-            name: "/paperclip-cloud/prod/provider/aws-access-key-id",
-            key: "/paperclip-cloud/prod/provider/aws-access-key-id",
+            name: "/clayon-cloud/prod/provider/aws-access-key-id",
+            key: "/clayon-cloud/prod/provider/aws-access-key-id",
           }),
           makeSecret("migration-key", { name: cloudMigrationKey, key: cloudMigrationKey }),
         ]}
@@ -934,7 +908,7 @@ describe("EnvironmentVariablesEditor", () => {
     const combobox = container.querySelector<HTMLElement>('[role="combobox"]')!;
     combobox.focus();
     await flush();
-    expect(document.body.textContent).toContain("paperclip-cloud");
+    expect(document.body.textContent).toContain("clayon-cloud");
     expect(document.body.textContent).not.toContain("postgres-url");
 
     const search = document.querySelector<HTMLInputElement>('input[placeholder="Search secrets…"]')!;

@@ -13,11 +13,11 @@ import type {
   IssueQueuedCommentQueue,
   IssueThreadInteraction,
   TaskBrowser,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { heartbeatsApi } from "@/api/heartbeats";
 import { nativeRunEventsToTranscript } from "./transcript/native-run-events";
 import { pendingConnectionIntentInteraction } from "@/fixtures/issueThreadInteractionFixtures";
-import type { HeartbeatRunEvent } from "@paperclipai/shared";
+import type { HeartbeatRunEvent } from "@clayon/shared";
 
 const transcriptState = vi.hoisted(() => ({
   transcriptByRun: new Map(),
@@ -903,7 +903,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     expect(nativeRuns.map((run) => run.id)).toEqual(["native-run"]);
   });
 
-  it("uses runner-only controls only for an actual native Paperclip Runner run", () => {
+  it("uses runner-only controls only for an actual native Clayon Runner run", () => {
     nativeTranscriptState.transcriptByRun.set("native-run", [
       {
         kind: "assistant",
@@ -984,7 +984,7 @@ describe("TaskChatThread runtime transcript selection", () => {
         runId: "restore-run", runtimeMode: "legacy", status: "failed", errorCode: "workspace_restore_failed",
         agentId: "agent-1", agentName: "Runner", adapterType: "grok_local",
         createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z", finishedAt: "2026-08-25T18:00:02.000Z",
-        resultJson: { workspaceRestoreFailure: "restore_unsafe_archive", workspaceRestorePath: ".claude/skills/paperclip", finalResponseRecorded: false,
+        resultJson: { workspaceRestoreFailure: "restore_unsafe_archive", workspaceRestorePath: ".claude/skills/clayon", finalResponseRecorded: false,
           ...(evidence === "document_only" ? { savedPlanRevisionId: "revision-3" } : {}),
         },
       }]} />);
@@ -993,7 +993,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     flushSync(() => marker!.querySelector<HTMLButtonElement>('button[aria-expanded]')!.click());
     expect(marker?.textContent).toContain("Workspace files need recovery");
     expect(marker?.textContent).toContain("No final response was recorded");
-    expect(marker?.textContent).toContain(".claude/skills/paperclip");
+    expect(marker?.textContent).toContain(".claude/skills/clayon");
     expect(marker?.querySelector('a[href*="/runs/restore-run"]')).not.toBeNull();
     expect(marker?.textContent.includes("after the plan was saved")).toBe(evidence === "matching" || evidence === "document_only");
     expect(Boolean(marker?.querySelector('a[href*="document-plan"]'))).toBe(evidence === "matching" || evidence === "document_only");
@@ -1163,7 +1163,7 @@ describe("TaskChatThread runtime transcript selection", () => {
             schema: "paperclip.tool.execution.v1",
             executionId: "write-plan",
             transport: anchored ? "mcp" : "builtin",
-            namespace: anchored ? "paperclip" : null,
+            namespace: anchored ? "clayon" : null,
             name,
             operation: "execute",
             readOnly: false,
@@ -3207,7 +3207,7 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
   it("preserves a question dismissal saved by another tab", async () => {
     render(<TaskChatThread {...props} comments={[]} interactions={[old]} />);
     // The other tab saves after this thread has loaded its dismissal state.
-    localStorage.setItem("paperclip:task-question-dismissals:user-board:issue-1", JSON.stringify([newer.id]));
+    localStorage.setItem("clayon:task-question-dismissals:user-board:issue-1", JSON.stringify([newer.id]));
     await dismiss();
     flushSync(() => root!.unmount());
     root = createRoot(container);
@@ -3252,7 +3252,7 @@ describe("TaskChatThread composer alignment", () => {
     const dock = container.querySelector(
       '[data-testid="task-chat-composer-dock"]',
     );
-    const composer = container.querySelector(".paperclip-task-chat-composer");
+    const composer = container.querySelector(".clayon-task-chat-composer");
     const send = container.querySelector(
       '[data-testid="task-chat-composer-send"]',
     );
@@ -3277,7 +3277,7 @@ describe("TaskChatThread no-live-execution-path recovery", () => {
     authorType: "system" as const,
     authorAgentId: null,
     authorUserId: null,
-    body: "Paperclip retried continuation, but it still has no live execution path.",
+    body: "Clayon retried continuation, but it still has no live execution path.",
     presentation: {
       kind: "system_notice" as const,
       tone: "danger" as const,
@@ -3798,7 +3798,7 @@ describe("TaskChatThread queued message actions", () => {
   });
 });
 
-describe("TaskChatThread Paperclip Runner queue", () => {
+describe("TaskChatThread Clayon Runner queue", () => {
   const queuedComment = {
     id: "queued-prp-1",
     companyId: "company-1",
@@ -4409,7 +4409,7 @@ describe("TaskChatThread live transcript", () => {
           agentId: "agent-1",
           agentName: "Runner",
           // Reproduces the lag that caused DOT-202: the transcript already has
-          // a Paperclip request while the linked-run adapter classification is
+          // a Clayon request while the linked-run adapter classification is
           // still stale.
           adapterType: "codex_local",
         }}

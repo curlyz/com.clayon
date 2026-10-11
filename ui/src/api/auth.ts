@@ -4,9 +4,10 @@ import {
   type AuthSession,
   type CurrentUserProfile,
   type UpdateCurrentUserProfile,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import { redactUrlSecrets } from "@/lib/redact-url-secrets";
 import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
+import { z } from "zod";
 import { readApiJson } from "./response";
 
 type AuthErrorBody =
@@ -173,6 +174,21 @@ export const authApi = {
 
   signInEmail: async (input: { email: string; password: string }) => {
     await authPost("/sign-in/email", input);
+  },
+
+  /**
+   * Social sign-in: Better Auth answers with the provider consent URL, which
+   * the browser must then navigate to (the redirect cannot happen inside
+   * `fetch`).
+   */
+  signInSocial: async (input: { provider: "google"; callbackURL: string }): Promise<void> => {
+    const payload = await authPost("/sign-in/social", input);
+    const redirect = z.object({ url: z.string() }).safeParse(payload);
+    if (redirect.success && redirect.data.url.length > 0) {
+      window.location.assign(redirect.data.url);
+      return;
+    }
+    throw new AuthApiError("Sign-in provider did not return a redirect URL.", 200, payload);
   },
 
   signUpEmail: async (input: { name: string; email: string; password: string }) => {

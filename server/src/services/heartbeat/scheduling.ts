@@ -6,14 +6,14 @@ import {
   agentTaskSessions,
   agentSessionGoalActions,
   agents,
-} from "@paperclipai/db";
+} from "@clayon/db";
 import {
   type IssueExecutionMonitorPolicy,
   type IssueExecutionMonitorClearReason,
   type IssueExecutionMonitorRecoveryPolicy,
   PROVIDER_QUOTA_MONITOR_SERVICE_NAME,
   isUuidLike,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   and,
   eq,
@@ -50,12 +50,12 @@ import {
 import { logger } from "../../middleware/logger.js";
 import { failRunnerGoalAction } from "../runner-goals.js";
 import { evaluateAgentInvokability } from "../agent-invokability.js";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import type { issueService } from "../issues.js";
 import type { createHeartbeatQueue } from "./queue.js";
 import type { createHeartbeatRetries, HeartbeatRetryDependencies } from "./retries.js";
 import type { createHeartbeatRunPreparation } from "./run-preparation.js";
-import type { NativeSessionGoalControl } from "../../vendor/paperclip-runner/index.js";
+import type { NativeSessionGoalControl } from "../../vendor/clayon-runner/index.js";
 
 type HeartbeatQueue = ReturnType<typeof createHeartbeatQueue>;
 type RunPreparation = ReturnType<typeof createHeartbeatRunPreparation>;
@@ -245,7 +245,7 @@ export function createHeartbeatScheduling(
         ? "its timeout was reached"
         : "its maximum attempt count was reached";
     return [
-      `Paperclip cleared the scheduled external-service monitor for ${label} because ${reason}.`,
+      `Clayon cleared the scheduled external-service monitor for ${label} because ${reason}.`,
       "",
       `- Attempt count: ${input.nextAttemptCount}`,
       `- Recovery policy: ${input.recoveryPolicy}`,

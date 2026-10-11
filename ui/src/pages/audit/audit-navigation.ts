@@ -1,4 +1,7 @@
-export type AuditSection = "activity" | "runs" | "costs" | "budgets" | "timeline";
+/** Single source of the audit section ids; `AuditSection` and AUDIT_SECTIONS derive from it. */
+export const AUDIT_SECTION_IDS = ["activity", "runs", "costs", "budgets", "timeline"] as const;
+
+export type AuditSection = (typeof AUDIT_SECTION_IDS)[number];
 
 export const AUDIT_SECTIONS: ReadonlyArray<{
   value: AuditSection;

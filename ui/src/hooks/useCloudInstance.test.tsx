@@ -40,9 +40,9 @@ describe("useCloudInstance", () => {
     vi.stubGlobal("fetch", fetch);
     const cloud: CloudInstanceHealthStatus = {
       managed: true,
-      managedBy: "paperclip-cloud",
+      managedBy: "clayon-cloud",
       stackSlug: "acme",
-      cloudBaseUrl: "https://app.paperclip.app",
+      cloudBaseUrl: "https://app.clayon.app",
     };
     queryClient.setQueryData<HealthStatus>(queryKeys.health, { status: "ok", cloud });
     const root = createRoot(container);

@@ -1,4 +1,4 @@
-# Native Paperclip runner chat qualification — 2026-09-07
+# Native Clayon runner chat qualification — 2026-09-07
 
 ## Scope and runtime
 
@@ -46,7 +46,7 @@ made explicit that this was a new message. All four provider UIs showed `69`.
 | GitHub   | `7ba05f32-5cb4-4477-b3a5-1c07d537a8e9` |      11.493 s |                            16.467 s |
 
 Agent runtime is persisted `finishedAt - startedAt`. The final column is the
-browser send timestamp to Paperclip's provider publication acknowledgement,
+browser send timestamp to Clayon's provider publication acknowledgement,
 not a measured client-render latency. Run-row queue delays were 8–11 ms.
 These are small local qualification samples, not production percentiles or an
 SLA. Images, files, investigation, and externally delayed callbacks can take
@@ -145,7 +145,7 @@ journey remains unqualified.
 
 ## Slack callback recovery
 
-The exact `maya-e2e-paperclip` app, `A0C03GA5FPU`, still had a verified Events
+The exact `maya-e2e-clayon` app, `A0C03GA5FPU`, still had a verified Events
 callback on the older `:10000` Funnel endpoint. One message arrived only after
 approximately six minutes of provider retries. Its callback was changed in the
 signed-in Slack configuration UI to canonical `:8443`, verified by a genuine
@@ -167,13 +167,13 @@ request to a known webhook returned 401. The Board remains private.
 
 ## Runner activity and files
 
-Native activity is durably recorded in Paperclip's run-event path and consumed
+Native activity is durably recorded in Clayon's run-event path and consumed
 by the task transcript UI. Focused tests cover native transcript projection,
 polling, and task rendering. External publication remains a separate safe
 projection: coarse lifecycle status and selected final answers. Raw reasoning,
 tool names/arguments/results, credentials, and internal logs are not chat output.
 
-The live Paperclip task UI was inspected: native turns show worked duration,
+The live Clayon task UI was inspected: native turns show worked duration,
 expandable tool activity, and the queued/delivered timestamps for burst inputs.
 The corresponding provider thread contains the selected answers, not the
 internal operational commentary.
@@ -199,7 +199,7 @@ isolated test-fixture gate, not a failure of the active live instance. These
 contract/DB checks do not substitute for new model-driven live turns.
 
 The new runner does not have the legacy operational skill or a general
-Paperclip API key. Consequently, the previous shell-helper file instructions
+Clayon API key. Consequently, the previous shell-helper file instructions
 were not a valid native-runner qualification. Native runs now receive a scoped
 `register_deliverable` tool for local files and run-bound staging descriptors
 for incoming attachments. Registration means prepared, not delivered; the

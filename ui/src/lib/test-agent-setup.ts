@@ -1,5 +1,5 @@
-import type { AdapterEnvironmentTestResult } from "@paperclipai/shared";
-import { ADAPTER_AUTH_MISSING_CHECK_CODE } from "@paperclipai/shared";
+import type { AdapterEnvironmentTestResult } from "@clayon/shared";
+import { ADAPTER_AUTH_MISSING_CHECK_CODE } from "@clayon/shared";
 import { agentsApi } from "../api/agents";
 
 /** ACP readiness checks do not authenticate a provider. Verify credentials with
@@ -10,7 +10,7 @@ export async function testAgentSetup(input: {
   adapterType: string;
   providerAdapter: string;
   adapterConfig: Record<string, unknown>;
-  aiConnection?: import("@paperclipai/shared").AiRuntimeConnectionBinding;
+  aiConnection?: import("@clayon/shared").AiRuntimeConnectionBinding;
   testCredentials?: Record<string, string>;
   environmentId: string | null;
 }): Promise<AdapterEnvironmentTestResult> {
@@ -45,7 +45,7 @@ export async function testAgentSetup(input: {
         ...input.adapterConfig,
         engine: "cli",
         ...(input.adapterType === "paperclip_runner" && input.providerAdapter === "grok_local"
-          ? { command: "/opt/paperclip/providers/grok/1.0.13/grok" }
+          ? { command: "/opt/clayon/providers/grok/1.0.13/grok" }
           : {}),
       },
     },

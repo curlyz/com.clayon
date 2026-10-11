@@ -8,7 +8,7 @@ import os from "node:os";
 import { skillFileBytes, snapshotFile, assertSkillSnapshotPath } from "./skill-snapshot.js";
 import { fileURLToPath } from "node:url";
 import { and, asc, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
-import type { Db } from "@paperclipai/db";
+import type { Db } from "@clayon/db";
 import {
   agents as agentsTable,
   assets,
@@ -28,9 +28,9 @@ import {
   issues,
   issueThreadInteractions,
   issueWorkProducts,
-} from "@paperclipai/db";
-import { readPaperclipSkillSyncPreference, writePaperclipSkillSyncPreference } from "@paperclipai/adapter-utils/server-utils";
-import type { PaperclipDesiredSkillEntry, PaperclipSkillEntry } from "@paperclipai/adapter-utils/server-utils";
+} from "@clayon/db";
+import { readClayonSkillSyncPreference, writeClayonSkillSyncPreference } from "@clayon/adapter-utils/server-utils";
+import type { ClayonDesiredSkillEntry, ClayonSkillEntry } from "@clayon/adapter-utils/server-utils";
 import type {
   AgentDesiredSkillEntry,
   CatalogSkill,
@@ -96,7 +96,7 @@ import type {
   CompanySkillVersionFileInventoryEntry,
   IssueAttachment,
   IssueDocument,
-} from "@paperclipai/shared";
+} from "@clayon/shared";
 import {
   isUuidLike,
   joinFrontmatterBlock,
@@ -104,8 +104,8 @@ import {
   parseFrontmatterMarkdown,
   splitFrontmatterBlock,
   stringifyFrontmatter,
-} from "@paperclipai/shared";
-import { resolvePaperclipInstanceRoot } from "../home-paths.js";
+} from "@clayon/shared";
+import { resolveClayonInstanceRoot } from "../home-paths.js";
 import { conflict, forbidden, notFound, unprocessable } from "../errors.js";
 import { ghFetch, gitHubApiBase, resolveRawGitHubUrl } from "./github-fetch.js";
 import { agentService } from "./agents.js";
@@ -314,7 +314,7 @@ function assertImportedSkillKeyAllowed(skill: ImportedSkill) {
   const sourceKind = asString(metadata?.sourceKind);
   if (sourceKind === "paperclip_bundled") return;
   throw unprocessable(
-    `Reserved Paperclip skill key "${skill.key}" cannot be imported from unbundled sources.`,
+    `Reserved Clayon skill key "${skill.key}" cannot be imported from unbundled sources.`,
     {
       skillKey: skill.key,
       sourceKind: sourceKind ?? skill.sourceType,
@@ -619,13 +619,13 @@ function readCanonicalSkillKey(frontmatter: Record<string, unknown>, metadata: R
     ?? asString(frontmatter.skillKey)
     ?? asString(metadata?.skillKey)
     ?? asString(metadata?.canonicalKey)
-    ?? asString(metadata?.paperclipSkillKey),
+    ?? asString(metadata?.clayonSkillKey),
   );
   if (direct) return direct;
-  const paperclip = isPlainRecord(metadata?.paperclip) ? metadata?.paperclip as Record<string, unknown> : null;
+  const clayon = isPlainRecord(metadata?.clayon) ? metadata?.clayon as Record<string, unknown> : null;
   return normalizeSkillKey(
-    asString(paperclip?.skillKey)
-    ?? asString(paperclip?.key),
+    asString(clayon?.skillKey)
+    ?? asString(clayon?.key),
   );
 }
 
@@ -638,11 +638,11 @@ function readCanonicalSkillKey(frontmatter: Record<string, unknown>, metadata: R
  * use them. Mirrors the repo-root `skills/` bundle that
  * `ensureSkillInventoryCurrent` imports into every company library.
  */
-export const PAPERCLIP_CORE_SKILL_KEYS = [
-  "paperclipai/paperclip/paperclip",
-  "paperclipai/paperclip/paperclip-board",
-  "paperclipai/paperclip/paperclip-converting-plans-to-tasks",
-  "paperclipai/paperclip/paperclip-create-agent",
+export const CLAYON_CORE_SKILL_KEYS = [
+  "paperclipai/paperclip/clayon",
+  "paperclipai/paperclip/clayon-board",
+  "paperclipai/paperclip/clayon-converting-plans-to-tasks",
+  "paperclipai/paperclip/clayon-create-agent",
   "paperclipai/paperclip/para-memory-files",
 ] as const;
 
@@ -968,9 +968,9 @@ function resolveBundledSkillsRoot() {
 function resolveBundledSkillReleasesRoot() {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   return [
-    path.resolve(moduleDir, "../../skills-releases/paperclip"),
-    path.resolve(process.cwd(), "skills-releases/paperclip"),
-    path.resolve(moduleDir, "../../../skills-releases/paperclip"),
+    path.resolve(moduleDir, "../../skills-releases/clayon"),
+    path.resolve(process.cwd(), "skills-releases/clayon"),
+    path.resolve(moduleDir, "../../../skills-releases/clayon"),
   ];
 }
 
@@ -1009,8 +1009,8 @@ function deriveImportedSkillSource(
         : null);
     const [owner, repoName] = (repo ?? "").split("/");
     if (repo && owner && repoName) {
-      const sourceKind = owner === "paperclipai"
-        && repoName === "paperclip"
+      const sourceKind = owner === "clayon"
+        && repoName === "clayon"
         && canonicalKey?.startsWith("paperclipai/paperclip/")
         ? "paperclip_bundled"
         : "github";
@@ -1312,18 +1312,18 @@ function stableJsonEqual(left: unknown, right: unknown) {
   return JSON.stringify(stableJsonComparable(left)) === JSON.stringify(stableJsonComparable(right));
 }
 
-function isPaperclipBundledSkillKey(key: string) {
+function isClayonBundledSkillKey(key: string) {
   return key.startsWith("paperclipai/paperclip/");
 }
 
-function paperclipBundledFolderCategory(key: string, metadata?: unknown) {
+function clayonBundledFolderCategory(key: string, metadata?: unknown) {
   const keyParts = key.split("/");
-  if (keyParts[0] === "paperclipai" && keyParts[1] === "bundled" && keyParts[2]) {
+  if (keyParts[0] === "clayon" && keyParts[1] === "bundled" && keyParts[2]) {
     return keyParts[2];
   }
-  if (isPaperclipBundledSkillKey(key)) return "paperclip-core";
+  if (isClayonBundledSkillKey(key)) return "clayon-core";
   if (isPlainRecord(metadata) && asString(metadata.sourceKind) === "paperclip_bundled") {
-    return "paperclip-core";
+    return "clayon-core";
   }
   return null;
 }
@@ -1336,7 +1336,7 @@ function bundledFolderLabel(category: string) {
     .join(" ");
 }
 
-function stripDerivedPaperclipBundledMetadata(key: string, metadata: unknown): unknown {
+function stripDerivedClayonBundledMetadata(key: string, metadata: unknown): unknown {
   if (metadata === null || metadata === undefined) return {};
   const comparable = stableJsonComparable(metadata);
   if (!isPlainRecord(comparable)) return comparable;
@@ -1350,9 +1350,9 @@ function stripDerivedPaperclipBundledMetadata(key: string, metadata: unknown): u
 
 function importedSkillMetadataEqual(existing: CompanySkill, values: ImportedSkillPersistValues) {
   const incomingMetadata = isPlainRecord(values.metadata) ? values.metadata : null;
-  if (isPaperclipBundledSkillKey(values.key) && asString(incomingMetadata?.sourceKind) === "paperclip_bundled") {
-    return JSON.stringify(stripDerivedPaperclipBundledMetadata(existing.key, existing.metadata))
-      === JSON.stringify(stripDerivedPaperclipBundledMetadata(values.key, values.metadata));
+  if (isClayonBundledSkillKey(values.key) && asString(incomingMetadata?.sourceKind) === "paperclip_bundled") {
+    return JSON.stringify(stripDerivedClayonBundledMetadata(existing.key, existing.metadata))
+      === JSON.stringify(stripDerivedClayonBundledMetadata(values.key, values.metadata));
   }
   return stableJsonEqual(existing.metadata ?? null, values.metadata);
 }
@@ -1956,7 +1956,7 @@ const BUILT_IN_SKILL_TEST_RUN_TEMPLATE_DATE = new Date("2026-01-01T00:00:00.000Z
 const BUILT_IN_SKILL_TEST_RUN_TEMPLATE_BODY = [
   "You are running a Skills Studio test for `{{skillName}}` (`{{skillKey}}`), skill version v{{skillVersion}}.",
   "",
-  "Invoke and use the selected skill under test: `{{skillInvocation}}`. Use the pinned skill revision supplied by Paperclip as the source of truth, regardless of any other runtime skills.",
+  "Invoke and use the selected skill under test: `{{skillInvocation}}`. Use the pinned skill revision supplied by Clayon as the source of truth, regardless of any other runtime skills.",
   "",
   "This is a test run. Do not make durable changes outside this test task. Do not mutate unrelated issues, push, publish, send external messages, or affect real work.",
   "",
@@ -1970,7 +1970,7 @@ function builtInSkillTestRunTemplate(companyId: string): CompanySkillTestRunTemp
     id: BUILT_IN_SKILL_TEST_RUN_TEMPLATE_ID,
     companyId,
     name: "Default test template",
-    description: "Paperclip's read-only default harness instructions for Skills Studio runs.",
+    description: "Clayon's read-only default harness instructions for Skills Studio runs.",
     body: BUILT_IN_SKILL_TEST_RUN_TEMPLATE_BODY,
     builtIn: true,
     createdByAgentId: null,
@@ -2210,7 +2210,7 @@ function resolveRequestedSkillKeysOrThrow(
   return Array.from(resolved);
 }
 
-function normalizeRequestedDesiredSkillSelection(value: string | AgentDesiredSkillEntry): PaperclipDesiredSkillEntry {
+function normalizeRequestedDesiredSkillSelection(value: string | AgentDesiredSkillEntry): ClayonDesiredSkillEntry {
   if (typeof value === "string") {
     return { key: value.trim(), versionId: null };
   }
@@ -2246,7 +2246,7 @@ async function assertVersionMatchesSkill(
 
 export interface ResolvedRequestedSkillEntries {
   /** References that resolved to a company-library skill. */
-  resolved: PaperclipDesiredSkillEntry[];
+  resolved: ClayonDesiredSkillEntry[];
   /**
    * References that could not be resolved to a company-library skill, returned
    * in first-seen order. Only populated when `tolerateUnknownReferences` is set;
@@ -2265,7 +2265,7 @@ async function resolveRequestedSkillEntriesOrThrow(
 ): Promise<ResolvedRequestedSkillEntries> {
   const missing = new Set<string>();
   const ambiguous = new Set<string>();
-  const resolved = new Map<string, PaperclipDesiredSkillEntry>();
+  const resolved = new Map<string, ClayonDesiredSkillEntry>();
   const unresolved: string[] = [];
   const seenUnresolved = new Set<string>();
 
@@ -2325,7 +2325,7 @@ function resolveDesiredSkillKeys(
   skills: SkillReferenceTarget[],
   config: Record<string, unknown>,
 ) {
-  const preference = readPaperclipSkillSyncPreference(config);
+  const preference = readClayonSkillSyncPreference(config);
   return Array.from(new Set(
     preference.desiredSkills
       .map((reference) => resolveSkillReference(skills, reference).skill?.key ?? normalizeSkillKey(reference))
@@ -2337,8 +2337,8 @@ function resolveDesiredSkillEntries(
   skills: SkillReferenceTarget[],
   config: Record<string, unknown>,
 ) {
-  const preference = readPaperclipSkillSyncPreference(config);
-  const out = new Map<string, PaperclipDesiredSkillEntry>();
+  const preference = readClayonSkillSyncPreference(config);
+  const out = new Map<string, ClayonDesiredSkillEntry>();
   for (const entry of preference.desiredSkillEntries) {
     const key = resolveSkillReference(skills, entry.key).skill?.key ?? normalizeSkillKey(entry.key);
     if (!key || out.has(key)) continue;
@@ -2373,9 +2373,9 @@ function buildMissingRuntimeSourceDetail(skill: Pick<CompanySkill, "name" | "sou
   const marker = getMissingSourceMarker(skill.metadata);
   const sourcePath = asString(marker?.sourcePath) ?? normalizeSourceLocatorDirectory(skill.sourceLocator);
   if (sourcePath) {
-    return `Company skill "${skill.name}" is in the library, but Paperclip cannot find its local source at ${sourcePath}.`;
+    return `Company skill "${skill.name}" is in the library, but Clayon cannot find its local source at ${sourcePath}.`;
   }
-  return `Company skill "${skill.name}" is in the library, but Paperclip cannot find a valid local runtime source for it.`;
+  return `Company skill "${skill.name}" is in the library, but Clayon cannot find a valid local runtime source for it.`;
 }
 
 export async function findMissingLocalSkillIds(
@@ -2402,18 +2402,18 @@ export async function findMissingLocalSkillIds(
 }
 
 function resolveManagedSkillsRoot(companyId: string) {
-  return path.resolve(resolvePaperclipInstanceRoot(), "skills", companyId);
+  return path.resolve(resolveClayonInstanceRoot(), "skills", companyId);
 }
 
 /**
- * A rename target must be a true Paperclip-managed local skill: a `local_path`
+ * A rename target must be a true Clayon-managed local skill: a `local_path`
  * skill whose `managed_local` source directory lives directly under the
  * company managed-skills root (e.g. `<managedRoot>/<slug>`). This deliberately
  * excludes catalog (`__catalog__/...`), runtime (`__runtime__/...`) and other
  * reserved subtrees, project-scanned skills, unmanaged `local_path` skills, and
  * all remote source types, which keep their own identity/update semantics.
  */
-function isPaperclipManagedRenameTarget(skill: CompanySkill): boolean {
+function isClayonManagedRenameTarget(skill: CompanySkill): boolean {
   if (skill.sourceType !== "local_path") return false;
   if (getSkillMeta(skill).sourceKind !== "managed_local") return false;
   const skillDir = normalizeSkillDirectory(skill);
@@ -2648,7 +2648,7 @@ async function auditInstalledSkillBytes(skill: CompanySkill): Promise<CompanySki
 
 /** Audit downloaded packages before they become installed company content. */
 export async function auditSkillSnapshot(files: CompanySkillVersionFileInventoryEntry[]) {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-skill-audit-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-skill-audit-"));
   try {
     for (const file of files) {
       const target = path.join(root, assertSkillSnapshotPath(file.path));
@@ -2694,9 +2694,9 @@ function deriveSkillSourceInfo(skill: SkillSourceInfoTarget): {
   if (metadata.sourceKind === "paperclip_bundled") {
     return {
       editable: false,
-      editableReason: "Bundled Paperclip skills are read-only.",
-      sourceLabel: "Paperclip bundled",
-      sourceBadge: "paperclip",
+      editableReason: "Bundled Clayon skills are read-only.",
+      sourceLabel: "Clayon bundled",
+      sourceBadge: "clayon",
       sourcePath: null,
     };
   }
@@ -2744,8 +2744,8 @@ function deriveSkillSourceInfo(skill: SkillSourceInfoTarget): {
       return {
         editable: true,
         editableReason: null,
-        sourceLabel: "Paperclip workspace",
-        sourceBadge: "paperclip",
+        sourceLabel: "Clayon workspace",
+        sourceBadge: "clayon",
         sourcePath: managedRoot,
       };
     }
@@ -2975,7 +2975,7 @@ export function companySkillService(db: Db) {
     if (!allowed) {
       throw forbidden("Local skill source is outside approved company workspace roots", {
         code: "skill_workspace_boundary_denied",
-        remediation: "Import from a configured Paperclip workspace or the company managed-skill directory.",
+        remediation: "Import from a configured Clayon workspace or the company managed-skill directory.",
       });
     }
   }
@@ -3051,8 +3051,8 @@ export function companySkillService(db: Db) {
   }
 
   async function ensureBundledSkillReleases(companyId: string, bundledSkills: CompanySkill[]) {
-    const paperclipSkill = bundledSkills.find((skill) => skill.key === "paperclipai/paperclip/paperclip");
-    if (!paperclipSkill) return;
+    const clayonSkill = bundledSkills.find((skill) => skill.key === "paperclipai/paperclip/clayon");
+    if (!clayonSkill) return;
     for (const release of await readBundledSkillReleaseRegistry()) {
       const fileInventory = serializeVersionFileInventory(
         await collectVersionFileInventoryFromDirectory(release.releaseDir),
@@ -3062,7 +3062,7 @@ export function companySkillService(db: Db) {
         .from(companySkillVersions)
         .where(and(
           eq(companySkillVersions.companyId, companyId),
-          eq(companySkillVersions.companySkillId, paperclipSkill.id),
+          eq(companySkillVersions.companySkillId, clayonSkill.id),
           eq(companySkillVersions.releaseId, release.id),
         ))
         .then((rows) => rows[0] ?? null);
@@ -3085,17 +3085,17 @@ export function companySkillService(db: Db) {
       if (Number.isNaN(releasedAt.getTime())) {
         throw new Error(`Invalid bundled skill release date: ${release.releasedAt}`);
       }
-      await createVersion(companyId, paperclipSkill.id, { label: release.releaseName }, null, {
+      await createVersion(companyId, clayonSkill.id, { label: release.releaseName }, null, {
         fileInventory,
         release: { id: release.id, name: release.releaseName, releasedAt },
         updateCurrentVersion: false,
         skipInventoryRefresh: true,
-        skill: paperclipSkill,
+        skill: clayonSkill,
       });
     }
   }
 
-  async function reconcilePaperclipSkillFolders(companyId: string) {
+  async function reconcileClayonSkillFolders(companyId: string) {
     const shippedSkills = await db
       .select({
         id: companySkills.id,
@@ -3106,7 +3106,7 @@ export function companySkillService(db: Db) {
       .from(companySkills)
       .where(eq(companySkills.companyId, companyId))
       .then((rows) => rows.flatMap((skill) => {
-        const category = paperclipBundledFolderCategory(skill.key, skill.metadata);
+        const category = clayonBundledFolderCategory(skill.key, skill.metadata);
         return category ? [{ ...skill, category }] : [];
       }));
     const foldersByCategory = new Map<string, Awaited<ReturnType<typeof folderSvc.ensureBundledCategory>>>();
@@ -3153,7 +3153,7 @@ export function companySkillService(db: Db) {
 
     for (const skill of skills) {
       if (skill.sourceType !== "local_path") continue;
-      if (isPaperclipBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled") continue;
+      if (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled") continue;
 
       if (!missingIds.has(skill.id)) {
         const metadata = getMissingSourceMarker(skill.metadata)
@@ -3220,7 +3220,7 @@ export function companySkillService(db: Db) {
       }
       const bundledSkills = await ensureBundledSkills(companyId);
       await ensureBundledSkillReleases(companyId, bundledSkills);
-      await reconcilePaperclipSkillFolders(companyId);
+      await reconcileClayonSkillFolders(companyId);
       await reconcileLocalPathSkillSources(companyId);
     })();
 
@@ -3927,7 +3927,7 @@ export function companySkillService(db: Db) {
             : entry
         );
         const updated = await updateAgentConfigurationInTransaction(tx as unknown as Db, item.agentId, {
-          adapterConfig: writePaperclipSkillSyncPreference(adapterConfig, nextEntries),
+          adapterConfig: writeClayonSkillSyncPreference(adapterConfig, nextEntries),
         }, { allowPendingApprovalConfigUpdate: true });
         if (!updated) throw notFound(`Agent not found for skill reassignment: ${item.agentId}`);
       }
@@ -4076,9 +4076,9 @@ export function companySkillService(db: Db) {
     await removeRuntimeSkillCache(managedRoot, skillId, async () => {
       try {
         result = await withSkillFileMutation(companyId, skillId, async (skill, tx) => {
-          if (!isPaperclipManagedRenameTarget(skill)) {
+          if (!isClayonManagedRenameTarget(skill)) {
             throw unprocessable(
-              "Only Paperclip-managed skills can be renamed. Catalog, external, project-scanned, and unmanaged local skills are read-only.",
+              "Only Clayon-managed skills can be renamed. Catalog, external, project-scanned, and unmanaged local skills are read-only.",
               { skillId: skill.id, sourceType: skill.sourceType, sourceKind: getSkillMeta(skill).sourceKind ?? null },
             );
           }
@@ -4192,7 +4192,7 @@ export function companySkillService(db: Db) {
                   ? { key: newKey, versionId: entry.versionId ?? null }
                   : entry);
               await updateAgentConfigurationInTransaction(tx as unknown as Db, item.agentId, {
-                adapterConfig: writePaperclipSkillSyncPreference(adapterConfig, nextEntries),
+                adapterConfig: writeClayonSkillSyncPreference(adapterConfig, nextEntries),
               }, { allowPendingApprovalConfigUpdate: true });
             }
           } catch (error) {
@@ -5290,7 +5290,7 @@ export function companySkillService(db: Db) {
 
         const existingBundledBySlug = acceptedSkills.find((skill) => (
           skill.slug === nextSkill.slug
-          && (isPaperclipBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled")
+          && (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled")
         )) ?? null;
         if (existingBundledBySlug) {
           candidates.push({
@@ -5778,7 +5778,7 @@ export function companySkillService(db: Db) {
     }
     const markdown = await fs.readFile(path.join(originSnapshotLocator, catalogSkill.entrypoint), "utf8");
     const metadata = buildCatalogSkillMetadata(catalogSkill, existingByKey, originSnapshotLocator);
-    const bundledCategory = paperclipBundledFolderCategory(catalogSkill.key, metadata);
+    const bundledCategory = clayonBundledFolderCategory(catalogSkill.key, metadata);
     const bundledFolder = bundledCategory
       ? await folderSvc.ensureBundledCategory(companyId, bundledFolderLabel(bundledCategory))
       : null;
@@ -5807,7 +5807,7 @@ export function companySkillService(db: Db) {
       iconUrl: storeMetadata.iconUrl ?? existingByKey?.iconUrl ?? null,
       color: storeMetadata.color ?? existingByKey?.color ?? null,
       tagline: storeMetadata.tagline ?? existingByKey?.tagline ?? catalogSkill.description.slice(0, 120),
-      authorName: storeMetadata.authorName ?? existingByKey?.authorName ?? "Paperclip",
+      authorName: storeMetadata.authorName ?? existingByKey?.authorName ?? "Clayon",
       homepageUrl: storeMetadata.homepageUrl ?? existingByKey?.homepageUrl ?? catalogSkill.source?.url ?? null,
       categories: storeMetadata.categories.length > 0 ? storeMetadata.categories : normalizeCategoryList([catalogSkill.category, ...catalogSkill.tags]),
       sharingScope: existingByKey?.sharingScope ?? "company",
@@ -6068,10 +6068,10 @@ export function companySkillService(db: Db) {
   async function listRuntimeSkillEntries(
     companyId: string,
     options: RuntimeSkillEntryOptions = {},
-  ): Promise<PaperclipSkillEntry[]> {
+  ): Promise<ClayonSkillEntry[]> {
     const skills = await listFull(companyId);
 
-    const out: PaperclipSkillEntry[] = [];
+    const out: ClayonSkillEntry[] = [];
     for (const skill of skills) {
       const sourceResolution = await resolveRuntimeSkillSource(companyId, skill, options);
       if (!sourceResolution) continue;
@@ -6249,8 +6249,8 @@ export function companySkillService(db: Db) {
         existing
         && existingMeta.sourceKind === "paperclip_bundled"
         && incomingKind === "github"
-        && incomingOwner === "paperclipai"
-        && incomingRepo === "paperclip"
+        && incomingOwner === "clayon"
+        && incomingRepo === "clayon"
       ) {
         out.push(existing);
         continue;
@@ -6262,7 +6262,7 @@ export function companySkillService(db: Db) {
       };
       const parsed = parseFrontmatterMarkdown(skill.markdown);
       const storeMetadata = readSkillStoreMetadata(parsed.frontmatter, metadata);
-      const bundledCategory = paperclipBundledFolderCategory(skill.key, incomingMeta);
+      const bundledCategory = clayonBundledFolderCategory(skill.key, incomingMeta);
       const bundledFolder = bundledCategory
         ? await folderSvc.ensureBundledCategory(companyId, bundledFolderLabel(bundledCategory))
         : null;
@@ -6598,8 +6598,8 @@ export function companySkillService(db: Db) {
       model: asString(adapterConfig.model) ?? asString(runtimeConfig.model) ?? null,
       adapterConfig,
       runtimeConfig,
-      assignedSkills: isPlainRecord(adapterConfig.paperclipSkillSync)
-        ? adapterConfig.paperclipSkillSync
+      assignedSkills: isPlainRecord(adapterConfig.clayonSkillSync)
+        ? adapterConfig.clayonSkillSync
         : null,
       instructionsRef:
         asString(adapterConfig.instructionsFilePath) ??
@@ -7170,7 +7170,7 @@ export function companySkillService(db: Db) {
           await assertUnused(skill);
           try {
             await fs.rm(resolveRuntimeSkillMaterializedPath(companyId, skill), { recursive: true, force: true });
-            if (isPaperclipManagedRenameTarget(skill)) {
+            if (isClayonManagedRenameTarget(skill)) {
               const source = normalizeSkillDirectory(skill)!;
               const stat = await fs.lstat(source).catch((error: NodeJS.ErrnoException) => {
                 if (error.code === "ENOENT") return null;
