@@ -53,11 +53,11 @@
   min-width: var(--halo-portal-zero);
   padding: var(--halo-portal-main-top) var(--halo-portal-safe-right) var(--halo-portal-main-bottom) var(--halo-portal-safe-left);
 }
-/* The emblem asset is opaque with a uniform near-black background (rgb 3,3,3,
-   dwebp-probed 2026-10-11). A luminance mask keyed on the asset itself makes
-   that background fully transparent and keeps only the bright emblem — the
-   logo reads cleanly on both the light and dark themes. */
-.halo-portal-emblem { width: var(--halo-portal-emblem-size); height: var(--halo-portal-emblem-size); image-rendering: pixelated; mask-image: url("/portal/emblem.webp"); mask-mode: luminance; mask-size: 100% 100%; flex-shrink: var(--halo-portal-zero); }
+/* The emblem asset is truly transparent (2026-10-11: the opaque original was
+   threshold-rebuilt losslessly — background below max-channel 32 cleared to
+   alpha 0, the emblem's own midtones kept — so no CSS mask is needed and no
+   pale box shows on the light theme). */
+.halo-portal-emblem { width: var(--halo-portal-emblem-size); height: var(--halo-portal-emblem-size); image-rendering: pixelated; flex-shrink: var(--halo-portal-zero); }
 .halo-portal-content { display: flex; flex-direction: column; align-items: center; gap: var(--halo-portal-gap); width: var(--halo-portal-full); max-width: var(--halo-portal-content-width); text-align: center; }
 .halo-portal-eyebrow { margin: var(--halo-portal-zero); color: var(--halo-portal-dim); font-size: var(--halo-portal-label-size); font-weight: var(--halo-portal-label-weight); letter-spacing: var(--halo-portal-label-tracking); text-transform: uppercase; }
 .halo-portal-title { margin: var(--halo-portal-zero); font-size: var(--halo-portal-title-size); font-weight: var(--halo-portal-title-weight); line-height: var(--halo-portal-title-leading); letter-spacing: var(--halo-portal-title-tracking); text-wrap: balance; }
