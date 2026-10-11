@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-product-file-proof.v1",
+  "schema": "clayon.pi-product-file-proof.v1",
   "attemptId": "pi-product-file-02",
   "sourceRevision": "7710736ca3924c655c5b0efd172cfd3c0173766a",
   "repositoryRevision": "9cd42f6df9356cb673cd12accd94dc3e171dc13d",
@@ -120,7 +120,7 @@
     ]
   },
   "terminal": {
-    "schema": "paperclip.prp.terminal.v1",
+    "schema": "clayon.prp.terminal.v1",
     "runTerminalState": "succeeded",
     "turnTerminalState": "completed",
     "reportedWorkDisposition": "done"

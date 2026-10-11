@@ -539,7 +539,7 @@ export function createClayonCloudConnector(input: {
   };
 }
 
-function parseCloudHandoff(value: unknown): { kind: "paperclip_cloud"; session: string } | undefined {
+function parseCloudHandoff(value: unknown): { kind: "clayon_cloud"; session: string } | undefined {
   if (value === undefined) return undefined;
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new ClayonCloudConnectorError("Clayon Cloud connector returned an invalid handoff", "CONNECTOR_BAD_RESPONSE");
@@ -555,7 +555,7 @@ function parseCloudHandoff(value: unknown): { kind: "paperclip_cloud"; session: 
   ) {
     throw new ClayonCloudConnectorError("Clayon Cloud connector returned an invalid handoff", "CONNECTOR_BAD_RESPONSE");
   }
-  return { kind: "paperclip_cloud", session };
+  return { kind: "clayon_cloud", session };
 }
 
 export type ClayonCloudConnector = ReturnType<typeof createClayonCloudConnector>;
@@ -563,7 +563,7 @@ export type ClayonCloudGoogleWorkspaceConnector = ClayonCloudConnector;
 
 /** Accept persisted Clayon ID-era records while all new records use the Cloud strategy. */
 export function isClayonCloudConnectorStrategy(value: unknown): boolean {
-  return value === "paperclip_cloud_connector" || value === "paperclip_id_connector";
+  return value === "clayon_cloud_connector" || value === "clayon_id_connector";
 }
 
 /** Use the same signed instance profiles for catalog display and setup validation. */

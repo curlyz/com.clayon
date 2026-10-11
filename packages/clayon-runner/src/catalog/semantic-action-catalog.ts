@@ -95,7 +95,7 @@ interface DescriptorInput {
 
 function descriptor(input: DescriptorInput): ClayonSemanticActionDescriptor {
   return {
-    schema: "paperclip.semantic-action.v1",
+    schema: "clayon.semantic-action.v1",
     operationId: input.operationId,
     version: 1,
     title: input.title,

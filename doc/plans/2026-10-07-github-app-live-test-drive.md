@@ -130,7 +130,7 @@ Independent proof is saved in `live-e2e-proof.json`. The live acceptance results
   comment and block GIT-1. It correctly could not schedule privileged retries.
   Both CLI runs failed to load `Clayon_connections` and `Clayon_projects`
   MCP servers because the sandbox cannot use host localhost endpoints.
-- Switched the same bot to `paperclip_runner` / Codex / `gpt-5.4` in the same
+- Switched the same bot to `clayon_runner` / Codex / `gpt-5.4` in the same
   sandbox. Native tools use the authenticated Runner transport. GIT-2
   (`ac96bb88-2c6b-413c-8fd8-a59b26202128`) is a bounded fresh runtime smoke.
 - Native run `13cda2bc-1bf4-4e97-b3b0-f189ba4e6a0a` stopped before model work:
@@ -181,11 +181,11 @@ Do not print the `.env` file or expose trusted board routes through the tunnel.
 
 The earlier provider fixtures are now qualified:
 
-- Mention issue: https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/1 . Created before installation to isolate mentions from issue-open automation.
-- PR: https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/pull/3 . Branch `codex/github-animals-e2e-20261007`, harmless file `clayon-animal-e2e.txt`.
+- Mention issue: https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/1 . Created before installation to isolate mentions from issue-open automation.
+- PR: https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/pull/3 . Branch `codex/github-animals-e2e-20261007`, harmless file `clayon-animal-e2e.txt`.
 - Initial head: `c1525d7a904142590babb421971e7590d0a03b26`.
 - Retest head: `b046e7e18bdda6208515088540aee438091ab120`.
-- New issues: https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/2 and https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/4 .
+- New issues: https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/2 and https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/4 .
 
 The following sections are chronological failure diagnoses. Their original intermediate limits are superseded by the final live results.
 
@@ -239,10 +239,10 @@ A focused integration case verifies those receipt boundaries. The complete GitHu
 
 Inspectable provider results:
 
-- [5/5 review on the updated head](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/pull/3#issuecomment-6043294143).
-- [Passing current-head check](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/runs/112928995770).
-- [New-issue animal reply](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/4#issuecomment-6043522941).
-- [Allowed-mention animal reply](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/1#issuecomment-6043507486).
+- [5/5 review on the updated head](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/pull/3#issuecomment-6043294143).
+- [Passing current-head check](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/runs/112928995770).
+- [New-issue animal reply](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/4#issuecomment-6043522941).
+- [Allowed-mention animal reply](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/1#issuecomment-6043507486).
 
 All corresponding Clayon tasks finished. All ten recorded sandbox leases have successful cleanup (eight expired, two released); no active lease remains. Costs were not independently priced for this qualification and no monetary estimate is claimed.
 
@@ -505,7 +505,7 @@ native model runs; no synthetic webhook or host credential substituted for them.
 
 - Issue #5: request comment `6061889213`, run
   `9ca64f81-6dcb-4db8-814b-922616a9a80d` succeeded at 14:19:46 UTC.
-  [One ASCII fish reply](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6061907432)
+  [One ASCII fish reply](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6061907432)
   was delivered by the `comment` tool. No routine or final-summary comment
   followed. The new task message names `cryppadotta` and uses the revised prose.
 - The first PR retest, run `28e2f640-c9ec-4663-901b-6dbcbc8f4538`, submitted a
@@ -515,8 +515,8 @@ native model runs; no synthetic webhook or host credential substituted for them.
 - Final PR #7 request `6062038664`, run
   `1098a204-539b-4151-a5bc-4e161d8400c6` succeeded at 14:27:29 UTC.
   It called only the assessment publication tool, updating the
-  [existing 5/5 summary with an ASCII rabbit](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6059614330).
-  The [current-head check passed](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/runs/113363466934)
+  [existing 5/5 summary with an ASCII rabbit](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6059614330).
+  The [current-head check passed](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/runs/113363466934)
   on `7f456f37881bf4bfe39692f897d60e1625521298`. No new bot comment followed.
 - All three runs retained internal final comments, cancelled their completion
   milestones without provider IDs, and completed acknowledgement removal.
@@ -567,9 +567,9 @@ exact source binding and App-owned reaction checks. A late reaction add is
 cancelled if the reply wins the race. Terminal cleanup still handles turns that
 publish no reply; uncertain writes do not count as confirmed delivery.
 
-Live test: the [Gonzo mention](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083303153)
+Live test: the [Gonzo mention](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083303153)
 was submitted at 14:49:44 UTC. Eyes were observed while Gonzo was queued. Its
-[joke and ASCII animal reply](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083330049)
+[joke and ASCII animal reply](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083330049)
 was posted at 14:51:20. Its eyes were gone at 14:51:24 while the same run was
 still running; the native run succeeded at 14:51:31. Banana also received this
 existing subscribed issue thread and replied. Each dedicated App removed only
@@ -607,10 +607,10 @@ Duplicate and recovered deliveries use the same decision. Mentioning both bots
 still admits both; plain follow-ups, human mentions and unknown handles retain
 subscription behavior. Automatic event policies remain unchanged.
 
-Live test: the [Gonzo-only request](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083880345)
+Live test: the [Gonzo-only request](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083880345)
 was posted at 15:22:51 UTC. Banana recorded "GitHub message explicitly mentions a
 different connected bot" at 15:23:08 and created no run. Gonzo's
-[single joke and ASCII animal reply](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083891075)
+[single joke and ASCII animal reply](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6083891075)
 arrived at 15:23:29, 38 seconds after the request. Its native run
 `3167e9d4-8154-4b88-af88-0316a1409c84` succeeded at 15:23:41. At the final
 observation, no Banana reply or run existed and no eyes remained. This test did
@@ -652,8 +652,8 @@ The native tool contract now rotates incompatible checkpoints while retaining
 the same Clayon task and saved history. Native GitHub guidance explicitly
 permits provider progress edits and keeps semantic completion internal.
 
-After that fix, the [issue request](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6084847530)
-was posted at 16:20:52 UTC. The [single Gonzo response](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6084851008)
+After that fix, the [issue request](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6084847530)
+was posted at 16:20:52 UTC. The [single Gonzo response](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6084851008)
 kept comment ID `6084851008` through these observed revisions:
 
 | Time (UTC) | Response |
@@ -666,11 +666,11 @@ kept comment ID `6084851008` through these observed revisions:
 Run `600d26e6-5065-414f-87eb-6b097192180a` succeeded. Both
 `update_comment` actions and the final `comment` action were processed.
 
-The [PR request](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6084888007)
-was posted at 16:23:23. Its [single Gonzo response](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6084890857)
+The [PR request](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6084888007)
+was posted at 16:23:23. Its [single Gonzo response](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/pull/7#issuecomment-6084890857)
 kept comment ID `6084890857`: working at 16:23:33, first progress at
 16:24:00, assessment-ready progress at 16:24:15, final 5/5 summary and
-ASCII animal at 16:24:20. [Check `113916193245`](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/runs/113916193245)
+ASCII animal at 16:24:20. [Check `113916193245`](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/runs/113916193245)
 completed successfully at 16:24:23 on current head
 `7f456f37881bf4bfe39692f897d60e1625521298`. Run
 `701f9606-21fc-4c04-a37d-858b510e929f` succeeded. Its two progress edits
@@ -721,9 +721,9 @@ selection is available during bootstrap.
 For the live test, the shared editor inserted and saved `/github-instruction-smoke`
 in Gonzo's common instructions. Its skill file contained an expected response
 absent from the GitHub request. The initial request produced an honest unavailable
-skill response. After the native fix, the [second request](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6085445382)
+skill response. After the native fix, the [second request](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6085445382)
 ran as `5ca93e83-d8d8-4f13-b531-678437350497`. The native turn selected the skill,
-read its materialized `SKILL.md` successfully, and posted the [expected response](https://github.com/paperclipai/paperclip-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6085451384):
+read its materialized `SKILL.md` successfully, and posted the [expected response](https://github.com/clayon/clayon-permissions-smoke-20260926-pap57-fee7428e/issues/5#issuecomment-6085451384):
 “The otter has read its playbook.” plus the skill's ASCII animal. The run
 succeeded and publication used the same working comment. Banana filtered the
 request without retaining its content or starting another run. Temporary test

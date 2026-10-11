@@ -6,14 +6,14 @@ import { buildEvalSliceReport, renderEvalSliceMarkdown } from "./eval-slice.js";
 
 function bundle(): EvalBundle {
   return {
-    schema: "paperclip.runner.eval-bundle.v1",
+    schema: "clayon.runner.eval-bundle.v1",
     provider: { runtime: "runnerd", transport: "codex-app-server", protocolVersion: "prp.v1" },
     model: { id: "gpt-5-codex" },
     launchContext: { workingDirectoryClass: "ephemeral-fixture", scenarioId: "slice", turnTimeoutMs: 60_000 },
     promptPolicy: { id: "exact-single-call", callTemplate: "Call {op}.", restraintTemplate: "No tools." },
     grants: ["discovery:tasks:read"],
     runner: { package: "@clayon/clayon-runner", binary: "clayon-runnerd", version: "0.0.0" },
-    controlPlaneAdapter: { kind: "mock", contract: "paperclip.capability.control-plane.v1" },
+    controlPlaneAdapter: { kind: "mock", contract: "clayon.capability.control-plane.v1" },
     faultInjection: [],
   };
 }

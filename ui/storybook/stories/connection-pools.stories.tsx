@@ -26,7 +26,7 @@ const accounts: AiConnectionList = { currentUserId: "user-board", canManageConne
   id: m.binding.connectionId!, grantId: m.binding.grantId!, companyId, provider: m.binding.provider, method: m.binding.method!, name: index === 0 ? "My OpenAI subscription" : "My Claude subscription", ownership: "personal", ownerUserId: "user-board", isDefault: true, status: "connected",
 })) };
 const models = [{ id: "gpt-5.6-sol", label: "GPT-5.6 Sol · Codex" }, { id: "claude-sonnet-5", label: "Claude Sonnet 5 · Claude ACP" }];
-const agent: Agent = { ...storybookAgents.find(a => a.id === agentId)!, adapterType: "paperclip_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol" }, runtimeConfig: { aiConnection: { mode: "router", connectionId: poolId } } };
+const agent: Agent = { ...storybookAgents.find(a => a.id === agentId)!, adapterType: "clayon_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol" }, runtimeConfig: { aiConnection: { mode: "router", connectionId: poolId } } };
 type Scenario = "overview" | "selector" | "legacy" | "adoption" | "unavailable" | "read-only" | "models" | "effort" | "mobile" | "claude-model" | "quota" | "checking" | "run-codex" | "run-claude" | "fallback" | "retry";
 
 function PoolComposer({ scenario }: { scenario: Scenario }) {
@@ -67,7 +67,7 @@ function PoolSurfaces({ scenario = "overview" }: { scenario?: Scenario }) {
   return <QueryClientProvider client={client}><main className="mx-auto max-w-3xl space-y-6 p-6">
     {scenario !== "adoption" && <header className="space-y-2"><h1 className="text-xl font-semibold">Experimental connection pools</h1><a className="text-sm text-primary underline" href="http://127.0.0.1:6010/?path=/story/plugins-connection-pools--in-connectors">Connection pool connector in Cloud Storybook</a></header>}
     {(overview || ["selector", "legacy", "adoption", "unavailable", "read-only"].includes(scenario)) && <section className="space-y-2"><h2 className="text-sm font-semibold">Agent connection</h2><AiConnectionField companyId={companyId} agentId={agentId} agentName={agent.name}
-      adapterType={scenario === "legacy" ? "claude_local" : "codex_local"} routerAdapterType={scenario === "legacy" ? "claude_local" : "paperclip_runner"}
+      adapterType={scenario === "legacy" ? "claude_local" : "codex_local"} routerAdapterType={scenario === "legacy" ? "claude_local" : "clayon_runner"}
       value={binding} onChange={setBinding} legacy={scenario === "adoption"} readOnly={scenario === "read-only"} /></section>}
     {(overview || ["models", "effort", "mobile", "claude-model"].includes(scenario)) && <section className="space-y-2"><h2 className="text-sm font-semibold">Composer model and effort</h2><PoolComposer scenario={scenario} /></section>}
     {(overview || scenario === "quota" || scenario === "checking") && <section><h2 className="text-sm font-semibold">Usage recovery</h2><PoolWait checking={scenario === "checking"} /></section>}

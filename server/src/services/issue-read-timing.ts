@@ -28,7 +28,7 @@ export function createIssueReadTiming() {
     },
     header() {
       return [
-        `paperclip_issue;dur=${(performance.now() - start).toFixed(1)}`,
+        `clayon_issue;dur=${(performance.now() - start).toFixed(1)}`,
         ...[...durations].map(([phase, duration]) => `issue_${phase};dur=${duration.toFixed(1)}`),
       ].join(", ");
     },

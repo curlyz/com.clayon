@@ -5,7 +5,7 @@
 Isolated Board `http://127.0.0.1:3103`, company Chat Adapter E2E, snapshot 10,
 loaded server `2026.831.0+396.git.dde176bbc`. The branch HEAD was `66a68fee5`
 (documentation-only after the running implementation). Maya E2E remained
-`paperclip_runner` → `codex` → `gpt-5.6-luna`.
+`clayon_runner` → `codex` → `gpt-5.6-luna`.
 
 These are real signed-in in-app browser checks against the configured Slack,
 GitHub, Discord, and Telegram sandboxes. They deliberately start no model turns:
@@ -164,7 +164,7 @@ reaction matching on uploaded Slack files is not yet qualified.
 Restarted only the isolated Board server as snapshot 11. Health reported loaded
 `2026.831.0+399.git.43b63da40`, process start **19:52:33.594 UTC**, startup recovery
 ready, and the Discord Gateway connected. Maya's safe configuration fields were
-rechecked: `paperclip_runner`, provider `codex`, model `gpt-5.6-luna`. The stored
+rechecked: `clayon_runner`, provider `codex`, model `gpt-5.6-luna`. The stored
 reasoning-effort setting is `low`, but the current native input contract does
 not propagate that legacy field, as documented in the native-runner report.
 The following checks do not invoke the model.
@@ -465,7 +465,7 @@ new live-provider qualification or change the running server's production code.
 Loaded `2026.831.0+407.git.e6f52b4cc` at **20:44:52.362 UTC**. Health and
 startup recovery are ready; Discord Gateway connected. All four configured
 endpoints remain active. A read-only recheck confirms Maya still uses
-`paperclip_runner` / `codex` / `gpt-5.6-luna`; the four earlier successful text
+`clayon_runner` / `codex` / `gpt-5.6-luna`; the four earlier successful text
 run rows retain `native` / `codex_app_server`. No model defaults were changed.
 
 The attempted live post-restart reaction smoke did not complete. Browser click
@@ -626,7 +626,7 @@ Committed and pushed `9277e0dc5`. The isolated instance restarted with loaded
 version `2026.831.0+411.git.9277e0dc5`; startup recovery was ready at
 **21:36:00.332 UTC**. The health endpoint and `/CHA/apps` both returned 200,
 and Discord Gateway connected. Slack, GitHub, Discord, and Telegram endpoints
-remain active. Maya still uses `paperclip_runner` / `codex` /
+remain active. Maya still uses `clayon_runner` / `codex` /
 `gpt-5.6-luna`; no global defaults or agent model settings changed. There were
 no active Maya runs at restart. The webhook-only proxy stayed running on 3104,
 and the Board remains private on 3103.

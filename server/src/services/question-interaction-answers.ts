@@ -9,7 +9,7 @@ function prepareQuestionInteractionAnswers(
 ) {
   const answerByQuestionId = new Map(answers.map((answer) => [answer.questionId, answer]));
   const response: ClayonQuestionResponse = {
-    schema: "paperclip.question_response.v1",
+    schema: "clayon.question_response.v1",
     answers: {},
   };
   for (const question of questionSet.questions) {

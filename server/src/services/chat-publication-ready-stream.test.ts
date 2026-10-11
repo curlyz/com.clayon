@@ -821,7 +821,7 @@ describe("already-approved publication streaming", () => {
         persistence,
         providerConfig: {
           provider: "telegram",
-          userName: "paperclip_agent_bot",
+          userName: "clayon_agent_bot",
           credentials: { botToken: "123:test", secretToken: "test" },
         },
       });

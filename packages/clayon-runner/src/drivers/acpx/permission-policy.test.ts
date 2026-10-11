@@ -12,29 +12,29 @@ describe("ACPX permission policy", () => {
     const reads = capabilityCanonicalOperationsForSurface("live").filter(action => action.sideEffectClass === "read");
     expect(reads.some(action => action.operationId === "get_approval")).toBe(true);
     for (const action of reads) {
-      expect(claudeClayonPermissionRules([{ name: action.operationId }], mode)).toEqual([`mcp__paperclip__${action.operationId}`]);
+      expect(claudeClayonPermissionRules([{ name: action.operationId }], mode)).toEqual([`mcp__clayon__${action.operationId}`]);
     }
     expect(claudeClayonPermissionRules([{ name: "get_approval" }], "deny-all")).toEqual([]);
   });
   it("uses only catalogued reads assigned to this run, regardless of tool hints", () => {
     const tools = [
-      "paperclip__get_task_context", "read_document", "write_document",
+      "clayon__get_task_context", "read_document", "write_document",
       "call_api", "request_approval", "unknown_read", "mcp__other__get_task_context",
     ].map((name) => ({ name, annotations: { readOnlyHint: true, effect: "read" } }));
     expect(claudeClayonPermissionRules(tools, "approve-reads")).toEqual([
-      "mcp__paperclip__get_task_context", "mcp__paperclip__read_document",
+      "mcp__clayon__get_task_context", "mcp__clayon__read_document",
     ]);
     expect(claudeClayonPermissionRules([], "approve-reads")).toEqual([]);
   });
 
   it("allows assigned Clayon mutations without admitting unknown or external tools", () => {
-    const tools = ["paperclip__write_document", "create_task", "reassign_task", "request_approval",
-      "write_document", "mcp__other__create_task", "Bash", "unknown_write", "mcp__paperclip__create_task",
+    const tools = ["clayon__write_document", "create_task", "reassign_task", "request_approval",
+      "write_document", "mcp__other__create_task", "Bash", "unknown_write", "mcp__clayon__create_task",
       "decide_approval", "control_workspace_service", "call_api", "create_skill", "schedule_wake"]
       .map(name => ({ name, annotations: { readOnlyHint: true } }));
     expect(claudeClayonPermissionRules(tools, "approve-clayon")).toEqual([
-      "mcp__paperclip__create_task", "mcp__paperclip__reassign_task",
-      "mcp__paperclip__request_approval", "mcp__paperclip__write_document",
+      "mcp__clayon__create_task", "mcp__clayon__reassign_task",
+      "mcp__clayon__request_approval", "mcp__clayon__write_document",
     ]);
     expect(claudeClayonPermissionRules([], "approve-clayon")).toEqual([]);
     expect(claudeClayonPermissionRules(tools, "deny-all")).toEqual([]);
@@ -70,7 +70,7 @@ describe("ACPX permission policy", () => {
 
   it("keeps deny-all closed against provider-supplied semantic metadata", () => {
     for (const [agent, raw] of [
-      ["claude", { toolCall: { name: "mcp__paperclip__paperclip_finish" } }],
+      ["claude", { toolCall: { name: "mcp__clayon__clayon_finish" } }],
       ["claude", { toolCall: { rawInput: { serverName: "clayon" } } }],
       [
         "codex",
@@ -111,7 +111,7 @@ describe("ACPX permission policy", () => {
       [
         "claude",
         "execute",
-        { toolCall: { name: "mcp__paperclip__paperclip_finish" } },
+        { toolCall: { name: "mcp__clayon__clayon_finish" } },
         {},
       ],
       [
@@ -146,7 +146,7 @@ describe("ACPX permission policy", () => {
           raw: {
             _meta: { is_mcp_tool_approval: true },
             toolCall: {
-              name: "mcp__paperclip__get_task_context",
+              name: "mcp__clayon__get_task_context",
               rawInput: { serverName: "clayon" },
             },
           },

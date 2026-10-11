@@ -1,7 +1,7 @@
 import { capabilityCanonicalOperation } from "./catalog/index.js";
 
 export const CLAYON_RUNNER_COMPATIBILITY = Object.freeze({
-  schema: "paperclip.runner.compatibility.v1" as const,
+  schema: "clayon.runner.compatibility.v1" as const,
   packageName: "@clayon/clayon-runner" as const,
   packageVersion: "0.0.0" as const,
   components: Object.freeze({
@@ -53,7 +53,7 @@ export interface ClayonRunnerCompatibilityRequirement {
 }
 
 export class ClayonRunnerCompatibilityError extends Error {
-  readonly code = "paperclip_runner_incompatible" as const;
+  readonly code = "clayon_runner_incompatible" as const;
   readonly issues: readonly ClayonRunnerCompatibilityIssue[];
 
   constructor(

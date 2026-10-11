@@ -398,7 +398,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
       wakeOnDemand: isHeartbeatWakeOnDemandEnabled(agent),
       // A Dot binding has one external turn. Competing assignments must retain
       // their queue position instead of claiming a second run that cannot bind.
-      maxConcurrentRuns: agent.adapterType === "paperclip_runner" &&
+      maxConcurrentRuns: agent.adapterType === "clayon_runner" &&
         parseObject(agent.adapterConfig).provider === "openai_dot"
         ? 1 : normalizeMaxConcurrentRuns(heartbeat.maxConcurrentRuns),
       skipTimerWhenNoActionableWork: asBoolean(
@@ -2141,7 +2141,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
         if (!wakeCommentId && isWaitingConversation(conversation) && !hasInteractionContinuationWakeContext(enrichedContextSnapshot) && reason !== CHAT_COMPLETION_WAKE_REASON) return null;
       }
     }
-    if (agent.adapterType === "paperclip_runner") {
+    if (agent.adapterType === "clayon_runner") {
       const oldConfig = parseObject(agent.adapterConfig);
       const nextConfig = normalizeLegacyRunnerProvider(oldConfig);
       if (nextConfig !== oldConfig) {
@@ -2183,7 +2183,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
           companyId: failed.companyId, runId: failed.id, actorId: opts.requestedByActorId,
         } });
       }
-      if (isConversationAdapter(agent.adapterType) || agent.adapterType === "paperclip_runner") {
+      if (isConversationAdapter(agent.adapterType) || agent.adapterType === "clayon_runner") {
         enrichedContextSnapshot.previousRunId = failed.id;
         enrichedContextSnapshot.forceFreshSession = true;
       }
@@ -2215,7 +2215,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
         dotRequest.companyId !== agent.companyId || dotRequest.issueId !== issueId ||
         dotRequest.requestId !== payload?.dotRequestId || source !== "assignment" ||
         opts.requestedByActorType !== "agent" || opts.requestedByActorId !== agentId ||
-        agent.adapterType !== "paperclip_runner" || parseObject(agent.adapterConfig).provider !== "openai_dot" ||
+        agent.adapterType !== "clayon_runner" || parseObject(agent.adapterConfig).provider !== "openai_dot" ||
         opts.idempotencyKey !== dotRequest.idempotencyKey)) {
       throw conflict("Dot work request does not match its admission authority.");
     }
@@ -3656,7 +3656,7 @@ export function createHeartbeatQueue(db: Db, dependencies: HeartbeatQueueDepende
             // until it reads the comment. A finish racing the event tick must
             // leave unread input available for the next assignment.
             const dotBindingId = readNonEmptyString(parseObject(agent.adapterConfig).dotBindingId);
-            const dotFollowUp = agent.adapterType === "paperclip_runner" && parseObject(agent.adapterConfig).provider === "openai_dot"
+            const dotFollowUp = agent.adapterType === "clayon_runner" && parseObject(agent.adapterConfig).provider === "openai_dot"
                 && dotBindingId && activeExecutionRun.agentId === agentId && issue.assigneeAgentId === agentId
                 && reason === "issue_commented" && wakeCommentId && opts.allowRunCoalescing !== false
                 && enrichedContextSnapshot.forceFreshSession !== true && !explicitResumeSession && !opts.manualUserWake

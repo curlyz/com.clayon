@@ -5,7 +5,7 @@ React UI that orchestrates a team of AI agents. Bring your own agents,
 assign goals, and track work and costs from one dashboard.
 
 This is the anatalab takeover of the upstream project (2026-10-11). The
-upstream paperclipai/paperclip repo, its docs site, and its community
+upstream clayon/clayon repo, its docs site, and its community
 channels are no longer referenced or followed.
 
 - Product docs: [doc/](doc/) — start with [doc/GOAL.md](doc/GOAL.md),
@@ -36,7 +36,7 @@ RBAC, cost controls). Full inventory: [ROADMAP.md](ROADMAP.md).
 With **Node.js 24.11+** and **pnpm 9.15+**:
 
 ```bash
-git clone git@github.com:anatalab/com.paperclip.git
+git clone git@github.com:anatalab/com.clayon.git
 cd com.clayon
 pnpm install
 pnpm dev

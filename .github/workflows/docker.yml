@@ -220,7 +220,7 @@ jobs:
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=sha
-            type=raw,value=sha-${{ github.sha }},enable=${{ github.repository == 'paperclipai/paperclip' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=sha-${{ github.sha }},enable=${{ github.repository == 'clayon/clayon' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
           labels: |
             io.github.clayon.schema.last-migration=${{ steps.schema.outputs.last }}
             io.github.clayon.schema.migration-count=${{ steps.schema.outputs.count }}
@@ -338,7 +338,7 @@ jobs:
             type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
             type=sha
-            type=raw,value=sha-${{ github.sha }},enable=${{ github.repository == 'paperclipai/paperclip' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+            type=raw,value=sha-${{ github.sha }},enable=${{ github.repository == 'clayon/clayon' && github.event_name == 'push' && github.ref == 'refs/heads/master' }}
           labels: |
             io.github.clayon.schema.last-migration=${{ steps.schema.outputs.last }}
             io.github.clayon.schema.migration-count=${{ steps.schema.outputs.count }}
@@ -375,18 +375,18 @@ jobs:
       # digest, so later tag movement cannot change what was verified.
       - name: Resolve standard image digest
         id: standard
-        if: github.repository == 'paperclipai/paperclip' && github.repository_id == '1170821064' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.repository == 'clayon/clayon' && github.repository_id == '1170821064' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: node scripts/standard-image-contract.mjs --resolve "$GITHUB_SHA"
       - name: Verify the immutable standard image
         if: steps.standard.outputs.digest != ''
         env:
           IMAGE_DIGEST: ${{ steps.standard.outputs.digest }}
-        run: docker run --rm -i --pull always "ghcr.io/paperclipai/paperclip@$IMAGE_DIGEST" sh -s < scripts/assert-orphan-reaping.sh
+        run: docker run --rm -i --pull always "ghcr.io/clayon/clayon@$IMAGE_DIGEST" sh -s < scripts/assert-orphan-reaping.sh
       - name: Attest the standard production image
         if: steps.standard.outputs.digest != ''
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-name: ghcr.io/paperclipai/paperclip
+          subject-name: ghcr.io/clayon/clayon
           subject-digest: ${{ steps.standard.outputs.digest }}
           push-to-registry: true
 

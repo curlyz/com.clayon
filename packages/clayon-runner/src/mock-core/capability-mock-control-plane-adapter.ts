@@ -118,7 +118,7 @@ export class CapabilityMockControlPlaneAdapter implements CapabilityMockControlP
     if (!isFixtureState(parsed)) {
       throw new CapabilityMockControlPlaneError(
         "fixture_state_invalid",
-        "fixture state schema must be paperclip.capability.mock-state.v1",
+        "fixture state schema must be clayon.capability.mock-state.v1",
       );
     }
     return new CapabilityMockControlPlaneAdapter(parsed, options);
@@ -266,7 +266,7 @@ export class CapabilityMockControlPlaneAdapter implements CapabilityMockControlP
       ...budgets.map((budget) => Math.max(0, budget.limitCents - budget.spentCents)),
     );
     return deepFreeze({
-      schema: "paperclip.capability.run-context.v1",
+      schema: "clayon.capability.run-context.v1",
       company: {
         id: this.#state.company.id,
         name: this.#state.company.name,
@@ -1902,7 +1902,7 @@ function isSemanticToolRuntimeSnapshot(
   }
   const snapshot = value as Record<string, unknown>;
   if (
-    snapshot.schema !== "paperclip.capability.semantic-tool-runtime.v1" ||
+    snapshot.schema !== "clayon.capability.semantic-tool-runtime.v1" ||
     !Number.isSafeInteger(snapshot.resultSequence) ||
     Number(snapshot.resultSequence) < 0 ||
     typeof snapshot.operationResults !== "object" ||
@@ -2087,7 +2087,7 @@ function isFixtureState(value: unknown): value is CapabilityFixtureState {
     typeof value === "object" &&
     value !== null &&
     "schema" in value &&
-    value.schema === "paperclip.capability.mock-state.v1"
+    value.schema === "clayon.capability.mock-state.v1"
   );
 }
 

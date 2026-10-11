@@ -43,7 +43,7 @@ describe("public repository paid workflow security", () => {
 
     expect(trustedWorkflowCalls).toHaveLength(1);
     expect(trustedWorkflowCalls[0]?.[1]).toBe(
-      "paperclipai/paperclip/.github/workflows/pr-trusted.yml",
+      "clayon/clayon/.github/workflows/pr-trusted.yml",
     );
     expect(trustedWorkflowCalls[0]?.[2]).toBe(
       ordinaryPrTrustedWorkflowRevision,
@@ -429,7 +429,7 @@ describe("public repository paid workflow security", () => {
     expect(daytonaImageJob).toContain('echo "source_revision="');
     expect(daytonaImageJob).toContain('echo "content_id="');
     expect(daytonaImageJob).toContain(
-      "IMAGE_CACHE: ghcr.io/paperclipai/paperclip-daytona-runner:e2e-buildcache-amd64",
+      "IMAGE_CACHE: ghcr.io/clayon/clayon-daytona-runner:e2e-buildcache-amd64",
     );
     expect(daytonaImageJob).toContain(
       "TARGET_REF: ${{ needs.authorize.outputs.target_ref }}",

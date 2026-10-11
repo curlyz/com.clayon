@@ -48,7 +48,7 @@ beforeEach(async () => {
   invites.copy.mockResolvedValue(undefined);
   state.adapters = [
     { type: "codex_local", loaded: true },
-    { type: "paperclip_runner", loaded: true },
+    { type: "clayon_runner", loaded: true },
     { type: "claude_local", loaded: true, disabled: true },
   ];
   container = document.createElement("div");
@@ -106,7 +106,7 @@ it("offers native Codex, Claude ACPX, and OpenCode runners", async () => {
   await act(async () =>
     (
       document.querySelector(
-        'input[value="paperclip_runner"]',
+        'input[value="clayon_runner"]',
       ) as HTMLInputElement
     ).click(),
   );
@@ -129,7 +129,7 @@ it.each([false, undefined])(
     });
     await name();
     expect(
-      document.querySelector('input[value="paperclip_runner"]'),
+      document.querySelector('input[value="clayon_runner"]'),
     ).toBeNull();
     expect(document.querySelector('input[value="codex_local"]')).not.toBeNull();
   },
@@ -155,7 +155,7 @@ it.each([true, false, undefined])("gates the Cloud native runner on explicit ena
         "kimi_local",
         "pi_local",
         "hermes_local",
-        "paperclip_runner",
+        "clayon_runner",
       ].map((type) => ({ type, loaded: true })),
     );
   });
@@ -164,7 +164,7 @@ it.each([true, false, undefined])("gates the Cloud native runner on explicit ena
     [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')].map(
       (input) => input.value,
     ),
-  ).toEqual(["claude_local", "codex_local", "opencode_local", "grok_local", ...(enableNativeRunner ? ["paperclip_runner"] : [])]);
+  ).toEqual(["claude_local", "codex_local", "opencode_local", "grok_local", ...(enableNativeRunner ? ["clayon_runner"] : [])]);
   await act(async () =>
     document.querySelector<HTMLInputElement>('input[value="grok_local"]')!.click(),
   );

@@ -1837,17 +1837,17 @@ export function agentRoutes(
    */
   async function assertSelectableAdapterType(type: string | null | undefined, config?: unknown): Promise<string> {
     const adapterType = assertKnownAdapterType(type);
-    if (adapterType === "paperclip_runner") {
+    if (adapterType === "clayon_runner") {
       const experimental = await instanceSettings.getExperimental();
       if (asRecord(config)?.provider === "openai_dot") {
         if (experimental.enableOpenAiDot !== true) throw unprocessable(
           "OpenAI Dot is experimental and disabled on this instance.",
-          { code: "paperclip_runner_dot_disabled" },
+          { code: "clayon_runner_dot_disabled" },
         );
       } else if (experimental.enableNativeRunner !== true) {
         throw unprocessable(
           "Clayon Runner is experimental and disabled on this instance.",
-          { code: "paperclip_runner_rollout_disabled" },
+          { code: "clayon_runner_rollout_disabled" },
         );
       }
     }
@@ -1868,7 +1868,7 @@ export function agentRoutes(
     adapterType: string,
     adapterConfig: Record<string, unknown>,
   ): Promise<void> {
-    if (adapterType !== "paperclip_runner") return;
+    if (adapterType !== "clayon_runner") return;
     let profile;
     try {
       if (adapterConfig.provider === "openai_dot") {
@@ -1903,7 +1903,7 @@ export function agentRoutes(
     nextAdapterConfig: Record<string, unknown>;
   }): Record<string, unknown> {
     if (
-      input.nextAdapterType !== "paperclip_runner"
+      input.nextAdapterType !== "clayon_runner"
       || input.previousAdapterType === input.nextAdapterType
     ) {
       return input.nextAdapterConfig;
@@ -2289,7 +2289,7 @@ export function agentRoutes(
     adapterConfig: Record<string, unknown>,
   ): Record<string, unknown> {
     const next = { ...adapterConfig };
-    if (adapterType === "paperclip_runner") {
+    if (adapterType === "clayon_runner") {
       return normalizeClayonRunnerAdapterConfig(adapterType, next);
     }
     if (adapterType === "codex_local") {
@@ -2324,7 +2324,7 @@ export function agentRoutes(
     adapterType: string | null | undefined,
     adapterConfig: Record<string, unknown>,
   ) {
-    if (adapterType === "paperclip_runner") {
+    if (adapterType === "clayon_runner") {
       await assertFreshClayonRunnerProvider(companyId, adapterType, adapterConfig);
       return;
     }
@@ -2675,7 +2675,7 @@ export function agentRoutes(
     boardOnboardingFirstAgent = false,
     adapterConfig?: Record<string, unknown>,
   ): AgentDesiredSkillEntry[] | undefined {
-    if (adapterType === "paperclip_runner" && adapterConfig?.provider === "openai_dot") return undefined;
+    if (adapterType === "clayon_runner" && adapterConfig?.provider === "openai_dot") return undefined;
     if (role !== "ceo" && !boardOnboardingFirstAgent) return undefined;
     const adapter = findActiveServerAdapter(adapterType);
     if (!adapter?.listSkills && !adapter?.syncSkills) return undefined;
@@ -2683,7 +2683,7 @@ export function agentRoutes(
       ? [...CLAYON_CORE_SKILL_KEYS, ONBOARDING_FIRST_TASK_SKILL_KEY]
       : CLAYON_CORE_SKILL_KEYS;
     return keys
-      .filter((key) => adapterType !== "paperclip_runner" || key !== CLAYON_OPERATIONAL_SKILL_KEY)
+      .filter((key) => adapterType !== "clayon_runner" || key !== CLAYON_OPERATIONAL_SKILL_KEY)
       .map((key) => ({ key, versionId: null }));
   }
 
@@ -2813,7 +2813,7 @@ export function agentRoutes(
       requestedSkillEntries,
       mode,
     ).filter(
-      (entry) => !isConnectorSkill(entry.key) && (adapterType !== "paperclip_runner"
+      (entry) => !isConnectorSkill(entry.key) && (adapterType !== "clayon_runner"
         || entry.key.trim().toLowerCase() !== CLAYON_OPERATIONAL_SKILL_KEY),
     );
     const desiredSkills = desiredSkillEntries.map((entry) => entry.key);
@@ -2990,10 +2990,10 @@ export function agentRoutes(
       res.json(await listOpenRouterModels(refresh));
       return;
     }
-    if (type === "paperclip_runner" && provider && !isClayonRunnerProvider(provider)) {
+    if (type === "clayon_runner" && provider && !isClayonRunnerProvider(provider)) {
       throw unprocessable("Unknown Clayon Runner provider");
     }
-    const modelAdapterType = type === "paperclip_runner"
+    const modelAdapterType = type === "clayon_runner"
       ? provider === "acpx" || provider === "claude_managed" ? "claude_local"
         : provider === "opencode" ? "opencode_local"
           : provider === "aws_agentcore" ? type : "codex_local"
@@ -3124,7 +3124,7 @@ export function agentRoutes(
       // the probe treats "***REDACTED***" as a value to persist.
       let adapterConfigForTest = inputAdapterConfig;
       if (savedAgent) {
-        const providerAdapter = savedAgent.adapterType === "paperclip_runner"
+        const providerAdapter = savedAgent.adapterType === "clayon_runner"
           ? inputAdapterConfig.provider === "codex"
             ? "codex_local"
             : inputAdapterConfig.provider === "acpx" && inputAdapterConfig.acpxAgent === "claude"
@@ -3144,7 +3144,7 @@ export function agentRoutes(
           ? restoreRedactedAgentEnv(inputAdapterConfig, savedAgent.adapterConfig)
           : inputAdapterConfig;
       }
-      if (type === "paperclip_runner" && inputAdapterConfig.provider === "openai_dot") {
+      if (type === "clayon_runner" && inputAdapterConfig.provider === "openai_dot") {
         const dotEnabled = await dotRunnerBroker(db).enabled();
         const binding = savedAgentId ? await dotRunnerBroker(db).bindingForAgent(companyId, savedAgentId) : null;
         let resource: ReturnType<typeof publicMcpConfig> = null;
@@ -4068,7 +4068,7 @@ export function agentRoutes(
     );
     const rollbackAdapterConfig = asRecord(rollbackConfig.adapterConfig) ?? {};
     const existingRollbackProvider = asRecord(existing.adapterConfig)?.provider;
-    if (rollbackAdapterType !== existing.adapterType || (rollbackAdapterType === "paperclip_runner"
+    if (rollbackAdapterType !== existing.adapterType || (rollbackAdapterType === "clayon_runner"
       && rollbackAdapterConfig.provider !== existingRollbackProvider
       && (rollbackAdapterConfig.provider === "openai_dot" || existingRollbackProvider === "openai_dot"))) {
       await assertSelectableAdapterType(rollbackAdapterType, rollbackAdapterConfig);
@@ -4087,7 +4087,7 @@ export function agentRoutes(
     });
     if (
       rollbackAdapterType !== existing.adapterType ||
-      rollbackAdapterType === "paperclip_runner"
+      rollbackAdapterType === "clayon_runner"
     ) {
       await assertFreshClayonRunnerProvider(
         existing.companyId,
@@ -4211,8 +4211,8 @@ export function agentRoutes(
       if (req.actor.type !== "agent" || !req.actor.agentId) {
         throw forbidden("Only an agent can inherit native runtime settings from the caller");
       }
-      if (hireInput.adapterType !== "paperclip_runner") {
-        throw unprocessable("inheritRuntimeFrom=caller requires adapterType=paperclip_runner");
+      if (hireInput.adapterType !== "clayon_runner") {
+        throw unprocessable("inheritRuntimeFrom=caller requires adapterType=clayon_runner");
       }
       const requestedConfig = (hireInput.adapterConfig ?? {}) as Record<string, unknown>;
       const requestedRuntime = (hireInput.runtimeConfig ?? {}) as Record<string, unknown>;
@@ -4223,8 +4223,8 @@ export function agentRoutes(
       if (!caller || caller.companyId !== companyId) {
         throw forbidden("The caller agent is not in this company");
       }
-      if (caller.adapterType !== "paperclip_runner") {
-        throw unprocessable("The caller must use the paperclip_runner adapter");
+      if (caller.adapterType !== "clayon_runner") {
+        throw unprocessable("The caller must use the clayon_runner adapter");
       }
       hireInput.adapterConfig = inheritNativeRunnerAdapterConfig(caller.adapterConfig);
       hireInput.defaultEnvironmentId = caller.defaultEnvironmentId ?? null;
@@ -5258,7 +5258,7 @@ export function agentRoutes(
           nextAdapterConfig: rawEffectiveAdapterConfig,
         });
       }
-      if (requestedAdapterType === "paperclip_runner") {
+      if (requestedAdapterType === "clayon_runner") {
         rawEffectiveAdapterConfig = normalizeClayonRunnerAdapterConfig(requestedAdapterType, rawEffectiveAdapterConfig);
       }
       if (changingAdapterType || requestedAdapterConfig) {
@@ -5269,19 +5269,19 @@ export function agentRoutes(
         );
       }
       const existingRunnerProvider =
-        existing.adapterType === "paperclip_runner"
+        existing.adapterType === "clayon_runner"
           ? existingAdapterConfig.provider
           : undefined;
       // Moving between the standalone Dot choice and general Runner is a new
       // selection. Preserve historical edits within the general Runner rollout.
-      if (!changingAdapterType && requestedAdapterType === "paperclip_runner"
+      if (!changingAdapterType && requestedAdapterType === "clayon_runner"
         && rawEffectiveAdapterConfig.provider !== existingRunnerProvider
         && (rawEffectiveAdapterConfig.provider === "openai_dot" || existingRunnerProvider === "openai_dot")) {
         await assertSelectableAdapterType(requestedAdapterType, rawEffectiveAdapterConfig);
       }
       if (
         changingAdapterType ||
-        (requestedAdapterType === "paperclip_runner" &&
+        (requestedAdapterType === "clayon_runner" &&
           (requestedAdapterConfig !== null ||
             rawEffectiveAdapterConfig.provider !== existingRunnerProvider))
       ) {
@@ -6887,7 +6887,7 @@ export function agentRoutes(
             resolution = { action };
           } else if (
             action === "submit" &&
-            candidate?.response?.schema === "paperclip.question_response.v1" &&
+            candidate?.response?.schema === "clayon.question_response.v1" &&
             candidate.response.answers &&
             typeof candidate.response.answers === "object" &&
             !Array.isArray(candidate.response.answers)

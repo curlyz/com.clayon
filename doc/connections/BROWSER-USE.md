@@ -57,7 +57,7 @@ revoked access means no skill. The run-scoped bundle exposes its short descripti
 for discovery and contains the detailed `SKILL.md` for using this connection.
 Adapters that cannot isolate skill files receive the same authorized instructions
 in their run context. Nothing is added to an agent's saved skill preferences.
-Retired `paperclipai/paperclip/browser-use` selections are stripped from runtime
+Retired `clayon/clayon/browser-use` selections are stripped from runtime
 overlays; unrelated browser skills keep their own names and behavior.
 The idempotent migration updates pre-release app/connection and financial keys
 to `browser-use-cloud` without replacing credentials, grants, or browser records.

@@ -34,7 +34,7 @@ describe("canonical Clayon protocol action contracts", () => {
           ? action.examples.scenarioCall
           : action.examples.call;
         const scenarioOutput = {
-          schema: "paperclip.capability.tool-result.v1",
+          schema: "clayon.capability.tool-result.v1",
           ok: true,
           operationId,
           operationResultId: "example-result",

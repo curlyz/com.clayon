@@ -21,7 +21,7 @@ Parameters:
     AllowedPattern: "^$|^arn:aws(-[^:]+)?:iam::[0-9]{12}:oidc-provider/token[.]actions[.]githubusercontent[.]com$"
   GitHubRepository:
     Type: String
-    Default: paperclipai/paperclip
+    Default: clayon/clayon
     AllowedPattern: "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
   GitHubEnvironment:
     Type: String

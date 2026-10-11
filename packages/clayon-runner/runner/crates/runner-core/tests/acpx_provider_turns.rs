@@ -20,7 +20,7 @@ fn tool_set() -> AuthorizedToolSet {
         response_schema: json!({"type":"object"}),
     }];
     AuthorizedToolSet {
-        schema: "paperclip.runner.authorized-tools.v1".to_owned(),
+        schema: "clayon.runner.authorized-tools.v1".to_owned(),
         schema_version: 1,
         catalog_digest: authorized_tool_catalog_digest(&operations).unwrap(),
         operations,
@@ -304,7 +304,7 @@ fn rotates_settled_tool_receipts_between_reusable_turns() {
         assert!(matches!(
             &reserved_session.poll_event(Duration::from_secs(1)).unwrap().unwrap()[0],
             AcpxProviderStateEvent::ToolCall { operation_id, .. }
-                if operation_id == "paperclip_finish"
+                if operation_id == "clayon_finish"
         ));
         let result = reserved_session
             .poll_event(Duration::from_secs(1))
@@ -314,7 +314,7 @@ fn rotates_settled_tool_receipts_between_reusable_turns() {
             &result[0],
             AcpxProviderStateEvent::SemanticResult(result)
                 if result.call_id == "call-finish"
-                    && result.operation_id == "paperclip_finish"
+                    && result.operation_id == "clayon_finish"
         ));
         let terminal = reserved_session
             .poll_event(Duration::from_secs(1))
@@ -478,15 +478,15 @@ fn failed_semantic_results_preserve_error_status_and_release_pending_capacity() 
 #[test]
 fn reserved_terminal_results_require_an_authorized_correlated_invocation() {
     for (mode, operation_id, disposition) in [
-        ("turns-reserved-result-terminal", "paperclip_finish", "done"),
+        ("turns-reserved-result-terminal", "clayon_finish", "done"),
         (
             "turns-reserved-yielded-terminal",
-            "paperclip_finish",
+            "clayon_finish",
             "yielded",
         ),
         (
             "turns-reserved-block-terminal",
-            "paperclip_block",
+            "clayon_block",
             "blocked",
         ),
     ] {
@@ -499,7 +499,7 @@ fn reserved_terminal_results_require_an_authorized_correlated_invocation() {
         assert!(matches!(
             &invocation[0],
             AcpxProviderStateEvent::ToolCall { operation_id, .. }
-                if operation_id == "paperclip_finish" || operation_id == "paperclip_block"
+                if operation_id == "clayon_finish" || operation_id == "clayon_block"
         ));
         assert_eq!(
             session
@@ -542,13 +542,13 @@ fn reserved_completion_waits_for_feedback_and_allows_correction_in_same_turn() {
     assert!(matches!(
         &first[0],
         AcpxProviderStateEvent::ToolCall { call_id, operation_id, input }
-            if call_id == "call-finish" && operation_id == "paperclip_finish"
+            if call_id == "call-finish" && operation_id == "clayon_finish"
                 && input["reportedWorkDisposition"] == "needs_review"
     ));
     session
         .deliver_tool_result(&clayon_runner_core::provider_bridge::ToolResult {
             call_id: "call-finish".to_owned(),
-            operation_id: "paperclip_finish".to_owned(),
+            operation_id: "clayon_finish".to_owned(),
             result: json!({
                 "success":false,
                 "contentItems":[
@@ -563,15 +563,15 @@ fn reserved_completion_waits_for_feedback_and_allows_correction_in_same_turn() {
     assert!(matches!(
         &corrected[0],
         AcpxProviderStateEvent::ToolCall { call_id, operation_id, input }
-            if call_id == "call-finish-2" && operation_id == "paperclip_finish"
+            if call_id == "call-finish-2" && operation_id == "clayon_finish"
                 && input["reportedWorkDisposition"] == "done"
     ));
     session
         .deliver_tool_result(&clayon_runner_core::provider_bridge::ToolResult {
             call_id: "call-finish-2".to_owned(),
-            operation_id: "paperclip_finish".to_owned(),
+            operation_id: "clayon_finish".to_owned(),
             result: json!({
-                "schema":"paperclip.run_result.v1",
+                "schema":"clayon.run_result.v1",
                 "reportedWorkDisposition":"done",
                 "summary":"Corrected completion.",
                 "completionClaim":{"contractRevision":"acpx-provider-turns-v1","objectiveSatisfied":true,"criteria":[],"remainingWork":[]},
@@ -649,7 +649,7 @@ fn fails_closed_before_returning_a_mismatched_reserved_result() {
     assert!(matches!(
         &session.poll_event(Duration::from_secs(1)).unwrap().unwrap()[0],
         AcpxProviderStateEvent::ToolCall { operation_id, .. }
-            if operation_id == "paperclip_finish"
+            if operation_id == "clayon_finish"
     ));
 
     let error = session

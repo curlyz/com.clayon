@@ -84,7 +84,7 @@ function commentPayload(input: {
       body: input.body,
       created_at: "2026-09-05T12:00:00Z",
       updated_at: "2026-09-05T12:00:00Z",
-      html_url: `https://github.com/paperclipai/chat-e2e/issues/${input.number}#issuecomment-${input.commentId}`,
+      html_url: `https://github.com/clayon/chat-e2e/issues/${input.number}#issuecomment-${input.commentId}`,
       user: {
         id: userId,
         login: userId === 9001 ? "maya-clayon[bot]" : "alex-e2e",

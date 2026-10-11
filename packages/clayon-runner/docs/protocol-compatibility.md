@@ -51,7 +51,7 @@ required v2 protocol cannot be replayed by this consumer.
 
 ## Within-turn checklist snapshots
 
-`plan.updated` / `paperclip.plan.updated.v1` is a complete, ordered snapshot of
+`plan.updated` / `clayon.plan.updated.v1` is a complete, ordered snapshot of
 the provider's checklist for one active turn. It is not a Clayon Plan
 document and must never be inferred from assistant prose, Codex proposed-plan
 items, or generic TodoWrite output. Every replacement uses the provider turn ID
@@ -99,10 +99,10 @@ not yet emitted them.
 
 ## Provider-neutral structured input
 
-Harness-initiated forms cross PRP as `paperclip.runtime_request.v2` with
+Harness-initiated forms cross PRP as `clayon.runtime_request.v2` with
 `requestKind: "runtime"`, `type: "input"`, and an embedded
-`paperclip.question_set.v1`. A submission is always
-`{ "action": "submit", "response": paperclip.question_response.v1 }`.
+`clayon.question_set.v1`. A submission is always
+`{ "action": "submit", "response": clayon.question_response.v1 }`.
 Codex answer objects, OpenCode answer arrays, and ACP typed content exist only
 inside their adapters; `origin` may retain the provider method and adapter name
 for diagnostics but never provider response data.
@@ -129,7 +129,7 @@ the untrusted server edge and again against the persisted question set before a
 provider receives the translated response.
 
 Every harness adapter must add a
-`paperclip.question_adapter_fixture.v1` fixture proving its native request
+`clayon.question_adapter_fixture.v1` fixture proving its native request
 normalizes to the canonical shape and its canonical response can be translated
 back. The shared fixture format deliberately contains both native and canonical
 objects so adding a provider does not change PRP or the UI contract.
@@ -148,15 +148,15 @@ cancellation and already-resolved requests never create that fallback.
 
 ## Native execution permission compatibility
 
-`paperclip.native-execution-input.v4` pins the effective harness permission
+`clayon.native-execution-input.v4` pins the effective harness permission
 policy in the closed provider configuration: `approvalPolicy` for Codex and
 `permissionMode` for OpenCode and ACPX. The pinned value participates in
 provider-session identity, so an incompatible idle or recovered session is
 replaced on the next execution. An active turn is never mutated in place.
 
-`paperclip.native-execution-input.v5` is the current input format. It retains
+`clayon.native-execution-input.v5` is the current input format. It retains
 the v4 permission pinning and adds optional completion-source references;
-`paperclip.native-model-envelope.v3` is the corresponding explicit model
+`clayon.native-model-envelope.v3` is the corresponding explicit model
 projection. Readers continue to accept persisted v1-v4 inputs, and v5 readers
 must preserve the historical behavior of inputs that do not carry the new
 optional fields. Missing Codex and OpenCode policy fields retain their
@@ -198,10 +198,10 @@ two surfaces.
 
 ## Local envelope rules
 
-- Mock-core commands use `paperclip.prp.command.v1` over stdin JSONL.
-- Runner output uses `paperclip.runner.stream.v1` over stdout JSONL.
-- Fake-harness commands use `paperclip.fake_harness.command.v1`.
-- Fake-harness output uses `paperclip.fake_harness.message.v1`.
+- Mock-core commands use `clayon.prp.command.v1` over stdin JSONL.
+- Runner output uses `clayon.runner.stream.v1` over stdout JSONL.
+- Fake-harness commands use `clayon.fake_harness.command.v1`.
+- Fake-harness output uses `clayon.fake_harness.message.v1`.
 - An equivalent repeated `commandId` returns a duplicate receipt and has no
   second driver effect. Reuse with different data is rejected.
 - A new command must use the next contiguous `controllerSeq`.
@@ -271,7 +271,7 @@ PRP is one independently versioned component of the runner bundle. Catalog,
 runner-client, control-plane-adapter, testkit, and eval-corpus compatibility is
 declared by `CLAYON_RUNNER_COMPATIBILITY` and checked before execution by
 `assertClayonRunnerCompatibility`. A mismatch fails with
-`paperclip_runner_incompatible` and stable per-issue codes; a provider-specific
+`clayon_runner_incompatible` and stable per-issue codes; a provider-specific
 tool error is not a compatibility negotiation mechanism.
 
 See [ADR 0001](adr/0001-runner-testing-eval-package-boundaries.md) for the
@@ -284,7 +284,7 @@ App/Evals join. `assertClayonRunnerEvalCompatibility` requires simultaneous
 agreement on package semver, runnerd build metadata, a common PRP version,
 semantic catalog version and SHA-256 digest, harness-driver contract and
 required capabilities, and the native-execution version. It reports
-`paperclip_runner_eval_incompatible` with expected/received values for every
+`clayon_runner_eval_incompatible` with expected/received values for every
 mismatch and must run before launching a provider.
 
 runnerd itself reports `clayon-runner/runnerd-build-metadata/v1` from

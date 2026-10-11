@@ -214,7 +214,7 @@ export function createNativeRunTrace(input: {
       startTime: traceStartedAtMs,
       attributes: {
         "clayon.task.run.run_id": runIdHash,
-        "clayon.task.run.runtime": "paperclip_runner",
+        "clayon.task.run.runtime": "clayon_runner",
         "clayon.task.run.trace_schema_version":
           NATIVE_RUN_TRACE_SCHEMA_VERSION,
       },
@@ -295,7 +295,7 @@ export function createNativeRunTrace(input: {
         payload: {
           // Keep the persisted schema identifier stable; traceSchemaVersion
           // describes the OTel hierarchy independently of the run-log shape.
-          schema: "paperclip.run-performance-span.v1",
+          schema: "clayon.run-performance-span.v1",
           traceSchemaVersion: NATIVE_RUN_TRACE_SCHEMA_VERSION,
           span: span.name,
           parentSpan: span.parentName ?? "task.run",
@@ -513,7 +513,7 @@ export function createNativeRunTrace(input: {
       startedAtMs: traceStartedAtMs,
       endedAtMs,
       outcome,
-      attributes: { runtime: "paperclip_runner" },
+      attributes: { runtime: "clayon_runner" },
     });
   };
 

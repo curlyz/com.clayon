@@ -39,12 +39,12 @@ use crate::provider_events::{
 use crate::qualified_launch::{verify_executable_launch_artifact, verify_launch_artifact};
 
 fn is_reserved_terminal_operation_id(operation_id: &str) -> bool {
-    matches!(operation_id, "paperclip_finish" | "paperclip_block")
+    matches!(operation_id, "clayon_finish" | "clayon_block")
 }
 use crate::stable_identity::{is_stable_id, DURABLE_STABLE_ID_CHARS};
 
 pub const ACPX_PROVIDER_STATE_FILE: &str = "acpx-provider-state.json";
-const ACPX_PROVIDER_STATE_SCHEMA: &str = "paperclip.runner.acpx-provider-state.v3";
+const ACPX_PROVIDER_STATE_SCHEMA: &str = "clayon.runner.acpx-provider-state.v3";
 const MAX_PROVIDER_STATE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_PENDING_EVENTS: usize = 8_320;
 const MAX_EVENTS_PER_POLL: usize = 128;
@@ -719,7 +719,7 @@ fn validate_pending_runtime_requests(
         let input = request.get("type").and_then(Value::as_str) == Some("input");
         if !is_stable_id(id, 160)
             || request.get("requestId").and_then(Value::as_str) != Some(id)
-            || request.get("schema").and_then(Value::as_str) != Some("paperclip.runtime_request.v2")
+            || request.get("schema").and_then(Value::as_str) != Some("clayon.runtime_request.v2")
             || request.get("status").and_then(Value::as_str) != Some("pending")
             || request.get("requestKind").and_then(Value::as_str)
                 != Some(if input {
@@ -736,7 +736,7 @@ fn validate_pending_runtime_requests(
             })
             || (input
                 && request.pointer("/input/schema").and_then(Value::as_str)
-                    != Some("paperclip.question_set.v1"))
+                    != Some("clayon.question_set.v1"))
             || (!input && request.get("input").is_some())
             || serde_json::to_vec(request).map_or(true, |bytes| bytes.len() > 256 * 1024)
         {
@@ -955,7 +955,7 @@ impl AcpxCommandExecutor {
                 event_type: "run.terminal".to_owned(),
                 priority: EventPriority::P0,
                 payload: json!({
-                    "schema": "paperclip.prp.terminal.v1",
+                    "schema": "clayon.prp.terminal.v1",
                     "status": "failed",
                     "turnTerminalState": "failed",
                     "runTerminalState": "failed",
@@ -1369,7 +1369,7 @@ impl AcpxCommandExecutor {
                 DurableRunnerError::invalid(format!("ACPX goal control failed: {error}"))
             })?;
         if projection.get("schema").and_then(Value::as_str)
-            != Some("paperclip.session_goal.snapshot.v1")
+            != Some("clayon.session_goal.snapshot.v1")
         {
             return Err(DurableRunnerError::invalid(
                 "ACPX returned an invalid goal snapshot",
@@ -1988,7 +1988,7 @@ impl AcpxCommandExecutor {
                             payload: json!({"provider":"acpx","providerTurnId":turn_id,"status":"failed","providerTerminalObserved":false,
                                 "code":"acpx_provider_transport_failed","message":crate::durable::redact_text(&error.to_string())}) })?;
                         state.push(NormalizedProviderEvent { event_type: "run.terminal".to_owned(), priority: EventPriority::P0,
-                            payload: json!({"schema":"paperclip.prp.terminal.v1","status":"failed","turnTerminalState":"failed","runTerminalState":"failed","reportedWorkDisposition":"unknown","provider":"acpx"}) })?;
+                            payload: json!({"schema":"clayon.prp.terminal.v1","status":"failed","turnTerminalState":"failed","runTerminalState":"failed","reportedWorkDisposition":"unknown","provider":"acpx"}) })?;
                     }
                     self.context.provider_turn_id = None;
                     // A failed transport cannot attest escaped provider cleanup.
@@ -2094,7 +2094,7 @@ impl AcpxCommandExecutor {
                         event_type: "run.terminal".to_owned(),
                         priority: EventPriority::P0,
                         payload: json!({
-                            "schema": "paperclip.prp.terminal.v1",
+                            "schema": "clayon.prp.terminal.v1",
                             "status": status,
                             "turnTerminalState": turn_terminal_state,
                             "runTerminalState": status,
@@ -2509,8 +2509,8 @@ mod tests {
     }
 
     fn pending_input_request(id: &str) -> Value {
-        json!({"schema":"paperclip.runtime_request.v2","requestId":id,"requestKind":"runtime","type":"input","status":"pending",
-            "turnId":"turn-1","itemId":"item-1","prompt":"Choose","input":{"schema":"paperclip.question_set.v1","questions":[{"id":"q","prompt":"Choose","answerMode":"text","required":true}]},
+        json!({"schema":"clayon.runtime_request.v2","requestId":id,"requestKind":"runtime","type":"input","status":"pending",
+            "turnId":"turn-1","itemId":"item-1","prompt":"Choose","input":{"schema":"clayon.question_set.v1","questions":[{"id":"q","prompt":"Choose","answerMode":"text","required":true}]},
             "origin":{"adapter":"acpx-runtime-sidecar","provider":"cursor","method":"cursor/ask_question"}})
     }
 
@@ -2826,7 +2826,7 @@ mod tests {
             }
             for command_type in ["request.resolve", "runner.drain", "runner.suspend"] {
                 let blocked = original.execute(&Command {
-                    schema: "paperclip.prp.command.v1".into(),
+                    schema: "clayon.prp.command.v1".into(),
                     command_id: "blocked-command".into(),
                     controller_seq: 1,
                     command_type: command_type.into(),
@@ -3594,7 +3594,7 @@ mod tests {
         assert!(!marker.exists());
         let non_attach_error = attached
             .execute(&Command {
-                schema: "paperclip.prp.command.v1".to_owned(),
+                schema: "clayon.prp.command.v1".to_owned(),
                 command_id: "command-before-attach".to_owned(),
                 controller_seq: 1,
                 command_type: "session.snapshot".to_owned(),
@@ -3879,7 +3879,7 @@ mod tests {
         assert!(!marker.exists());
         let non_attach_error = attached
             .execute(&Command {
-                schema: "paperclip.prp.command.v1".to_owned(),
+                schema: "clayon.prp.command.v1".to_owned(),
                 command_id: "command-before-attach".to_owned(),
                 controller_seq: 1,
                 command_type: "session.snapshot".to_owned(),
@@ -4124,7 +4124,7 @@ mod tests {
         let mut drifted = AcpxCommandExecutor::with_runner_config(&directory, &drifted_config);
         let drift_error = drifted
             .execute(&Command {
-                schema: "paperclip.prp.command.v1".to_owned(),
+                schema: "clayon.prp.command.v1".to_owned(),
                 command_id: "command-drift".to_owned(),
                 controller_seq: 1,
                 command_type: "session.snapshot".to_owned(),
@@ -4139,7 +4139,7 @@ mod tests {
             .contains("launch profile digest does not match runner startup"));
         let retry_error = drifted
             .execute(&Command {
-                schema: "paperclip.prp.command.v1".to_owned(),
+                schema: "clayon.prp.command.v1".to_owned(),
                 command_id: "command-drift-retry".to_owned(),
                 controller_seq: 2,
                 command_type: "session.snapshot".to_owned(),
@@ -4157,7 +4157,7 @@ mod tests {
         let mut recovered = AcpxCommandExecutor::with_runner_config(&directory, &config);
         let snapshot = recovered
             .execute(&Command {
-                schema: "paperclip.prp.command.v1".to_owned(),
+                schema: "clayon.prp.command.v1".to_owned(),
                 command_id: "command-1".to_owned(),
                 controller_seq: 1,
                 command_type: "session.snapshot".to_owned(),
@@ -4176,7 +4176,7 @@ mod tests {
         assert_eq!(events[1].event_type, "turn.failed");
         assert_eq!(events[1].payload["providerShutdownFailed"], true);
         assert_eq!(events[2].event_type, "run.terminal");
-        assert_eq!(events[2].payload["schema"], "paperclip.prp.terminal.v1");
+        assert_eq!(events[2].payload["schema"], "clayon.prp.terminal.v1");
         assert_eq!(events[2].payload["turnTerminalState"], "failed");
         assert_eq!(recovered.poll_events().unwrap(), events);
         let cleanup_error = recovered

@@ -735,7 +735,7 @@ type ClayonWakeQuestionResponse = {
 };
 
 type ClayonWakeExternalChatQuestionResponse = {
-  schema: "paperclip.external_chat_question_response.v1";
+  schema: "clayon.external_chat_question_response.v1";
   interactionId: string;
   responseDeliveryId: string;
   sourceRunId: string;
@@ -1674,7 +1674,7 @@ function normalizeClayonExternalChatQuestionResponse(
   ] as const;
   const fields = new Set<string>(["schema", ...idFields, "bindingSha256"]);
   if (
-    marker.schema !== "paperclip.external_chat_question_response.v1" ||
+    marker.schema !== "clayon.external_chat_question_response.v1" ||
     Object.keys(marker).length !== fields.size ||
     Object.keys(marker).some((field) => !fields.has(field)) ||
     idFields.some(
@@ -1689,7 +1689,7 @@ function normalizeClayonExternalChatQuestionResponse(
   )
     return null;
   return {
-    schema: "paperclip.external_chat_question_response.v1",
+    schema: "clayon.external_chat_question_response.v1",
     interactionId: marker.interactionId as string,
     responseDeliveryId: marker.responseDeliveryId as string,
     sourceRunId: marker.sourceRunId as string,
@@ -3784,7 +3784,7 @@ export async function listClayonSkillEntries(
     const entries = await fs.readdir(root, { withFileTypes: true });
     const dirs = entries.filter((entry) => entry.isDirectory());
     return dirs.map((entry) => ({
-      key: `paperclipai/paperclip/${entry.name}`,
+      key: `clayon/clayon/${entry.name}`,
       runtimeName: entry.name,
       source: path.join(root, entry.name),
     }));
@@ -4233,11 +4233,11 @@ export function resolveClayonDesiredSkillNames(
  * resolver above.
  */
 export const CLAYON_OPERATIONAL_SKILL_KEY =
-  "paperclipai/paperclip/clayon";
+  "clayon/clayon/clayon";
 
 export const CLAYON_FEEDBACK_SKILL_KEYS = [
-  "paperclipai/paperclip/complain",
-  "paperclipai/paperclip/suggestion-box",
+  "clayon/clayon/complain",
+  "clayon/clayon/suggestion-box",
 ] as const;
 
 /**
@@ -4251,7 +4251,7 @@ export function normalizeClayonOperationalSkillPreference(
   adapterType: string,
   config: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (adapterType !== "paperclip_runner") return config;
+  if (adapterType !== "clayon_runner") return config;
   const preference = readClayonSkillSyncPreference(config);
   const desiredSkillEntries = preference.desiredSkillEntries.filter(
     (entry) =>
@@ -4267,7 +4267,7 @@ export function normalizeClayonRunnerAdapterConfig(
   adapterType: string,
   config: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (adapterType !== "paperclip_runner") return config;
+  if (adapterType !== "clayon_runner") return config;
   config = normalizeLegacyRunnerProvider(config);
   if (config.provider === "openai_dot") {
     return normalizeClayonOperationalSkillPreference(adapterType, { lifecycleMode: "per_turn", ...config });

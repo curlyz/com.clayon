@@ -273,7 +273,7 @@ ACPX Claude 6/6. All cells completed by 21:34 UTC on September 11, within the
 requested three-hour repair window. No acceptance assertions were disabled.
 
 - [Exact campaign results](https://d1p6rlowie26tp.cloudfront.net/runner-e2e/campaigns/gha-34648511170-1/summary.md)
-- [GitHub run and retained evidence](https://github.com/paperclipai/paperclip/actions/runs/34648511170)
+- [GitHub run and retained evidence](https://github.com/clayon/clayon/actions/runs/34648511170)
 
 The [HTML dashboard](https://d1p6rlowie26tp.cloudfront.net/runner-e2e/campaigns/gha-34648511170-1/index.html?report=agent-chat#suite-agent-chat)
 was repaired from retained evidence after its older trusted catalog omitted the

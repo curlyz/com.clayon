@@ -332,11 +332,11 @@ import {
   ScanEye,
   Flag,
   FileCode2,
+  FileUp,
   ListTree,
   MessageSquare,
   MoreHorizontal,
   MoreVertical,
-  Paperclip,
   Plus,
   Repeat,
   SlidersHorizontal,
@@ -1507,7 +1507,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
   );
   const assigneeUsesClayonRunner = Boolean(
     issueAssigneeAgentId &&
-    agentMap.get(issueAssigneeAgentId)?.adapterType === "paperclip_runner",
+    agentMap.get(issueAssigneeAgentId)?.adapterType === "clayon_runner",
   );
   const liveRuntimeRun =
     resolvedActiveRun ??
@@ -1517,7 +1517,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     null;
   // Do not briefly select queue behavior from the current assignee while the
   // authoritative active-run lookup is still loading. The active runtime owns
-  // the protocol: native Paperclip turns can steer in place, while legacy
+  // the protocol: native Clayon turns can steer in place, while legacy
   // adapters expose the same composer queue with an interrupt fallback.
   const runtimeSelectionKnown =
     liveRunsFetched && (!activeRunQueryEnabled || activeRunFetched);
@@ -1976,7 +1976,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
           const queuedTargetRunId =
             interaction.sourceRunId &&
             interruptibleIssueRun?.id === interaction.sourceRunId &&
-            interruptibleIssueRun.adapterType !== "paperclip_runner"
+            interruptibleIssueRun.adapterType !== "clayon_runner"
               ? interaction.sourceRunId
               : null;
           const body =
@@ -2059,9 +2059,9 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       return targetRunId ? [{ comment, targetRunId }] : [];
     });
     const fallbackProtocol =
-      liveRuntimeRun?.adapterType === "paperclip_runner" ||
+      liveRuntimeRun?.adapterType === "clayon_runner" ||
       (!liveRuntimeRun && assigneeUsesClayonRunner)
-        ? "paperclip_runner_v1"
+        ? "clayon_runner_v1"
         : "legacy";
     return mergePendingIssueQueuedComments({
       issueId,
@@ -2360,7 +2360,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
         if (code === "queued_comment_already_dispatching") {
           pushToast({
             title: "Message is already being sent",
-            body: "The continuation started before the discard was confirmed, so Paperclip could not unsend it.",
+            body: "The continuation started before the discard was confirmed, so Clayon could not unsend it.",
             tone: "error",
             ttlMs: 15_000,
             dedupeKey: `queued-comment-already-dispatching:${issueId}:${commentId}`,
@@ -7029,7 +7029,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           attachmentDragActive && "border-primary bg-primary/5",
         )}
       >
-        <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+        <FileUp className="h-3.5 w-3.5 mr-1.5" />
         {uploadAttachment.isPending || importMarkdownDocument.isPending ? (
           "Uploading..."
         ) : (
@@ -7081,7 +7081,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         </span>
       </nav>
     ) : null;
-  // Creation provenance ("Created from PAP-168 by Paperclip QA"). Distinct from
+  // Creation provenance ("Created from PAP-168 by Clayon QA"). Distinct from
   // the parent chain above; the streamlined Tasks tab renders it instead.
   const createdFromNote =
     !streamlinedTaskDetailEnabled && issue.createdFrom ? (

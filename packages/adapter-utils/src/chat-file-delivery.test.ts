@@ -25,7 +25,7 @@ describe("chat file preparation delivery contract", () => {
       const delivery = clayonChatFilePreparationDelivery(provider);
       expect(delivery).toMatchObject({
         provider,
-        mode: "paperclip_task_only",
+        mode: "clayon_task_only",
         preparationState: "prepared",
         providerDeliveryConfirmed: false,
       });

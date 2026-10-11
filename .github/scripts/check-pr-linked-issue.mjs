@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const ISSUE_PATTERNS = [
   /(?:fixes|closes|resolves|refs)\s+#\d+/i,
-  /(?:^|[\s(])https:\/\/github\.com\/paperclipai\/paperclip\/issues\/\d+(?=$|[\s),:;!?]|[.](?![\w-]))/i,
+  /(?:^|[\s(])https:\/\/github\.com\/clayon\/clayon\/issues\/\d+(?=$|[\s),:;!?]|[.](?![\w-]))/i,
   /(?<!\w)#\d+/,
 ];
 
@@ -185,7 +185,7 @@ export function checkLinkedIssue(body, prTitle = '') {
       'No linked issue or inline issue description found — either tag an existing issue ' +
       'with `Fixes #NNN` / `Closes #NNN` / `Refs #NNN`, or describe the underlying issue ' +
       'inline in the PR body following one of our issue templates ' +
-      '(https://github.com/paperclipai/paperclip/tree/master/.github/ISSUE_TEMPLATE). ' +
+      '(https://github.com/clayon/clayon/tree/master/.github/ISSUE_TEMPLATE). ' +
       'See CONTRIBUTING.md → "Link Issues or Describe Them In-PR".',
     ],
   };

@@ -53,7 +53,7 @@ function boundedLimit(value: unknown): number {
 
 function requiredString(value: unknown): string {
   if (typeof value !== "string" || value.length === 0 || value.length > 240) {
-    throw new Error("paperclip_runner_semantic_input_invalid");
+    throw new Error("clayon_runner_semantic_input_invalid");
   }
   return value;
 }
@@ -228,7 +228,7 @@ export class ClayonRunnerSemanticAuthority {
                 ),
               )
               .limit(1);
-            if (!row) throw new Error("paperclip_runner_document_not_found");
+            if (!row) throw new Error("clayon_runner_document_not_found");
             return {
               value: jsonValue({ document: row }),
               references: [
@@ -283,7 +283,7 @@ export class ClayonRunnerSemanticAuthority {
 
   async #context(requestedRunId: string): Promise<ClayonSemanticRunContext> {
     if (requestedRunId !== this.#binding.runId) {
-      throw new Error("paperclip_runner_semantic_run_mismatch");
+      throw new Error("clayon_runner_semantic_run_mismatch");
     }
     const context = await this.#loadBoundContext();
     this.#assertActiveContext(context, false);
@@ -338,7 +338,7 @@ export class ClayonRunnerSemanticAuthority {
         ),
       )
       .limit(1);
-    if (!row) throw new Error("paperclip_runner_semantic_binding_not_found");
+    if (!row) throw new Error("clayon_runner_semantic_binding_not_found");
     return row;
   }
 
@@ -350,7 +350,7 @@ export class ClayonRunnerSemanticAuthority {
         (context.issue.assigneeAgentId !== this.#binding.agentId ||
           context.issue.executionRunId !== this.#binding.runId))
     ) {
-      throw new Error("paperclip_runner_semantic_binding_inactive");
+      throw new Error("clayon_runner_semantic_binding_inactive");
     }
   }
 }

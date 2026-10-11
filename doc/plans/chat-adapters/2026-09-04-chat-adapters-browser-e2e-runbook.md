@@ -202,7 +202,7 @@ Agent: Maya E2E
 `Maya E2E` is a dedicated test agent assigned to no production work. For live
 qualification it must use the new Clayon Runner with Codex, initially
 `gpt-5.6-luna`. Verify actual admitted run records show `adapterType:
-paperclip_runner`, `runtimeMode: native`, `driverKind: codex_app_server`, and
+clayon_runner`, `runtimeMode: native`, `driverKind: codex_app_server`, and
 the explicit model; the agent's display name or saved configuration alone is
 insufficient. Terra is an allowed fallback only when necessary; record the
 reason and exact model, and do not present it as Luna evidence. Preserve the

@@ -10,6 +10,36 @@
   font-weight: 100 900;
 }
 
+/* Local portal faces. Only Regular is used at entry; other faces load on interaction. */
+@font-face {
+  font-family: "MonoLisa Nerd Font";
+  src: local("MonoLisa Nerd Font"), url("/portal/fonts/MonoLisaNerdFont-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "MonoLisa Nerd Font";
+  src: local("MonoLisa Nerd Font Bold"), url("/portal/fonts/MonoLisaNerdFont-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "MonoLisa Nerd Font";
+  src: local("MonoLisa Nerd Font Italic"), url("/portal/fonts/MonoLisaNerdFont-Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "MonoLisa Nerd Font";
+  src: local("MonoLisa Nerd Font Bold Italic"), url("/portal/fonts/MonoLisaNerdFont-BoldItalic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 @font-face {
   font-family: "InterVariable";
   src: url("/fonts/InterVariable-Italic.woff2") format("woff2");
@@ -3523,4 +3553,160 @@ span.clayon-mention-chip[data-mention-kind="external-object"] {
 .status-sc-task-cancelled { --sc: var(--status-task-cancelled); }
 :root {
   --z-sticky: 20;
+}
+
+/* Brief 2 entry scene: pixel-violet / space-black, amber action, supplied lab crew.
+   Decorative rings are scene art; controls keep the square geometry.
+   First-paint art + Regular font: 1,116,360 bytes. Other faces load on interaction. */
+:root {
+  --halo-portal-surface: #0b0a1a;
+  --halo-portal-ink: #ecebff;
+  --halo-portal-dim: #b2afd6;
+  --halo-portal-line: #2c2a58;
+  --halo-portal-frame-edge: #595777;
+  --halo-portal-accent: #ffb454;
+  --halo-portal-action-ink: #0b0a1a;
+  --halo-portal-action-hover: #ffcd88;
+  --halo-portal-focus: #7fe8c1;
+  --halo-portal-error: #ff7a90;
+  --halo-portal-control-surface: #1a1938;
+  --halo-portal-control-border: #807ba8;
+  --halo-portal-form-surface: #12112a;
+  --halo-portal-atmosphere: linear-gradient(180deg, #0b0a1a22, #0b0a1a55 40%, #0b0a1ae8 85%, #0b0a1a);
+  --halo-portal-interior: #12112a;
+  --halo-portal-grid-image: linear-gradient(to right, var(--halo-portal-line) var(--halo-portal-line-width), transparent var(--halo-portal-line-width)), linear-gradient(to bottom, var(--halo-portal-line) var(--halo-portal-line-width), transparent var(--halo-portal-line-width));
+  --halo-portal-grid-mask: linear-gradient(to right, black, transparent 38%, transparent 62%, black);
+  --halo-portal-floor-image: linear-gradient(to right, var(--halo-portal-frame-edge) var(--halo-portal-line-width), transparent var(--halo-portal-line-width)), linear-gradient(to bottom, var(--halo-portal-frame-edge) var(--halo-portal-line-width), transparent var(--halo-portal-line-width));
+  --halo-portal-floor-mask: linear-gradient(to bottom, transparent, black 24%, transparent 90%);
+  --halo-portal-action-shadow: 4px 4px 0 #595777;
+  --halo-portal-panel-shadow: 6px 6px 0 #05060d;
+  --halo-portal-font: "MonoLisa Nerd Font", monospace;
+  --halo-portal-zero: 0;
+  --halo-portal-full: 100%;
+  --halo-portal-center: 50%;
+  --halo-portal-center-offset: -50%;
+  --halo-portal-grow: 1;
+  --halo-portal-scene-layer: -1;
+  --halo-portal-viewport: 100dvh;
+  --halo-portal-radius: 0;
+  --halo-portal-line-width: 2px;
+  --halo-portal-rail-width: 2px;
+  --halo-portal-grid-cell: 64px;
+  --halo-portal-grid-opacity: 0.2;
+  --halo-portal-frame-top: 45%;
+  --halo-portal-orbit-size: 640px;
+  --halo-portal-orbit-opacity: 0.75;
+  --halo-portal-orbit-cut: polygon(30% 2.5%, 70% 2.5%, 97.5% 30%, 97.5% 70%, 70% 97.5%, 30% 97.5%, 2.5% 70%, 2.5% 30%);
+  --halo-portal-ring-position: 50% 30%;
+  --halo-portal-ring-opacity: 0.9;
+  --halo-portal-parallax: 0px;
+  --halo-portal-parallax-left: -12px;
+  --halo-portal-parallax-right: 12px;
+  --halo-portal-orbit-duration: 3000ms;
+  --halo-portal-orbit-ease: steps(24, end);
+  --halo-portal-floor-top: 82%;
+  --halo-portal-floor-width: 140%;
+  --halo-portal-floor-height: 65%;
+  --halo-portal-floor-cell: 64px;
+  --halo-portal-floor-transform: perspective(500px) rotateX(58deg);
+  --halo-portal-floor-opacity: 0.4;
+  --halo-portal-space: 1.5rem;
+  --halo-portal-gap: 1rem;
+  --halo-portal-brand-gap: 0.75rem;
+  --halo-portal-safe-left: max(2.5rem, env(safe-area-inset-left));
+  --halo-portal-safe-right: max(2.5rem, env(safe-area-inset-right));
+  --halo-portal-header-top: max(1.5rem, env(safe-area-inset-top));
+  --halo-portal-footer-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  --halo-portal-main-top: 1rem;
+  --halo-portal-main-bottom: 5rem;
+  --halo-portal-emblem-size: 96px;
+  --halo-portal-emblem-gap: 1rem;
+  --halo-portal-icon-size: 1.25rem;
+  --halo-portal-wordmark-size: 1.25rem;
+  --halo-portal-touch-size: 2.75rem;
+  --halo-portal-content-width: 32rem;
+  --halo-portal-label-size: 0.75rem;
+  --halo-portal-label-weight: 400;
+  --halo-portal-label-tracking: 0.18em;
+  --halo-portal-title-size: 2.5rem;
+  --halo-portal-title-weight: 400;
+  --halo-portal-title-leading: 1.2;
+  --halo-portal-title-tracking: -0.04em;
+  --halo-portal-description-width: 29rem;
+  --halo-portal-body-size: 1rem;
+  --halo-portal-body-leading: 1.65;
+  --halo-portal-action-gap: 0.75rem;
+  --halo-portal-action-icon-gap: 2rem;
+  --halo-portal-action-height: 3.5rem;
+  --halo-portal-action-padding: 0.75rem 1.5rem;
+  --halo-portal-action-weight: 400;
+  --halo-portal-action-lift: translateY(-2px);
+  --halo-portal-disabled-opacity: 0.65;
+  --halo-portal-focus-width: 2px;
+  --halo-portal-focus-offset: 4px;
+  --halo-portal-form-gap: 1rem;
+  --halo-portal-form-width: 25rem;
+  --halo-portal-form-padding: 1.5rem;
+  --halo-portal-form-title-size: 1.5rem;
+  --halo-portal-form-title-weight: 700;
+  --halo-portal-field-gap: 0.5rem;
+  --halo-portal-input-padding: 0.5rem 0.75rem;
+  --halo-portal-secondary-padding: 0.5rem 0.75rem;
+  --halo-portal-underline-offset: 0.25rem;
+  --halo-portal-arrival-duration: 6000ms;
+  --halo-portal-arrival-ease: steps(24, end);
+  --halo-portal-arrival-travel: -24px;
+  --halo-portal-interaction-duration: 125ms;
+  --halo-portal-interaction-ease: steps(1, end);
+  --halo-portal-held-ease: steps(1, end);
+  --halo-portal-idle-duration: 500ms;
+  --halo-portal-cheer-duration: 500ms;
+  --halo-portal-sprite-size: 128px;
+  --halo-portal-pixel-left: -2px;
+  --halo-portal-pixel-right: 2px;
+  --halo-portal-crew-lift: -4px;
+  --halo-portal-cheer-lift: -12px;
+  --halo-portal-crew-look: 0px;
+  --halo-portal-crew-drag: 0px;
+  --halo-portal-crew-width: 48rem;
+  --halo-portal-crew-height: 10rem;
+  --halo-portal-crew-overlap: -4rem;
+  --halo-portal-speech-bottom: 100%;
+  --halo-portal-speech-width: 14rem;
+  --halo-portal-speech-padding: 0.5rem 0.75rem;
+}
+
+@media (width < 40rem) {
+  :root {
+    --halo-portal-grid-cell: 32px;
+    --halo-portal-frame-top: 43%;
+    --halo-portal-orbit-size: 512px;
+    --halo-portal-floor-top: 80%;
+    --halo-portal-floor-cell: 32px;
+    --halo-portal-safe-left: max(1.5rem, env(safe-area-inset-left));
+    --halo-portal-safe-right: max(1.5rem, env(safe-area-inset-right));
+    --halo-portal-main-top: 1rem;
+    --halo-portal-main-bottom: 3rem;
+    --halo-portal-title-size: 1.75rem;
+    --halo-portal-form-padding: 1rem;
+    --halo-portal-sprite-size: 64px;
+    --halo-portal-crew-height: 6rem;
+    --halo-portal-crew-overlap: 0rem;
+    --halo-portal-pixel-left: -1px;
+    --halo-portal-pixel-right: 1px;
+    --halo-portal-crew-lift: -2px;
+    --halo-portal-cheer-lift: -6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --halo-portal-arrival-duration: 0ms;
+    --halo-portal-interaction-duration: 0ms;
+    --halo-portal-action-lift: none;
+    --halo-portal-parallax-left: 0px;
+    --halo-portal-parallax-right: 0px;
+    --halo-portal-pixel-left: 0px;
+    --halo-portal-pixel-right: 0px;
+  }
 }

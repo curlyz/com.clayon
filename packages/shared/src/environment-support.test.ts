@@ -8,8 +8,8 @@ import {
 
 describe("isSandboxProviderSupportedForAdapter", () => {
   it("treats Clayon Runner as a remote-managed adapter", () => {
-    expect(adapterSupportsRemoteManagedEnvironments("paperclip_runner")).toBe(true);
-    expect(supportedEnvironmentDriversForAdapter("paperclip_runner")).toEqual([
+    expect(adapterSupportsRemoteManagedEnvironments("clayon_runner")).toBe(true);
+    expect(supportedEnvironmentDriversForAdapter("clayon_runner")).toEqual([
       "local",
       "ssh",
       "sandbox",

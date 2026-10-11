@@ -80,7 +80,7 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
     icon: Code,
     recommended: true,
   },
-  paperclip_runner: {
+  clayon_runner: {
     label: "Clayon Runner",
     description: "Experimental Rust runner with a Codex provider",
     icon: Cpu,
@@ -127,7 +127,7 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
     description: "Cursor CLI harness",
     icon: MousePointer2,
   },
-  // Display-only choice: persisted as paperclip_runner with provider openai_dot.
+  // Display-only choice: persisted as clayon_runner with provider openai_dot.
   openai_dot: {
     label: "OpenAI Dot",
     description: "Your Dot in ChatGPT",

@@ -273,7 +273,7 @@ const apps = [
         {
           label: "Connect GitHub",
           purpose: "tool",
-          oauthStrategy: "paperclip_cloud_connector",
+          oauthStrategy: "clayon_cloud_connector",
           connectorProfile: "github.code",
           grantKinds: ["user", "agent"],
           ownershipModes: ["platform_shared"],
@@ -971,7 +971,7 @@ apps.push({
       label: "Connect Gmail",
       transport: "mcp_remote",
       auth: "oauth",
-      oauthStrategy: "paperclip_id_connector",
+      oauthStrategy: "clayon_id_connector",
       grantKinds: ["user"],
       ownershipModes: ["customer"],
       whenToUse:
@@ -1200,7 +1200,7 @@ const specialMethodsFor = (entry) => {
     oauthMethodFor(entry, "managed", entry.serverUrl, {
       label: "Sign in with Asana",
       ownershipModes: ["platform_shared"],
-      oauthStrategy: "paperclip_cloud_connector",
+      oauthStrategy: "clayon_cloud_connector",
       connectorProfile: "asana.mcp",
       grantKinds: ["user", "agent"],
       defaults: { serverUrl: entry.serverUrl, scopesHint: ["default"] },

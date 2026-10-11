@@ -86,7 +86,7 @@ const support = externalDatabaseUrl
         companyId,
         name: "Executor",
         role: "engineer",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
       });
       await db.insert(issues).values({
         id: issueId,
@@ -232,7 +232,7 @@ const support = externalDatabaseUrl
         run.id === source.runId && mode !== "unproven" ? { evidence: { completedTaskControlCallIds: ["completion"] }, retire } : null);
       await appendHeartbeatRunEvent(db, { companyId: source.companyId, runId: source.runId, agentId: source.agentId,
         eventType: "tool.execution.started", stream: "system",
-        payload: { name: "paperclip_finish", executionId: "completion", transport: "process" },
+        payload: { name: "clayon_finish", executionId: "completion", transport: "process" },
       });
       await reconcileSafeNativeReplacements(db, new Date(), { verifyStoppedSession });
       await reconcileSafeNativeReplacements(db, new Date(), { verifyStoppedSession });

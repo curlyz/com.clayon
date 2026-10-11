@@ -1255,7 +1255,7 @@ export function recoveryService(
     const terminal = parseObject(envelope.terminal);
     const continuation = parseObject(result.continuation);
     if (
-      result.schema !== "paperclip.run_result.v1" ||
+      result.schema !== "clayon.run_result.v1" ||
       result.reportedWorkDisposition !== "yielded" ||
       continuation.kind !== "response_wake" ||
       !readNonEmptyString(continuation.idempotencyKey) ||
@@ -1363,9 +1363,9 @@ export function recoveryService(
       if (
         error instanceof Error &&
         [
-          "paperclip_runner_chat_attachment_binding_denied",
-          "paperclip_runner_chat_attachment_destination_denied",
-          "paperclip_runner_chat_attachment_principal_denied",
+          "clayon_runner_chat_attachment_binding_denied",
+          "clayon_runner_chat_attachment_destination_denied",
+          "clayon_runner_chat_attachment_principal_denied",
         ].includes(error.message)
       )
         return false;
@@ -1496,7 +1496,7 @@ export function recoveryService(
     const terminal = parseObject(envelope.terminal);
     const blocker = parseObject(result.blocker);
     if (
-      result.schema !== "paperclip.run_result.v1" ||
+      result.schema !== "clayon.run_result.v1" ||
       result.reportedWorkDisposition !== "blocked" ||
       terminal.runTerminalState !== "succeeded" ||
       terminal.reportedWorkDisposition !== "blocked" ||

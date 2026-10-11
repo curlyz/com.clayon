@@ -24,7 +24,7 @@ export function captureResultFromItem(
   if (state.conversationMode === "direct") return true;
   // Runnerd is the semantic authority for its canonical PRP stream. Its
   // normalized activity items can still contain schema-shaped assistant
-  // text after paperclip_finish, but re-parsing that text here would create
+  // text after clayon_finish, but re-parsing that text here would create
   // a second, potentially conflicting result from one provider turn.
   if ((item as Record<PropertyKey, unknown>)[RUNNERD_CANONICAL_ITEM] === true)
     return true;

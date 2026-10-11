@@ -142,7 +142,7 @@ and existing-test update.
   consolidate completion rules. Verify prompt revisions, digests, and session
   compatibility across native Codex, ACPX, and OpenCode. Dotta approved the
   native tool-documentation slice on 2026-10-02 in a separate worktree. Native
-  `paperclip_finish`/`paperclip_block` guidance must not leak into legacy
+  `clayon_finish`/`clayon_block` guidance must not leak into legacy
   completion paths, which use the operational skill and API.
 - [x] **2.3 completion slice.** Improve native finish/block documentation
   (#14961), consolidate repeated completion constraints, and preserve useful
@@ -377,12 +377,12 @@ Starting points: [onboarding assets](../../server/src/onboarding-assets/),
 [hiring skill and references](../../skills/clayon-create-agent/),
 [teams catalog](../../packages/teams-catalog/catalog/).
 
-Dotta approved and merged [PR #14985](https://github.com/paperclipai/paperclip/pull/14985)
+Dotta approved and merged [PR #14985](https://github.com/clayon/clayon/pull/14985)
 at `862a5758ba0e88a33232c1f1fa645e85c38a3113`, after corrected source
 `57dcee147ed0b2d2e3cc657cd9e50fb16bf9ec25` passed full CI and fresh Greptile 5/5.
 The hiring skill/references, CEO/CoS assets and team catalog are now on master.
 Their live qualification remains separate from unit/CI verification.
-[Prompt diffs and preserved scope](https://github.com/paperclipai/paperclip/blob/57dcee147ed0b2d2e3cc657cd9e50fb16bf9ec25/doc/plans/2026-10-02-hiring-template-prompt-diff.md).
+[Prompt diffs and preserved scope](https://github.com/clayon/clayon/blob/57dcee147ed0b2d2e3cc657cd9e50fb16bf9ec25/doc/plans/2026-10-02-hiring-template-prompt-diff.md).
 
 The read-only audit found four onboarding CEO files (1,897 words), a 164-word
 CoS manual, four role examples (coder 652, QA 619, UX 1,325, security 1,724 words),
@@ -419,11 +419,11 @@ Only four candidate-specific single-file CEO selection assertions are filtered
 symmetrically; each variant's bundle/source hashes and canonical catalog are
 independently admitted. Two cells per variant, five expected turns each:
 four cells / 20 turns, 15 minutes each, no automatic retries or broader selection.
-The [candidate](https://github.com/paperclipai/paperclip/actions/runs/37075466208)
-and [baseline](https://github.com/paperclipai/paperclip/actions/runs/37075469463)
+The [candidate](https://github.com/clayon/clayon/actions/runs/37075466208)
+and [baseline](https://github.com/clayon/clayon/actions/runs/37075469463)
 protected campaigns are dispatched. No graded live pairs yet; pending evidence
 cannot establish non-regression.
-[Inspect the partial report](https://github.com/paperclipai/paperclip/blob/e3720f369df070036526dd295a7a68e49488c51a/doc/plans/2026-10-02-hiring-template-live-comparison.md).
+[Inspect the partial report](https://github.com/clayon/clayon/blob/e3720f369df070036526dd295a7a68e49488c51a/doc/plans/2026-10-02-hiring-template-live-comparison.md).
 Report-only updates preserve the measured refs and merged hiring PR.
 
 The default-manual PR is replayed on the merged hiring base, preserving custom
@@ -606,8 +606,8 @@ will address them. Record intentional behavior explicitly rather than as a bug.
 | 2026-10-02 | Dotta directed an identity-only default manual with no skill or runtime pointers; the harness already handles coordination. | Reduced the default to eight words. Existing hire and onboarding suites passed all 64 tests. Shared prompts and role templates remain pending. |
 | 2026-10-02 | Dotta requested three explicit shared-prompt follow-ups and selected common legacy startup/resume reduction first. | Follow-ups 2.1–2.3 recorded. 2.1 complete locally: both defaults 113 words; generic resume contract removed. 563 focused tests and shared utility typecheck/build passed. Extra carriers and native instruction reduction remain pending. |
 | 2026-10-02 | Dotta requested executable eval coverage for everything implemented so far and all subsequent changes before continuing. | Added SH-1–SH-3 coverage map, credential-free prerequisite, and 24 production-default-hire cells. 478 prerequisite and 860 support tests passed; E2E typecheck/discovery passed. Live provider results remain `not_run`; item 2.2/2.3 unchanged. |
-| 2026-10-02 | Dotta requested PRs and GitHub-runner before/after qualification while discussing subsequent work separately. | Draft [PR #14948](https://github.com/paperclipai/paperclip/pull/14948); native Codex diagnostic [passed](https://github.com/paperclipai/paperclip/actions/runs/37034213743), 34.745 s provider / 56.660 s cell. Comparison restores only the prior manual/shared prompts and holds #14920 constant; no general coding-quality claim. |
-| 2026-10-02 | Full candidate cold setup failed before provider admission; stopped and retained the attempt. | [Run 37037105491](https://github.com/paperclipai/paperclip/actions/runs/37037105491), target `36e987246`: prerequisite imports lacked the plugin SDK build. Added ordinary dependency setup before credential-free prerequisites and exact-source coverage of connection guidance. Cold pilot and full matched campaigns pending. |
+| 2026-10-02 | Dotta requested PRs and GitHub-runner before/after qualification while discussing subsequent work separately. | Draft [PR #14948](https://github.com/clayon/clayon/pull/14948); native Codex diagnostic [passed](https://github.com/clayon/clayon/actions/runs/37034213743), 34.745 s provider / 56.660 s cell. Comparison restores only the prior manual/shared prompts and holds #14920 constant; no general coding-quality claim. |
+| 2026-10-02 | Full candidate cold setup failed before provider admission; stopped and retained the attempt. | [Run 37037105491](https://github.com/clayon/clayon/actions/runs/37037105491), target `36e987246`: prerequisite imports lacked the plugin SDK build. Added ordinary dependency setup before credential-free prerequisites and exact-source coverage of connection guidance. Cold pilot and full matched campaigns pending. |
 | 2026-10-02 | Dotta deferred 2.2 additional legacy carriers and approved the first 2.3 native tool-description slice separately. | Keep wrappers open; native finish/block documentation must not be supplied to legacy skill/API completion paths. |
 | 2026-10-02 | Matched default-manual/shared-prompt campaigns measured failures, with #14920 constant. | Candidate `f02d8d0df`: 15/24 pass. Historical `12c5433c6`: 15/24 pass after the one runner-shutdown recovery also timed out. Classic Claude/OpenCode Clayon document delivery regressed in observed trials; keep PR #14948 draft. [Live report](2026-10-02-stock-harness-live-comparison.md). |
 | 2026-10-02 | Cold prerequisite and packaging faults were repaired without weakening admission or behavioral graders. | Three setup attempts stopped before providers. Current `1eb5ba420` pilot passes 557 prerequisite checks and protected report publication; source/hash/cost evidence retained. Candidate cancellation and historical runner shutdown recovered only for missing cells. |
@@ -652,7 +652,7 @@ results, remaining exceptions, and follow-ups here before checking it off.
 #### #15372 reporting disposition — 2026-10-06
 
 The complete original comparison and diagnosis are saved privately at
-[immutable evidence archive](https://github.com/paperclipai/paperclip-evals/blob/a3fdf327907816c22c4097da8839db4f472d5e9c/experiments/2026-10-native-delegation-handoff/README.md).
+[immutable evidence archive](https://github.com/clayon/clayon-evals/blob/a3fdf327907816c22c4097da8839db4f472d5e9c/experiments/2026-10-native-delegation-handoff/README.md).
 The prepared public body is `/private/tmp/delegation-handoff-pr-body.md`.
 The human explicitly authorized publication and requested fixing the failures.
 The prepared summary was published normally to PR #15372; the earlier automatic

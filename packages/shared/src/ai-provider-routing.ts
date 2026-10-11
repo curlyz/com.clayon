@@ -80,7 +80,7 @@ export function aiRoutingHarness(
   provider?: unknown,
   acpxAgent?: unknown,
 ): string {
-  if (adapter !== "paperclip_runner") return adapter;
+  if (adapter !== "clayon_runner") return adapter;
   const runner =
     provider === "acpx" && (acpxAgent === "claude" || acpxAgent === "grok")
       ? acpxAgent

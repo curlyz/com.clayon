@@ -42,7 +42,7 @@ describe("expanded MCP independent evidence calibration", () => {
             for (const direction of ["upload", "download"]) await host.call("host_transfer_file", { direction, url: `${origin}/mcp/files/${direction}?ticket=fixture` });
           }
           // A plausible assistant success claim alone cannot make the fixture pass.
-          return { prompt, final: `Done GARDEN DOCUMENT${nonce}; configuration permission required`, calls: name === "documents" ? (valid ? [{ name: "paperclip_read_document", arguments: { companyId, taskId, key: "report" }, result: { structuredContent: { document: { key: "report", body: `GARDEN DOCUMENT${nonce}` } } } }] : []) : ["paperclip_search_api", "paperclip_call_api"].map(name => ({ name, arguments: {}, result: {} })) };
+          return { prompt, final: `Done GARDEN DOCUMENT${nonce}; configuration permission required`, calls: name === "documents" ? (valid ? [{ name: "clayon_read_document", arguments: { companyId, taskId, key: "report" }, result: { structuredContent: { document: { key: "report", body: `GARDEN DOCUMENT${nonce}` } } } }] : []) : ["clayon_search_api", "clayon_call_api"].map(name => ({ name, arguments: {}, result: {} })) };
         },
       });
       expect(checks.length).toBeGreaterThan(0);
@@ -51,11 +51,11 @@ describe("expanded MCP independent evidence calibration", () => {
   });
 
   it("rejects all mutation categories in read-only grading, including generic calls", () => {
-    for (const name of ["paperclip_update_task", "paperclip_finish_task", "paperclip_block_task", "paperclip_update_agent", "paperclip_write_document", "paperclip_get_upload_url", "paperclip_write_skill_file", "paperclip_future_tool"]) {
+    for (const name of ["clayon_update_task", "clayon_finish_task", "clayon_block_task", "clayon_update_agent", "clayon_write_document", "clayon_get_upload_url", "clayon_write_skill_file", "clayon_future_tool"]) {
       expect(isReadOnlyMcpCall({ name, arguments: {} })).toBe(false);
-      expect(isReadOnlyMcpCall({ name: "paperclip_call_api", arguments: { operationId: name } })).toBe(false);
+      expect(isReadOnlyMcpCall({ name: "clayon_call_api", arguments: { operationId: name } })).toBe(false);
     }
-    expect(isReadOnlyMcpCall({ name: "paperclip_call_api", arguments: { operationId: "paperclip_read_task" } })).toBe(true);
+    expect(isReadOnlyMcpCall({ name: "clayon_call_api", arguments: { operationId: "clayon_read_task" } })).toBe(true);
   });
 });
 
@@ -93,15 +93,15 @@ it("rejects wrong blocker ownership, action, actor and out-of-order completion",
 });
 
 it("requires a real later report read and rejects writes, errors, wrong targets and missing references", () => {
-  const read = { name: "paperclip_read_document", arguments: { companyId: "c", taskId: "t", key: "report" },
+  const read = { name: "clayon_read_document", arguments: { companyId: "c", taskId: "t", key: "report" },
     result: { structuredContent: { document: { key: "report", body: "GARDEN DOCUMENT" } } } };
   const grade = (calls: any[]) => hasReadLaterDocument({ prompt: "Read", final: "GARDEN DOCUMENT", calls }, "c", "t", "GARDEN", "DOCUMENT");
   expect(grade([read])).toBe(true);
-  expect(grade([{ name: "paperclip_call_api", arguments: { companyId: "c", operationId: read.name, arguments: read.arguments }, result: read.result }])).toBe(true);
+  expect(grade([{ name: "clayon_call_api", arguments: { companyId: "c", operationId: read.name, arguments: read.arguments }, result: read.result }])).toBe(true);
   for (const calls of [[], [{ ...read, arguments: { ...read.arguments, companyId: "foreign" } }],
     [{ ...read, arguments: { ...read.arguments, taskId: "other" } }], [{ ...read, result: { ...read.result, isError: true } }],
     [{ ...read, result: { structuredContent: { document: { key: "report", body: "GARDEN" } } } }],
-    [read, { name: "paperclip_write_document", arguments: {}, result: {} }],
-    [read, { name: "paperclip_call_api", arguments: { operationId: "paperclip_update_task" }, result: {} }],
+    [read, { name: "clayon_write_document", arguments: {}, result: {} }],
+    [read, { name: "clayon_call_api", arguments: { operationId: "clayon_update_task" }, result: {} }],
   ]) expect(grade(calls)).toBe(false);
 });

@@ -1706,7 +1706,7 @@ Duplicate headings receive stable suffixes.
     expect(operations).toHaveLength(0);
     expect(harness.dbExecutes.some((execute) => execute.sql.includes("wiki_sources"))).toBe(false);
     expect(harness.dbExecutes.some((execute) => execute.sql.includes("wiki_operations"))).toBe(false);
-    const cursorUpsert = harness.dbExecutes.find((execute) => execute.sql.includes("paperclip_distillation_cursors"));
+    const cursorUpsert = harness.dbExecutes.find((execute) => execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorUpsert?.params).toEqual(expect.arrayContaining([
       COMPANY_ID,
       "default",
@@ -1792,7 +1792,7 @@ Duplicate headings receive stable suffixes.
       eventId: "event-plugin-operation",
     });
 
-    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_cursors"));
+    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorWrites).toHaveLength(1);
     expect(cursorWrites[0].params).toEqual(expect.arrayContaining([
       COMPANY_ID,
@@ -1839,7 +1839,7 @@ Duplicate headings receive stable suffixes.
       eventId: "event-default-document-updated",
     });
 
-    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_cursors"));
+    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorWrites).toHaveLength(3);
     expect(cursorWrites.every((execute) => execute.params?.[10] !== created.space.id)).toBe(true);
     expect(cursorWrites.map((execute) => execute.params?.[2])).toEqual(["default", "default", "default"]);
@@ -1885,7 +1885,7 @@ Duplicate headings receive stable suffixes.
       eventId: "event-non-default-enabled",
     });
 
-    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_cursors"));
+    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorWrites.some((execute) => execute.params?.[10] === created.space.id)).toBe(true);
   });
 
@@ -1938,7 +1938,7 @@ Duplicate headings receive stable suffixes.
     });
 
     const nonDefaultCursorWrites = harness.dbExecutes.filter((execute) =>
-      execute.sql.includes("paperclip_distillation_cursors") && execute.params?.[10] === created.space.id);
+      execute.sql.includes("clayon_distillation_cursors") && execute.params?.[10] === created.space.id);
     expect(nonDefaultCursorWrites).toHaveLength(1);
   });
 
@@ -2077,7 +2077,7 @@ Duplicate headings receive stable suffixes.
       expect.objectContaining({ kind: "document", redactionStatus: "suppressed_sensitive_content" }),
     ]));
 
-    const snapshotInsert = harness.dbExecutes.find((execute) => execute.sql.includes("paperclip_source_snapshots"));
+    const snapshotInsert = harness.dbExecutes.find((execute) => execute.sql.includes("clayon_source_snapshots"));
     const storedSourceRefs = String(snapshotInsert?.params?.[9] ?? "");
     const storedMarkdown = String(snapshotInsert?.params?.[10] ?? "");
     expect(storedSourceRefs).toContain("suppressed_sensitive_content");
@@ -2105,7 +2105,7 @@ Duplicate headings receive stable suffixes.
       projectId: issue.projectId,
     });
     expect(run.snapshotId).toEqual(expect.any(String));
-    expect(harness.dbExecutes.some((execute) => execute.sql.includes("paperclip_source_snapshots"))).toBe(true);
+    expect(harness.dbExecutes.some((execute) => execute.sql.includes("clayon_source_snapshots"))).toBe(true);
 
     const failed = await harness.performAction<{ cursorAdvanced: boolean }>("record-clayon-distillation-outcome", {
       companyId: COMPANY_ID,
@@ -2118,7 +2118,7 @@ Duplicate headings receive stable suffixes.
     });
     expect(failed.cursorAdvanced).toBe(false);
     const cursorUpdatesAfterFailure = harness.dbExecutes.filter((execute) =>
-      execute.sql.trim().startsWith("UPDATE") && execute.sql.includes("paperclip_distillation_cursors"));
+      execute.sql.trim().startsWith("UPDATE") && execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorUpdatesAfterFailure).toHaveLength(0);
 
     const succeeded = await harness.performAction<{ cursorAdvanced: boolean }>("record-clayon-distillation-outcome", {
@@ -2131,7 +2131,7 @@ Duplicate headings receive stable suffixes.
     });
     expect(succeeded.cursorAdvanced).toBe(true);
     const cursorSuccessUpdate = harness.dbExecutes.find((execute) =>
-      execute.sql.trim().startsWith("UPDATE") && execute.sql.includes("paperclip_distillation_cursors"));
+      execute.sql.trim().startsWith("UPDATE") && execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorSuccessUpdate?.params).toEqual(expect.arrayContaining([
       COMPANY_ID,
       "default",
@@ -2155,7 +2155,7 @@ Duplicate headings receive stable suffixes.
     const existingCursorId = "77777777-7777-4777-8777-777777777899";
     const originalQuery = harness.ctx.db.query.bind(harness.ctx.db);
     harness.ctx.db.query = async <T,>(sql: string, params?: unknown[]) => {
-      if (sql.includes("SELECT id") && sql.includes("paperclip_distillation_cursors")) {
+      if (sql.includes("SELECT id") && sql.includes("clayon_distillation_cursors")) {
         return [{ id: existingCursorId }] as T[];
       }
       return originalQuery<T>(sql, params);
@@ -2170,7 +2170,7 @@ Duplicate headings receive stable suffixes.
 
     expect(result.cursorId).toBe(existingCursorId);
     const runInsert = harness.dbExecutes.find((execute) =>
-      execute.sql.includes("paperclip_distillation_runs") && execute.sql.includes("'source_ready'"));
+      execute.sql.includes("clayon_distillation_runs") && execute.sql.includes("'source_ready'"));
     expect(runInsert?.params?.[3]).toBe(existingCursorId);
   });
 
@@ -2200,7 +2200,7 @@ Duplicate headings receive stable suffixes.
       idempotencyKey: "backfill:last-30-days",
     });
 
-    const workItemWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_work_items"));
+    const workItemWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_work_items"));
     expect(workItemWrites).toHaveLength(3);
     expect(workItemWrites.map((write) => write.params?.[3])).toEqual(["manual", "retry", "backfill"]);
     expect(String(workItemWrites[0].params?.[9])).toContain('"sourceScope":"project"');
@@ -2250,7 +2250,7 @@ Duplicate headings receive stable suffixes.
     expect(result.estimatedCostCents).toBeGreaterThan(1);
     expect(result.snapshotId).toEqual(expect.any(String));
     const readyRun = harness.dbExecutes.find((execute) =>
-      execute.sql.includes("paperclip_distillation_runs") && execute.sql.includes("'source_ready'"));
+      execute.sql.includes("clayon_distillation_runs") && execute.sql.includes("'source_ready'"));
     expect(readyRun?.params).toEqual(expect.arrayContaining([
       COMPANY_ID,
       "default",
@@ -2259,7 +2259,7 @@ Duplicate headings receive stable suffixes.
       null,
       project.id,
     ]));
-    expect(harness.dbExecutes.some((execute) => execute.sql.includes("paperclip_source_snapshots"))).toBe(true);
+    expect(harness.dbExecutes.some((execute) => execute.sql.includes("clayon_source_snapshots"))).toBe(true);
     expect(harness.dbExecutes.some((execute) => execute.sql.includes("refused_cost_cap"))).toBe(false);
   });
 
@@ -2298,7 +2298,7 @@ Duplicate headings receive stable suffixes.
     expect(result.operation.issue.description).toContain("Do not hardcode a single project");
     expect(result.operation.issue.description).not.toContain(`Source project ID: ${project.id}`);
     const workItemInsert = harness.dbExecutes.find((execute) =>
-      execute.sql.includes("paperclip_distillation_work_items") && execute.params?.[3] === "manual");
+      execute.sql.includes("clayon_distillation_work_items") && execute.params?.[3] === "manual");
     expect(workItemInsert?.params).toEqual(expect.arrayContaining([
       COMPANY_ID,
       "default",
@@ -2308,7 +2308,7 @@ Duplicate headings receive stable suffixes.
       null,
     ]));
     const runInsert = harness.dbExecutes.find((execute) =>
-      execute.sql.includes("paperclip_distillation_runs") && execute.sql.includes("operation_issue_id"));
+      execute.sql.includes("clayon_distillation_runs") && execute.sql.includes("operation_issue_id"));
     expect(runInsert).toBeUndefined();
   });
 
@@ -2376,7 +2376,7 @@ Duplicate headings receive stable suffixes.
       enabled: true,
       sources: { issues: true, comments: true, documents: true },
     });
-    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_cursors"));
+    const cursorWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_cursors"));
     expect(cursorWrites).toHaveLength(2);
     expect(cursorWrites.map((execute) => execute.params?.[5])).toEqual([recentProject.id, olderProject.id]);
     expect(cursorWrites.map((execute) => execute.params?.[8])).toEqual([1, 1]);
@@ -2438,7 +2438,7 @@ Duplicate headings receive stable suffixes.
     expect(projectPatch?.proposedContents).not.toContain("PAP-4107");
     expect(projectPatch?.proposedContents).not.toContain("PAP-4108");
     const workItemInsert = harness.dbExecutes.find((execute) =>
-      execute.sql.includes("paperclip_distillation_work_items") && execute.params?.[3] === "backfill");
+      execute.sql.includes("clayon_distillation_work_items") && execute.params?.[3] === "backfill");
     expect(String(workItemInsert?.params?.[9])).toContain('"backfillStartAt":"2026-04-01T00:00:00Z"');
   });
 
@@ -2631,7 +2631,7 @@ Duplicate headings receive stable suffixes.
     expect(files.get("wiki/projects/existing-wiki-project/index.md")).toContain("## References");
     expect(files.get("wiki/index.md")).toContain("wiki/projects/existing-wiki-project/index.md");
     expect(files.get("wiki/log.md")).toContain("clayon-distill | proposed");
-    const bindingWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_page_bindings"));
+    const bindingWrites = harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_page_bindings"));
     expect(bindingWrites).toHaveLength(4);
     expect(bindingWrites[0].params).toEqual(expect.arrayContaining([
       COMPANY_ID,
@@ -3148,7 +3148,7 @@ Duplicate headings receive stable suffixes.
       originKindPrefix: String(OPERATION_ORIGIN_KIND),
     });
     expect(operations).toHaveLength(0);
-    expect(harness.dbExecutes.some((execute) => execute.sql.includes("paperclip_distillation_work_items"))).toBe(false);
+    expect(harness.dbExecutes.some((execute) => execute.sql.includes("clayon_distillation_work_items"))).toBe(false);
   });
 
   it("re-checks Clayon ingestion policy at execution time for queued work", async () => {
@@ -3203,7 +3203,7 @@ Duplicate headings receive stable suffixes.
       projectId: project.id,
     })).rejects.toThrow("personal spaces cannot ingest Clayon sources");
     expect(harness.dbExecutes.some((execute) =>
-      execute.sql.includes("paperclip_distillation_runs") && execute.sql.includes("'source_ready'"))).toBe(false);
+      execute.sql.includes("clayon_distillation_runs") && execute.sql.includes("'source_ready'"))).toBe(false);
   });
 
   it("queues Clayon ingestion backfills for every selected project scope", async () => {
@@ -3236,7 +3236,7 @@ Duplicate headings receive stable suffixes.
       "77777777-7777-4777-8777-7777777777a1",
       "77777777-7777-4777-8777-7777777777a2",
     ]);
-    expect(harness.dbExecutes.filter((execute) => execute.sql.includes("paperclip_distillation_work_items"))).toHaveLength(2);
+    expect(harness.dbExecutes.filter((execute) => execute.sql.includes("clayon_distillation_work_items"))).toHaveLength(2);
   });
 
   it("rejects oversized Clayon ingestion profile and source-scope payloads", async () => {

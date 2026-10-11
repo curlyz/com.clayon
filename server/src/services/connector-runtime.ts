@@ -63,7 +63,7 @@ interface ConnectorDefinition {
 // current access, not credential availability or agent-authored config, select them.
 const connectors: ConnectorDefinition[] = [
   { key: "browser-use-cloud", label: "Browser Use Cloud", skillName: "browser-use-cloud", skillMarkdown: BROWSER_USE_CLOUD_SKILL, tools: [],
-    legacySkillKeys: ["paperclipai/paperclip/browser-use"],
+    legacySkillKeys: ["clayon/clayon/browser-use"],
     async resolve(db, binding) {
       const { getAssignedMcpGateway } = await import("./native-runtime/assigned-mcp-tools.js");
       try { return await getAssignedMcpGateway(db).browserUseResources(binding); } catch { return []; }
@@ -112,7 +112,7 @@ const connectors: ConnectorDefinition[] = [
   },
 ];
 const skillKey = (connector: ConnectorDefinition) =>
-  `paperclipai/paperclip/${connector.skillName}`;
+  `clayon/clayon/${connector.skillName}`;
 export type ConnectorAssignment = {
   key: string;
   label: string;
@@ -238,15 +238,15 @@ export async function prepareConnectorSkillDelivery(
   adapterType: string,
 ) {
   const scopedFiles =
-    adapterType === "paperclip_runner" ||
+    adapterType === "clayon_runner" ||
     (config.engine === "cli" &&
       ["codex_local", "claude_local", "kimi_local"].includes(adapterType));
   if (scopedFiles) {
     // Runner models with semantic tools cannot necessarily read staged skill
     // files. Supply Slack and Speko contracts and verified source IDs in their input;
     // keep the staged bundle for CLI-capable engines and compatibility hashing.
-    const promptSkills = adapterType === "paperclip_runner"
-      ? config.clayonRuntimeSkills.filter(entry => ["paperclipai/paperclip/slack", "paperclipai/paperclip/speko"].includes(entry.key))
+    const promptSkills = adapterType === "clayon_runner"
+      ? config.clayonRuntimeSkills.filter(entry => ["clayon/clayon/slack", "clayon/clayon/speko"].includes(entry.key))
       : [];
     const instructions = (await Promise.all(promptSkills.map(entry =>
       fs.readFile(path.join(entry.source, "SKILL.md"), "utf8")))).join("\n\n");

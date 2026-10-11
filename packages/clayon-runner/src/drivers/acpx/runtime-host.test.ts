@@ -261,8 +261,8 @@ describe("ACPX runtime host", () => {
   });
 
   it.each([
-    ["approve-reads", ["mcp__paperclip__get_task_context"]],
-    ["approve-clayon", ["mcp__paperclip__create_task", "mcp__paperclip__get_task_context", "mcp__paperclip__reassign_task", "mcp__paperclip__write_document"]],
+    ["approve-reads", ["mcp__clayon__get_task_context"]],
+    ["approve-clayon", ["mcp__clayon__create_task", "mcp__clayon__get_task_context", "mcp__clayon__reassign_task", "mcp__clayon__write_document"]],
     ["deny-all", undefined],
   ] as const)("binds exact assigned Claude tools to %s before provider launch", async (permissionMode, allow) => {
     const fixture = await hostFixture();
@@ -368,7 +368,7 @@ describe("ACPX runtime host", () => {
           dependencies,
         );
         let message = JSON.stringify({
-          schema: "paperclip.native-model-envelope.v2",
+          schema: "clayon.native-model-envelope.v2",
           task: { description: "Use /assigned", prompt: "A new direct user request" },
           interactionResponses: index ? [{ response: { status: "accepted" } }] : [],
         });
@@ -398,7 +398,7 @@ describe("ACPX runtime host", () => {
           dependencies,
         );
         const message = JSON.stringify({
-          schema: "paperclip.native-model-envelope.v3",
+          schema: "clayon.native-model-envelope.v3",
           requestedSkills: ["assigned"],
           task: {
             identifier: "PAP-1",
@@ -420,7 +420,7 @@ describe("ACPX runtime host", () => {
         { ...options, runtimeContext: context }, dependencies,
       );
       const ordinaryMessage = JSON.stringify({
-        schema: "paperclip.native-model-envelope.v2",
+        schema: "clayon.native-model-envelope.v2",
         task: { description: "An ordinary task", prompt: "Mention /assigned in a note" },
       });
       ordinary.startTurn({ text: ordinaryMessage, requestId: "ordinary-task" });
@@ -432,7 +432,7 @@ describe("ACPX runtime host", () => {
         { ...options, runtimeContext: context }, dependencies,
       );
       const ordinaryPreparedMessage = JSON.stringify({
-        schema: "paperclip.native-model-envelope.v3",
+        schema: "clayon.native-model-envelope.v3",
         requestedSkills: [],
         task: {
           identifier: "PAP-2",
@@ -685,7 +685,7 @@ describe("ACPX runtime host", () => {
       dependencies,
     );
     expect(host.identity()).toMatchObject({
-      schema: "paperclip.runner.acpx-identity.v2",
+      schema: "clayon.runner.acpx-identity.v2",
       acpxRecordId: "record-1",
       requestedModel: "gpt-5.6-sol",
       permissionMode: "approve-reads",
@@ -760,8 +760,8 @@ describe("ACPX runtime host", () => {
       const receipt = readNativeSemanticReceipt({ contents: body.result.content });
       expect(receipt).not.toBeNull();
       expect(events).toHaveLength(1);
-      expect(events[0]!.payload).toMatchObject({ category: "paperclip_semantic_tool_receipt_v2", provenance: { sessionId: "backend-1", turnId: "turn-1" },
-        details: expect.arrayContaining([{ name: "schema", value: "paperclip.semantic_tool_receipt.v2" }, { name: "normalizedInputSha256", value: "null" }, { name: "callIdentitySha256", value: receipt!.callIdentitySha256 }, { name: "resultSha256", value: receipt!.resultSha256 }]) });
+      expect(events[0]!.payload).toMatchObject({ category: "clayon_semantic_tool_receipt_v2", provenance: { sessionId: "backend-1", turnId: "turn-1" },
+        details: expect.arrayContaining([{ name: "schema", value: "clayon.semantic_tool_receipt.v2" }, { name: "normalizedInputSha256", value: "null" }, { name: "callIdentitySha256", value: receipt!.callIdentitySha256 }, { name: "resultSha256", value: receipt!.resultSha256 }]) });
     } finally { await host.close({ reason: "receipt forwarding verified" }); }
     await expect(fetch(bridge!.url)).rejects.toThrow();
   });

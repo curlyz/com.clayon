@@ -62,7 +62,7 @@ function assertTerminal(value: unknown): asserts value is PrpTerminalState {
     typeof value !== "object" ||
     terminal === null ||
     Array.isArray(value) ||
-    terminal.schema !== "paperclip.prp.terminal.v1" ||
+    terminal.schema !== "clayon.prp.terminal.v1" ||
     typeof terminal.turnTerminalState !== "string" ||
     !["completed", "failed", "interrupted", "cancelled"].includes(
       terminal.turnTerminalState,

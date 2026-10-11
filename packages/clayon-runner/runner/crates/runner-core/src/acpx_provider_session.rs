@@ -1392,7 +1392,7 @@ fn verify_initialize_response(value: &Value, process_id: u32) -> Result<(), Loca
         || value
             .pointer("/capabilities/structuredInput")
             .and_then(Value::as_str)
-            != Some("paperclip.question_set.v1")
+            != Some("clayon.question_set.v1")
     {
         return Err(LocalRunnerError::invalid(
             "ACPX sidecar initialization capabilities are invalid",
@@ -1710,7 +1710,7 @@ mod permission_mode_tests {
     use super::AcpxPermissionMode;
 
     #[test]
-    fn paperclip_permission_mode_round_trips_without_widening_legacy_modes() {
+    fn clayon_permission_mode_round_trips_without_widening_legacy_modes() {
         for (name, mode) in [
             ("approve-clayon", AcpxPermissionMode::ApproveClayon),
             ("approve-reads", AcpxPermissionMode::ApproveReads),

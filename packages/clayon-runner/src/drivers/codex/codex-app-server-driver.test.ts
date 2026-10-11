@@ -289,7 +289,7 @@ const liveConsoleFixturePath = fileURLToPath(
 );
 
 const result: PrpStructuredRunResult = {
-  schema: "paperclip.run_result.v1",
+  schema: "clayon.run_result.v1",
   reportedWorkDisposition: "done",
   summary: "Created hello.txt.",
   completionClaim: {
@@ -757,13 +757,13 @@ describe("Codex app-server Codex driver", () => {
     ).toHaveLength(0);
     const workspaceEvents = events.filter((event) => event.eventType === "workspace.change.updated");
     expect(workspaceEvents[0]?.payload).toMatchObject({
-      schema: "paperclip.workspace.diff.v1",
+      schema: "clayon.workspace.diff.v1",
       changeSetId: `${turn.turnId}:workspace`,
       complete: false,
       totals: { files: 1, additions: 2, deletions: 1 },
     });
     expect(workspaceEvents.at(-1)?.payload).toMatchObject({
-      schema: "paperclip.workspace.diff.v1",
+      schema: "clayon.workspace.diff.v1",
       complete: true,
       totals: { files: 1 },
     });
@@ -779,12 +779,12 @@ describe("Codex app-server Codex driver", () => {
     expect(
       events.find((event) => event.eventType === "workspace.diff.recorded")
         ?.payload,
-    ).toMatchObject({ schema: "paperclip.workspace.diff.v1", complete: true });
+    ).toMatchObject({ schema: "clayon.workspace.diff.v1", complete: true });
     expect(
       events.find((event) => event.eventType === "workspace.file.referenced")
         ?.payload,
     ).toMatchObject({
-      schema: "paperclip.workspace.file_reference.v1",
+      schema: "clayon.workspace.file_reference.v1",
       path: "hello.txt",
     });
     expect(events.map((event) => event.eventType)).toEqual(
@@ -804,7 +804,7 @@ describe("Codex app-server Codex driver", () => {
     );
 
     const capabilities: PrpCapabilities = {
-      schema: "paperclip.prp.capabilities.v1",
+      schema: "clayon.prp.capabilities.v1",
       sessionReusePolicy: "reuse_per_issue",
       driver: { kind: descriptor.kind, version: descriptor.version },
       steer: true,
@@ -817,7 +817,7 @@ describe("Codex app-server Codex driver", () => {
     const metadata = {
       fixtureName: "codex-conformance",
       identity: {
-        schema: "paperclip.prp.identity.v1" as const,
+        schema: "clayon.prp.identity.v1" as const,
         companyId: "company-1",
         issueId: "issue-1",
         runId: "run-1",
@@ -947,7 +947,7 @@ describe("Codex app-server Codex driver", () => {
       turn: { id: turn.turnId, status: "inProgress" },
     });
     const first = {
-      schema: "paperclip.workspace.diff.v1",
+      schema: "clayon.workspace.diff.v1",
       changeSetId: `${turn.turnId}:workspace`,
       revision: 1,
       source: "harness_reported",
@@ -1067,7 +1067,7 @@ describe("Codex app-server Codex driver", () => {
       threadId: "thread-1",
       turnId: turn.turnId,
       workspaceChange: {
-        schema: "paperclip.workspace.diff.v1",
+        schema: "clayon.workspace.diff.v1",
         changeSetId: `${turn.turnId}:workspace`,
         revision: 1,
         source: "harness_reported",
@@ -1303,7 +1303,7 @@ describe("Codex app-server Codex driver", () => {
       },
       permissions: "clayon-runner-workspace-only",
       runtimeWorkspaceRoots: [TEST_WORKING_DIRECTORY],
-      dynamicTools: [{ name: "paperclip_finish" }, { name: "paperclip_block" }],
+      dynamicTools: [{ name: "clayon_finish" }, { name: "clayon_block" }],
     });
     const commandPolicy = transport.calls.find(
       (call) => call.method === "thread/start",
@@ -1343,7 +1343,7 @@ describe("Codex app-server Codex driver", () => {
     expect(JSON.stringify(appServerArgs)).not.toContain("HOME=");
     expect(CODEX_RESULT_OUTPUT_SCHEMA.properties.schema).toEqual({
       type: "string",
-      const: "paperclip.run_result.v1",
+      const: "clayon.run_result.v1",
     });
     expect(
       CODEX_BLOCK_RESULT_OUTPUT_SCHEMA.properties.reportedWorkDisposition,
@@ -1385,7 +1385,7 @@ describe("Codex app-server Codex driver", () => {
     const session = await makeDriver([transport], {
       skillInputs: [{ type: "skill", name: "first-task", path: "/skills/first-task/SKILL.md" }],
     }).openSession({ runId: "run-delta", normalizedSessionId: "session-delta", workingDirectory: TEST_WORKING_DIRECTORY });
-    const text = JSON.stringify({ schema: "paperclip.native-continuation.v1", events: '{"messages":[{"body":"Go ahead"}]}', completion: { revision: "2", criterionIds: ["comment"] } });
+    const text = JSON.stringify({ schema: "clayon.native-continuation.v1", events: '{"messages":[{"body":"Go ahead"}]}', completion: { revision: "2", criterionIds: ["comment"] } });
     await session.startTurn({ message: { role: "user", text }, ...(continuation ? { continuation: true as const } : {}) });
     const params = transport.calls.find((call) => call.method === "turn/start")!.params;
     if (continuation) {
@@ -2227,7 +2227,7 @@ describe("Codex app-server Codex driver", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     const [pending] = session.pendingRuntimeRequests?.() ?? [];
     expect(pending?.input).toMatchObject({
-      schema: "paperclip.question_set.v1",
+      schema: "clayon.question_set.v1",
       questions: [
         {
           id: "environment",
@@ -2249,7 +2249,7 @@ describe("Codex app-server Codex driver", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: {
             environment: { selectedOptionIds: ["option-1"] },
             regions: { selectedOptionIds: ["option-1", "option-2"] },
@@ -2268,7 +2268,7 @@ describe("Codex app-server Codex driver", () => {
     expect((await resolvedEvent)?.payload).toMatchObject({
       action: "submit",
       response: {
-        schema: "paperclip.question_response.v1",
+        schema: "clayon.question_response.v1",
         answers: {
           environment: { selectedOptionIds: ["option-1"] },
           regions: { selectedOptionIds: ["option-1", "option-2"] },
@@ -2451,12 +2451,12 @@ describe("Codex app-server Codex driver", () => {
         replayAllowed: false,
         requestType: "input",
         request: {
-          schema: "paperclip.runtime_request.v2",
+          schema: "clayon.runtime_request.v2",
           requestKind: "runtime",
           requestId: "lost-input",
           type: "input",
           input: {
-            schema: "paperclip.question_set.v1",
+            schema: "clayon.question_set.v1",
             questions: [expect.objectContaining({ id: "environment" })],
           },
         },
@@ -2539,7 +2539,7 @@ describe("Codex app-server Codex driver", () => {
         replayAllowed: false,
         requestType: "input",
         request: {
-          schema: "paperclip.runtime_request.v2",
+          schema: "clayon.runtime_request.v2",
           requestId: "handoff-input",
           type: "input",
         },
@@ -2720,7 +2720,7 @@ describe("Codex app-server Codex driver", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: { environment: { selectedOptionIds: ["option-1"] } },
         },
       },
@@ -2812,7 +2812,7 @@ describe("Codex app-server Codex driver", () => {
         threadId: "thread-1",
         turnId: "turn-1",
         callId: "call-1",
-        tool: "paperclip_finish",
+        tool: "clayon_finish",
         arguments: result,
       },
     };
@@ -2893,7 +2893,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: toolShaped,
         },
       }),
@@ -3024,7 +3024,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3083,7 +3083,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: changed,
         },
       }),
@@ -3122,7 +3122,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3166,7 +3166,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3223,7 +3223,7 @@ describe("Codex app-server Codex driver", () => {
             threadId,
             turnId,
             callId: "hostile-call",
-            tool: "paperclip_finish",
+            tool: "clayon_finish",
             arguments: result,
           },
         }),
@@ -3318,7 +3318,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "late-call",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3375,7 +3375,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "large-call",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: { ...result, summary: "x".repeat(70 * 1024) },
         },
       }),
@@ -3443,7 +3443,7 @@ describe("Codex app-server Codex driver", () => {
         threadId: "thread-1",
         turnId: "turn-1",
         callId: "call-block",
-        tool: "paperclip_block",
+        tool: "clayon_block",
         arguments: blocked,
       },
     };
@@ -3451,7 +3451,7 @@ describe("Codex app-server Codex driver", () => {
       await transport.invoke({
         ...request,
         id: 9,
-        params: { ...request.params, tool: "paperclip_finish" },
+        params: { ...request.params, tool: "clayon_finish" },
       }),
     ).toMatchObject({ success: false });
     expect(await transport.invoke(request)).toMatchObject({ success: true });
@@ -3563,7 +3563,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "call-before-loss",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3596,7 +3596,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "call-after-loss",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: reverseObjectKeys(result),
         },
       }),
@@ -3611,7 +3611,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "changed-after-loss",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: changed,
         },
       }),
@@ -3669,7 +3669,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "tool-result",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),
@@ -3726,7 +3726,7 @@ describe("Codex app-server Codex driver", () => {
           threadId: "thread-1",
           turnId: "turn-1",
           callId: "terminal-call",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           arguments: result,
         },
       }),

@@ -440,7 +440,7 @@
       "supportedActions": "Query the organization's customer feedback and retrieve cited quotes. The current MCP tool catalog has no write actions.",
       "evidence": [
         "https://helpcenter.enterpret.com/en/articles/12665166-enterpret-mcp-server",
-        "https://github.com/paperclipai/paperclip/pull/13906"
+        "https://github.com/clayon/clayon/pull/13906"
       ],
       "reviewedAt": "2026-09-30",
       "liveProof": "token-connect-safe-read-refresh-reconnect-verified",
@@ -459,7 +459,7 @@
       "supportedActions": "Query the organization's customer feedback and retrieve cited quotes. OAuth targets the same official read-only MCP; the separate beta Enterpret Agent write MCP is out of scope.",
       "evidence": [
         "https://helpcenter.enterpret.com/en/articles/12665166-enterpret-mcp-server",
-        "https://github.com/paperclipai/paperclip/pull/13906"
+        "https://github.com/clayon/clayon/pull/13906"
       ],
       "reviewedAt": "2026-09-30",
       "liveProof": "tool-list-verified-scope-mismatch",

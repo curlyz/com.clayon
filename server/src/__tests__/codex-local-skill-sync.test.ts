@@ -12,7 +12,7 @@ async function makeTempDir(prefix: string): Promise<string> {
 }
 
 describe("codex local skill sync", () => {
-  const clayonKey = "paperclipai/paperclip/clayon";
+  const clayonKey = "clayon/clayon/clayon";
   const cleanupDirs = new Set<string>();
 
   afterEach(async () => {
@@ -46,11 +46,11 @@ describe("codex local skill sync", () => {
     const snapshot = await listCodexSkills({
       agentId: "agent-native",
       companyId: "company-1",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       config: {},
     });
 
-    expect(snapshot.adapterType).toBe("paperclip_runner");
+    expect(snapshot.adapterType).toBe("clayon_runner");
     expect(snapshot.desiredSkills).toEqual([]);
     expect(snapshot.entries.find((entry) => entry.key === clayonKey)?.state).toBe("available");
   });

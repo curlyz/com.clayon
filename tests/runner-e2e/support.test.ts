@@ -568,9 +568,9 @@ describe("runner E2E run observations", () => {
       taskId: "hello-complete",
       expectedMarker,
       finalRunMessage:
-        "I'll complete this deterministic hello task by calling paperclip_finish once.",
+        "I'll complete this deterministic hello task by calling clayon_finish once.",
       allAgentMessages:
-        "I'll complete this deterministic hello task by calling paperclip_finish once.",
+        "I'll complete this deterministic hello task by calling clayon_finish once.",
       semanticSummary: expectedMarker,
       issueStatus: "done",
       runStatuses: ["succeeded"],
@@ -663,12 +663,12 @@ describe("runner E2E run observations", () => {
       eventType: "run.result.accepted",
       payload: {
         prpEvent: {
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           eventType: "run.result.accepted",
           sourceKind: "control_plane",
           payload: {
             result: {
-              schema: "paperclip.run_result.v1",
+              schema: "clayon.run_result.v1",
               reportedWorkDisposition: "yielded",
               evidence: [{ ref: "interaction:pending" }],
               artifacts: [

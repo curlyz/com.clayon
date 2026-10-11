@@ -23,7 +23,7 @@ import {
   resolveExternalChatResponseWaitAuthorizationInTransaction,
 } from "./chat-attachment-reuse.js";
 
-const SCHEMA = "paperclip.chat_review_response_presentation.v1";
+const SCHEMA = "clayon.chat_review_response_presentation.v1";
 export class NativeChatReviewPresentationContentionError extends Error {
   constructor() {
     super(
@@ -146,7 +146,7 @@ async function reviewPresentationEvidence(
   const continuation = record(semantic.continuation);
   const assessed = record(assessment.assessmentJson);
   if (
-    semantic.schema !== "paperclip.run_result.v1" ||
+    semantic.schema !== "clayon.run_result.v1" ||
     semantic.reportedWorkDisposition !== "yielded" ||
     record(canonical.terminal).runTerminalState !== "succeeded" ||
     continuation.kind !== "response_wake" ||
@@ -451,9 +451,9 @@ export async function authorizeNativeChatReviewPresentation(
     if (
       error instanceof Error &&
       [
-        "paperclip_runner_chat_attachment_binding_denied",
-        "paperclip_runner_chat_attachment_destination_denied",
-        "paperclip_runner_chat_attachment_principal_denied",
+        "clayon_runner_chat_attachment_binding_denied",
+        "clayon_runner_chat_attachment_destination_denied",
+        "clayon_runner_chat_attachment_principal_denied",
       ].includes(error.message)
     )
       return false;

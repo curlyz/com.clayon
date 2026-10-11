@@ -101,18 +101,18 @@ export function withQueuedCommentIdsInRunContext(
   return context;
 }
 
-export type QueuedCommentQueueProtocol = "paperclip_runner_v1" | "legacy";
+export type QueuedCommentQueueProtocol = "clayon_runner_v1" | "legacy";
 
 export type QueuedCommentQueueSteeringDecision =
   | { protocol: QueuedCommentQueueProtocol; kind: "unsupported" }
   | { protocol: QueuedCommentQueueProtocol; kind: "temporarily_unavailable" }
   /** Only the caller can probe the live runner. `steeringRunId` names the run to probe. */
-  | { protocol: "paperclip_runner_v1"; kind: "probe"; steeringRunId: string };
+  | { protocol: "clayon_runner_v1"; kind: "probe"; steeringRunId: string };
 
 /**
  * Decides the queue protocol and the steering answer for one queued-comment
  * queue, from plain facts. This is the one place that resolves the
- * `paperclip_runner_v1`/`legacy` protocol and the steering answer; every
+ * `clayon_runner_v1`/`legacy` protocol and the steering answer; every
  * caller that builds a queue response must call this function instead of
  * repeating the rule.
  *
@@ -136,7 +136,7 @@ export function decideQueuedCommentQueueSteering(facts: {
   // Use the run's immutable dispatch choice, never the agent's mutable settings.
   const preparingNative = facts.state === "deferred" && facts.activeRun?.runtimeMode === "legacy" &&
     facts.activeRun.runtimeModeResolvedAt === null &&
-    record(facts.activeRun.runnerProfileJson?.adapterDispatch).adapterType === "paperclip_runner";
+    record(facts.activeRun.runnerProfileJson?.adapterDispatch).adapterType === "clayon_runner";
   const persistedRuntimeMode = preparingNative ? null :
     facts.state === "queued"
       ? facts.queueRunRuntimeMode
@@ -146,11 +146,11 @@ export function decideQueuedCommentQueueSteering(facts: {
 
   const protocol: QueuedCommentQueueProtocol =
     preparingNative || persistedRuntimeMode === "native"
-      || (persistedRuntimeMode === null && facts.assignedAgentAdapterType === "paperclip_runner")
-      ? "paperclip_runner_v1"
+      || (persistedRuntimeMode === null && facts.assignedAgentAdapterType === "clayon_runner")
+      ? "clayon_runner_v1"
       : "legacy";
 
-  if (protocol !== "paperclip_runner_v1") {
+  if (protocol !== "clayon_runner_v1") {
     return { protocol, kind: "unsupported" };
   }
 

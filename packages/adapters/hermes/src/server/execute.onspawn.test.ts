@@ -5,7 +5,7 @@
  * reaper can track live child processes by PID, preventing false-positive
  * reaps on runs whose updatedAt becomes stale.
  *
- * @see https://github.com/paperclipai/paperclip/issues/8723
+ * @see https://github.com/clayon/clayon/issues/8723
  */
 
 import { describe, expect, it, vi, beforeEach } from "vitest";

@@ -49,7 +49,7 @@ If the vanity installer endpoint is unavailable, fetch the same
 release-controlled source from GitHub raw content:
 
 ```sh
-raw_base=https://raw.githubusercontent.com/paperclipai/paperclip
+raw_base=https://raw.githubusercontent.com/clayon/clayon
 curl -fsSL "$raw_base/master/scripts/install.sh" | bash
 ```
 
@@ -261,7 +261,7 @@ clayon onboard
 Source checkout for development:
 
 ```sh
-git clone https://github.com/paperclipai/paperclip.git
+git clone https://github.com/clayon/clayon.git
 cd clayon
 pnpm install
 pnpm dev

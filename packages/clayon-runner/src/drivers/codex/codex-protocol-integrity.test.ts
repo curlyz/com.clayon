@@ -131,7 +131,7 @@ async function authenticatedRunner(
   };
   const aad = (direction: string, counter: number) =>
     Buffer.from(
-      `paperclip.runner.secure-frame.v1\0${sessionId}\0${direction}\0${counter}`,
+      `clayon.runner.secure-frame.v1\0${sessionId}\0${direction}\0${counter}`,
     );
   const welcome = (await reader.next()).value!;
   expect(welcome.counter).toBe(0);
@@ -167,7 +167,7 @@ async function authenticatedRunner(
       ]);
       socket.send(
         JSON.stringify({
-          schema: "paperclip.runner.secure-frame.v1",
+          schema: "clayon.runner.secure-frame.v1",
           counter: counter++,
           ciphertext: ciphertext.toString("hex"),
         }),
@@ -250,7 +250,7 @@ describe("Codex protocol integrity propagation", () => {
             threadId: "thread-1",
             turnId: binding === "matching" ? "turn-1" : "foreign-turn",
             callId: "early-finish",
-            tool: "paperclip_finish",
+            tool: "clayon_finish",
             arguments: result,
           },
         });
@@ -374,7 +374,7 @@ describe("Codex protocol integrity propagation", () => {
               threadId: "thread-1",
               turnId: "turn-1",
               callId: "early-rejected-finish",
-              tool: "paperclip_finish",
+              tool: "clayon_finish",
               arguments: result,
             },
           })
@@ -451,7 +451,7 @@ describe("Codex protocol integrity propagation", () => {
         ],
       };
       const input: NativeExecutionInputV1 = {
-        schema: "paperclip.native-execution-input.v1",
+        schema: "clayon.native-execution-input.v1",
         binding: {
           companyId: `composed-company-${scenario}`,
           issueId: `composed-issue-${scenario}`,
@@ -481,7 +481,7 @@ describe("Codex protocol integrity propagation", () => {
         completionContract: {
           id: "composed-contract",
           sha256: "composed-contract-sha",
-          schemaVersion: "paperclip.completion-contract.v1",
+          schemaVersion: "clayon.completion-contract.v1",
           contract,
         },
         interactionResponses: [],
@@ -539,7 +539,7 @@ describe("Codex protocol integrity propagation", () => {
         runnerReconnectGraceMs: 900_000,
         closeGraceMs: scenario === "early-semantic" ? 1_000 : 50,
         readRunnerState: async () => ({
-          schema: "paperclip.runner.durable.state.v1",
+          schema: "clayon.runner.durable.state.v1",
           ...identity,
           lifecycle: authority?.store.state.commands.some(
             (command) =>
@@ -621,7 +621,7 @@ describe("Codex protocol integrity propagation", () => {
           kind: "event",
           ...identity,
           payload: {
-            schema: "paperclip.prp.event.v1",
+            schema: "clayon.prp.event.v1",
             schemaVersion: 1,
             sourceEventId: `composed-event-${sourceSeq}`,
             sourceSeq,
@@ -688,11 +688,11 @@ describe("Codex protocol integrity propagation", () => {
           client.send(
             event(3, "semantic_tool.input", {
               semantic_tool: {
-                schema: "paperclip.prp.semantic_tool.v1",
+                schema: "clayon.prp.semantic_tool.v1",
                 schemaVersion: 1,
                 phase: "input",
                 callId: "early-composed-finish",
-                operationId: "paperclip_finish",
+                operationId: "clayon_finish",
                 correlation: {
                   runId: identity.runId,
                   normalizedSessionId: identity.normalizedSessionId,
@@ -731,11 +731,11 @@ describe("Codex protocol integrity propagation", () => {
             client.send(
               event(4, "semantic_tool.input", {
                 semantic_tool: {
-                  schema: "paperclip.prp.semantic_tool.v1",
+                  schema: "clayon.prp.semantic_tool.v1",
                   schemaVersion: 1,
                   phase: "input",
                   callId: "corrupt-while-admission-pending",
-                  operationId: "paperclip_finish",
+                  operationId: "clayon_finish",
                   correlation: {
                     runId: identity.runId,
                     normalizedSessionId: identity.normalizedSessionId,
@@ -915,7 +915,7 @@ describe("Codex protocol integrity propagation", () => {
         client.send(
           event(3, "semantic_tool.input", {
             semantic_tool: {
-              schema: "paperclip.prp.semantic_tool.v1",
+              schema: "clayon.prp.semantic_tool.v1",
               schemaVersion: 1,
               phase: "input",
               callId: "composed-call",

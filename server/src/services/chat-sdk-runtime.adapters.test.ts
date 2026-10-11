@@ -131,7 +131,7 @@ describe("Chat SDK published adapter integration", () => {
       },
       {
         provider: "telegram" as const,
-        userName: "paperclip_agent_bot",
+        userName: "clayon_agent_bot",
         credentials: { botToken: "123:test", secretToken: "secret" },
       },
     ];
@@ -218,7 +218,7 @@ describe("Chat SDK published adapter integration", () => {
       persistence,
       providerConfig: {
         provider: "telegram",
-        userName: "paperclip_agent_bot",
+        userName: "clayon_agent_bot",
         credentials: {
           botToken: "123:test",
           secretToken: "telegram-webhook-secret",
@@ -2030,7 +2030,7 @@ describe("Chat SDK published adapter integration", () => {
       persistence,
       providerConfig: {
         provider: "telegram",
-        userName: "paperclip_agent_bot",
+        userName: "clayon_agent_bot",
         credentials: {
           botToken: "123:test",
           secretToken: "telegram-webhook-secret",
@@ -2043,7 +2043,7 @@ describe("Chat SDK published adapter integration", () => {
         date: 1_788_700_000,
         chat: { id: -1004415501660, type: "supergroup", title: "Agent Lab" },
         from: { id: 417200359, is_bot: false, first_name: "Dotta" },
-        caption: "/task@paperclip_agent_bot inspect this file",
+        caption: "/task@clayon_agent_bot inspect this file",
         caption_entities: [{ offset: 0, length: 30, type: "bot_command" }],
         document: {
           file_id: "telegram-file-id",
@@ -2124,7 +2124,7 @@ describe("Chat SDK published adapter integration", () => {
         persistence,
         providerConfig: {
           provider: "telegram",
-          userName: "paperclip_agent_bot",
+          userName: "clayon_agent_bot",
           maxDownloadBytes: 5,
           credentials: {
             botToken: "123:test",
@@ -2186,7 +2186,7 @@ describe("Chat SDK published adapter integration", () => {
       persistence,
       providerConfig: {
         provider: "telegram",
-        userName: "paperclip_agent_bot",
+        userName: "clayon_agent_bot",
         maxDownloadBytes: 10,
         credentials: {
           botToken: "123:test",
@@ -2323,7 +2323,7 @@ describe("Chat SDK published adapter integration", () => {
         persistence,
         providerConfig: {
           provider: "telegram",
-          userName: "paperclip_agent_bot",
+          userName: "clayon_agent_bot",
           credentials: {
             botToken: "123:test",
             secretToken: "telegram-webhook-secret",
@@ -2590,7 +2590,7 @@ describe("Chat SDK published adapter integration", () => {
         persistence,
         providerConfig: {
           provider: "telegram",
-          userName: "paperclip_agent_bot",
+          userName: "clayon_agent_bot",
           credentials: {
             botToken: "123:test",
             secretToken: "telegram-webhook-secret",
@@ -2799,7 +2799,7 @@ describe("Chat SDK published adapter integration", () => {
       provider: "telegram",
       providerConfig: {
         provider: "telegram" as const,
-        userName: "paperclip_agent_bot",
+        userName: "clayon_agent_bot",
         credentials: {
           botToken: "123:test",
           secretToken: "telegram-webhook-secret",
@@ -2844,7 +2844,7 @@ describe("Chat SDK published adapter integration", () => {
               id: 123,
               is_bot: true,
               first_name: "Clayon Agent",
-              username: "paperclip_agent_bot",
+              username: "clayon_agent_bot",
             },
           });
         }
@@ -3093,7 +3093,7 @@ describe("Chat SDK published adapter integration", () => {
       {
         providerConfig: {
           provider: "telegram",
-          userName: "paperclip_agent_bot",
+          userName: "clayon_agent_bot",
           credentials: {
             botToken: "123:telegram-never-persist",
             secretToken: "telegram-webhook-never-persist",

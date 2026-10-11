@@ -36,20 +36,20 @@ function createWorkProductRow(overrides: Partial<Record<string, unknown>> = {}) 
 describe("workProductService", () => {
   it("extracts runner totals and enriches work-product metadata", () => {
     const summary = workProductDiffSummaryFromEventPayload({
-      schema: "paperclip.workspace.diff.v1",
+      schema: "clayon.workspace.diff.v1",
       totals: { files: 3, additions: 17, deletions: 5 },
     });
 
     expect(summary).toEqual({ changedFiles: 3, additions: 17, deletions: 5 });
-    expect(enrichWorkProductMetadataWithDiff({ repo: "paperclipai/paperclip" }, summary)).toEqual({
-      repo: "paperclipai/paperclip",
+    expect(enrichWorkProductMetadataWithDiff({ repo: "clayon/clayon" }, summary)).toEqual({
+      repo: "clayon/clayon",
       changedFiles: 3,
       additions: 17,
       deletions: 5,
     });
 
     const prpEvent = {
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       payload: { totals: { files: 2, additions: 9, deletions: 4 } },
     };
     expect(workProductDiffSummaryFromEventPayload({ prpEvent })).toEqual({
@@ -67,9 +67,9 @@ describe("workProductService", () => {
   it("refreshes pull-request state without mutating the stored work product", async () => {
     const product = createWorkProductRow({
       companyId: "company-1",
-      url: "https://github.com/paperclipai/paperclip/pull/42",
+      url: "https://github.com/clayon/clayon/pull/42",
       metadata: {
-        repo: "paperclipai/paperclip",
+        repo: "clayon/clayon",
         number: 42,
         additions: 17,
         deletions: 5,
@@ -137,7 +137,7 @@ describe("workProductService", () => {
 
     await expect(svc.resolveCommitDiffSummary("company-1", {
       provider: "github",
-      url: "https://github.com/paperclipai/paperclip/commit/9c12ae7b41e5",
+      url: "https://github.com/clayon/clayon/commit/9c12ae7b41e5",
       metadata: null,
     })).resolves.toEqual({ additions: 13, deletions: 2, changedFiles: 3 });
     expect(resolveCommitDetails).toHaveBeenCalledWith("company-1", {

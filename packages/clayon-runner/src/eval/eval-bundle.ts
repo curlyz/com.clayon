@@ -16,9 +16,9 @@ import { createHash } from "node:crypto";
  * run {@link assertBundleSecretFree} before use and persist only the digested
  * record returned by {@link bundleEvidenceDeclaration}.
  */
-export const EVAL_BUNDLE_SCHEMA = "paperclip.runner.eval-bundle.v1" as const;
+export const EVAL_BUNDLE_SCHEMA = "clayon.runner.eval-bundle.v1" as const;
 export const EVAL_BUNDLE_EVIDENCE_SCHEMA =
-  "paperclip.runner.eval-bundle-evidence.v1" as const;
+  "clayon.runner.eval-bundle-evidence.v1" as const;
 
 export interface EvalBundleProvider {
   /** Session runtime that owns the provider process, e.g. `runnerd`. */

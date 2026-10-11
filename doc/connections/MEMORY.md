@@ -132,7 +132,7 @@ All five providers now have authenticated managed-tool E2E evidence. Supermemory
 now also has verified scoped writes and semantic recall, as recorded below. Discovery does
 not establish that every individual tool or advanced provider feature was tested.
 No real memories were uploaded for testing. The synthetic Cognee dataset is
-`paperclip_memory_connector_smoke_20260924`; the Mem0 test user and Supermemory
+`clayon_memory_connector_smoke_20260924`; the Mem0 test user and Supermemory
 consent tag are `clayon-memory-smoke-20260924`.
 
 ### Real agent tasks
@@ -155,7 +155,7 @@ tools and retrieved the approved Mem0 memory.
   silver compass fact under user `clayon-memory-task-e2e-20260924`.
 - **MEM-2 / Cognee:** the task called `remember` and `recall` through the managed
   stdio gateway. The provider returned the amber telescope fact from dedicated
-  dataset `paperclip_memory_task_e2e_20260924` on the first recall.
+  dataset `clayon_memory_task_e2e_20260924` on the first recall.
 - **MEM-3 / Supermemory:** read-only search succeeded within the consented tag
   with an honest zero-result response; one out-of-scope search returned the
   provider's explicit 403 denial. This does not test memory writes under
@@ -193,7 +193,7 @@ tool permissions.
 ### Daytona sandbox verification (September 24, 2026)
 
 Browser-created **MEM-6** runs the same three connected providers through a
-native `paperclip_runner` Codex agent in a real Daytona Linux x86_64 sandbox.
+native `clayon_runner` Codex agent in a real Daytona Linux x86_64 sandbox.
 The acceptance task uses only synthetic data and managed tools: a Mem0 copper
 lantern fact, a dedicated Cognee dataset, and Supermemory searches inside and
 outside the existing read-only consent. This first run predates Zep and Honcho
@@ -201,7 +201,7 @@ account setup; their subsequent local proof appears above. This is a manual
 Product E2E attempt, not a full eval campaign.
 
 The immutable sandbox image is
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:b782947dc9738038570308686858dfb37fd731aba2f82944b6bb665a419e2f24`.
+`ghcr.io/clayon/clayon-daytona-runner@sha256:b782947dc9738038570308686858dfb37fd731aba2f82944b6bb665a419e2f24`.
 The remote runner binary was extracted from that image (SHA-256
 `5067194e4a4eff0946e312b162e78a46184dae49c29f5699be81fec6cfd0b9d7`).
 The first attempt failed before provider startup because a macOS host needs
@@ -234,7 +234,7 @@ Task-scoped gateway audit records independently confirm six calls:
   `search_memories` returned the same ID (`ba30eea2-f68b-4873-acbe-a59dae98ed75`)
   under user `clayon-memory-daytona-e2e-20260924`.
 - Cognee `remember` accepted the dedicated
-  `paperclip_memory_daytona_e2e_20260924` dataset, and `recall` returned the fact
+  `clayon_memory_daytona_e2e_20260924` dataset, and `recall` returned the fact
   on the first attempt. Its stdio provider process remains on the control plane;
   the Daytona agent calls it through PRP.
 - Supermemory `search_memory` succeeded within the existing consented tag with
@@ -340,13 +340,13 @@ sandbox `6a9723dd-972e-4933-b227-6b8e7e2133ae` was deleted and verified absent.
 The final implementation was retested after replacing the external MCP client
 with the bundled Cloud bridge. Local managed write run
 `16e7820c-2a94-41d9-8d7b-abe6524edf01` stored the bronze-telescope fact in
-`paperclip_memory_bundled_bridge_20260924`; the immediate recall did not yet
+`clayon_memory_bundled_bridge_20260924`; the immediate recall did not yet
 prove indexing completion. Follow-up run `8e12cad1-f2f4-4471-a790-d589ffa050b7`
 returned “He keeps a bronze telescope in a birch observatory.”
 
 Final Daytona run `a56f9f97-3fb3-498c-abf6-974ddc7d5d30` independently recalled
 that fact, then stored “The Daytona Cognee test cartographer keeps a silver
-globe in a cedar study.” in `paperclip_memory_daytona_bridge_20260924`.
+globe in a cedar study.” in `clayon_memory_daytona_bridge_20260924`.
 The provider returned dataset `9518ab46-e777-5f38-994b-9ceabfff4856`, then graph
 recall returned the silver globe and cedar study. Every call used the native
 runner relay and reported `transport: cognee_cloud`, `spawnedLocalProcess: false`.

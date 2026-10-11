@@ -223,7 +223,7 @@ pnpm test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.event-follow-
 
 ## Experimental-settings regression (2026-10-02)
 
-The follow-up [#14933](https://github.com/paperclipai/paperclip/pull/14933)
+The follow-up [#14933](https://github.com/clayon/clayon/pull/14933)
 replaces the tenant environment enable flag with Settings → Experimental →
 Assistant connections (MCP), default off. Paid setup enables it through the
 real authenticated administrator API before browser consent. It uses the

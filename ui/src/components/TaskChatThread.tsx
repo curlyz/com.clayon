@@ -271,7 +271,7 @@ function isNativeClayonRunnerRun(
     | undefined,
 ): boolean {
   return (
-    run?.runtimeMode === "native" && run.adapterType === "paperclip_runner"
+    run?.runtimeMode === "native" && run.adapterType === "clayon_runner"
   );
 }
 const LEGACY_WITHHELD_RUN_COMMENT =
@@ -296,7 +296,7 @@ function acceptedSemanticResult(
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate))
       continue;
     const result = candidate as Record<string, unknown>;
-    if (result.schema !== "paperclip.run_result.v1") continue;
+    if (result.schema !== "clayon.run_result.v1") continue;
     return result;
   }
   return null;
@@ -325,7 +325,7 @@ function presentationDecisionCommentId(
   if (!decision || typeof decision !== "object" || Array.isArray(decision))
     return undefined;
   const record = decision as Record<string, unknown>;
-  if (record.schema !== "paperclip.run_presentation_decision.v1")
+  if (record.schema !== "clayon.run_presentation_decision.v1")
     return undefined;
   return typeof record.commentId === "string" && record.commentId.trim()
     ? record.commentId
@@ -410,7 +410,7 @@ function resolvedWithoutUserFacingResponse(value: unknown): boolean {
     typeof decision === "object" &&
     !Array.isArray(decision) &&
     (decision as Record<string, unknown>).schema ===
-      "paperclip.run_presentation_decision.v1" &&
+      "clayon.run_presentation_decision.v1" &&
     (decision as Record<string, unknown>).chosenSource === "none",
   );
 }
@@ -645,7 +645,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       state: null,
       targetRunId: null,
       revision: "empty",
-      protocol: "paperclip_runner_v1",
+      protocol: "clayon_runner_v1",
       steeringDisposition: "temporarily_unavailable",
       entries: [],
     }),
@@ -2593,7 +2593,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
   const runtimeComposerDisabledReason = composerDisabledReason ?? undefined;
   const assigneeUsesClayonRunner = Boolean(
     issueAssigneeAgentId &&
-    agentMap?.get(issueAssigneeAgentId)?.adapterType === "paperclip_runner",
+    agentMap?.get(issueAssigneeAgentId)?.adapterType === "clayon_runner",
   );
   const [runnerSubmissionPending, setRunnerSubmissionPending] = useState(false);
   useEffect(() => {

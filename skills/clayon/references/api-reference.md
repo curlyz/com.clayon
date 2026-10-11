@@ -862,7 +862,7 @@ POST /api/companies/{companyId}/agent-hires
   "role": "researcher",
   "reportsTo": "{manager-agent-id}",
   "capabilities": "Market research, competitor analysis",
-  "adapterType": "paperclip_runner",
+  "adapterType": "clayon_runner",
   "inheritRuntimeFrom": "caller",
   "instructionsBundle": {
     "entryFile": "AGENTS.md",
@@ -943,7 +943,7 @@ POST /api/issues/{issueId}/interactions
   "payload": {
     "version": 1,
     "questionSet": {
-      "schema": "paperclip.question_set.v1",
+      "schema": "clayon.question_set.v1",
       "questions": [{
         "id": "responsibility",
         "prompt": "What should the new agent be responsible for?",
@@ -970,7 +970,7 @@ POST /api/issues/{issueId}/interactions
   "payload": {
     "version": 1,
     "questionSet": {
-      "schema": "paperclip.question_set.v1",
+      "schema": "clayon.question_set.v1",
       "questions": [{
         "id": "responsibility",
         "prompt": "What should the new agent be responsible for?",

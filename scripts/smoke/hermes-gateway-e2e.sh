@@ -410,7 +410,7 @@ capture_diagnostics() {
   capture_run_diagnostics "$RUN_ID" "clayon-smoke"
 }
 
-cleanup_paperclip_state() {
+cleanup_clayon_state() {
   [[ "$KEEP_ON_EXIT" != "1" ]] || return 0
 
   if [[ -n "$SMOKE_ISSUE_ID" ]]; then
@@ -457,7 +457,7 @@ on_exit() {
     capture_diagnostics || true
   fi
 
-  cleanup_paperclip_state || true
+  cleanup_clayon_state || true
   cleanup_local_state || true
 
   if [[ "$KEEP_ON_EXIT" == "1" ]]; then
@@ -909,7 +909,7 @@ issue_comments_contain() {
   jq -r --arg marker "$marker" '[.[] | (.body // "") | contains($marker)] | any' <<<"$RESPONSE_BODY"
 }
 
-assert_paperclip_wake_success() {
+assert_clayon_wake_success() {
   local marker
   marker="$(cat "${HERMES_SMOKE_DIAG_DIR}/clayon-marker.txt")"
 
@@ -988,7 +988,7 @@ main() {
   install_claimed_key_in_container
   patch_agent_instructions_with_claimed_key
   create_smoke_issue
-  assert_paperclip_wake_success
+  assert_clayon_wake_success
   capture_diagnostics
   scan_diagnostics_for_secret_leaks
 

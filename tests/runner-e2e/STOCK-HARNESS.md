@@ -147,9 +147,9 @@ coverage.
 ## GitHub qualification and matched comparison
 
 The instruction reductions and coverage are under review in
-[PR #14948](https://github.com/paperclipai/paperclip/pull/14948).
+[PR #14948](https://github.com/clayon/clayon/pull/14948).
 The first diagnostic native Codex skill cell
-[passed on GitHub](https://github.com/paperclipai/paperclip/actions/runs/37034213743)
+[passed on GitHub](https://github.com/clayon/clayon/actions/runs/37034213743)
 at `a63437069de58d22ee5adbcb6a6202c007dcf037`. All seven independent skill/task
 checks passed; the provider run lasted 34.745 seconds and the cell 56.660 seconds.
 Its tiny public hire bundle and budget receipts passed, and cleanup passed.
@@ -157,7 +157,7 @@ This diagnostic predates enforced prerequisite admission and the expanded source
 digest, so it is retained separately from the final qualification matrix.
 
 The first full candidate attempt at `36e987246b649927e96ce1184cd616c4e490106e`
-[was cancelled during prerequisites](https://github.com/paperclipai/paperclip/actions/runs/37037105491).
+[was cancelled during prerequisites](https://github.com/clayon/clayon/actions/runs/37037105491).
 Cold protected installs disable lifecycle scripts, leaving the plugin SDK unbuilt;
 SH-2/SH-3 could not import it. Provider admission was not reached. This setup
 failure is retained separately from behavioral results. The prerequisite now runs
@@ -165,7 +165,7 @@ the ordinary server dependency builder first, retains its output and exit status
 and refuses admission when setup fails. A cold legacy pilot must pass before the
 full matrix retry.
 
-The [fixed legacy pilot](https://github.com/paperclipai/paperclip/actions/runs/37039240025)
+The [fixed legacy pilot](https://github.com/clayon/clayon/actions/runs/37039240025)
 at `4163dbfd0fd4d145bfa52b4d7f80eb59a362ee36` passed SDK setup, hire/shared
 prompt/oracle checks and the Rust additive test. It stopped before providers:
 the real daemon-frame test lacked the cold `clayon-runnerd` binary. Setup now
@@ -174,7 +174,7 @@ builds that daemon from the locked Rust source before TypeScript gates, retains
 The required daemon-frame test selects that built debug binary explicitly,
 without replacing staged product binaries. The receipt records its SHA-256;
 verification rejects a changed binary before provider admission.
-The [next cold pilot](https://github.com/paperclipai/paperclip/actions/runs/37040493183)
+The [next cold pilot](https://github.com/clayon/clayon/actions/runs/37040493183)
 at `ac6ddefb589c18fa9c30946db40e58499e9fb0e0` then found the required fake Codex
 protocol fixture absent. It also stopped before paid providers. Setup uses the
 package's ordinary locked workspace `--bins` build, covering both the daemon

@@ -52,7 +52,7 @@ export function claudeClayonPermissionRules(
     return isRead || (action && (
       mode === "approve-clayon" && AUTOMATIC_CLAYON_WORKFLOW_ACTIONS.has(name)
     ))
-      ? [`mcp__paperclip__${name}`]
+      ? [`mcp__clayon__${name}`]
       : [];
   });
   return [...new Set(names)].sort();

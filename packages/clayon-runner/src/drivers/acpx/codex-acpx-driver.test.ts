@@ -79,17 +79,17 @@ describe("Codex ACPX harness driver", () => {
     oldCallback?.(bound.receipt);
     fixture.finishTurn({ status: "completed" });
     const firstEvents = await collectUntil(session.events(), "turn.completed");
-    const receipts = firstEvents.filter(e => e.eventType === "provider.notice.recorded" && e.payload.category === "paperclip_semantic_tool_receipt_v2");
+    const receipts = firstEvents.filter(e => e.eventType === "provider.notice.recorded" && e.payload.category === "clayon_semantic_tool_receipt_v2");
     expect(receipts).toHaveLength(agent === "copilot" ? 1 : 0);
     if (agent === "copilot") expect(receipts[0]).toMatchObject({ runId: "run-receipt", turnId: first.turnId, payload: { provenance: { sessionId: "backend-1", turnId: first.turnId } } });
     const transcript = JSON.parse(JSON.stringify(await session.transcript!()));
     for (const event of transcript.events) validatePrpEvent(event);
-    expect(transcript.events.filter((e: PrpEvent) => e.payload.category === "paperclip_semantic_tool_receipt_v2")).toEqual(receipts);
+    expect(transcript.events.filter((e: PrpEvent) => e.payload.category === "clayon_semantic_tool_receipt_v2")).toEqual(receipts);
     await session.startTurn({ message: { role: "user", text: "Second" } });
     oldCallback?.(bound.receipt);
     fixture.finishTurn({ status: "completed" });
     const secondEvents = await collectUntil(session.events(), "turn.completed");
-    expect(secondEvents.filter(e => e.payload.category === "paperclip_semantic_tool_receipt_v2")).toEqual([]);
+    expect(secondEvents.filter(e => e.payload.category === "clayon_semantic_tool_receipt_v2")).toEqual([]);
     await session.close({ reason: "receipt turn scope verified" });
   });
 
@@ -99,7 +99,7 @@ describe("Codex ACPX harness driver", () => {
     const before = { promptMessageIds: [], requestTokenUsage: {} };
     const after = { lastRequestId: "provider-turn-1", promptMessageIds: ["prompt-1"], requestTokenUsage: {}, cursorPromptUsage: {
       request_id: "provider-turn-1", prompt_message_id: "prompt-1", receipt: {
-        schema: "paperclip.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
+        schema: "clayon.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
         reasons: ["native_counter_semantics_unverified"], observations: [{ invocationId: "invocation-1", role: "parent", nativeRun: 1, sequence: 1, counters: { inputTokens: 7 } }],
         limits: { maxObservations: 64, maxInvocations: 64, maxBytes: 16384 }, truncated: false,
       },
@@ -1901,11 +1901,11 @@ describe("Codex ACPX harness driver", () => {
       turnId,
       payload: {
         request: {
-          schema: "paperclip.runtime_request.v2",
+          schema: "clayon.runtime_request.v2",
           requestKind: "runtime",
           type: "input",
           status: "pending",
-          input: { schema: "paperclip.question_set.v1" },
+          input: { schema: "clayon.question_set.v1" },
           origin: { adapter: "acpx-runtime", provider: "codex" },
         },
       },
@@ -1921,7 +1921,7 @@ describe("Codex ACPX harness driver", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: {
             [question.id]: {
               selectedOptionIds: [question.options![1]!.id],
@@ -3091,7 +3091,7 @@ function recoveryWorkspaceLease(
 function fakeHost(createTurn: () => AcpxRuntimeTurn, onClose: () => void) {
   return {
     identity: () => ({
-      schema: "paperclip.runner.acpx-identity.v2" as const,
+      schema: "clayon.runner.acpx-identity.v2" as const,
       normalizedSessionId: "session-1",
       acpxRecordId: "record-1",
       backendSessionId: "backend-1",
@@ -3146,7 +3146,7 @@ async function collectUntil(
 
 function completedResult() {
   return {
-    schema: "paperclip.run_result.v1" as const,
+    schema: "clayon.run_result.v1" as const,
     reportedWorkDisposition: "done" as const,
     summary: "The task is complete.",
     completionClaim: {

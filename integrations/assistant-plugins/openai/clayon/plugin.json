@@ -8,7 +8,7 @@
     "url": "https://clayon.ing"
   },
   "homepage": "https://clayon.ing",
-  "repository": "https://github.com/paperclipai/paperclip",
+  "repository": "https://github.com/clayon/clayon",
   "license": "MIT",
   "extensions": {
     "com.openai": {

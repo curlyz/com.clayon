@@ -156,7 +156,7 @@ function render(ui: ReactElement) {
 describe.each(["legacy", "native"] as const)("historical %s system status", (runtimeMode) => {
   const run = (id: string, status: string, minute: number) => ({
     runId: id, status, runtimeMode, agentId: "agent", agentName: "Assistant",
-    adapterType: runtimeMode === "native" ? "paperclip_runner" : "claude_local",
+    adapterType: runtimeMode === "native" ? "clayon_runner" : "claude_local",
     createdAt: `2025-01-01T10:0${minute}:00Z`, startedAt: `2025-01-01T10:0${minute}:01Z`,
     finishedAt: `2025-01-01T10:0${minute}:30Z`,
   });
@@ -386,7 +386,7 @@ describe.each(["legacy", "native"] as const)("%s task history readiness", (runti
     runtimeMode,
     status: "scheduled_retry",
     agentId: "agent-1",
-    adapterType: runtimeMode === "native" ? "paperclip_runner" : "codex_local",
+    adapterType: runtimeMode === "native" ? "clayon_runner" : "codex_local",
     createdAt: "2026-08-25T18:00:00.000Z",
     startedAt: null,
   };
@@ -824,7 +824,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     const props = {
       issueId: "native-live", comments: [], onAdd: async () => {},
       linkedRuns: [{ runId: "native-run", runtimeMode: "native" as const,
-        status, agentId: "agent-1", adapterType: "paperclip_runner",
+        status, agentId: "agent-1", adapterType: "clayon_runner",
         createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z" }],
     };
     render(<TaskChatThread {...props} />);
@@ -838,7 +838,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     const props = {
       issueId: "native-history", comments: [], onAdd: async () => {},
       linkedRuns: [{ runId: "native-run", runtimeMode: "native" as const,
-        status: "succeeded", agentId: "agent-1", adapterType: "paperclip_runner",
+        status: "succeeded", agentId: "agent-1", adapterType: "clayon_runner",
         createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z" }],
     };
     nativeTranscriptState.hydratedRunIds = new Set();
@@ -873,7 +873,7 @@ describe("TaskChatThread runtime transcript selection", () => {
             runtimeMode: "native",
             status: "succeeded",
             agentId: "agent-1",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
           },
@@ -930,7 +930,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       createdAt: "2026-08-25T18:00:00.000Z",
       agentId: "agent-1",
       agentName: "Runner",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
     };
 
     render(
@@ -1026,7 +1026,7 @@ describe("TaskChatThread runtime transcript selection", () => {
   it.each(["legacy", "native"] as const)("keeps a %s credential denial expanded and replaces it after a successful attempt", (runtimeMode) => {
     const denied = {
       runId: "credential-run", runtimeMode, status: "failed", errorCode: "configuration_incomplete",
-      agentId: "agent-1", agentName: "Codie", adapterType: runtimeMode === "native" ? "paperclip_runner" : "codex_local",
+      agentId: "agent-1", agentName: "Codie", adapterType: runtimeMode === "native" ? "clayon_runner" : "codex_local",
       responsibleUserId: "nicky", createdAt: "2026-08-25T18:00:00Z", startedAt: null, finishedAt: "2026-08-25T18:00:02Z",
       resultJson: { configurationIncomplete: { selectionFailure: "ai_connection_credential_not_shared", credentialAccess: { connectionName: "Dotta’s API Key" } } },
     };
@@ -1107,7 +1107,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           runtimeMode: "native",
         }}
       />,
@@ -1131,7 +1131,7 @@ describe("TaskChatThread runtime transcript selection", () => {
 
   it.each([
     { name: "write_document", anchored: true },
-    { name: "mcp__paperclip__write_document", anchored: false },
+    { name: "mcp__clayon__write_document", anchored: false },
   ])("anchors a settled ACP Plan only at the normalized display name $name", ({ name, anchored }) => {
     const runId = "acpx-plan";
     planState.data = planDocument({ updatedAt: new Date("2026-08-25T18:00:02.000Z") });
@@ -1149,7 +1149,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       createdAt: new Date(`2026-08-25T18:00:0${index + 1}.000Z`),
       payload: {
         prpEvent: {
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           schemaVersion: 1,
           runId,
           eventType: `tool.execution.${phase}`,
@@ -1160,7 +1160,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           normalizedSessionId: "session-1",
           emittedAt: `2026-08-25T18:00:0${index + 1}.000Z`,
           payload: {
-            schema: "paperclip.tool.execution.v1",
+            schema: "clayon.tool.execution.v1",
             executionId: "write-plan",
             transport: anchored ? "mcp" : "builtin",
             namespace: anchored ? "clayon" : null,
@@ -1185,7 +1185,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       status: "succeeded",
       agentId: "agent-1",
       agentName: "Runner",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       createdAt: "2026-08-25T18:00:00.000Z",
       startedAt: "2026-08-25T18:00:00.000Z",
       finishedAt: "2026-08-25T18:00:03.000Z",
@@ -1226,7 +1226,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           runtimeMode: "native",
         }}
       />,
@@ -1272,7 +1272,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           runtimeMode: "native",
         }}
       />,
@@ -1311,7 +1311,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
         }}
       />,
     );
@@ -1359,7 +1359,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
         }}
       />,
     );
@@ -1392,7 +1392,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       createdAt: "2026-08-25T18:00:00.000Z",
       agentId: "agent-1",
       agentName: "Runner",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
     };
 
     render(
@@ -1446,7 +1446,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       createdAt: "2026-08-25T18:00:00.000Z",
       agentId: "agent-1",
       agentName: "Runner",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
     };
     const renderRun = () =>
       render(
@@ -1505,7 +1505,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       createdAt: "2026-08-25T18:00:00.000Z",
       agentId: "agent-1",
       agentName: "Runner",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
     };
     const usageEntry = (inputTokens: number) => ({
       kind: "result" as const,
@@ -1515,7 +1515,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       outputTokens: 5,
       cachedTokens: 0,
       costUsd: 0,
-      subtype: "paperclip_runner_usage",
+      subtype: "clayon_runner_usage",
       isError: false,
       errors: [],
     });
@@ -1575,7 +1575,7 @@ describe("TaskChatThread runtime transcript selection", () => {
             errorCode: "provider_transport_failed",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:02.000Z",
@@ -1604,7 +1604,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       onRetryFailedRun={onRetryFailedRun} linkedRuns={[
         {
           runId: "old-native", runtimeMode: "native", status: "failed", errorCode: "adapter_failed",
-          agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+          agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
           createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z",
           finishedAt: "2026-08-25T18:00:02.000Z",
           execution: {
@@ -1616,7 +1616,7 @@ describe("TaskChatThread runtime transcript selection", () => {
         },
         {
           runId: "failed-bootstrap", runtimeMode: "legacy", status: "failed", errorCode: "setup_failed",
-          agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+          agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
           createdAt: "2026-08-25T18:01:00.000Z", startedAt: "2026-08-25T18:01:00.000Z",
           finishedAt: "2026-08-25T18:01:02.000Z",
         },
@@ -1636,7 +1636,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="in_progress"
       onRetryFailedRun={vi.fn()} linkedRuns={[{
         runId: "quarantined", runtimeMode: "native", status: "failed", errorCode: "native_session_cleanup_quarantined",
-        agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+        agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
         createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z", finishedAt: "2026-08-25T18:00:02.000Z",
         ...(continued ? { execution: { phase: "completed" as const, label: "Continued in another run", cause: "native_session_cleanup_quarantined",
           lastConfirmedActivityAt: null, retryAt: null, attempt: 2, maxAttempts: 3, recoveryOwner: null, nextAction: null,
@@ -1662,7 +1662,7 @@ describe("TaskChatThread runtime transcript selection", () => {
             errorCode: "native_provider_usage_limit",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:02.000Z",
@@ -1713,7 +1713,7 @@ describe("TaskChatThread runtime transcript selection", () => {
   it.each(["legacy", "native"] as const)("groups repeated %s pre-start holds without hiding executed work", (runtimeMode) => {
     const heldRun = (id: string, recoveryActionId: string, startedAt: string | null = null) => ({
       runId: id, runtimeMode, status: "cancelled", errorCode: "execution_reconciliation_required",
-      agentId: "agent-1", adapterType: runtimeMode === "native" ? "paperclip_runner" : "claude_local",
+      agentId: "agent-1", adapterType: runtimeMode === "native" ? "clayon_runner" : "claude_local",
       createdAt: "2026-09-10T18:00:00.000Z", finishedAt: "2026-09-10T18:00:01.000Z", startedAt,
       resultJson: { executionWait: { recoveryActionId } },
     });
@@ -1749,7 +1749,7 @@ describe("TaskChatThread runtime transcript selection", () => {
             status: "cancelled",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:02.000Z",
@@ -1799,7 +1799,7 @@ describe("TaskChatThread runtime transcript selection", () => {
               errorCode: `native_${status}`,
               agentId: "agent-1",
               agentName: "Runner",
-              adapterType: "paperclip_runner",
+              adapterType: "clayon_runner",
               createdAt: "2026-08-25T18:00:00.000Z",
               startedAt: "2026-08-25T18:00:00.000Z",
               finishedAt: "2026-08-25T18:00:02.000Z",
@@ -1841,7 +1841,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     render(<TaskChatThread comments={[]} onAdd={async () => {}} linkedRuns={[{
       runId: "approval-required", runtimeMode: "native", status: "failed",
       errorCode: "native_provider_approval_required",
-      agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+      agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
       startedAt: "2026-09-14T15:00:00.000Z", createdAt: "2026-09-14T15:00:00.000Z",
       finishedAt: "2026-09-14T15:00:02.000Z",
     }]} />);
@@ -1866,7 +1866,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       runId: "model-rejected", runtimeMode: "native", status: "failed",
       errorCode: "native_provider_model_rejected",
       error,
-      agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+      agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
       createdAt: "2026-08-25T18:00:00.000Z", startedAt: "2026-08-25T18:00:00.000Z",
       finishedAt: "2026-08-25T18:00:02.000Z",
     }]} />);
@@ -1881,7 +1881,7 @@ describe("TaskChatThread runtime transcript selection", () => {
   it("keeps workspace contention out of the conversation's cancellation markers", () => {
     render(<TaskChatThread comments={[]} onAdd={async () => {}} linkedRuns={[{
       runId: "workspace-wait", runtimeMode: "native", status: "cancelled", errorCode: "workspace_busy",
-      agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner", startedAt: null,
+      agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner", startedAt: null,
       createdAt: "2026-09-12T18:00:00.000Z", finishedAt: "2026-09-12T18:00:01.000Z",
     }]} />);
     expect(container.textContent).not.toContain("Run cancelled");
@@ -1920,7 +1920,7 @@ describe("TaskChatThread runtime transcript selection", () => {
               startedAt: null,
               agentId: "agent-1",
               agentName: "Runner",
-              adapterType: "paperclip_runner",
+              adapterType: "clayon_runner",
               createdAt: "2026-09-07T18:00:00.000Z",
               finishedAt: "2026-09-07T18:00:01.000Z",
             },
@@ -1952,7 +1952,7 @@ describe("TaskChatThread runtime transcript selection", () => {
               errorCode: "issue_terminal_status",
               agentId: "agent-1",
               agentName: "Runner",
-              adapterType: "paperclip_runner",
+              adapterType: "clayon_runner",
               createdAt: "2026-09-07T18:00:00.000Z",
               startedAt: "2026-09-07T18:00:00.500Z",
               finishedAt: "2026-09-07T18:00:01.000Z",
@@ -2003,13 +2003,13 @@ describe("TaskChatThread runtime transcript selection", () => {
             errorCode: "provider_transport_failed",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:02.000Z",
             resultJson: {
               presentationDecision: {
-                schema: "paperclip.run_presentation_decision.v1",
+                schema: "clayon.run_presentation_decision.v1",
                 chosenSource: "none",
                 commentId: null,
               },
@@ -2080,13 +2080,13 @@ describe("TaskChatThread runtime transcript selection", () => {
             status: "succeeded",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:03.000Z",
             resultJson: {
               presentationDecision: {
-                schema: "paperclip.run_presentation_decision.v1",
+                schema: "clayon.run_presentation_decision.v1",
                 chosenSource: "final_agent_message",
                 commentId: "native-repeated-final-comment",
               },
@@ -2177,13 +2177,13 @@ describe("TaskChatThread runtime transcript selection", () => {
             status: "succeeded",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:05.000Z",
             resultJson: {
               presentationDecision: {
-                schema: "paperclip.run_presentation_decision.v1",
+                schema: "clayon.run_presentation_decision.v1",
                 chosenSource: "final_agent_message",
                 commentId: "native-steered-repetition-final",
               },
@@ -2236,7 +2236,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     }]} onAdd={async () => {}} issueStatus="in_progress" activeRun={{
       id: runId, runtimeMode: "native", status: "running", invocationSource: "issue", triggerDetail: null,
       startedAt: "2026-08-25T18:00:00.000Z", finishedAt: null, createdAt: "2026-08-25T18:00:00.000Z",
-      agentId: "agent-1", agentName: "Runner", adapterType: "paperclip_runner",
+      agentId: "agent-1", agentName: "Runner", adapterType: "clayon_runner",
     }} />);
     const deny = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).filter(button => button.textContent === "Deny");
     expect(deny).toHaveLength(1);
@@ -2297,7 +2297,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           createdAt: "2026-08-25T18:00:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
         }}
       />,
     );
@@ -2331,7 +2331,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     const summary =
       "**Before release**\n- Test and rehearse rollback.\n\n**During release**\n- Deploy incrementally and watch errors.\n\n**After release**\n- Verify workflows and record follow-ups.";
     const result = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary,
       completionClaim: { objectiveSatisfied: true, remainingWork: [] },
@@ -2373,7 +2373,7 @@ describe("TaskChatThread runtime transcript selection", () => {
         createdAt: new Date("2026-08-25T18:00:00Z"),
         payload: {
           prpEvent: {
-            schema: "paperclip.prp.event.v1",
+            schema: "clayon.prp.event.v1",
             schemaVersion: 1,
             runId,
             eventType,
@@ -2409,7 +2409,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           ? []
           : [event(3, "run.result.accepted", { result })]),
         event(4, "run.terminal", {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState: "completed",
           runTerminalState: "succeeded",
           reportedWorkDisposition: "yielded",
@@ -2477,7 +2477,7 @@ describe("TaskChatThread runtime transcript selection", () => {
                 triggerDetail: null,
                 agentId: "agent-1",
                 agentName: "Runner",
-                adapterType: "paperclip_runner",
+                adapterType: "clayon_runner",
                 createdAt: "2026-08-25T18:00:00Z",
                 startedAt: "2026-08-25T18:00:00Z",
                 finishedAt: null,
@@ -2496,7 +2496,7 @@ describe("TaskChatThread runtime transcript selection", () => {
                   : "succeeded",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00Z",
             startedAt: "2026-08-25T18:00:00Z",
             finishedAt: mode === "live" ? null : "2026-08-25T18:00:30Z",
@@ -2507,7 +2507,7 @@ describe("TaskChatThread runtime transcript selection", () => {
                   ...(mode === "persisted_response_comment"
                     ? {
                         presentationDecision: {
-                          schema: "paperclip.run_presentation_decision.v1",
+                          schema: "clayon.run_presentation_decision.v1",
                           chosenSource: "existing_issue_comment",
                           commentId: "private-board-response",
                         },
@@ -2597,18 +2597,18 @@ describe("TaskChatThread runtime transcript selection", () => {
             status: "succeeded",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:00:00.000Z",
             startedAt: "2026-08-25T18:00:00.000Z",
             finishedAt: "2026-08-25T18:00:03.000Z",
             resultJson: {
               nativeResult: {
-                schema: "paperclip.run_result.v1",
+                schema: "clayon.run_result.v1",
                 reportedWorkDisposition: "yielded",
                 summary: "Waiting for Choose the verification word.",
               },
               presentationDecision: {
-                schema: "paperclip.run_presentation_decision.v1",
+                schema: "clayon.run_presentation_decision.v1",
                 chosenSource: "none",
                 commentId: null,
               },
@@ -2620,18 +2620,18 @@ describe("TaskChatThread runtime transcript selection", () => {
             status: "succeeded",
             agentId: "agent-1",
             agentName: "Runner",
-            adapterType: "paperclip_runner",
+            adapterType: "clayon_runner",
             createdAt: "2026-08-25T18:01:00.000Z",
             startedAt: "2026-08-25T18:01:00.000Z",
             finishedAt: "2026-08-25T18:01:02.000Z",
             resultJson: {
               nativeResult: {
-                schema: "paperclip.run_result.v1",
+                schema: "clayon.run_result.v1",
                 reportedWorkDisposition: "done",
                 summary: "Cobalt was selected and the task is complete.",
               },
               presentationDecision: {
-                schema: "paperclip.run_presentation_decision.v1",
+                schema: "clayon.run_presentation_decision.v1",
                 chosenSource: "none",
                 commentId: null,
               },
@@ -2833,7 +2833,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       "pi_local", "grok_local", "kimi_local", "hermes_local"].flatMap((adapterType) =>
       ["failed", "timed_out"].map((status) => ({ adapterType, status, runtimeMode: "legacy" as const,
         cause: "legacy_execution_requires_reconciliation", canRetry: true }))),
-    { adapterType: "paperclip_runner", status: "failed", runtimeMode: "native" as const,
+    { adapterType: "clayon_runner", status: "failed", runtimeMode: "native" as const,
       cause: "legacy_execution_requires_reconciliation", canRetry: false },
     { adapterType: "process", status: "failed", runtimeMode: "legacy" as const,
       cause: "legacy_execution_requires_reconciliation", canRetry: false },
@@ -3818,7 +3818,7 @@ describe("TaskChatThread Clayon Runner queue", () => {
     state: "deferred",
     targetRunId: "run-1",
     revision: "revision-1",
-    protocol: "paperclip_runner_v1",
+    protocol: "clayon_runner_v1",
     steeringDisposition: "available",
     entries: [
       { comment: queuedComment, position: 0, canEdit: true, canDiscard: true },
@@ -4094,7 +4094,7 @@ describe("TaskChatThread live transcript", () => {
       createdAt: "2026-08-24T12:00:00.000Z",
       agentId: "agent-1",
       agentName: "Codex",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       runtimeMode: "native" as const,
     };
 
@@ -4187,7 +4187,7 @@ describe("TaskChatThread live transcript", () => {
           createdAt: "2026-08-21T15:44:00.000Z",
           agentId: "agent-1",
           agentName: "Runner",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           runtimeMode: "native",
         }}
       />,
@@ -4365,7 +4365,7 @@ describe("TaskChatThread live transcript", () => {
         choices: [],
         fields: [],
         questionSet: {
-          schema: "paperclip.question_set.v1",
+          schema: "clayon.question_set.v1",
           questions: [
             {
               id: "goal",
@@ -4436,7 +4436,7 @@ describe("TaskChatThread live transcript", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: { goal: { selectedOptionIds: ["api"] } },
         },
       },
@@ -4500,7 +4500,7 @@ describe("TaskChatThread live transcript", () => {
         finishedAt: null,
         agentId: "agent-1",
         agentName: "Runner",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
       };
       const linkedRun = {
         ...activeRun,
@@ -4509,12 +4509,12 @@ describe("TaskChatThread live transcript", () => {
         finishedAt: "2026-08-07T00:00:05Z",
         resultJson: {
           nativeResult: {
-            schema: "paperclip.run_result.v1",
+            schema: "clayon.run_result.v1",
             reportedWorkDisposition: disposition,
             summary,
           },
           presentationDecision: {
-            schema: "paperclip.run_presentation_decision.v1",
+            schema: "clayon.run_presentation_decision.v1",
             chosenSource: "existing_issue_comment",
             commentId: "delayed-comment",
           },
@@ -4638,7 +4638,7 @@ describe("TaskChatThread live transcript", () => {
 });
 
 describe("TaskChatThread composer execution controls", () => {
-  it.each(["process", "paperclip_runner"])("passes the task's stop action through for %s execution", async (adapterType) => {
+  it.each(["process", "clayon_runner"])("passes the task's stop action through for %s execution", async (adapterType) => {
     const onStop = vi.fn(async () => {});
     const run = {
       id: "task-run", status: "running", runtimeMode: adapterType === "process" ? "legacy" as const : "native" as const,

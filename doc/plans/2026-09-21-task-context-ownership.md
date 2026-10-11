@@ -69,8 +69,8 @@ drop an unverified source.
 
 ## Compatibility and rollback
 
-Schema identifiers `paperclip.native-execution-input.v5` and
-`paperclip.native-model-envelope.v3` are public redaction discriminators; v4
+Schema identifiers `clayon.native-execution-input.v5` and
+`clayon.native-model-envelope.v3` are public redaction discriminators; v4
 and v2 remain supported for retained sessions and older checkpoints. Session
 pinning must keep v4/v2 readers available while active sessions still reference
 them.

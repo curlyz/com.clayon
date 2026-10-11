@@ -199,7 +199,7 @@ You plan content themes, keep the editorial calendar current, and turn company u
 
 ## Full instruction diffs
 
-The following diffs compare the actual role bodies. The CEO `AGENTS.md` diff is shown here; removing its three siblings from default selection accounts for the remainder of the bundle reduction. Their compatibility source files are unchanged. The previous bundle also selected [HEARTBEAT.md](https://github.com/paperclipai/paperclip/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/HEARTBEAT.md), [SOUL.md](https://github.com/paperclipai/paperclip/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/SOUL.md), and [TOOLS.md](https://github.com/paperclipai/paperclip/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/TOOLS.md); those links show their complete previous contents.
+The following diffs compare the actual role bodies. The CEO `AGENTS.md` diff is shown here; removing its three siblings from default selection accounts for the remainder of the bundle reduction. Their compatibility source files are unchanged. The previous bundle also selected [HEARTBEAT.md](https://github.com/clayon/clayon/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/HEARTBEAT.md), [SOUL.md](https://github.com/clayon/clayon/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/SOUL.md), and [TOOLS.md](https://github.com/clayon/clayon/blob/d6d88b9de2fc766637422cc43f985c747455a1b0/server/src/onboarding-assets/ceo/TOOLS.md); those links show their complete previous contents.
 
 <details><summary>Default CEO bundle: before → after</summary>
 

@@ -46,7 +46,7 @@ export const readDocumentAction = {
   "live": {
     "order": 3,
     "descriptor": {
-      "schema": "paperclip.semantic-tool.v1",
+      "schema": "clayon.semantic-tool.v1",
       "operationId": "read_document",
       "version": 1,
       "title": "Read task document",
@@ -83,7 +83,7 @@ export const readDocumentAction = {
   "scenario": {
     "order": 3,
     "successExample": {
-      "schema": "paperclip.capability.tool-result.v1",
+      "schema": "clayon.capability.tool-result.v1",
       "ok": true,
       "operationId": "read_document",
       "operationResultId": "example-result",
@@ -115,7 +115,7 @@ export const readDocumentAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

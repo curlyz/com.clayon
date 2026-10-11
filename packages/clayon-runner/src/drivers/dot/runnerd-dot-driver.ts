@@ -67,7 +67,7 @@ export class RunnerdDotDriver implements HarnessDriver {
     try { saved = await readProviderCheckpoint(this.options); }
     catch { return { recovered: false, reason: "Dot bridge checkpoint invalid; external work requires reconciliation" }; }
     if (!saved) return { recovered: false, reason: "Dot bridge checkpoint missing; external work requires reconciliation" };
-    if (saved.schema !== "paperclip.runner.dot-provider-state.v1" || saved.runId !== snapshot.runId || saved.sessionId !== snapshot.driverSessionId || saved.turnId !== this.options.identity.turnId) {
+    if (saved.schema !== "clayon.runner.dot-provider-state.v1" || saved.runId !== snapshot.runId || saved.sessionId !== snapshot.driverSessionId || saved.turnId !== this.options.identity.turnId) {
       return { recovered: false, reason: "Dot bridge checkpoint authority mismatch" };
     }
     return { recovered: true, session: await this.openSession({ runId: snapshot.runId,
@@ -114,9 +114,9 @@ class RunnerdDotSession implements HarnessSession {
         this.#wake();
       },
       onSemanticToolInput: async call => {
-        if (call.operationId === "paperclip_finish" || call.operationId === "paperclip_block") {
+        if (call.operationId === "clayon_finish" || call.operationId === "clayon_block") {
           const result = validatePrpStructuredRunResult(call.input);
-          if (!result.ok || (call.operationId === "paperclip_block") !== (result.ok && result.result.reportedWorkDisposition === "blocked")) {
+          if (!result.ok || (call.operationId === "clayon_block") !== (result.ok && result.result.reportedWorkDisposition === "blocked")) {
             return { result: { error: "Invalid completion report. Use the admitted completion contract and the correct completion tool." }, isError: true };
           }
           try { return { result: { accepted: true, completionReport: result.result, feedback: await o.completionFeedback?.(result.result) ?? "Completion accepted; finish the external turn." } }; }
@@ -176,7 +176,7 @@ class RunnerdDotSession implements HarnessSession {
     if (!checkpoint && this.#events.some(event => event.eventType === "external_provider.dispatch_requested")) {
       throw new Error("dot_provider_checkpoint_missing_reconciliation_required");
     }
-    if (checkpoint && (checkpoint.schema !== "paperclip.runner.dot-provider-state.v1"
+    if (checkpoint && (checkpoint.schema !== "clayon.runner.dot-provider-state.v1"
       || checkpoint.runId !== o.identity.runId || checkpoint.sessionId !== o.identity.normalizedSessionId
       || checkpoint.turnId !== o.identity.turnId)) throw new Error("dot_runner_checkpoint_authority_mismatch");
     this.#detachPort = await o.port.attach(async operation => {
@@ -184,7 +184,7 @@ class RunnerdDotSession implements HarnessSession {
     }, () => this.interrupt(), !!checkpoint);
     await this.#command("run.prepare", {
       provider: { kind: "openai_dot", ...o.execution.provider.binding,
-        instructions: `${nativeSystemInstructions(o.execution)}\n\nAccept the assignment before calling tools. Invoke paperclip_finish or paperclip_block, then submit the same structured result with paperclip_dot_finish. Keep request IDs stable across retries.` },
+        instructions: `${nativeSystemInstructions(o.execution)}\n\nAccept the assignment before calling tools. Invoke clayon_finish or clayon_block, then submit the same structured result with clayon_dot_finish. Keep request IDs stable across retries.` },
       authorizedTools: authorizedToolSetForProvider(undefined, [...o.dynamicTools ?? [], ...codexSemanticToolSpecs()]),
       completionContract: { revision: o.execution.completionContract.contract.revision,
         criterionIds: o.execution.completionContract.contract.criteria.map(c => c.id) },

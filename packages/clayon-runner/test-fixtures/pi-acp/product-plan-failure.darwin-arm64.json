@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-product-plan-failure.v1",
+  "schema": "clayon.pi-product-plan-failure.v1",
   "attemptId": "pi-product-plan-01",
   "sourceRevision": "7710736ca3924c655c5b0efd172cfd3c0173766a",
   "runtimeCodeRevision": "06cf356a8bc94f709fcd15606fe05e17933fe3b2",
@@ -52,7 +52,7 @@
     }
   },
   "canonicalToolEvent": {
-    "name": "mcp__paperclip__write_document",
+    "name": "mcp__clayon__write_document",
     "status": "completed",
     "transport": "builtin",
     "namespace": null,
@@ -68,7 +68,7 @@
     "oracleRemainsUnchanged": true
   },
   "diagnosis": {
-    "cause": "Rust ACPX projection hardcodes builtin transport and null namespace while preserving mcp__paperclip__write_document as the name; UI exact write_document matching therefore creates a fallback Plan.",
+    "cause": "Rust ACPX projection hardcodes builtin transport and null namespace while preserving mcp__clayon__write_document as the name; UI exact write_document matching therefore creates a fallback Plan.",
     "productionSeam": "packages/clayon-runner/runner/crates/runner-core/src/provider_events.rs:normalize_acpx_tool_call",
     "presentationSeam": "ui/src/components/task-chat/transcript-adapter.ts:embedPlanDocumentAtWriteBoundary",
     "selectorDefect": false,

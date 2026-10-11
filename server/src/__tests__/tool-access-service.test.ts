@@ -5431,7 +5431,7 @@ describeEmbeddedPostgres("tool access service", () => {
     expect(
       nonPilotGmail.methods.some(
         (method: { oauthStrategy?: string }) =>
-          method.oauthStrategy === "paperclip_cloud_connector",
+          method.oauthStrategy === "clayon_cloud_connector",
       ),
     ).toBe(false);
     expect(
@@ -7804,7 +7804,7 @@ describeEmbeddedPostgres("tool access service", () => {
           providerTenant: {
             name: "octocat",
             oauth: {
-              strategy: "paperclip_cloud_connector",
+              strategy: "clayon_cloud_connector",
               accessTokenExpiresAt: null,
             },
             github: {
@@ -8090,7 +8090,7 @@ describeEmbeddedPostgres("tool access service", () => {
       authorizationUrl: `https://my.example.test/connections/confirm?session=legacy&state=${encodeURIComponent(returnState)}`,
       expiresAt: new Date(Date.now() + 600_000).toISOString(),
       handoff: {
-        kind: "paperclip_cloud" as const,
+        kind: "clayon_cloud" as const,
         session: "cloud_session_abcdefghijklmnop",
       },
     }));
@@ -8133,7 +8133,7 @@ describeEmbeddedPostgres("tool access service", () => {
         "state",
       )!;
       expect(started.handoff).toEqual({
-        kind: "paperclip_cloud",
+        kind: "clayon_cloud",
         session: "cloud_session_abcdefghijklmnop",
       });
       const app = createRouteApp(
@@ -8173,7 +8173,7 @@ describeEmbeddedPostgres("tool access service", () => {
           sourceTemplateKey: "google-drive",
           quarantineNewEntries: true,
           oauth: {
-            strategy: "paperclip_cloud_connector",
+            strategy: "clayon_cloud_connector",
             provider: "google-drive",
             connectorProfile: profile,
             resource: GOOGLE_WORKSPACE_CONNECTOR_PROFILES[profile].serverUrl,
@@ -8237,7 +8237,7 @@ describeEmbeddedPostgres("tool access service", () => {
         providerTenant: {
           name: "Google Drive",
           oauth: {
-            strategy: "paperclip_cloud_connector",
+            strategy: "clayon_cloud_connector",
             scopes: [...GOOGLE_WORKSPACE_CONNECTOR_PROFILES[profile].scopes],
           },
         },
@@ -8356,7 +8356,7 @@ describeEmbeddedPostgres("tool access service", () => {
         credentialPolicy: "shared",
         config: {
           oauth: {
-            strategy: "paperclip_cloud_connector",
+            strategy: "clayon_cloud_connector",
             connectorSubjectUserId: userId,
           },
         },
@@ -8387,7 +8387,7 @@ describeEmbeddedPostgres("tool access service", () => {
         status: "active",
         providerTenant: {
           externalId: userId,
-          oauth: { strategy: "paperclip_cloud_connector" },
+          oauth: { strategy: "clayon_cloud_connector" },
         },
       });
       expect(
@@ -19381,9 +19381,9 @@ describeEmbeddedPostgres("tool access service", () => {
       .returning();
     const [pluginApplication] = await db.insert(toolApplications).values({
       companyId: company.id,
-      applicationKey: `paperclip_plugin:fixture-${randomUUID()}`,
+      applicationKey: `clayon_plugin:fixture-${randomUUID()}`,
       name: "Plugin placeholder",
-      type: "paperclip_plugin",
+      type: "clayon_plugin",
       status: "active",
       metadata: { source: "plugin_backfill" },
     }).returning();
@@ -19396,8 +19396,8 @@ describeEmbeddedPostgres("tool access service", () => {
       transport: "mcp_remote",
       status: "active",
       enabled: true,
-      config: { type: "paperclip_plugin" },
-      transportConfig: { type: "paperclip_plugin" },
+      config: { type: "clayon_plugin" },
+      transportConfig: { type: "clayon_plugin" },
       healthStatus: "ok",
       healthCheckedAt: null,
     }).returning();

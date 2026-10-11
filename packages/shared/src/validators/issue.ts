@@ -1392,7 +1392,7 @@ const clayonQuestionSchema = z
 
 export const clayonQuestionSetPayloadSchema = z
   .object({
-    schema: z.literal("paperclip.question_set.v1"),
+    schema: z.literal("clayon.question_set.v1"),
     title: z.string().max(1000).optional(),
     description: z.string().max(100_000).optional(),
     submitLabel: z.string().max(200).optional(),

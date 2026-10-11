@@ -1369,7 +1369,7 @@ describeEmbeddedPostgres("secret proposal routes", () => {
 
     const advisoryLockKey = 147460186;
     await db.execute(sql.raw(`
-      CREATE OR REPLACE FUNCTION paperclip_test_pause_binding_proposal()
+      CREATE OR REPLACE FUNCTION clayon_test_pause_binding_proposal()
       RETURNS trigger
       LANGUAGE plpgsql
       AS $function$
@@ -1381,9 +1381,9 @@ describeEmbeddedPostgres("secret proposal routes", () => {
         RETURN NEW;
       END
       $function$;
-      CREATE TRIGGER paperclip_test_pause_binding_proposal
+      CREATE TRIGGER clayon_test_pause_binding_proposal
       BEFORE INSERT ON company_secret_proposals
-      FOR EACH ROW EXECUTE FUNCTION paperclip_test_pause_binding_proposal();
+      FOR EACH ROW EXECUTE FUNCTION clayon_test_pause_binding_proposal();
     `));
 
     try {
@@ -1433,8 +1433,8 @@ describeEmbeddedPostgres("secret proposal routes", () => {
       expect(rejection.status).toBe(200);
     } finally {
       await db.execute(sql.raw(`
-        DROP TRIGGER IF EXISTS paperclip_test_pause_binding_proposal ON company_secret_proposals;
-        DROP FUNCTION IF EXISTS paperclip_test_pause_binding_proposal();
+        DROP TRIGGER IF EXISTS clayon_test_pause_binding_proposal ON company_secret_proposals;
+        DROP FUNCTION IF EXISTS clayon_test_pause_binding_proposal();
       `));
     }
 
@@ -1521,7 +1521,7 @@ describeEmbeddedPostgres("secret proposal routes", () => {
 
     const advisoryLockKey = 147460185;
     await db.execute(sql.raw(`
-      CREATE OR REPLACE FUNCTION paperclip_test_pause_secret_approval()
+      CREATE OR REPLACE FUNCTION clayon_test_pause_secret_approval()
       RETURNS trigger
       LANGUAGE plpgsql
       AS $function$
@@ -1531,9 +1531,9 @@ describeEmbeddedPostgres("secret proposal routes", () => {
         RETURN NEW;
       END
       $function$;
-      CREATE TRIGGER paperclip_test_pause_secret_approval
+      CREATE TRIGGER clayon_test_pause_secret_approval
       BEFORE INSERT ON company_secrets
-      FOR EACH ROW EXECUTE FUNCTION paperclip_test_pause_secret_approval();
+      FOR EACH ROW EXECUTE FUNCTION clayon_test_pause_secret_approval();
     `));
 
     try {
@@ -1577,8 +1577,8 @@ describeEmbeddedPostgres("secret proposal routes", () => {
       expect(approval.body.error).toContain("chain-of-command policy");
     } finally {
       await db.execute(sql.raw(`
-        DROP TRIGGER IF EXISTS paperclip_test_pause_secret_approval ON company_secrets;
-        DROP FUNCTION IF EXISTS paperclip_test_pause_secret_approval();
+        DROP TRIGGER IF EXISTS clayon_test_pause_secret_approval ON company_secrets;
+        DROP FUNCTION IF EXISTS clayon_test_pause_secret_approval();
       `));
     }
 

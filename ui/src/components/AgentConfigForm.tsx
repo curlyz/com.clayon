@@ -175,7 +175,7 @@ const emptyOverlay: AgentConfigOverlay = {
 const EMPTY_ENV: Record<string, EnvBinding> = {};
 
 export function supportsAdapterModelRefresh(adapterType: string): boolean {
-  return adapterType === "claude_local" || adapterType === "codex_local" || adapterType === "paperclip_runner" || adapterType === "opencode_local";
+  return adapterType === "claude_local" || adapterType === "codex_local" || adapterType === "clayon_runner" || adapterType === "opencode_local";
 }
 
 export function resolveClayonRunnerTransitionModel(
@@ -402,9 +402,9 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     // their current value in edit mode, but the picker does not offer a fresh
     // native selection until the explicit experimental opt-in is known true.
     if (experimentalSettings?.enableNativeRunner !== true) {
-      next.add("paperclip_runner");
+      next.add("clayon_runner");
     }
-    if (experimentalSettings?.enableOpenAiDot !== true || disabledTypes.has("paperclip_runner")) {
+    if (experimentalSettings?.enableOpenAiDot !== true || disabledTypes.has("clayon_runner")) {
       next.add("openai_dot");
     }
     return next;
@@ -608,7 +608,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     : overlay.adapterType ?? props.agent.adapterType;
   const getCapabilities = useAdapterCapabilities();
   const adapterCaps = getCapabilities(adapterType);
-  const isDotRunner = adapterType === "paperclip_runner" && (isCreate ? props.values.adapterSchemaValues?.provider : eff("adapterConfig", "provider", config.provider)) === "openai_dot";
+  const isDotRunner = adapterType === "clayon_runner" && (isCreate ? props.values.adapterSchemaValues?.provider : eff("adapterConfig", "provider", config.provider)) === "openai_dot";
   const isLocal = !isDotRunner && (adapterCaps.supportsInstructionsBundle || adapterCaps.supportsSkills || adapterCaps.supportsLocalAgentJwt);
   
   // The legacy working directory is an absolute path on the host, so the
@@ -895,7 +895,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       ? "Clayon Computer"
       : "Local";
 
-  const runnerProvider = adapterType === "paperclip_runner"
+  const runnerProvider = adapterType === "clayon_runner"
     ? String(isCreate ? props.values.adapterSchemaValues?.provider ?? "codex"
       : eff("adapterConfig", "provider", config.provider === "acpx" && config.acpxAgent === "codex" ? "codex" : config.provider ?? "codex"))
     : undefined;
@@ -937,7 +937,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       }
       return agentsApi.detectModel(selectedCompanyId, adapterType);
     },
-    enabled: Boolean(selectedCompanyId && isLocal && adapterType !== "opencode_local" && adapterType !== "paperclip_runner"),
+    enabled: Boolean(selectedCompanyId && isLocal && adapterType !== "opencode_local" && adapterType !== "clayon_runner"),
   });
   const detectedModel = detectedModelData?.model ?? null;
   const detectedModelCandidates = detectedModelData?.candidates ?? [];
@@ -1082,7 +1082,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
         (overlay.runtime.runtimeConfig as Record<string, unknown> | undefined)?.aiConnection ?? props.agent.runtimeConfig.aiConnection,
       ).data;
       if (props.compactTestFeedback) {
-        const providerAdapter = adapterType === "paperclip_runner"
+        const providerAdapter = adapterType === "clayon_runner"
           ? adapterConfig.provider === "codex" ? "codex_local"
             : adapterConfig.provider === "acpx" && adapterConfig.acpxAgent === "grok" ? "grok_local"
             : adapterConfig.provider === "acpx" && adapterConfig.acpxAgent === "claude" ? "claude_local"
@@ -1324,7 +1324,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
           : eff("adapterConfig", thinkingEffortKey, String(config[thinkingEffortKey] ?? ""));
   const showThinkingEffort = adapterType !== "gemini_local"
     && adapterType !== "cursor_cloud"
-    && adapterType !== "paperclip_runner";
+    && adapterType !== "clayon_runner";
   const codexSearchEnabled = adapterType === "codex_local"
     ? (isCreate ? Boolean(val!.search) : eff("adapterConfig", "search", Boolean(config.search)))
     : false;
@@ -1600,7 +1600,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 openAiDotEnabled={experimentalSettings?.enableOpenAiDot === true}
                 onChange={(choice) => {
                   const dot = choice === "openai_dot";
-                  const t = dot ? "paperclip_runner" : choice;
+                  const t = dot ? "clayon_runner" : choice;
                   if (isCreate) {
                     // Reset all adapter-specific fields to defaults when switching adapter type
                     const { adapterType: _at, ...defaults } = defaultCreateValues;
@@ -1616,7 +1616,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                       nextValues.model = DEFAULT_CURSOR_LOCAL_MODEL;
                     } else if (t === "opencode_local") {
                       nextValues.model = DEFAULT_OPENCODE_LOCAL_MODEL;
-                    } else if (t === "paperclip_runner") {
+                    } else if (t === "clayon_runner") {
                       nextValues.model = DEFAULT_CODEX_LOCAL_MODEL;
                     }
                     if (dot) {
@@ -1641,7 +1641,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                             : t === "cursor"
                               ? DEFAULT_CURSOR_LOCAL_MODEL
                             : dot ? ""
-                            : t === "paperclip_runner"
+                            : t === "clayon_runner"
                               ? resolveClayonRunnerTransitionModel(adapterType, config.model)
                               : "",
                         effort: "",
@@ -1655,7 +1655,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                             }
                           : dot
                             ? { provider: "openai_dot", lifecycleMode: "per_turn", allowUnmeteredProvider: false, dotAttachmentAccess: false, dotWorkspaceAccess: false }
-                          : t === "paperclip_runner"
+                          : t === "clayon_runner"
                             ? {
                                 ...clayonRunnerTransitionConfig(adapterType, eff("adapterConfig", "model", config.model)),
                               }
@@ -1752,14 +1752,14 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 open={modelOpen}
                 onOpenChange={setModelOpen}
                 defaultLabel={adapterType === "claude_local" ? `Default (${DEFAULT_CLAUDE_LOCAL_MODEL})` : undefined}
-                allowDefault={adapterType !== "opencode_local" && adapterType !== "pi_local" && adapterType !== "paperclip_runner"}
+                allowDefault={adapterType !== "opencode_local" && adapterType !== "pi_local" && adapterType !== "clayon_runner"}
                 required={adapterType === "opencode_local" || adapterType === "pi_local"}
                 groupByProvider={!connectionModels && (adapterType === "opencode_local" || adapterType === "pi_local")}
                 preserveOrder={Boolean(connectionModels) || adapterCuratesModelOrder(adapterType)}
                 creatable
                 detectedModel={connectionModels ? undefined : detectedModel}
                 detectedModelCandidates={[]}
-                onDetectModel={connectionModels || adapterType === "opencode_local" || adapterType === "paperclip_runner"
+                onDetectModel={connectionModels || adapterType === "opencode_local" || adapterType === "clayon_runner"
                   ? undefined
                   : async () => {
                       const result = await refetchDetectedModel();
@@ -3858,7 +3858,7 @@ export function ModelDropdown({
   }
 
   if (presentation === "native") {
-    const customOption = "__paperclip_custom_model__";
+    const customOption = "__clayon_custom_model__";
     const extraModels = [...new Set([value, ...promotedModelIds])].filter(id => id && (!models.some(model => model.id === id) || promotedModelIds.has(id)));
     return (
       <Field label="Model" hint={help.model}>

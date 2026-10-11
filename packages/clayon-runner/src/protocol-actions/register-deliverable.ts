@@ -73,7 +73,7 @@ export const registerDeliverableAction = {
   "live": {
     "order": 9,
     "descriptor": {
-      "schema": "paperclip.semantic-tool.v1",
+      "schema": "clayon.semantic-tool.v1",
       "operationId": "register_deliverable",
       "version": 1,
       "title": "Register inspectable deliverable",
@@ -193,7 +193,7 @@ export const registerDeliverableAction = {
   "scenario": {
     "order": 12,
     "successExample": {
-      "schema": "paperclip.capability.tool-result.v1",
+      "schema": "clayon.capability.tool-result.v1",
       "ok": true,
       "operationId": "register_deliverable",
       "operationResultId": "example-result",
@@ -256,7 +256,7 @@ export const registerDeliverableAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

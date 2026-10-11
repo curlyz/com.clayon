@@ -121,9 +121,9 @@ describe("agent-created hires use managed AI connections", () => {
   it("keeps an inherited pool when copying the caller's native runtime settings", async () => {
     const f = await fixture("openai");
     const p = await poolFixture(f);
-    await db.update(agents).set({ adapterType: "paperclip_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol", lifecycleMode: "per_turn" }, runtimeConfig: { aiConnection: p.binding } }).where(eq(agents.id, f.agentId));
+    await db.update(agents).set({ adapterType: "clayon_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol", lifecycleMode: "per_turn" }, runtimeConfig: { aiConnection: p.binding } }).where(eq(agents.id, f.agentId));
     const agent = hired(await request(f.app).post(`/api/companies/${f.companyId}/agent-hires`).send({
-      name: "Native pool teammate", role: "engineer", adapterType: "paperclip_runner", inheritRuntimeFrom: "caller",
+      name: "Native pool teammate", role: "engineer", adapterType: "clayon_runner", inheritRuntimeFrom: "caller",
     }));
     expect(agent.runtimeConfig.aiConnection).toEqual(p.binding);
     expect(agent.adapterConfig).toMatchObject({ provider: "codex", model: "gpt-5.6-sol", lifecycleMode: "per_turn" });
@@ -153,7 +153,7 @@ describe("agent-created hires use managed AI connections", () => {
   it.each([
     ["opencode_local", {}, "CLAYON_OPENCODE_PROVIDERS"],
     ["opencode_local", { model: "anthropic/claude-sonnet-5" }, "OPENCODE_AUTH_JSON"],
-    ["paperclip_runner", { provider: "opencode", model: "anthropic/claude-sonnet-5" }, "OPENCODE_CONFIG_CONTENT"],
+    ["clayon_runner", { provider: "opencode", model: "anthropic/claude-sonnet-5" }, "OPENCODE_CONFIG_CONTENT"],
   ] as const)("%s hires with %j keep explicit %s auth outside the managed OpenRouter model catalog", async (adapterType, config, key) => {
     const f = await fixture("openai");
     const p = await poolFixture(f);
@@ -382,8 +382,8 @@ describe("agent-created hires use managed AI connections", () => {
     it.each([
       ["anthropic", "codex_local", {}, "ANTHROPIC_API_KEY"],
       ["openai", "claude_local", {}, "OPENAI_API_KEY"],
-      ["anthropic", "paperclip_runner", { provider: "codex" }, "ANTHROPIC_API_KEY"],
-      ["openai", "paperclip_runner", { provider: "acpx", acpxAgent: "claude" }, "OPENAI_API_KEY"],
+      ["anthropic", "clayon_runner", { provider: "codex" }, "ANTHROPIC_API_KEY"],
+      ["openai", "clayon_runner", { provider: "acpx", acpxAgent: "claude" }, "OPENAI_API_KEY"],
     ] as const)(`${endpoint}: ignores the %s auth key for a different provider in %s`, async (provider, adapterType, config, key) => {
       const f = await fixture(provider);
       const response = await request(f.app).post(`/api/companies/${f.companyId}/${endpoint}`).send({
@@ -414,7 +414,7 @@ describe("agent-created hires use managed AI connections", () => {
 
   it.each(["anthropic", "openai"] as const)("inherits %s when the hire uses the native runner", async (provider) => {
     const f = await fixture(provider, "subscription");
-    const agent = hired(await request(f.app).post(`/api/companies/${f.companyId}/agent-hires`).send({ name: "Native teammate", role: "engineer", adapterType: "paperclip_runner", adapterConfig: provider === "anthropic" ? { provider: "acpx", acpxAgent: "claude" } : { provider: "codex" } }));
+    const agent = hired(await request(f.app).post(`/api/companies/${f.companyId}/agent-hires`).send({ name: "Native teammate", role: "engineer", adapterType: "clayon_runner", adapterConfig: provider === "anthropic" ? { provider: "acpx", acpxAgent: "claude" } : { provider: "codex" } }));
     expect(agent.runtimeConfig.aiConnection).toEqual(f.binding);
     const runtime = await prepareManagedAiRuntime(db, { companyId: f.companyId, agentId: agent.id, responsibleUserId: f.userId, adapterType: agent.adapterType, binding: agent.runtimeConfig.aiConnection, config: agent.adapterConfig });
     try { expect(runtime.attribution.connectionId).toBe(f.account.connectionId); } finally { await runtime.cleanup(); }
@@ -426,7 +426,7 @@ describe("agent-created hires use managed AI connections", () => {
   ] as const)("caller runtime inheritance preserves safe %s settings only", async (_name, parentConfig) => {
     const f = await fixture("anthropic", "subscription");
     await db.update(agents).set({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: {
         ...parentConfig,
         cwd: "/private/parent-workspace",
@@ -436,7 +436,7 @@ describe("agent-created hires use managed AI connections", () => {
       },
     }).where(eq(agents.id, f.agentId));
     const agent = hired(await request(f.app).post(`/api/companies/${f.companyId}/agent-hires`).send({
-      name: "Inherited teammate", role: "engineer", adapterType: "paperclip_runner", inheritRuntimeFrom: "caller",
+      name: "Inherited teammate", role: "engineer", adapterType: "clayon_runner", inheritRuntimeFrom: "caller",
     }));
     expect(agent.adapterConfig).toMatchObject(parentConfig);
     expect(agent.adapterConfig).not.toHaveProperty("cwd");
@@ -451,9 +451,9 @@ describe("agent-created hires use managed AI connections", () => {
 
   it("rejects caller inheritance when the request supplies competing runtime settings", async () => {
     const f = await fixture("anthropic", "subscription");
-    await db.update(agents).set({ adapterType: "paperclip_runner", adapterConfig: { provider: "acpx", acpxAgent: "claude" } }).where(eq(agents.id, f.agentId));
+    await db.update(agents).set({ adapterType: "clayon_runner", adapterConfig: { provider: "acpx", acpxAgent: "claude" } }).where(eq(agents.id, f.agentId));
     const response = await request(f.app).post(`/api/companies/${f.companyId}/agent-hires`).send({
-      name: "Conflicting teammate", role: "engineer", adapterType: "paperclip_runner", inheritRuntimeFrom: "caller",
+      name: "Conflicting teammate", role: "engineer", adapterType: "clayon_runner", inheritRuntimeFrom: "caller",
       adapterConfig: { model: "caller.override" },
     });
     expect(response.status).toBe(422);

@@ -1,4 +1,4 @@
--- Runs through the Paperclip migration executor outside a file-wide transaction.
+-- Runs through the Clayon migration executor outside a file-wide transaction.
 -- Each idempotent keyset batch commits before advancing; history is recorded last.
 CREATE TABLE IF NOT EXISTS "issue_access_grants" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -214,7 +214,7 @@ END LOOP; END $$;
 
 --> statement-breakpoint
 -- Preserve operation history while retaining every original task/run boundary.
-CREATE OR REPLACE FUNCTION paperclip_keep_operation_privacy_sources() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION clayon_keep_operation_privacy_sources() RETURNS trigger AS $$
 DECLARE issue_sources jsonb := '{}'::jsonb; run_sources jsonb := '{}'::jsonb;
 BEGIN
   IF TG_OP = 'UPDATE' THEN
@@ -233,7 +233,7 @@ $$ LANGUAGE plpgsql;
 DO $$ BEGIN
   DROP TRIGGER IF EXISTS workspace_operations_keep_privacy_sources ON workspace_operations;
   CREATE TRIGGER workspace_operations_keep_privacy_sources BEFORE INSERT OR UPDATE ON workspace_operations
-  FOR EACH ROW EXECUTE FUNCTION paperclip_keep_operation_privacy_sources();
+  FOR EACH ROW EXECUTE FUNCTION clayon_keep_operation_privacy_sources();
 END $$;
 --> statement-breakpoint
 DO $$

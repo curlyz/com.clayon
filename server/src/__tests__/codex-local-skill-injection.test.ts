@@ -31,8 +31,8 @@ async function createCustomSkill(root: string, skillName: string) {
 }
 
 describe("codex local adapter skill injection", () => {
-  const clayonKey = "paperclipai/paperclip/clayon";
-  const createAgentKey = "paperclipai/paperclip/clayon-create-agent";
+  const clayonKey = "clayon/clayon/clayon";
+  const createAgentKey = "clayon/clayon/clayon-create-agent";
   const cleanupDirs = new Set<string>();
 
   afterEach(async () => {

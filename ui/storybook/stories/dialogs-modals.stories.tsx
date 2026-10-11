@@ -577,7 +577,7 @@ function ProjectDialogOpener({ populated }: { populated?: boolean }) {
     if (!populated) return undefined;
     const timer = window.setTimeout(() => {
       fillFirstField("input[placeholder='Project name']", "Storybook review workspace");
-      fillFirstField("input[placeholder='https://github.com/org/repo']", "https://github.com/paperclipai/paperclip");
+      fillFirstField("input[placeholder='https://github.com/org/repo']", "https://github.com/clayon/clayon");
       fillFirstField("input[placeholder='/absolute/path/to/workspace']", "/Users/dotta/clayon/ui");
       fillFirstField("input[type='date']", "2026-04-30");
     }, 250);

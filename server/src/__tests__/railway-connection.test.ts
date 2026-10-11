@@ -83,7 +83,7 @@ const initialTools = [
     const after = await f.service.listCatalog(f.connectionId);
     expect(after.find((r) => r.toolName === "new-tool")?.status).toBe("quarantined");
     expect(JSON.stringify(await f.service.getConnection(f.connectionId))).not.toContain(token);
-    f.setTools([{ name: "paperclip_railway_restart" }]);
+    f.setTools([{ name: "clayon_railway_restart" }]);
     await expect(f.service.refreshCatalog(f.connectionId, actor)).rejects.toThrow("Railway advertised a reserved Clayon action");
   });
 
@@ -109,7 +109,7 @@ const initialTools = [
     const [profile] = await db.insert(toolProfiles).values({ companyId: f.company.id, name: "Railway tools", profileKey: randomUUID(), defaultAction: "allow" }).returning();
     await db.insert(toolProfileBindings).values({ companyId: f.company.id, profileId: profile.id, targetType: "agent", targetId: agent.id });
     const [existing] = await db.select().from(toolCatalogEntries).where(and(eq(toolCatalogEntries.connectionId, f.connectionId), eq(toolCatalogEntries.toolName, "clayon-railway-restart")));
-    const names = ["clayon-railway-deploy-revision", "paperclip_railway_deploy_revision", "clayonRailwayDeployRevision"];
+    const names = ["clayon-railway-deploy-revision", "clayon_railway_deploy_revision", "clayonRailwayDeployRevision"];
     // Reproduce active catalog rows persisted by an older server, before refresh.
     await db.insert(toolCatalogEntries).values(names.map((name) => ({ ...existing, id: randomUUID(), name, toolName: name, inputSchema: { type: "object" } })));
     const gateway = createToolGatewayService(db, { remoteHttpRequest: f.request });

@@ -52,7 +52,7 @@ describe("clayon-runner real server vertical slice", () => {
       id: agentId,
       companyId,
       name: "Real runner agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       status: "active",

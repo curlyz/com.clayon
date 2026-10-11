@@ -19,7 +19,7 @@ async function handle({ id, command, params = {} }) {
     case "initialize":
       result = { protocolVersion: 2, sidecarPid: process.pid, profile: { agent: "pi" }, capabilities: {
         persistentSessions: true, exactModelVerification: true, permissions: "runner_policy",
-        semanticTools: "runner_bridge", structuredInput: "paperclip.question_set.v1",
+        semanticTools: "runner_bridge", structuredInput: "clayon.question_set.v1",
       } };
       break;
     case "session.open":
@@ -50,7 +50,7 @@ async function handle({ id, command, params = {} }) {
       result = { identity, runId, turnId: null, pendingRuntimeRequests: [] };
       break;
     case "session.goal.get":
-      result = { schema: "paperclip.session_goal.snapshot.v1", goal: null, workingNow: false, sessionGoals: {
+      result = { schema: "clayon.session_goal.snapshot.v1", goal: null, workingNow: false, sessionGoals: {
         availability: "available", actions: ["set", "pause", "resume", "clear"], autonomousUpdates: true,
         persistentAcrossResume: true, maxObjectiveChars: 4000, tokenBudgetControl: false, usageReporting: false,
       } };
@@ -62,8 +62,8 @@ async function handle({ id, command, params = {} }) {
   }
   send({ id, ok: true, result });
   if (command === "turn.start") event("runtime.tool_called", {
-    callId: `finish-${turnId}`, operationId: "paperclip_finish", input: {
-      schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", summary: "Fixture turn completed.",
+    callId: `finish-${turnId}`, operationId: "clayon_finish", input: {
+      schema: "clayon.run_result.v1", reportedWorkDisposition: "done", summary: "Fixture turn completed.",
       completionClaim: { contractRevision: "warm-pi-contract", objectiveSatisfied: true, criteria: [], remainingWork: [] },
       evidence: [], verification: [], attentionRequests: [], artifacts: [],
     },

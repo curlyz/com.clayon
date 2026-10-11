@@ -41,7 +41,7 @@ function seededAgentAdapterType() {
     || FALLBACK_SEEDED_AGENT_ADAPTER_TYPE;
   // Server-seeded onboarding deliberately stays on a direct adapter. Native
   // runner rollout is an explicit post-onboarding configuration choice.
-  return configured === "paperclip_runner"
+  return configured === "clayon_runner"
     ? FALLBACK_SEEDED_AGENT_ADAPTER_TYPE
     : configured;
 }

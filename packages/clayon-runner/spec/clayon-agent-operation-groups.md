@@ -203,187 +203,187 @@ Behavior groups describe expected outcomes and trajectories. They do not grant t
 
 5 scenarios (legacy group 1):
 
-- [`hb-context-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-context-01.yaml) — Prefer the compact heartbeat-context route before replaying the thread
-- [`hb-inbox-lite-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) — Normal heartbeat starts from the compact inbox, not a raw issue listing
-- [`hb-pick-priority-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-pick-priority-01.yaml) — Pick-work priority prefers in_progress and skips blocked work
-- [`hb-scoped-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-scoped-wake-01.yaml) — Scoped wake payload skips identity/inbox and goes straight to checkout
-- [`hb-wake-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-wake-comment-01.yaml) — Comment wake fetches the triggering comment first, then responds on the issue
+- [`hb-context-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-context-01.yaml) — Prefer the compact heartbeat-context route before replaying the thread
+- [`hb-inbox-lite-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) — Normal heartbeat starts from the compact inbox, not a raw issue listing
+- [`hb-pick-priority-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-pick-priority-01.yaml) — Pick-work priority prefers in_progress and skips blocked work
+- [`hb-scoped-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-scoped-wake-01.yaml) — Scoped wake payload skips identity/inbox and goes straight to checkout
+- [`hb-wake-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-wake-comment-01.yaml) — Comment wake fetches the triggering comment first, then responds on the issue
 
 #### Behavior group co: Checkout
 
 6 scenarios (legacy group 2):
 
-- [`co-409-stop-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-409-stop-01.yaml) — 409 on checkout means stop — no retry, no assignee patch, move on
-- [`co-409-stop-02`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-409-stop-02.yaml) — 409 on checkout is terminal even when the task was requested by name
-- [`co-before-work-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-before-work-01.yaml) — Checkout happens before any other write on the issue
-- [`co-body-contract-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-body-contract-01.yaml) — Checkout body carries agentId and expectedStatuses
-- [`co-no-status-patch-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-no-status-patch-01.yaml) — Enter in_progress by checkout, never by patching status
-- [`co-runid-header-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-runid-header-01.yaml) — Modifying calls carry the X-Clayon-Run-Id audit header
+- [`co-409-stop-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-409-stop-01.yaml) — 409 on checkout means stop — no retry, no assignee patch, move on
+- [`co-409-stop-02`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-409-stop-02.yaml) — 409 on checkout is terminal even when the task was requested by name
+- [`co-before-work-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-before-work-01.yaml) — Checkout happens before any other write on the issue
+- [`co-body-contract-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-body-contract-01.yaml) — Checkout body carries agentId and expectedStatuses
+- [`co-no-status-patch-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-no-status-patch-01.yaml) — Enter in_progress by checkout, never by patching status
+- [`co-runid-header-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-runid-header-01.yaml) — Modifying calls carry the X-Clayon-Run-Id audit header
 
 #### Behavior group st: Status
 
 8 scenarios (legacy group 3):
 
-- [`st-backlog-park-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-backlog-park-01.yaml) — Postponed work is parked in backlog, not cancelled or closed
-- [`st-blocked-owner-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-blocked-owner-01.yaml) — Blocking on another issue sets status blocked plus first-class blockedByIssueIds
-- [`st-crossteam-cancel-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-crossteam-cancel-01.yaml) — Cross-team tasks are never cancelled — reassign to the manager instead
-- [`st-done-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-done-comment-01.yaml) — Closing a task is checkout, then PATCH done with an explanatory comment
-- [`st-env-blocked-notdone-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-env-blocked-notdone-01.yaml) — Impossible deliverable (absent mount, read-only prefix, no route) ends blocked with a named owner — never done or in_review
-- [`st-ephemeral-verify-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-ephemeral-verify-01.yaml) — Artifacts produced outside the synced workspace — the disposition PATCH must carry a persistence caveat (or relocation), never a bare done
-- [`st-handback-review-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-handback-review-01.yaml) — Board user asking for the task back gets reassigned + in_review, not done
-- [`st-unverified-toolchain-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-unverified-toolchain-01.yaml) — Unrunnable mandated verification (certified toolchain unobtainable) ends blocked stating what could not be verified — no unqualified completion claim
+- [`st-backlog-park-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-backlog-park-01.yaml) — Postponed work is parked in backlog, not cancelled or closed
+- [`st-blocked-owner-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-blocked-owner-01.yaml) — Blocking on another issue sets status blocked plus first-class blockedByIssueIds
+- [`st-crossteam-cancel-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-crossteam-cancel-01.yaml) — Cross-team tasks are never cancelled — reassign to the manager instead
+- [`st-done-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-done-comment-01.yaml) — Closing a task is checkout, then PATCH done with an explanatory comment
+- [`st-env-blocked-notdone-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-env-blocked-notdone-01.yaml) — Impossible deliverable (absent mount, read-only prefix, no route) ends blocked with a named owner — never done or in_review
+- [`st-ephemeral-verify-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-ephemeral-verify-01.yaml) — Artifacts produced outside the synced workspace — the disposition PATCH must carry a persistence caveat (or relocation), never a bare done
+- [`st-handback-review-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-handback-review-01.yaml) — Board user asking for the task back gets reassigned + in_review, not done
+- [`st-unverified-toolchain-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-unverified-toolchain-01.yaml) — Unrunnable mandated verification (certified toolchain unobtainable) ends blocked stating what could not be verified — no unqualified completion claim
 
 #### Behavior group cm: Comments
 
 6 scenarios (legacy group 4):
 
-- [`cm-mention-structured-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-mention-structured-01.yaml) — Machine-authored mentions use the structured agent:// form
-- [`cm-multiline-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-multiline-01.yaml) — Multiline markdown comments keep their literal newlines
-- [`cm-prefixed-url-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-prefixed-url-01.yaml) — Internal links always carry the company prefix
-- [`cm-progress-nextaction-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-progress-nextaction-01.yaml) — Progress comments state what is done, what remains, and who owns the next step
-- [`cm-runid-modify-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-runid-modify-01.yaml) — Comment POSTs carry the run-id audit header too
-- [`cm-ticket-link-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-ticket-link-01.yaml) — Ticket ids in comment bodies become company-prefixed markdown links
+- [`cm-mention-structured-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-mention-structured-01.yaml) — Machine-authored mentions use the structured agent:// form
+- [`cm-multiline-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-multiline-01.yaml) — Multiline markdown comments keep their literal newlines
+- [`cm-prefixed-url-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-prefixed-url-01.yaml) — Internal links always carry the company prefix
+- [`cm-progress-nextaction-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-progress-nextaction-01.yaml) — Progress comments state what is done, what remains, and who owns the next step
+- [`cm-runid-modify-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-runid-modify-01.yaml) — Comment POSTs carry the run-id audit header too
+- [`cm-ticket-link-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-ticket-link-01.yaml) — Ticket ids in comment bodies become company-prefixed markdown links
 
 #### Behavior group se: Search
 
 4 scenarios (legacy group 5):
 
-- [`se-get-issue-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) — Direct issue fetch plus thread read to answer a history question
-- [`se-q-comments-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-comments-01.yaml) — Search reaches comment bodies, not just titles
-- [`se-q-filters-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-filters-01.yaml) — Combine q with status/assignee filters
-- [`se-q-topic-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-topic-01.yaml) — Find an issue by topic using the q search param
+- [`se-get-issue-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) — Direct issue fetch plus thread read to answer a history question
+- [`se-q-comments-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-comments-01.yaml) — Search reaches comment bodies, not just titles
+- [`se-q-filters-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-filters-01.yaml) — Combine q with status/assignee filters
+- [`se-q-topic-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-topic-01.yaml) — Find an issue by topic using the q search param
 
 #### Behavior group su: Subtasks
 
 4 scenarios (legacy group 6):
 
-- [`su-crossteam-billing-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-crossteam-billing-01.yaml) — Cross-team delegation sets billingCode
-- [`su-inherit-workspace-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-inherit-workspace-01.yaml) — Non-child follow-up on the same code change inherits the execution workspace
-- [`su-no-poll-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-no-poll-01.yaml) — Delegate long work as a child issue and rely on wakes, not polling
-- [`su-parent-goal-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) — Subtasks are created with parentId and goalId set
+- [`su-crossteam-billing-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-crossteam-billing-01.yaml) — Cross-team delegation sets billingCode
+- [`su-inherit-workspace-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-inherit-workspace-01.yaml) — Non-child follow-up on the same code change inherits the execution workspace
+- [`su-no-poll-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-no-poll-01.yaml) — Delegate long work as a child issue and rely on wakes, not polling
+- [`su-parent-goal-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) — Subtasks are created with parentId and goalId set
 
 #### Behavior group bl: Blockers
 
 5 scenarios (legacy group 7):
 
-- [`bl-cancelled-not-resolved-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-cancelled-not-resolved-01.yaml) — Cancelled blockers do not auto-resolve — remove them explicitly
-- [`bl-clear-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-clear-01.yaml) — Clearing blockers sends an empty array (the set is replaced wholesale)
-- [`bl-create-blocked-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-create-blocked-01.yaml) — New dependent work is created blocked with blockedByIssueIds at creation time
-- [`bl-firstclass-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-firstclass-01.yaml) — Dependencies become first-class blockedByIssueIds, not prose
-- [`bl-read-owners-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-read-owners-01.yaml) — Blocker owners are read from the issue's blockedBy field
+- [`bl-cancelled-not-resolved-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-cancelled-not-resolved-01.yaml) — Cancelled blockers do not auto-resolve — remove them explicitly
+- [`bl-clear-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-clear-01.yaml) — Clearing blockers sends an empty array (the set is replaced wholesale)
+- [`bl-create-blocked-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-create-blocked-01.yaml) — New dependent work is created blocked with blockedByIssueIds at creation time
+- [`bl-firstclass-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-firstclass-01.yaml) — Dependencies become first-class blockedByIssueIds, not prose
+- [`bl-read-owners-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/bl-read-owners-01.yaml) — Blocker owners are read from the issue's blockedBy field
 
 #### Behavior group dp: Documents and plans
 
 3 scenarios (legacy group 8):
 
-- [`dp-base-revision-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) — Updating an existing plan fetches it first and sends its latest baseRevisionId
-- [`dp-plan-doc-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-doc-01.yaml) — Plans go in the plan issue document, and the issue is not marked done
-- [`dp-plan-link-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-link-comment-01.yaml) — Comments about a plan deep-link the plan document
+- [`dp-base-revision-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) — Updating an existing plan fetches it first and sends its latest baseRevisionId
+- [`dp-plan-doc-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-doc-01.yaml) — Plans go in the plan issue document, and the issue is not marked done
+- [`dp-plan-link-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-link-comment-01.yaml) — Comments about a plan deep-link the plan document
 
 #### Behavior group ix: Interactions
 
 9 scenarios (legacy group 9):
 
-- [`ix-checkbox-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-01.yaml) — Subset selection from a known list is a checkbox confirmation
-- [`ix-checkbox-result-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-result-01.yaml) — Checkbox continuation wake acts on result.selectedOptionIds only
-- [`ix-confirmation-plan-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-confirmation-plan-01.yaml) — Plan sign-off is a request_confirmation bound to the latest revision, then in_review
-- [`ix-continuation-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-continuation-01.yaml) — request_confirmation sets a wake continuation policy when work must resume
-- [`ix-questions-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-questions-01.yaml) — A short typed form of questions is ask_user_questions, not a comment
-- [`ix-stale-target-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-stale-target-01.yaml) — A stale_target expiry means rebuild against the latest revision, fresh interaction
-- [`ix-suggest-tasks-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-suggest-tasks-01.yaml) — Proposing tasks for the board to accept uses suggest_tasks, not direct creation
-- [`ix-superseded-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-superseded-comment-01.yaml) — A superseded_by_comment expiry means address the comment, then a new interaction
-- [`ix-verdicts-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-verdicts-01.yaml) — Per-item approve/reject decisions use request_item_verdicts with reasons on reject
+- [`ix-checkbox-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-01.yaml) — Subset selection from a known list is a checkbox confirmation
+- [`ix-checkbox-result-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-result-01.yaml) — Checkbox continuation wake acts on result.selectedOptionIds only
+- [`ix-confirmation-plan-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-confirmation-plan-01.yaml) — Plan sign-off is a request_confirmation bound to the latest revision, then in_review
+- [`ix-continuation-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-continuation-01.yaml) — request_confirmation sets a wake continuation policy when work must resume
+- [`ix-questions-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-questions-01.yaml) — A short typed form of questions is ask_user_questions, not a comment
+- [`ix-stale-target-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-stale-target-01.yaml) — A stale_target expiry means rebuild against the latest revision, fresh interaction
+- [`ix-suggest-tasks-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-suggest-tasks-01.yaml) — Proposing tasks for the board to accept uses suggest_tasks, not direct creation
+- [`ix-superseded-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-superseded-comment-01.yaml) — A superseded_by_comment expiry means address the comment, then a new interaction
+- [`ix-verdicts-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-verdicts-01.yaml) — Per-item approve/reject decisions use request_item_verdicts with reasons on reject
 
 #### Behavior group ap: Approvals
 
 6 scenarios (legacy group 10):
 
-- [`ap-approval-deny-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) — A denied approval leaves the issue open with an explanatory comment
-- [`ap-approval-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) — Approval wake reviews the approval, its issues, and closes what it resolves
-- [`ap-board-approval-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) — Spend needs a request_board_approval linked to the issue, then a waiting posture
-- [`ap-mcp-expiry-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-expiry-01.yaml) — An expired MCP approval means one fresh idempotent re-call, then in_review again
-- [`ap-mcp-gate-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-gate-01.yaml) — Pending MCP tool approval means in_review posture, no retry, no done
-- [`ap-mcp-pathmissing-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-pathmissing-01.yaml) — approval_path_missing means stop and reroute, not retry loops or fake dispositions
+- [`ap-approval-deny-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) — A denied approval leaves the issue open with an explanatory comment
+- [`ap-approval-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) — Approval wake reviews the approval, its issues, and closes what it resolves
+- [`ap-board-approval-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) — Spend needs a request_board_approval linked to the issue, then a waiting posture
+- [`ap-mcp-expiry-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-expiry-01.yaml) — An expired MCP approval means one fresh idempotent re-call, then in_review again
+- [`ap-mcp-gate-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-gate-01.yaml) — Pending MCP tool approval means in_review posture, no retry, no done
+- [`ap-mcp-pathmissing-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-mcp-pathmissing-01.yaml) — approval_path_missing means stop and reroute, not retry loops or fake dispositions
 
 #### Behavior group ar: Artifacts
 
 4 scenarios (legacy group 11):
 
-- [`ar-no-done-without-upload-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-no-done-without-upload-01.yaml) — Closing a task with a file deliverable implies uploading it, even unprompted
-- [`ar-upload-before-done-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-upload-before-done-01.yaml) — File deliverables are uploaded to the issue before closing it
-- [`ar-workproduct-pr-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-workproduct-pr-01.yaml) — An opened PR is recorded as a pull_request work product, not just a comment
-- [`ar-workproduct-wsfile-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-workproduct-wsfile-01.yaml) — A file staying in the execution workspace gets a workspace_file resourceRef work product
+- [`ar-no-done-without-upload-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-no-done-without-upload-01.yaml) — Closing a task with a file deliverable implies uploading it, even unprompted
+- [`ar-upload-before-done-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-upload-before-done-01.yaml) — File deliverables are uploaded to the issue before closing it
+- [`ar-workproduct-pr-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-workproduct-pr-01.yaml) — An opened PR is recorded as a pull_request work product, not just a comment
+- [`ar-workproduct-wsfile-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ar-workproduct-wsfile-01.yaml) — A file staying in the execution workspace gets a workspace_file resourceRef work product
 
 #### Behavior group er: Errors and critical rules
 
 9 scenarios (legacy group 12):
 
-- [`er-blocked-dedup-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-blocked-dedup-01.yaml) — Blocked task with no new context gets no re-comment and no checkout
-- [`er-budget-critical-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-budget-critical-01.yaml) — Above 80% budget usage, pick the critical task over the medium one
-- [`er-close-retry-fault-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-close-retry-fault-01.yaml) — C1 probe — closing PATCH survives two injected faults and keeps resending
-- [`er-exec-not-participant-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-exec-not-participant-01.yaml) — Non-participants never try to advance an execution stage
-- [`er-exec-participant-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-exec-participant-01.yaml) — Execution-policy reviewer approves via the normal PATCH with status done
-- [`er-mention-handoff-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-mention-handoff-01.yaml) — Explicit mention handoff self-assigns via checkout, never by patching assignee
-- [`er-mention-noassign-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-mention-noassign-01.yaml) — FYI mentions never trigger self-assignment
-- [`er-no-unassigned-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-no-unassigned-01.yaml) — Empty inbox means exit — never adopt unassigned work
-- [`er-release-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-release-01.yaml) — Handing a task back uses the release route, not cancel or assignee edits
+- [`er-blocked-dedup-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-blocked-dedup-01.yaml) — Blocked task with no new context gets no re-comment and no checkout
+- [`er-budget-critical-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-budget-critical-01.yaml) — Above 80% budget usage, pick the critical task over the medium one
+- [`er-close-retry-fault-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-close-retry-fault-01.yaml) — C1 probe — closing PATCH survives two injected faults and keeps resending
+- [`er-exec-not-participant-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-exec-not-participant-01.yaml) — Non-participants never try to advance an execution stage
+- [`er-exec-participant-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-exec-participant-01.yaml) — Execution-policy reviewer approves via the normal PATCH with status done
+- [`er-mention-handoff-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-mention-handoff-01.yaml) — Explicit mention handoff self-assigns via checkout, never by patching assignee
+- [`er-mention-noassign-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-mention-noassign-01.yaml) — FYI mentions never trigger self-assignment
+- [`er-no-unassigned-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-no-unassigned-01.yaml) — Empty inbox means exit — never adopt unassigned work
+- [`er-release-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-release-01.yaml) — Handing a task back uses the release route, not cancel or assignee edits
 
 #### Behavior group rf: Reference files
 
 22 scenarios (legacy group 13):
 
-- [`rf-api-404-report-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-404-report-01.yaml) — A 404 on an issue lookup is reported honestly, not papered over
-- [`rf-api-cancel-obsolete-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-cancel-obsolete-01.yaml) — Obsolete work is cancelled, not marked done and not deleted
-- [`rf-api-mention-discipline-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mention-discipline-01.yaml) — Status notes don't @-mention teammates who have nothing to act on
-- [`rf-api-mgr-heartbeat-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) — Manager-style heartbeat — team roster, workload read, summary comment
-- [`rf-api-review-changes-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-review-changes-01.yaml) — Reviewer requests changes with a non-done status and lets Clayon reassign
-- [`rf-art-attachment-wp-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-art-attachment-wp-01.yaml) — Deliverable upload is registered as a primary attachment-backed work product
-- [`rf-case-child-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-child-01.yaml) — Bounded sub-output becomes a child case under the parent record
-- [`rf-case-lifecycle-link-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-lifecycle-link-01.yaml) — Move a case to in_progress and link its driving issue as reference context
-- [`rf-case-upsert-doc-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-upsert-doc-01.yaml) — Create a retry-safe case with a stable key and write its document body
-- [`rf-cskill-audit-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-audit-01.yaml) — Library-vs-attached audit reads both the company and agent skill surfaces
-- [`rf-cskill-install-attach-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-install-attach-01.yaml) — Catalog install is followed by an agent skills sync — install ≠ attach
-- [`rf-cskill-self-sync-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-self-sync-01.yaml) — Skills sync replaces the whole desired set — existing skills are preserved
-- [`rf-iws-start-url-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) — Discover the issue workspace from the issue and start its service for QA
-- [`rf-iws-target-restart-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-target-restart-01.yaml) — Bounce a specific workspace service via a targeted selector and verify health
-- [`rf-routine-create-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-create-01.yaml) — Create a self-assigned routine with a weekly cron schedule trigger
-- [`rf-routine-manual-run-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-manual-run-01.yaml) — Fire a routine once via the manual-run endpoint with an idempotency key
-- [`rf-routine-pause-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-pause-01.yaml) — Pause a routine reversibly instead of archiving or deleting its trigger
-- [`rf-routine-policy-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-policy-01.yaml) — Set routine concurrency and catch-up policies by their enum names
-- [`rf-routine-webhook-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-webhook-01.yaml) — Add an HMAC-signed webhook trigger with a bounded replay window
-- [`rf-wf-export-preview-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-export-preview-01.yaml) — Company export previews first, narrows with selectedFiles, keeps tasks out
-- [`rf-wf-invite-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-invite-01.yaml) — OpenClaw invite — generate the prompt and post it paste-ready with the ws URL
-- [`rf-wf-project-setup-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) — New project with a repo-only workspace (repoUrl, no cwd)
+- [`rf-api-404-report-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-404-report-01.yaml) — A 404 on an issue lookup is reported honestly, not papered over
+- [`rf-api-cancel-obsolete-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-cancel-obsolete-01.yaml) — Obsolete work is cancelled, not marked done and not deleted
+- [`rf-api-mention-discipline-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mention-discipline-01.yaml) — Status notes don't @-mention teammates who have nothing to act on
+- [`rf-api-mgr-heartbeat-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) — Manager-style heartbeat — team roster, workload read, summary comment
+- [`rf-api-review-changes-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-review-changes-01.yaml) — Reviewer requests changes with a non-done status and lets Clayon reassign
+- [`rf-art-attachment-wp-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-art-attachment-wp-01.yaml) — Deliverable upload is registered as a primary attachment-backed work product
+- [`rf-case-child-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-child-01.yaml) — Bounded sub-output becomes a child case under the parent record
+- [`rf-case-lifecycle-link-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-lifecycle-link-01.yaml) — Move a case to in_progress and link its driving issue as reference context
+- [`rf-case-upsert-doc-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-case-upsert-doc-01.yaml) — Create a retry-safe case with a stable key and write its document body
+- [`rf-cskill-audit-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-audit-01.yaml) — Library-vs-attached audit reads both the company and agent skill surfaces
+- [`rf-cskill-install-attach-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-install-attach-01.yaml) — Catalog install is followed by an agent skills sync — install ≠ attach
+- [`rf-cskill-self-sync-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-self-sync-01.yaml) — Skills sync replaces the whole desired set — existing skills are preserved
+- [`rf-iws-start-url-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) — Discover the issue workspace from the issue and start its service for QA
+- [`rf-iws-target-restart-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-target-restart-01.yaml) — Bounce a specific workspace service via a targeted selector and verify health
+- [`rf-routine-create-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-create-01.yaml) — Create a self-assigned routine with a weekly cron schedule trigger
+- [`rf-routine-manual-run-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-manual-run-01.yaml) — Fire a routine once via the manual-run endpoint with an idempotency key
+- [`rf-routine-pause-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-pause-01.yaml) — Pause a routine reversibly instead of archiving or deleting its trigger
+- [`rf-routine-policy-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-policy-01.yaml) — Set routine concurrency and catch-up policies by their enum names
+- [`rf-routine-webhook-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-routine-webhook-01.yaml) — Add an HMAC-signed webhook trigger with a bounded replay window
+- [`rf-wf-export-preview-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-export-preview-01.yaml) — Company export previews first, narrows with selectedFiles, keeps tasks out
+- [`rf-wf-invite-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-invite-01.yaml) — OpenClaw invite — generate the prompt and post it paste-ready with the ws URL
+- [`rf-wf-project-setup-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) — New project with a repo-only workspace (repoUrl, no cwd)
 
 #### Behavior group mh: Multi-hop
 
 4 scenarios (legacy group 14):
 
-- [`mh-blocked-handoff-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-blocked-handoff-01.yaml) — "Multi-hop: spawn a review task and block the source on it so work auto-resumes"
-- [`mh-children-complete-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-children-complete-01.yaml) — "Multi-hop: children-completed wake wraps up the parent"
-- [`mh-plan-confirm-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-plan-confirm-01.yaml) — "Multi-hop: write plan doc, request confirmation on it, park in_review"
-- [`mh-subtask-tree-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-subtask-tree-01.yaml) — "Multi-hop: sequenced subtask tree with chained blockers"
+- [`mh-blocked-handoff-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-blocked-handoff-01.yaml) — "Multi-hop: spawn a review task and block the source on it so work auto-resumes"
+- [`mh-children-complete-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-children-complete-01.yaml) — "Multi-hop: children-completed wake wraps up the parent"
+- [`mh-plan-confirm-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-plan-confirm-01.yaml) — "Multi-hop: write plan doc, request confirmation on it, park in_review"
+- [`mh-subtask-tree-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/mh-subtask-tree-01.yaml) — "Multi-hop: sequenced subtask tree with chained blockers"
 
 #### Behavior group rs: Restraint and no-call
 
 3 scenarios (legacy group 15):
 
-- [`rs-dependency-blocked-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-dependency-blocked-wake-01.yaml) — A comment on a dependency-blocked issue is triaged, never force-unblocked
-- [`rs-question-only-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-question-only-01.yaml) — A status question gets an answer, not state changes
-- [`rs-secret-hygiene-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-secret-hygiene-01.yaml) — The API key never appears in comment bodies, even when asked to document auth
+- [`rs-dependency-blocked-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-dependency-blocked-wake-01.yaml) — A comment on a dependency-blocked issue is triaged, never force-unblocked
+- [`rs-question-only-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-question-only-01.yaml) — A status question gets an answer, not state changes
+- [`rs-secret-hygiene-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rs-secret-hygiene-01.yaml) — The API key never appears in comment bodies, even when asked to document auth
 
 #### Behavior group wk: Wake situations
 
 8 scenarios (legacy group 16):
 
-- [`wk-ask-mode-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-ask-mode-01.yaml) — Ask-mode wake is answer-only — comment, no state or document writes
-- [`wk-plan-accepted-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-accepted-01.yaml) — Accepted-plan continuation creates subtasks, never re-plans or re-asks
-- [`wk-plan-annotation-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-annotation-01.yaml) — Plan-annotation wake revises the document and answers annotations via nested routes
-- [`wk-plan-directive-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-directive-01.yaml) — Planning-mode wake produces plan PUT, revision-bound confirmation, then in_review
-- [`wk-plan-directive-02`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-directive-02.yaml) — Layer probe — planning directive via wake prose only (no task-context markdown)
-- [`wk-recovery-processlost-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-recovery-processlost-01.yaml) — Process-lost recovery verifies durable progress first and never redoes posted work
-- [`wk-resume-delta-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-resume-delta-01.yaml) — Layer probe — resume delta with condensed contract only preserves close discipline
-- [`wk-skilltest-mode-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-skilltest-mode-01.yaml) — Skill-test mode writes the structured result to the output document, scoped to this issue
+- [`wk-ask-mode-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-ask-mode-01.yaml) — Ask-mode wake is answer-only — comment, no state or document writes
+- [`wk-plan-accepted-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-accepted-01.yaml) — Accepted-plan continuation creates subtasks, never re-plans or re-asks
+- [`wk-plan-annotation-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-annotation-01.yaml) — Plan-annotation wake revises the document and answers annotations via nested routes
+- [`wk-plan-directive-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-directive-01.yaml) — Planning-mode wake produces plan PUT, revision-bound confirmation, then in_review
+- [`wk-plan-directive-02`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-plan-directive-02.yaml) — Layer probe — planning directive via wake prose only (no task-context markdown)
+- [`wk-recovery-processlost-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-recovery-processlost-01.yaml) — Process-lost recovery verifies durable progress first and never redoes posted work
+- [`wk-resume-delta-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-resume-delta-01.yaml) — Layer probe — resume delta with condensed contract only preserves close discipline
+- [`wk-skilltest-mode-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/wk-skilltest-mode-01.yaml) — Skill-test mode writes the structured result to the output document, scoped to this issue
 
 ## Authorization and execution invariants
 
@@ -482,48 +482,48 @@ The MCP inventory is a compatibility index, not a third product catalog. Every a
 
 | MCP alias | Source placement / target | Reconciled target | Eval evidence |
 | --- | --- | --- | --- |
-| `clayonMe` | `control_plane_owned` / `injected_actor_context` | `control_plane` → `select_work`<br>Identity is launch context, not a model tool. | [`hb-inbox-lite-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) |
-| `clayonInboxLite` | `control_plane_owned` / `runner_work_selection` | `control_plane` → `select_work`<br>Inbox selection belongs to the control plane. | [`hb-inbox-lite-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) |
-| `clayonListAgents` | `optional_agent_tool` / `list_agents` | `list_agents` | [`rf-api-mgr-heartbeat-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) |
-| `clayonListSkills` | `optional_agent_tool` / `list_company_skills` | `list_company_skills` | [`rf-cskill-audit-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-audit-01.yaml) |
-| `clayonGetAgent` | `optional_agent_tool` / `get_agent` | `get_agent` | [`rf-api-mgr-heartbeat-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) |
-| `clayonListIssues` | `optional_agent_tool` / `search_tasks` | `search_tasks` | [`se-q-filters-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-filters-01.yaml) |
-| `clayonGetIssue` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`se-get-issue-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) |
-| `clayonGetHeartbeatContext` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`hb-context-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-context-01.yaml) |
-| `clayonListComments` | `always_agent_tool` / `get_task_history` | `get_task_history` | [`se-get-issue-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) |
-| `clayonGetComment` | `always_agent_tool` / `get_task_history` | `get_task_history` | [`hb-wake-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-wake-comment-01.yaml) |
-| `clayonListIssueApprovals` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`ap-board-approval-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
-| `clayonListDocuments` | `always_agent_tool` / `list_documents` | `list_documents` | [`dp-base-revision-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
-| `clayonGetDocument` | `always_agent_tool` / `read_document` | `read_document` | [`dp-base-revision-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
-| `clayonListDocumentRevisions` | `always_agent_tool` / `list_document_revisions` | `list_document_revisions` | [`dp-base-revision-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
-| `clayonListProjects` | `optional_agent_tool` / `list_projects` | `list_projects` | [`rf-wf-project-setup-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) |
-| `clayonGetProject` | `optional_agent_tool` / `get_project` | `folded` → `list_projects`<br>The bounded discovery operation owns project list/get projection in V1. | [`rf-wf-project-setup-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) |
-| `clayonGetIssueWorkspaceRuntime` | `optional_agent_tool` / `get_workspace_runtime` | `get_workspace_runtime` | [`rf-iws-start-url-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) |
-| `clayonControlIssueWorkspaceServices` | `optional_agent_tool` / `control_workspace_service` | `control_workspace_service` | [`rf-iws-start-url-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) |
-| `clayonWaitForIssueWorkspaceService` | `optional_agent_tool` / `wait_for_workspace_service` | `folded` → `control_workspace_service`<br>Wait is a bounded action of workspace service control. | [`rf-iws-target-restart-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-target-restart-01.yaml) |
-| `clayonListGoals` | `optional_agent_tool` / `list_goals` | `list_goals` | [`su-parent-goal-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
-| `clayonGetGoal` | `optional_agent_tool` / `get_goal` | `folded` → `list_goals`<br>The bounded discovery operation owns goal list/get projection in V1. | [`su-parent-goal-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
-| `clayonListApprovals` | `optional_agent_tool` / `list_approvals` | `list_approvals` | [`ap-approval-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
-| `clayonCreateApproval` | `optional_agent_tool` / `request_approval` | `request_approval` | [`ap-board-approval-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
-| `clayonGetApproval` | `optional_agent_tool` / `get_approval` | `get_approval` | [`ap-approval-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
-| `clayonGetApprovalIssues` | `optional_agent_tool` / `get_approval_context` | `get_approval_context` | [`ap-approval-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
-| `clayonListApprovalComments` | `optional_agent_tool` / `get_approval_context` | `get_approval_context` | [`ap-approval-deny-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) |
-| `clayonCreateIssue` | `optional_agent_tool` / `create_task` | `create_task` | [`su-parent-goal-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
-| `clayonUpdateIssue` | `optional_agent_tool` / `semantic_task_disposition` | `composite` → `answer_status_question`, `finish_task`, `block_task`, `request_review`<br>Generic issue PATCH is replaced by intent-specific terminal/status operations. | [`st-done-comment-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-done-comment-01.yaml) |
-| `clayonCheckoutIssue` | `control_plane_owned` / `atomic_checkout` | `control_plane` → `checkout_task`<br>Checkout is an atomic control-plane transaction. | [`co-body-contract-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-body-contract-01.yaml) |
-| `clayonReleaseIssue` | `control_plane_owned` / `runtime_release` | `control_plane` → `release_task`<br>Release is runner/control-plane cleanup. | [`er-release-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-release-01.yaml) |
-| `clayonAddComment` | `always_agent_tool` / `report_progress` | `report_progress` | [`cm-multiline-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-multiline-01.yaml) |
-| `clayonSuggestTasks` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-suggest-tasks-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-suggest-tasks-01.yaml) |
-| `clayonAskUserQuestions` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-questions-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-questions-01.yaml) |
-| `clayonRequestConfirmation` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-confirmation-plan-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-confirmation-plan-01.yaml) |
-| `clayonRequestCheckboxConfirmation` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-checkbox-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-01.yaml) |
-| `clayonUpsertIssueDocument` | `always_agent_tool` / `write_document` | `write_document` | [`dp-plan-doc-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-doc-01.yaml) |
-| `clayonRestoreIssueDocumentRevision` | `optional_agent_tool` / `restore_document_revision` | `known_gap` → named gap<br>Approved optional documents:restore operation is not yet in the canonical catalog. | [`dp-base-revision-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
-| `clayonLinkIssueApproval` | `optional_agent_tool` / `link_approval` | `folded` → `request_approval`, `get_task_context`<br>Issue linkage is part of approval request/context composites. | [`ap-board-approval-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
-| `clayonUnlinkIssueApproval` | `optional_agent_tool` / `unlink_approval` | `control_plane` → `append_audit_record`<br>No standalone agent unlink tool is approved in V1. | [`ap-board-approval-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
-| `clayonApprovalDecision` | `optional_agent_tool` / `decide_approval` | `decide_approval` | [`ap-approval-wake-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
-| `clayonAddApprovalComment` | `optional_agent_tool` / `comment_on_approval` | `comment_on_approval` | [`ap-approval-deny-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) |
-| `clayonApiRequest` | `optional_agent_tool` / `test_only_api_escape_hatch` | `folded` → `generic_api_request`<br>Compatibility alias for the test-only escape hatch. | [`rf-api-404-report-01`](https://github.com/paperclipai/paperclip-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-404-report-01.yaml) |
+| `clayonMe` | `control_plane_owned` / `injected_actor_context` | `control_plane` → `select_work`<br>Identity is launch context, not a model tool. | [`hb-inbox-lite-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) |
+| `clayonInboxLite` | `control_plane_owned` / `runner_work_selection` | `control_plane` → `select_work`<br>Inbox selection belongs to the control plane. | [`hb-inbox-lite-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-inbox-lite-01.yaml) |
+| `clayonListAgents` | `optional_agent_tool` / `list_agents` | `list_agents` | [`rf-api-mgr-heartbeat-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) |
+| `clayonListSkills` | `optional_agent_tool` / `list_company_skills` | `list_company_skills` | [`rf-cskill-audit-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-cskill-audit-01.yaml) |
+| `clayonGetAgent` | `optional_agent_tool` / `get_agent` | `get_agent` | [`rf-api-mgr-heartbeat-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-mgr-heartbeat-01.yaml) |
+| `clayonListIssues` | `optional_agent_tool` / `search_tasks` | `search_tasks` | [`se-q-filters-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-q-filters-01.yaml) |
+| `clayonGetIssue` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`se-get-issue-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) |
+| `clayonGetHeartbeatContext` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`hb-context-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-context-01.yaml) |
+| `clayonListComments` | `always_agent_tool` / `get_task_history` | `get_task_history` | [`se-get-issue-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/se-get-issue-01.yaml) |
+| `clayonGetComment` | `always_agent_tool` / `get_task_history` | `get_task_history` | [`hb-wake-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/hb-wake-comment-01.yaml) |
+| `clayonListIssueApprovals` | `always_agent_tool` / `get_task_context` | `get_task_context` | [`ap-board-approval-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
+| `clayonListDocuments` | `always_agent_tool` / `list_documents` | `list_documents` | [`dp-base-revision-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
+| `clayonGetDocument` | `always_agent_tool` / `read_document` | `read_document` | [`dp-base-revision-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
+| `clayonListDocumentRevisions` | `always_agent_tool` / `list_document_revisions` | `list_document_revisions` | [`dp-base-revision-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
+| `clayonListProjects` | `optional_agent_tool` / `list_projects` | `list_projects` | [`rf-wf-project-setup-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) |
+| `clayonGetProject` | `optional_agent_tool` / `get_project` | `folded` → `list_projects`<br>The bounded discovery operation owns project list/get projection in V1. | [`rf-wf-project-setup-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-wf-project-setup-01.yaml) |
+| `clayonGetIssueWorkspaceRuntime` | `optional_agent_tool` / `get_workspace_runtime` | `get_workspace_runtime` | [`rf-iws-start-url-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) |
+| `clayonControlIssueWorkspaceServices` | `optional_agent_tool` / `control_workspace_service` | `control_workspace_service` | [`rf-iws-start-url-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-start-url-01.yaml) |
+| `clayonWaitForIssueWorkspaceService` | `optional_agent_tool` / `wait_for_workspace_service` | `folded` → `control_workspace_service`<br>Wait is a bounded action of workspace service control. | [`rf-iws-target-restart-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-iws-target-restart-01.yaml) |
+| `clayonListGoals` | `optional_agent_tool` / `list_goals` | `list_goals` | [`su-parent-goal-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
+| `clayonGetGoal` | `optional_agent_tool` / `get_goal` | `folded` → `list_goals`<br>The bounded discovery operation owns goal list/get projection in V1. | [`su-parent-goal-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
+| `clayonListApprovals` | `optional_agent_tool` / `list_approvals` | `list_approvals` | [`ap-approval-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
+| `clayonCreateApproval` | `optional_agent_tool` / `request_approval` | `request_approval` | [`ap-board-approval-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
+| `clayonGetApproval` | `optional_agent_tool` / `get_approval` | `get_approval` | [`ap-approval-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
+| `clayonGetApprovalIssues` | `optional_agent_tool` / `get_approval_context` | `get_approval_context` | [`ap-approval-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
+| `clayonListApprovalComments` | `optional_agent_tool` / `get_approval_context` | `get_approval_context` | [`ap-approval-deny-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) |
+| `clayonCreateIssue` | `optional_agent_tool` / `create_task` | `create_task` | [`su-parent-goal-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/su-parent-goal-01.yaml) |
+| `clayonUpdateIssue` | `optional_agent_tool` / `semantic_task_disposition` | `composite` → `answer_status_question`, `finish_task`, `block_task`, `request_review`<br>Generic issue PATCH is replaced by intent-specific terminal/status operations. | [`st-done-comment-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/st-done-comment-01.yaml) |
+| `clayonCheckoutIssue` | `control_plane_owned` / `atomic_checkout` | `control_plane` → `checkout_task`<br>Checkout is an atomic control-plane transaction. | [`co-body-contract-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/co-body-contract-01.yaml) |
+| `clayonReleaseIssue` | `control_plane_owned` / `runtime_release` | `control_plane` → `release_task`<br>Release is runner/control-plane cleanup. | [`er-release-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/er-release-01.yaml) |
+| `clayonAddComment` | `always_agent_tool` / `report_progress` | `report_progress` | [`cm-multiline-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/cm-multiline-01.yaml) |
+| `clayonSuggestTasks` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-suggest-tasks-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-suggest-tasks-01.yaml) |
+| `clayonAskUserQuestions` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-questions-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-questions-01.yaml) |
+| `clayonRequestConfirmation` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-confirmation-plan-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-confirmation-plan-01.yaml) |
+| `clayonRequestCheckboxConfirmation` | `always_agent_tool` / `request_human_input` | `request_human_input` | [`ix-checkbox-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ix-checkbox-01.yaml) |
+| `clayonUpsertIssueDocument` | `always_agent_tool` / `write_document` | `write_document` | [`dp-plan-doc-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-plan-doc-01.yaml) |
+| `clayonRestoreIssueDocumentRevision` | `optional_agent_tool` / `restore_document_revision` | `known_gap` → named gap<br>Approved optional documents:restore operation is not yet in the canonical catalog. | [`dp-base-revision-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/dp-base-revision-01.yaml) |
+| `clayonLinkIssueApproval` | `optional_agent_tool` / `link_approval` | `folded` → `request_approval`, `get_task_context`<br>Issue linkage is part of approval request/context composites. | [`ap-board-approval-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
+| `clayonUnlinkIssueApproval` | `optional_agent_tool` / `unlink_approval` | `control_plane` → `append_audit_record`<br>No standalone agent unlink tool is approved in V1. | [`ap-board-approval-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-board-approval-01.yaml) |
+| `clayonApprovalDecision` | `optional_agent_tool` / `decide_approval` | `decide_approval` | [`ap-approval-wake-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-wake-01.yaml) |
+| `clayonAddApprovalComment` | `optional_agent_tool` / `comment_on_approval` | `comment_on_approval` | [`ap-approval-deny-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/ap-approval-deny-01.yaml) |
+| `clayonApiRequest` | `optional_agent_tool` / `test_only_api_escape_hatch` | `folded` → `generic_api_request`<br>Compatibility alias for the test-only escape hatch. | [`rf-api-404-report-01`](https://github.com/clayon/clayon-evals/blob/master/clayon-skill-optimization/skills/clayon/tests/cases/rf-api-404-report-01.yaml) |
 
 ### PRP expressiveness boundary
 

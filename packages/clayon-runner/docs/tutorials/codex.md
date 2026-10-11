@@ -108,7 +108,7 @@ Confirm:
 - `instructionSources` is empty;
 - all three instruction-policy values are `false`;
 - `modelInputKinds` contains only `text`;
-- the semantic tools are `paperclip_finish` and `paperclip_block`;
+- the semantic tools are `clayon_finish` and `clayon_block`;
 - no environment **value** is present;
 - the requested permission profile denies root and host-home access, exposes
   read-only minimal runtime files, grants write access to the assigned
@@ -122,7 +122,7 @@ Confirm:
 Check that no control-plane route or bearer credential appears:
 
 ```sh
-if rg -ni 'authorization: bearer|paperclip_api_key|/api/issues/' "$codex_trace"; then
+if rg -ni 'authorization: bearer|clayon_api_key|/api/issues/' "$codex_trace"; then
   echo "FAIL: forbidden control-plane context found"
   exit 1
 fi

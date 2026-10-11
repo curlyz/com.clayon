@@ -82,7 +82,7 @@ fn restored_usage_snapshot(snapshot: Option<&Value>) -> Result<Value, LocalRunne
             "cacheWriteInputTokens": 0,
             "requestCount": 0,
             "estimatedCostUsd": 0.0,
-            "costSource": "paperclip_estimate"
+            "costSource": "clayon_estimate"
         }));
     };
     let object = snapshot.as_object().ok_or_else(|| {
@@ -110,7 +110,7 @@ fn restored_usage_snapshot(snapshot: Option<&Value>) -> Result<Value, LocalRunne
                 "AgentCore durable usage snapshot has invalid estimatedCostUsd",
             )
         })?;
-    if object.get("costSource").and_then(Value::as_str) != Some("paperclip_estimate") {
+    if object.get("costSource").and_then(Value::as_str) != Some("clayon_estimate") {
         return Err(LocalRunnerError::invalid(
             "AgentCore durable usage snapshot has invalid costSource",
         ));
@@ -533,7 +533,7 @@ fn prepare_agentcore_runtime_context_assets(
     config: &AwsAgentCoreProviderConfig,
 ) -> Result<Vec<AgentCoreContextAsset>, String> {
     let context = config.runtime_context.as_ref().ok_or_else(|| {
-        "AgentCore requires paperclip.native-execution-input.v3 runtimeContext".to_owned()
+        "AgentCore requires clayon.native-execution-input.v3 runtimeContext".to_owned()
     })?;
     let instruction_digest = context_text(context, "/instructions/bundle/digest")?;
     let instruction_root = Path::new(context_text(context, "/instructions/bundle/rootPath")?);
@@ -1275,7 +1275,7 @@ impl AwsAgentCoreHarnessProvider {
             "latencyMs": latency_ms,
             "estimatedCostUsd": estimate,
             "estimateScope": "bedrock_model_tokens_only",
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "estimatedCeilingUsd": self.max_estimated_cost_usd,
         });
         if let Some(floor) = conservative_floor {
@@ -1289,7 +1289,7 @@ impl AwsAgentCoreHarnessProvider {
             self.invocation_budget_reached = true;
             self.queue.push_back(ProviderEvent::Notification {
                 method: "provider/budgetReached".to_owned(),
-                params: json!({ "turnId": self.current_turn_id, "status": "limit_reached", "stopReason": "estimated_session_cost", "estimatedCostUsd": estimate, "costSource": "paperclip_estimate" }),
+                params: json!({ "turnId": self.current_turn_id, "status": "limit_reached", "stopReason": "estimated_session_cost", "estimatedCostUsd": estimate, "costSource": "clayon_estimate" }),
             });
         }
         ProviderEvent::Notification {
@@ -1640,7 +1640,7 @@ impl Provider for AwsAgentCoreHarnessProvider {
             ));
         }
         self.max_estimated_cost_usd = value;
-        Ok(json!({ "maxEstimatedSessionCostUsd": value, "costSource": "paperclip_estimate" }))
+        Ok(json!({ "maxEstimatedSessionCostUsd": value, "costSource": "clayon_estimate" }))
     }
 
     fn destroy_session(&mut self) -> Result<(), LocalRunnerError> {
@@ -1869,7 +1869,7 @@ impl Provider for AwsAgentCoreHarnessProvider {
                     | "timeout_exceeded"
                     | "model_context_window_exceeded" => Ok(Some(ProviderEvent::Notification {
                         method: "provider/budgetReached".to_owned(),
-                        params: json!({ "turnId": self.current_turn_id, "status": "limit_reached", "stopReason": reason, "costSource": "paperclip_estimate" }),
+                        params: json!({ "turnId": self.current_turn_id, "status": "limit_reached", "stopReason": reason, "costSource": "clayon_estimate" }),
                     })),
                     "content_filtered" => Err(LocalRunnerError::invalid(
                         "AgentCore model output was filtered",
@@ -2102,7 +2102,7 @@ fn remote_tool_name(operation_id: &str) -> String {
     }
     slug = slug.trim_matches('_').to_owned();
     if slug.is_empty() {
-        slug = "paperclip_tool".to_owned();
+        slug = "clayon_tool".to_owned();
     }
     slug.truncate(48);
     format!("pc_{}_{}", slug, sha_hex(operation_id, 12))
@@ -2442,7 +2442,7 @@ mod tests {
             "cacheWriteInputTokens": 8,
             "requestCount": 4,
             "estimatedCostUsd": 0.73,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "estimateScope": "bedrock_model_tokens_only"
         });
         assert_eq!(restored_usage_snapshot(Some(&usage)).unwrap(), usage);
@@ -2465,7 +2465,7 @@ mod tests {
             "cacheWriteInputTokens": 8,
             "requestCount": 4,
             "estimatedCostUsd": -1.0,
-            "costSource": "paperclip_estimate"
+            "costSource": "clayon_estimate"
         })))
         .is_err());
         assert!(restored_usage_snapshot(Some(&json!({
@@ -2475,7 +2475,7 @@ mod tests {
             "cacheWriteInputTokens": 8,
             "requestCount": 4,
             "estimatedCostUsd": 0.73,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "pendingEstimatedCeilingUsd": 1.0
         })))
         .is_err());
@@ -2486,7 +2486,7 @@ mod tests {
             "cacheWriteInputTokens": 8,
             "requestCount": 4,
             "estimatedCostUsd": 0.73,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "usageReconciliation": AGENTCORE_USAGE_RECONCILIATION_CONSERVATIVE,
             "conservativeCostFloorUsd": 0.74
         })))
@@ -2508,7 +2508,7 @@ mod tests {
             "cacheWriteInputTokens": 8,
             "requestCount": 4,
             "estimatedCostUsd": 0.73,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "usageReconciliation": "unexpected_state",
             "pendingInvocationId": "invocation-1"
         })))
@@ -3081,7 +3081,7 @@ mod tests {
             "cacheWriteInputTokens": 0,
             "requestCount": 2,
             "estimatedCostUsd": 1.0,
-            "costSource": "paperclip_estimate"
+            "costSource": "clayon_estimate"
         });
         let mut provider = provider_with_events(Vec::new(), usage);
         assert!(provider.invoke(Vec::new()).is_err());
@@ -3331,7 +3331,7 @@ mod tests {
     }
 
     #[test]
-    fn tool_allowlist_is_confined_to_the_paperclip_inline_namespace() {
+    fn tool_allowlist_is_confined_to_the_clayon_inline_namespace() {
         let tool = AuthorizedTool {
             operation_id: "get_task_context".to_owned(),
             version: 1,

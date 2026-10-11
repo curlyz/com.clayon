@@ -141,7 +141,7 @@ the readiness report linked above; native AskQuestion remains uncertified.
 ## Wire and isolation findings
 
 The observation-only usage candidate adds `_meta.clayonCursorUsage` to a
-prompt response. Its `paperclip.cursor.native-usage.v1` envelope contains a fresh
+prompt response. Its `clayon.cursor.native-usage.v1` envelope contains a fresh
 opaque prompt ID and separate native invocation/run observations. It allows at
 most 64 observations, 64 invocation identities and 16 KiB of JSON. Only observed,
 safe nonnegative numeric input/output/cache-read/cache-write/reasoning counters
@@ -329,7 +329,7 @@ isolation, not an operating-system sandbox: explicitly allowed native shell
 commands still have their granted filesystem/network powers.
 
 Typed `ActionRequiredError` instances now produce a failed JSON-RPC response
-with data schema `paperclip.cursor.provider-error.v1`, kind `action_required`,
+with data schema `clayon.cursor.provider-error.v1`, kind `action_required`,
 and the closed action enum `login`, `upgrade`, `payment`, `config`, or `unknown`.
 Login and native `ConnectError` with the Unauthenticated code use ACP error
 `-32000`; other action requirements use `-32603`. Provider-private error detail

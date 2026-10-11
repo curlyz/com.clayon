@@ -133,7 +133,7 @@ export async function capabilityRunScenario(
   });
 
   return Object.freeze({
-    schema: "paperclip.capability.run-artifact.v1",
+    schema: "clayon.capability.run-artifact.v1",
     scenarioId: entry.id,
     mode,
     runId,

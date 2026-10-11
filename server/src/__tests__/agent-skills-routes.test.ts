@@ -114,7 +114,7 @@ vi.mock("../services/instance-settings.js", async (importOriginal) => ({
 
 vi.mock("../adapters/index.js", () => ({
   findServerAdapter: vi.fn(() => mockAdapter),
-  findActiveServerAdapter: vi.fn((adapterType: string) => adapterType === "paperclip_runner"
+  findActiveServerAdapter: vi.fn((adapterType: string) => adapterType === "clayon_runner"
     ? { ...mockAdapter, supportsInstructionsBundle: true }
     : mockAdapter),
   listAdapterModels: vi.fn(),
@@ -159,7 +159,7 @@ function registerModuleMocks() {
 
   vi.doMock("../adapters/index.js", () => ({
     findServerAdapter: vi.fn(() => mockAdapter),
-    findActiveServerAdapter: vi.fn((adapterType: string) => adapterType === "paperclip_runner"
+    findActiveServerAdapter: vi.fn((adapterType: string) => adapterType === "clayon_runner"
       ? { ...mockAdapter, supportsInstructionsBundle: true }
       : mockAdapter),
     listAdapterModels: vi.fn(),
@@ -283,7 +283,7 @@ describe("agent skill routes", () => {
     mockSecretService.syncEnvBindingsForTarget.mockResolvedValue(undefined);
     mockCompanySkillService.listRuntimeSkillEntries.mockResolvedValue([
       {
-        key: "paperclipai/paperclip/clayon",
+        key: "clayon/clayon/clayon",
         runtimeName: "clayon",
         source: "/tmp/clayon",
       },
@@ -292,14 +292,14 @@ describe("agent skill routes", () => {
       async (_companyId: string, requested: string[]) =>
         requested.map((value) =>
           value === "clayon"
-            ? "paperclipai/paperclip/clayon"
+            ? "clayon/clayon/clayon"
             : value,
         ),
     );
     mockCompanySkillService.resolveRequestedSkillEntries.mockImplementation(
       async (_companyId: string, requested: Array<{ key: string; versionId?: string | null }>) => ({
         resolved: requested.map((entry) => ({
-          key: entry.key === "clayon" ? "paperclipai/paperclip/clayon" : entry.key,
+          key: entry.key === "clayon" ? "clayon/clayon/clayon" : entry.key,
           versionId: entry.versionId ?? null,
         })),
         unresolved: [],
@@ -309,7 +309,7 @@ describe("agent skill routes", () => {
       adapterType: "claude_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -317,7 +317,7 @@ describe("agent skill routes", () => {
       adapterType: "claude_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -491,7 +491,7 @@ describe("agent skill routes", () => {
       adapterType: "claude_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -514,7 +514,7 @@ describe("agent skill routes", () => {
       adapterType: "codex_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -544,7 +544,7 @@ describe("agent skill routes", () => {
       adapterType: "acpx_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -584,7 +584,7 @@ describe("agent skill routes", () => {
       config: {
         agent: "codex",
         clayonSkillSync: {
-          desiredSkills: ["paperclipai/paperclip/clayon"],
+          desiredSkills: ["clayon/clayon/clayon"],
         },
       },
     });
@@ -592,7 +592,7 @@ describe("agent skill routes", () => {
       adapterType: "acpx_local",
       supported: true,
       mode: "ephemeral",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -608,7 +608,7 @@ describe("agent skill routes", () => {
         adapterConfig: expect.objectContaining({
           agent: "codex",
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),
@@ -622,7 +622,7 @@ describe("agent skill routes", () => {
           clayonRuntimeSkills: expect.any(Array),
         }),
       }),
-      ["paperclipai/paperclip/clayon"],
+      ["clayon/clayon/clayon"],
     );
   });
 
@@ -655,7 +655,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: {
-            desiredSkills: ["company-1/keep", "paperclipai/paperclip/clayon"],
+            desiredSkills: ["company-1/keep", "clayon/clayon/clayon"],
           },
         }),
       }),
@@ -668,7 +668,7 @@ describe("agent skill routes", () => {
       ...makeAgent("claude_local"),
       adapterConfig: {
         clayonSkillSync: {
-          desiredSkills: ["company-1/keep", "paperclipai/paperclip/clayon"],
+          desiredSkills: ["company-1/keep", "clayon/clayon/clayon"],
         },
       },
     });
@@ -707,7 +707,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: {
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           },
         }),
       }),
@@ -723,7 +723,7 @@ describe("agent skill routes", () => {
       .send({
         mode: "replace",
         desiredSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           versionId: "22222222-2222-4222-8222-222222222222",
         }],
       }));
@@ -742,7 +742,7 @@ describe("agent skill routes", () => {
       .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
       .send({
         mode: "replace",
-        desiredSkills: [{ key: "paperclipai/paperclip/clayon", versionId }],
+        desiredSkills: [{ key: "clayon/clayon/clayon", versionId }],
       }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(200);
@@ -751,7 +751,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: [{ key: "paperclipai/paperclip/clayon", versionId }],
+            desiredSkills: [{ key: "clayon/clayon/clayon", versionId }],
           }),
         }),
       }),
@@ -778,7 +778,7 @@ describe("agent skill routes", () => {
             unresolved.push(entry.key);
           } else {
             resolved.push({
-              key: entry.key === "clayon" ? "paperclipai/paperclip/clayon" : entry.key,
+              key: entry.key === "clayon" ? "clayon/clayon/clayon" : entry.key,
               versionId: entry.versionId ?? null,
             });
           }
@@ -798,7 +798,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon", "stale/removed/skill"],
+            desiredSkills: ["clayon/clayon/clayon", "stale/removed/skill"],
           }),
         }),
       }),
@@ -820,7 +820,7 @@ describe("agent skill routes", () => {
       adapterType: "cursor",
       supported: true,
       mode: "persistent",
-      desiredSkills: ["paperclipai/paperclip/clayon"],
+      desiredSkills: ["clayon/clayon/clayon"],
       entries: [],
       warnings: [],
     });
@@ -843,18 +843,18 @@ describe("agent skill routes", () => {
 
     const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
       .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
-      .send({ desiredSkills: ["paperclipai/paperclip/clayon"], mode: "replace" }));
+      .send({ desiredSkills: ["clayon/clayon/clayon"], mode: "replace" }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(mockAdapter.syncSkills).toHaveBeenCalled();
   });
 
-  it("ignores the reserved legacy Clayon skill for paperclip_runner", async () => {
-    mockAgentService.getById.mockResolvedValue(makeAgent("paperclip_runner"));
+  it("ignores the reserved legacy Clayon skill for clayon_runner", async () => {
+    mockAgentService.getById.mockResolvedValue(makeAgent("clayon_runner"));
 
     const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
       .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
-      .send({ desiredSkills: ["paperclipai/paperclip/clayon"], mode: "replace" }));
+      .send({ desiredSkills: ["clayon/clayon/clayon"], mode: "replace" }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(mockAgentService.update).toHaveBeenCalledWith(
@@ -872,19 +872,19 @@ describe("agent skill routes", () => {
     );
   });
 
-  it("allows paperclip_runner to remove a pre-existing legacy Clayon skill", async () => {
+  it("allows clayon_runner to remove a pre-existing legacy Clayon skill", async () => {
     mockAgentService.getById.mockResolvedValue({
-      ...makeAgent("paperclip_runner"),
+      ...makeAgent("clayon_runner"),
       adapterConfig: {
         clayonSkillSync: {
-          desiredSkills: ["company-1/keep", "paperclipai/paperclip/clayon"],
+          desiredSkills: ["company-1/keep", "clayon/clayon/clayon"],
         },
       },
     });
 
     const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
       .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
-      .send({ desiredSkills: ["paperclipai/paperclip/clayon"], mode: "remove" }));
+      .send({ desiredSkills: ["clayon/clayon/clayon"], mode: "remove" }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(mockAgentService.update).toHaveBeenCalledWith(
@@ -947,7 +947,7 @@ describe("agent skill routes", () => {
 
     const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
       .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
-      .send({ desiredSkills: ["paperclipai/paperclip/clayon"], mode: "replace" }));
+      .send({ desiredSkills: ["clayon/clayon/clayon"], mode: "replace" }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     expect(mockAdapter.syncSkills).toHaveBeenCalledWith(
@@ -958,7 +958,7 @@ describe("agent skill routes", () => {
           clayonRuntimeSkills: expect.any(Array),
         }),
       }),
-      ["paperclipai/paperclip/clayon"],
+      ["clayon/clayon/clayon"],
     );
   });
 
@@ -975,7 +975,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),
@@ -1001,7 +1001,7 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),
@@ -1024,7 +1024,7 @@ describe("agent skill routes", () => {
         role: "engineer",
         adapterType: "claude_local",
         desiredSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           versionId: "22222222-2222-4222-8222-222222222222",
         }],
         adapterConfig: {},
@@ -1122,7 +1122,7 @@ describe("agent skill routes", () => {
     expect(mockAgentInstructionsService.materializeManagedBundle).not.toHaveBeenCalled();
   });
 
-  it.each(["claude_local", "paperclip_runner"].flatMap((adapterType) =>
+  it.each(["claude_local", "clayon_runner"].flatMap((adapterType) =>
     ["agents", "agent-hires"].map((route) => ({ adapterType, route })),
   ))("materializes only the CEO entry file for $adapterType via $route", async ({ adapterType, route }) => {
     mockInstanceSettingsService.getExperimental.mockResolvedValue({
@@ -1135,7 +1135,7 @@ describe("agent skill routes", () => {
         name: "CEO",
         role: "ceo",
         adapterType,
-        adapterConfig: adapterType === "paperclip_runner" ? { provider: "codex" } : {},
+        adapterConfig: adapterType === "clayon_runner" ? { provider: "codex" } : {},
       }));
 
     expect(res.status, JSON.stringify(res.body)).toBe(201);
@@ -1148,7 +1148,7 @@ describe("agent skill routes", () => {
     );
   });
 
-  it.each(["claude_local", "paperclip_runner"].flatMap((adapterType) =>
+  it.each(["claude_local", "clayon_runner"].flatMap((adapterType) =>
     ["agents", "agent-hires"].map((route) => ({ adapterType, route })),
   ))("preserves an explicit CEO instruction bundle for $adapterType via $route", async ({ adapterType, route }) => {
     mockInstanceSettingsService.getExperimental.mockResolvedValue({
@@ -1165,7 +1165,7 @@ describe("agent skill routes", () => {
         name: "Research Lead",
         role: "ceo",
         adapterType,
-        adapterConfig: adapterType === "paperclip_runner" ? { provider: "codex" } : {},
+        adapterConfig: adapterType === "clayon_runner" ? { provider: "codex" } : {},
         instructionsBundle: { entryFile: "AGENTS.md", files: customFiles },
       }));
 
@@ -1239,16 +1239,16 @@ describe("agent skill routes", () => {
     expect(entrySeed?.["AGENTS.md"]).toContain("chief of staff");
     // The normal onboarding flow has beta skill version selection disabled.
     expect(mockAgentService.create.mock.calls[0][1].adapterConfig.clayonSkillSync.desiredSkills)
-      .toContain("paperclipai/paperclip/first-task");
+      .toContain("clayon/clayon/first-task");
   });
 
   it.each(["codex_local", "claude_local"].flatMap((adapterType) => [
-    ["agents", "paperclipai/paperclip/clayon-create-agent"],
-    ["agent-hires", "paperclipai/paperclip/clayon-create-agent"],
+    ["agents", "clayon/clayon/clayon-create-agent"],
+    ["agent-hires", "clayon/clayon/clayon-create-agent"],
     ["agents", "clayon"],
     ["agent-hires", "clayon"],
-    ["agents", "paperclipai/paperclip/first-task"],
-    ["agent-hires", "paperclipai/paperclip/first-task"],
+    ["agents", "clayon/clayon/first-task"],
+    ["agent-hires", "clayon/clayon/first-task"],
   ].map(([route, skill]) => ({ adapterType, route, skill }))))("gives $adapterType onboarding agents core and first-task skills via $route, preserving $skill pins", async ({ adapterType, route, skill }) => {
     mockInstanceSettingsService.getExperimental.mockResolvedValue({ enableBetaSkills: true });
     const versionId = "22222222-2222-4222-8222-222222222222";
@@ -1262,9 +1262,9 @@ describe("agent skill routes", () => {
     expect(res.status, JSON.stringify(res.body)).toBe(201);
     const input = mockAgentService.create.mock.calls[0][1];
     expect(input.role).toBe("general");
-    const canonicalKey = skill === "clayon" ? "paperclipai/paperclip/clayon" : skill;
+    const canonicalKey = skill === "clayon" ? "clayon/clayon/clayon" : skill;
     const expected = ["clayon", "clayon-board", "clayon-converting-plans-to-tasks", "clayon-create-agent", "para-memory-files", "first-task"]
-      .map((name) => ({ key: `paperclipai/paperclip/${name}`, versionId: `paperclipai/paperclip/${name}` === canonicalKey ? versionId : null }));
+      .map((name) => ({ key: `clayon/clayon/${name}`, versionId: `clayon/clayon/${name}` === canonicalKey ? versionId : null }));
     expect(input.adapterConfig.clayonSkillSync.desiredSkills).toEqual(expect.arrayContaining(expected));
     expect(input.adapterConfig.clayonSkillSync.desiredSkills).toHaveLength(6);
   });
@@ -1283,8 +1283,8 @@ describe("agent skill routes", () => {
       .send({ name: "CEO", role: "ceo", adapterType: "codex_local" });
     expect(res.status, JSON.stringify(res.body)).toBe(201);
     const desiredSkills = mockAgentService.create.mock.calls[0][1].adapterConfig.clayonSkillSync.desiredSkills;
-    expect(desiredSkills).toContain("paperclipai/paperclip/clayon");
-    expect(desiredSkills).not.toContain("paperclipai/paperclip/first-task");
+    expect(desiredSkills).toContain("clayon/clayon/clayon");
+    expect(desiredSkills).not.toContain("clayon/clayon/first-task");
   });
 
   it("does not trust an agent-supplied onboarding marker to select chief-of-staff defaults", async () => {
@@ -1339,9 +1339,9 @@ describe("agent skill routes", () => {
       "company-1",
       expect.objectContaining({
         payload: expect.objectContaining({
-          desiredSkills: ["paperclipai/paperclip/clayon"],
+          desiredSkills: ["clayon/clayon/clayon"],
           requestedConfigurationSnapshot: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),
@@ -1365,11 +1365,11 @@ describe("agent skill routes", () => {
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
             desiredSkills: expect.arrayContaining([
-              "paperclipai/paperclip/clayon",
-              "paperclipai/paperclip/clayon-board",
-              "paperclipai/paperclip/clayon-converting-plans-to-tasks",
-              "paperclipai/paperclip/clayon-create-agent",
-              "paperclipai/paperclip/para-memory-files",
+              "clayon/clayon/clayon",
+              "clayon/clayon/clayon-board",
+              "clayon/clayon/clayon-converting-plans-to-tasks",
+              "clayon/clayon/clayon-create-agent",
+              "clayon/clayon/para-memory-files",
             ]),
           }),
         }),
@@ -1378,7 +1378,7 @@ describe("agent skill routes", () => {
     );
   });
 
-  it("omits the legacy operational skill from paperclip_runner CEO defaults", async () => {
+  it("omits the legacy operational skill from clayon_runner CEO defaults", async () => {
     mockInstanceSettingsService.getExperimental.mockResolvedValue({
       enableBetaSkills: false,
       enableNativeRunner: true,
@@ -1389,7 +1389,7 @@ describe("agent skill routes", () => {
       .send({
         name: "Native Lead",
         role: "ceo",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         adapterConfig: { provider: "codex" },
       });
 
@@ -1398,10 +1398,10 @@ describe("agent skill routes", () => {
       adapterConfig: { clayonSkillSync: { desiredSkills: string[] } };
     };
     expect(createInput.adapterConfig.clayonSkillSync.desiredSkills).not.toContain(
-      "paperclipai/paperclip/clayon",
+      "clayon/clayon/clayon",
     );
     expect(createInput.adapterConfig.clayonSkillSync.desiredSkills).toContain(
-      "paperclipai/paperclip/clayon-board",
+      "clayon/clayon/clayon-board",
     );
   });
 
@@ -1423,7 +1423,7 @@ describe("agent skill routes", () => {
     const desired = createInput.adapterConfig.clayonSkillSync.desiredSkills;
     // "clayon" resolves to its canonical key and dedupes with the default.
     expect(desired).toHaveLength(5);
-    expect(desired).toContain("paperclipai/paperclip/clayon");
+    expect(desired).toContain("clayon/clayon/clayon");
   });
 
   it("does not add default skills to non-CEO hires", async () => {
@@ -1451,7 +1451,7 @@ describe("agent skill routes", () => {
         role: "engineer",
         adapterType: "claude_local",
         desiredSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           versionId: "22222222-2222-4222-8222-222222222222",
         }],
         adapterConfig: {},
@@ -1486,7 +1486,7 @@ describe("agent skill routes", () => {
         icon: "crown",
         adapterConfig: expect.objectContaining({
           clayonSkillSync: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),
@@ -1505,9 +1505,9 @@ describe("agent skill routes", () => {
       expect.objectContaining({
         payload: expect.objectContaining({
           icon: "crown",
-          desiredSkills: ["paperclipai/paperclip/clayon"],
+          desiredSkills: ["clayon/clayon/clayon"],
           requestedConfigurationSnapshot: expect.objectContaining({
-            desiredSkills: ["paperclipai/paperclip/clayon"],
+            desiredSkills: ["clayon/clayon/clayon"],
           }),
         }),
       }),

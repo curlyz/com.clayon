@@ -102,7 +102,7 @@ export function discoverClayonSemanticTools(input: {
     );
 
   return deepFreeze({
-    schema: "paperclip.semantic-discovery.v1",
+    schema: "clayon.semantic-discovery.v1",
     query: input.query,
     namespace: namespace ?? null,
     operations: candidates

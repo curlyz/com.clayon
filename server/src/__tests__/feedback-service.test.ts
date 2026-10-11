@@ -158,7 +158,7 @@ describeEmbeddedPostgres("feedbackService.saveIssueVote", () => {
       {
         id: randomUUID(),
         companyId,
-        key: "paperclipai/paperclip/clayon",
+        key: "clayon/clayon/clayon",
         slug: "clayon",
         name: "Clayon",
         markdown: "# Clayon",
@@ -196,7 +196,7 @@ describeEmbeddedPostgres("feedbackService.saveIssueVote", () => {
           instructionsEntryFile: "AGENTS.md",
           instructionsFilePath: instructionsPath,
         },
-        ["paperclipai/paperclip/clayon", "octo/research/public-skill"],
+        ["clayon/clayon/clayon", "octo/research/public-skill"],
       ),
       runtimeConfig: {
         heartbeat: {
@@ -1050,7 +1050,7 @@ describeEmbeddedPostgres("feedbackService.saveIssueVote", () => {
       issueIdentifier: traces[0]?.issueIdentifier,
       captureStatus: expect.stringMatching(/^(full|partial|unavailable)$/),
       envelope: {
-        destination: "paperclip_labs_feedback_v1",
+        destination: "clayon_labs_feedback_v1",
         exportId: traces[0]?.exportId,
       },
     });

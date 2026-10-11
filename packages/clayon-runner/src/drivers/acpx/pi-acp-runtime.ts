@@ -4,7 +4,7 @@ import { StringDecoder } from "node:string_decoder";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync, realpathSync } from "node:fs";
 
-const PERMISSION_PREFIX = "paperclip.pi.permission.v1:";
+const PERMISSION_PREFIX = "clayon.pi.permission.v1:";
 const PERMISSION_CHOICES = [
   { optionId: "allow_once", name: "Allow once", kind: "allow_once" },
   { optionId: "allow_always", name: "Allow for this session", kind: "allow_always" },

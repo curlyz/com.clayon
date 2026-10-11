@@ -362,7 +362,7 @@ Clayon UI can display both managed and native skills in one view.
 ## Development
 
 ```bash
-git clone https://github.com/paperclipai/paperclip
+git clone https://github.com/clayon/clayon
 cd clayon/packages/adapters/hermes
 pnpm install
 pnpm build
@@ -375,6 +375,6 @@ MIT — see [LICENSE](LICENSE)
 ## Links
 
 - [Hermes Agent](https://github.com/NousResearch/hermes-agent) — The AI agent this adapter runs
-- [Clayon](https://github.com/paperclipai/paperclip) — The orchestration platform
+- [Clayon](https://github.com/clayon/clayon) — The orchestration platform
 - [Nous Research](https://nousresearch.com) — The team behind Hermes
 - [Clayon Docs](https://docs.clayon.ing) — Clayon documentation

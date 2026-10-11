@@ -460,7 +460,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
       companyId,
       issueId,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "phase6-v1",
       risk: "standard",
       completionAuthority: "server_arbiter",
@@ -573,7 +573,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
       agent: {
         id: agentId,
         status: "running",
-        adapterType: fixture.mode === "native" ? "paperclip_runner" : "codex_local",
+        adapterType: fixture.mode === "native" ? "clayon_runner" : "codex_local",
       },
       issue: { id: seeded.issueId, workMode: "standard" },
       target: { kind: "local" },
@@ -861,7 +861,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
           enabled,
           runtimeConfig,
           adapterConfig: { provider: "codex" },
-          agent: { id: agentId, status: "running", adapterType: "paperclip_runner" },
+          agent: { id: agentId, status: "running", adapterType: "clayon_runner" },
           issue: { id: seeded.issueId, workMode: "standard" },
           target: { kind: "local" },
           workspaceId: "fixture-workspace",
@@ -874,7 +874,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
             enabled,
             runtimeConfig,
             adapterConfig: { provider: "codex" },
-            agent: { id: agentId, status: "running", adapterType: "paperclip_runner" },
+            agent: { id: agentId, status: "running", adapterType: "clayon_runner" },
             issue: { id: seeded.issueId, workMode: "standard" },
             target: { kind: "local" },
             workspaceId: "fixture-workspace",
@@ -890,7 +890,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
         if (
           activeResolution.kind !== "native"
           || freshMode !== "rejected"
-          || freshReason !== "paperclip_runner_rollout_disabled"
+          || freshReason !== "clayon_runner_rollout_disabled"
           || runtimeConfig.nativeRunner.mode !== "native"
         ) {
           throw new Error(`${fixture.id}: global kill-switch transition missing`);
@@ -1757,7 +1757,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
         if (
           execution.observed.activeMode !== "native"
           || execution.observed.freshMode !== "rejected"
-          || execution.observed.freshReason !== "paperclip_runner_rollout_disabled"
+          || execution.observed.freshReason !== "clayon_runner_rollout_disabled"
           || execution.observed.profileMode !== "native"
         ) continue;
       }
@@ -1819,7 +1819,7 @@ describe("P6-31 Section 18.13 executable status-authority corpus", () => {
   }
 
   it("executes all 53 fixtures in their production consumers and joins all 70 matrix rows", async () => {
-    expect(corpus.schema).toBe("paperclip.status-authority-conformance.v1");
+    expect(corpus.schema).toBe("clayon.status-authority-conformance.v1");
     expect(corpus.fixtures).toHaveLength(53);
 
     const observations = new Map<string, FixtureObservation>();

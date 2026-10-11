@@ -966,7 +966,7 @@ describe("AppDefinition catalog", () => {
       );
       expect(managed, expected.profile).toMatchObject({
         auth: "oauth",
-        oauthStrategy: "paperclip_cloud_connector",
+        oauthStrategy: "clayon_cloud_connector",
         connectorProfile: expected.profile,
         capabilityProfile: { key: expected.capability },
         grantKinds: ["user", "organization"],

@@ -110,7 +110,7 @@ export interface ClayonNativeExecutionV1 {
 }
 
 export class ClayonNativeExecutionError extends Error {
-  readonly code = "paperclip_native_execution_invalid" as const;
+  readonly code = "clayon_native_execution_invalid" as const;
 
   constructor(
     message: string,
@@ -292,8 +292,8 @@ export function parseClayonNativeExecution(
   if (events.length === 0) fail("bundle.events", "must contain native events");
 
   const terminal = record(bundle.terminal, "bundle.terminal") as unknown as PrpTerminalState;
-  if (terminal.schema !== "paperclip.prp.terminal.v1") {
-    fail("bundle.terminal.schema", "must be paperclip.prp.terminal.v1");
+  if (terminal.schema !== "clayon.prp.terminal.v1") {
+    fail("bundle.terminal.schema", "must be clayon.prp.terminal.v1");
   }
   const terminalEvents = events.filter((event) => event.eventType === "run.terminal");
   if (terminalEvents.length !== 1) {
@@ -518,13 +518,13 @@ function semanticToolEnvelope(
   const payload = record(event.payload, `${path}.payload`);
   const envelope = record(payload.semantic_tool, `${path}.payload.semantic_tool`);
   if (
-    envelope.schema !== "paperclip.prp.semantic_tool.v1"
+    envelope.schema !== "clayon.prp.semantic_tool.v1"
     || envelope.schemaVersion !== 1
     || envelope.phase !== phase
   ) {
     fail(
       `${path}.payload.semantic_tool`,
-      `must be a paperclip.prp.semantic_tool.v1 ${phase} envelope`,
+      `must be a clayon.prp.semantic_tool.v1 ${phase} envelope`,
     );
   }
   const correlation = record(envelope.correlation, `${path}.payload.semantic_tool.correlation`);

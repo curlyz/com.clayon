@@ -24,7 +24,7 @@ import {
 
 const execFileAsync = promisify(execFile);
 export const PUBLIC_NPM_REGISTRY = "https://registry.npmjs.org";
-const DEFAULT_GITHUB_REPO = "paperclipai/paperclip";
+const DEFAULT_GITHUB_REPO = "clayon/clayon";
 const EXACT_VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 export type InstallOptions = { canary?: boolean; version?: string; ref?: string; repo?: string; yes?: boolean };

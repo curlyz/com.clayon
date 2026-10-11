@@ -4,7 +4,7 @@
 
 Server `074271e3fc4c2419c8894b7a564916ff54b90e32`, isolated Board
 `http://127.0.0.1:3103`, company Chat Adapter E2E. Maya E2E remains
-`paperclip_runner`, provider `codex`, model `gpt-5.6-luna`. The server's startup
+`clayon_runner`, provider `codex`, model `gpt-5.6-luna`. The server's startup
 recovery was ready before this exercise. Slack, GitHub, Discord, and Telegram
 were active; Teams was not configured.
 
@@ -130,7 +130,7 @@ From baseline **18:24:49.768** through **18:26:00.895 UTC**, counts remained
 Maya runs **86**, company tasks **17**, internal comments **216**, and
 publications **200**. Restored the enabled repository; the separate disabled
 repository stayed off. Maya's persisted configuration remained
-`paperclip_runner` → `codex` → `gpt-5.6-luna`.
+`clayon_runner` → `codex` → `gpt-5.6-luna`.
 
 Functional outcome: the original missing-receipt symptom is fixed in this
 live case without admitting refused work or retaining its content. Experience

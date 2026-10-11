@@ -59,7 +59,7 @@ export interface ClayonRunnerEvalCompatibilityReceipt {
 }
 
 export class ClayonRunnerEvalCompatibilityError extends Error {
-  readonly code = "paperclip_runner_eval_incompatible" as const;
+  readonly code = "clayon_runner_eval_incompatible" as const;
 
   constructor(
     readonly consumer: string,

@@ -149,7 +149,7 @@
     "build": "pnpm build (release runnerd)"
   },
   "runnerStartup": {
-    "schema": "paperclip.pi-session-open-diagnostic.v1",
+    "schema": "clayon.pi-session-open-diagnostic.v1",
     "credentials": "none",
     "promptCalls": 0,
     "providerCalls": 0,

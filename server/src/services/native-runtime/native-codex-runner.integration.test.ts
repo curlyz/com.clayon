@@ -134,7 +134,7 @@ describeEmbeddedPostgres("native Codex server vertical slice", () => {
       name: "Native Codex",
       role: "engineer",
       status: "active",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       permissions: {},
@@ -237,7 +237,7 @@ describeEmbeddedPostgres("native Codex server vertical slice", () => {
       resultJson: {
         nativeRunner: {
           result: {
-            schema: "paperclip.run_result.v1",
+            schema: "clayon.run_result.v1",
             completionClaim: {
               contractRevision: "1",
               objectiveSatisfied: true,
@@ -245,7 +245,7 @@ describeEmbeddedPostgres("native Codex server vertical slice", () => {
             },
           },
           terminal: {
-            schema: "paperclip.prp.terminal.v1",
+            schema: "clayon.prp.terminal.v1",
             runTerminalState: "succeeded",
           },
         },

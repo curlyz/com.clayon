@@ -94,7 +94,7 @@ describe("Pi installation factory", () => {
       : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);
     const identity = JSON.parse(await readFile(new URL("../../../test-fixtures/pi-acp/profile-v22-identity.json", import.meta.url), "utf8"));
     const declaration = identity.declaration;
-    expect(declaration.sharedRuntimeContract).toBe("paperclip.acpx-runtime-contract.v1");
+    expect(declaration.sharedRuntimeContract).toBe("clayon.acpx-runtime-contract.v1");
     expect(identity.commandDigest).toBe(`sha256:${hash(canonical(declaration))}`);
     expect(QUALIFIED_ACPX_PROFILES.pi.commandDigest).toBe(identity.commandDigest);
     for (const key of ["agent", "agentProfileVersion", "acpxVersion", "agentServerVersion", "agentRuntimeVersion"] as const) {
@@ -145,7 +145,7 @@ describe("Pi installation factory", () => {
   it("never takes closure authority from installed metadata", async () => {
     const { assets } = await fixture();
     await writeFile(join(assets, "pi-distribution.json"), JSON.stringify({
-      schema: "paperclip.pi-distribution.v1", runtimeRoot: "runtime", nativeClosureSha256: "0".repeat(64),
+      schema: "clayon.pi-distribution.v1", runtimeRoot: "runtime", nativeClosureSha256: "0".repeat(64),
       target: { platform: process.platform, architecture: process.arch, nodeVersion: "24.21.0" },
       pins: { nodeVersion: "24.21.0", wrapper: "0.0.33", runtime: "1.0.0", sdk: "0.26.0", zod: "3.25.76" },
     }));

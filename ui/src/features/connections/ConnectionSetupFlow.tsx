@@ -443,8 +443,8 @@ function recommendedManagedConnectorMethod(
       ? entry.methods.filter(
           (candidate) =>
             (candidate.purpose ?? "tool") === "tool" &&
-            (candidate.oauthStrategy === "paperclip_cloud_connector" ||
-              candidate.oauthStrategy === "paperclip_id_connector"),
+            (candidate.oauthStrategy === "clayon_cloud_connector" ||
+              candidate.oauthStrategy === "clayon_id_connector"),
         )
       : [],
   );
@@ -594,7 +594,7 @@ export function ConnectionSetupFlow(props: ConnectionSetupFlowProps = {}) {
     if (!memory.loaded) return <p className="p-6 text-sm text-muted-foreground">Loading connection settings…</p>;
     if (!memory.enabled) return <p role="status" className="p-6 text-sm text-muted-foreground">Enable memory connectors in Settings → Experimental to set up this connection.</p>;
   }
-  if (!props.byoOnly && (props.credentialSource ?? "paperclip_vault") === "paperclip_vault"
+  if (!props.byoOnly && (props.credentialSource ?? "clayon_vault") === "clayon_vault"
     && isRemoteMcpConnectorId(provider) && (!method || isRemoteMcpConnectorMethod(provider, method))) {
     const target = findAggregatorApp(provider, searchParams.get("targetToolkit"));
     return <RemoteMcpProductionSetup key={`${interactionId || "page"}:${provider}`} {...props} upstreamServiceName={props.upstreamServiceName ?? target?.name} interactionId={interactionId} providerId={provider} connection={existing.data} />;
@@ -607,7 +607,7 @@ function StandardConnectionSetupFlow({
   connectionSettings,
   additionalSettingsValid = true,
   byoOnly = false,
-  credentialSource = "paperclip_vault",
+  credentialSource = "clayon_vault",
   host = "page",
   serviceSlug,
   requestedAgentId,
@@ -659,7 +659,7 @@ function StandardConnectionSetupFlow({
       : null;
   const vercelConnectMode = credentialSource === "vercel_connect";
   const directOAuthCandidate = serviceSlug ?? sourceSlug;
-  const directOAuthSource = credentialSource === "paperclip_vault"
+  const directOAuthSource = credentialSource === "clayon_vault"
     && isMcpDirectOAuthConnectSlug(directOAuthCandidate)
     ? directOAuthCandidate
     : null;
@@ -937,7 +937,7 @@ function StandardConnectionSetupFlow({
    * definition — the generic path stays available either way.
    */
   const useMatchedGalleryEntry = (picked: AppDefinition) => {
-    if (host === "page" && !connectionIntentId && credentialSource === "paperclip_vault" && isRemoteMcpConnectorId(picked.slug)) {
+    if (host === "page" && !connectionIntentId && credentialSource === "clayon_vault" && isRemoteMcpConnectorId(picked.slug)) {
       navigate(`/apps/connect?source=${picked.slug}`);
       return;
     }
@@ -955,7 +955,7 @@ function StandardConnectionSetupFlow({
       navigate(withConnectionIntent("/apps/connect?source=zapier", connectionIntentId));
       return;
     }
-    if (credentialSource === "paperclip_vault" && canUseAutomaticOAuthFastPath(picked)) {
+    if (credentialSource === "clayon_vault" && canUseAutomaticOAuthFastPath(picked)) {
       navigate(appSourceConnectHref(picked.slug, connectionIntentId));
       return;
     }
@@ -1042,14 +1042,14 @@ function StandardConnectionSetupFlow({
   const selectedCustomOAuth = Boolean(customOAuthMethod && connectionMethodKey === customOAuthMethod.key);
   const requestedDefinitionUsesManagedConnector = !selectedCustomOAuth && Boolean(
     fullRequestedDefinition?.methods.some((candidate) =>
-      candidate.oauthStrategy === "paperclip_cloud_connector"
-      || candidate.oauthStrategy === "paperclip_id_connector"
+      candidate.oauthStrategy === "clayon_cloud_connector"
+      || candidate.oauthStrategy === "clayon_id_connector"
     ),
   );
   const entryAdvertisesManagedConnector = Boolean(
     entry?.methods.some((candidate) =>
-      candidate.oauthStrategy === "paperclip_cloud_connector"
-      || candidate.oauthStrategy === "paperclip_id_connector"
+      candidate.oauthStrategy === "clayon_cloud_connector"
+      || candidate.oauthStrategy === "clayon_id_connector"
     ),
   );
   // Before a self-hosted instance enrolls, the server intentionally withholds
@@ -1265,8 +1265,8 @@ function StandardConnectionSetupFlow({
   const entryAutomaticOAuthMethod = selectedSetupMethod && connectionMethodSupportsAutomaticOAuth(selectedSetupMethod)
     ? selectedSetupMethod
     : automaticOAuthMethod(entry);
-  const automaticOAuthEntry = credentialSource === "paperclip_vault" && entryAutomaticOAuthMethod ? entry : null;
-  const directOAuthEntry = credentialSource === "paperclip_vault" && canUseAutomaticOAuthFastPath(entry) ? entry : null;
+  const automaticOAuthEntry = credentialSource === "clayon_vault" && entryAutomaticOAuthMethod ? entry : null;
+  const directOAuthEntry = credentialSource === "clayon_vault" && canUseAutomaticOAuthFastPath(entry) ? entry : null;
   const directOAuthLookupPending = Boolean(directOAuthSource) && (
     !applicationsQuery.isFetchedAfterMount || !connectionsQuery.isFetchedAfterMount
   );
@@ -1374,7 +1374,7 @@ function StandardConnectionSetupFlow({
           ...(connectionMethodKey ? { connectionMethodKey } : {}),
           name: connectionName,
           credentialSource,
-          ...(credentialSource === "paperclip_vault" ? { credentialValues: credentials } : {}),
+          ...(credentialSource === "clayon_vault" ? { credentialValues: credentials } : {}),
           ...(credentialSource === "vercel_connect"
             ? { vercelConnect: { connector: vercelConnector.trim() } }
             : {}),
@@ -1570,8 +1570,8 @@ function StandardConnectionSetupFlow({
     });
     const requestedEntryAdvertisesManagedConnector = Boolean(
       requestedEntry?.methods.some((candidate) =>
-        candidate.oauthStrategy === "paperclip_cloud_connector"
-        || candidate.oauthStrategy === "paperclip_id_connector"
+        candidate.oauthStrategy === "clayon_cloud_connector"
+        || candidate.oauthStrategy === "clayon_id_connector"
       ),
     );
     // The enrollment lookup decides whether a hidden managed method means
@@ -1597,7 +1597,7 @@ function StandardConnectionSetupFlow({
         : null
     ) ?? recommendedSetupConnectionMethod(methods);
     const method = methods.length === 1 ? methods[0]! : null;
-    const automaticOAuth = credentialSource === "paperclip_vault" && Boolean(automaticOAuthMethod(requestedEntry));
+    const automaticOAuth = credentialSource === "clayon_vault" && Boolean(automaticOAuthMethod(requestedEntry));
     const vercelUnavailable = isVercelConnectUnavailable({
       credentialSource,
       available: galleryQuery.data.credentialSources?.vercelConnect.available === true,
@@ -3680,7 +3680,7 @@ function KeyStep({
     </div>
   ) : null;
   const managedOAuthMethod = capabilityMethods.find((candidate) =>
-    candidate.oauthStrategy === "paperclip_cloud_connector",
+    candidate.oauthStrategy === "clayon_cloud_connector",
   );
   const customerOAuthMethod = managedOAuthMethod && capabilityMethods.find((candidate) =>
     connectionMethodAcceptsCustomerOAuthClient(candidate)

@@ -56,8 +56,8 @@ describe("runner semantic MCP bridge", () => {
       result: {
         tools: [
           { name: "documents.read" },
-          { name: "paperclip_finish", description: PRP_COMPLETION_TOOL_DESCRIPTION, inputSchema: PRP_COMPLETION_RESULT_PROVIDER_INPUT_SCHEMA },
-          { name: "paperclip_block", description: PRP_BLOCK_TOOL_DESCRIPTION, inputSchema: PRP_BLOCK_RESULT_PROVIDER_INPUT_SCHEMA },
+          { name: "clayon_finish", description: PRP_COMPLETION_TOOL_DESCRIPTION, inputSchema: PRP_COMPLETION_RESULT_PROVIDER_INPUT_SCHEMA },
+          { name: "clayon_block", description: PRP_BLOCK_TOOL_DESCRIPTION, inputSchema: PRP_BLOCK_RESULT_PROVIDER_INPUT_SCHEMA },
         ],
       },
     });
@@ -67,7 +67,7 @@ describe("runner semantic MCP bridge", () => {
     const handler = vi.fn(async ({ tool: name }) => ({ name }));
     const bridge = await startRunnerToolBridge({
       tools: [tool("documents.read")],
-      privateTools: [tool("__paperclip_permission")],
+      privateTools: [tool("__clayon_permission")],
       handler,
     });
     bridges.push(bridge);
@@ -75,19 +75,19 @@ describe("runner semantic MCP bridge", () => {
       await rpc(bridge, { id: 1, method: "tools/list" })
     ).json()) as { result: { tools: Array<{ name: string }> } };
     expect(listed.result.tools.map(({ name }) => name)).not.toContain(
-      "__paperclip_permission",
+      "__clayon_permission",
     );
     expect(
       await (
         await rpc(bridge, {
           id: "private-1",
           method: "tools/call",
-          params: { name: "__paperclip_permission", arguments: {} },
+          params: { name: "__clayon_permission", arguments: {} },
         })
       ).json(),
     ).toMatchObject({
       result: {
-        content: [{ text: expect.stringContaining("__paperclip_permission") }],
+        content: [{ text: expect.stringContaining("__clayon_permission") }],
       },
     });
   });
@@ -103,7 +103,7 @@ describe("runner semantic MCP bridge", () => {
       id: "call-1",
       method: "tools/call",
       params: {
-        name: "paperclip_documents.read",
+        name: "clayon_documents.read",
         arguments: { id: "doc" },
       },
     };
@@ -305,7 +305,7 @@ describe("runner semantic MCP bridge", () => {
         .map(({ text }) => text)
         .join("");
       expect(manifest).toMatchObject({
-        schema: "paperclip.semantic_tool_result_chunks.v1",
+        schema: "clayon.semantic_tool_result_chunks.v1",
         encoding: "json",
         chunkCount: body.result.content.length - 1,
         byteLength: Buffer.byteLength(serialized),
@@ -344,11 +344,11 @@ describe("runner semantic MCP bridge", () => {
     const second = (await (await rpc(bridge, request)).json()) as typeof first;
     expect(first.result).not.toHaveProperty("isError");
     expect(JSON.parse(first.result.content[0]!.text)).toMatchObject({
-      schema: "paperclip.semantic_tool_result.v1",
+      schema: "clayon.semantic_tool_result.v1",
       status: "completed",
       tool: "documents.read",
       callIdentitySha256: expect.stringMatching(/^[0-9a-f]{64}$/),
-      encoding: "paperclip.tagged_graph.v1",
+      encoding: "clayon.tagged_graph.v1",
       result: {
         root: { $ref: 1 },
         nodes: [
@@ -418,13 +418,13 @@ describe("runner semantic MCP bridge", () => {
   it("prevents catalog ambiguity and reserved schema replacement", async () => {
     await expect(
       startRunnerToolBridge({
-        tools: [tool("documents.read"), tool("paperclip_documents.read")],
+        tools: [tool("documents.read"), tool("clayon_documents.read")],
         handler: async () => null,
       }),
     ).rejects.toThrow("duplicated");
     await expect(
       startRunnerToolBridge({
-        tools: [tool("paperclip_finish")],
+        tools: [tool("clayon_finish")],
         handler: async () => null,
       }),
     ).rejects.toThrow("reserved by the protocol");
@@ -458,10 +458,10 @@ describe("runner semantic MCP bridge", () => {
   });
 
   it("normalizes every supported provider prefix", () => {
-    expect(canonicalRunnerToolName("paperclip_documents.read")).toBe(
+    expect(canonicalRunnerToolName("clayon_documents.read")).toBe(
       "documents.read",
     );
-    expect(canonicalRunnerToolName("paperclip__documents.read")).toBe(
+    expect(canonicalRunnerToolName("clayon__documents.read")).toBe(
       "documents.read",
     );
     expect(canonicalRunnerToolName("clayon.documents.read")).toBe(
@@ -496,11 +496,11 @@ describe("Copilot semantic receipt opt-in", () => {
         return { accepted: true };
       } });
       bridges.push(bridge);
-      const request = { id: 3, method: "tools/call", params: { name: "paperclip_finish", arguments: rawFinish } };
+      const request = { id: 3, method: "tools/call", params: { name: "clayon_finish", arguments: rawFinish } };
       const body = await (await rpc(bridge, request)).json();
       expect(receipts).toHaveLength(1);
       expect(readNativeSemanticReceipt({ contents: body.result.content })).toEqual(receipts[0]);
-      expect(receipts[0]).toMatchObject({ schema: "paperclip.semantic_tool_receipt.v2", inputSha256: semanticInputSha256(rawFinish),
+      expect(receipts[0]).toMatchObject({ schema: "clayon.semantic_tool_receipt.v2", inputSha256: semanticInputSha256(rawFinish),
         normalizedInputSha256: mode === "committed" ? semanticInputSha256(capturedInput) : null });
       expect(semanticInputSha256(rawFinish)).not.toBe(semanticInputSha256(capturedInput));
       expect(await (await rpc(bridge, request)).json()).toEqual(body);
@@ -514,9 +514,9 @@ describe("Copilot semantic receipt opt-in", () => {
       pending.set(call.callId, { capture: call.captureNormalizedInput!, settle: () => resolve({ accepted: true }) });
     }) });
     bridges.push(bridge);
-    const first = rpc(bridge, { id: "first", method: "tools/call", params: { name: "paperclip_finish", arguments: rawFinish } });
+    const first = rpc(bridge, { id: "first", method: "tools/call", params: { name: "clayon_finish", arguments: rawFinish } });
     const secondInput = { ...rawFinish, summary: "Second call" };
-    const second = rpc(bridge, { id: "second", method: "tools/call", params: { name: "paperclip_finish", arguments: secondInput } });
+    const second = rpc(bridge, { id: "second", method: "tools/call", params: { name: "clayon_finish", arguments: secondInput } });
     await vi.waitFor(() => expect(pending.size).toBe(2));
     const normalizedFirst = validatePrpStructuredRunResult(rawFinish); const normalizedSecond = validatePrpStructuredRunResult(secondInput);
     if (!normalizedFirst.ok || !normalizedSecond.ok) throw new Error("Invalid fixture");
@@ -537,7 +537,7 @@ describe("Copilot semantic receipt opt-in", () => {
     const body = await (await rpc(withEvidence, { id: 1, method: "tools/call", params: { name: "documents.read", arguments: modelMetadata } })).json();
     expect(readNativeSemanticReceipt({ contents: body.result.content })).toHaveProperty("normalizedInputSha256", null);
     const plain = await startRunnerToolBridge({ handler: async call => { expect(call.captureNormalizedInput).toBeUndefined(); return { accepted: true }; } }); bridges.push(plain);
-    const plainBody = await (await rpc(plain, { id: 2, method: "tools/call", params: { name: "paperclip_finish", arguments: rawFinish } })).json();
+    const plainBody = await (await rpc(plain, { id: 2, method: "tools/call", params: { name: "clayon_finish", arguments: rawFinish } })).json();
     expect(readNativeSemanticReceipt({ contents: plainBody.result.content })).toBeNull();
   });
   it.each(["small", "chunked", "tagged", "error"])("preserves %s result encoding and captures scope before dispatch", async encoding => {

@@ -140,7 +140,7 @@ function executionFor(
   const transient =
     fixture.oldIdentity.environmentLeaseId === fixture.oldIdentity.runId;
   return {
-    schema: "paperclip.native-execution-input.v1",
+    schema: "clayon.native-execution-input.v1",
     provider: { kind: "codex", model: null },
     binding: {
       companyId,
@@ -173,7 +173,7 @@ function executionFor(
     completionContract: {
       id: randomUUID(),
       sha256: "fixture",
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       contract: {
         revision: "1",
         objective: "Retain exact handoff",
@@ -259,7 +259,7 @@ generated(
           "utf8",
         ),
       ) as Fixture;
-      expect(fixture.schema).toBe("paperclip.test.warm-transition-fixture.v1");
+      expect(fixture.schema).toBe("clayon.test.warm-transition-fixture.v1");
       // A later rebuild at the same path must fail here, never rewrite the receipt.
       expect(readRunnerdArtifactBinding(fixture.artifact.path)).toEqual({
         version: fixture.artifact.version,
@@ -306,7 +306,7 @@ generated(
         const transient =
           fixture.oldIdentity.environmentLeaseId === fixture.oldIdentity.runId;
         const stateKey = nativeSha256({
-          schema: "paperclip.native-session-scope.v2",
+          schema: "clayon.native-session-scope.v2",
           companyId,
           agentId,
           workspace: transient
@@ -347,7 +347,7 @@ generated(
           name: "Fixture owner",
           role: "engineer",
           status: "active",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: {},
           runtimeConfig: {},
           permissions: {},
@@ -514,7 +514,7 @@ generated(
           await writeFile(
             join(root, "cleanup-activation.json"),
             JSON.stringify({
-              schema: "paperclip.native_cleanup_activation.v1",
+              schema: "clayon.native_cleanup_activation.v1",
               companyId,
               issueId,
               runId: fixture.oldIdentity.runId,
@@ -731,7 +731,7 @@ generated(
                 await writeFile(
                   join(root, "cleanup-activation.json"),
                   JSON.stringify({
-                    schema: "paperclip.native_cleanup_activation.v1",
+                    schema: "clayon.native_cleanup_activation.v1",
                     companyId,
                     issueId,
                     runId: fixture.oldIdentity.runId,

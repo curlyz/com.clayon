@@ -133,7 +133,7 @@ export async function qualifyCursorNativeUsage(vendorRoot) {
     checks.push("exception_cleanup");
     platforms.push({ platform, vendorSha256: hash(original), candidateSha256: hash(source), checks });
   }
-  return { schema: "paperclip.cursor.native-usage-offline-proof.v1", providerCalls: 0, standardUsageEmitted: false,
+  return { schema: "clayon.cursor.native-usage-offline-proof.v1", providerCalls: 0, standardUsageEmitted: false,
     boundary: "digest-pinned handlePrompt, native invocation, child creation/reuse and child update methods; surrounding session/transport doubled", platforms };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

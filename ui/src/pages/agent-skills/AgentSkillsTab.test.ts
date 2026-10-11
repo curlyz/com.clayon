@@ -15,7 +15,7 @@ vi.mock("./AgentSkillRow", () => ({ AgentSkillRow: ({ variant, data }: { variant
 import { toDesiredSkillPayload } from "./AgentSkillsTab";
 
 describe("toDesiredSkillPayload", () => {
-  const skillKey = "paperclipai/paperclip/clayon";
+  const skillKey = "clayon/clayon/clayon";
   const versionId = "22222222-2222-4222-8222-222222222222";
 
   it("includes saved version pins while beta skills are enabled", () => {
@@ -35,7 +35,7 @@ describe("toDesiredSkillPayload", () => {
 it("removes a connector from editable library rows when its automatic assignment arrives", async () => {
   const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } });
   const agent = { id: "agent-1", companyId: "company-1", adapterType: "codex_local", adapterConfig: {} } as Agent;
-  const key = "paperclipai/paperclip/agentmail";
+  const key = "clayon/clayon/agentmail";
   const snapshot = { adapterType: "codex_local", supported: true, mode: "ephemeral", desiredSkills: [], entries: [], warnings: [] };
   client.setQueryData(queryKeys.agents.skills(agent.id), snapshot);
   client.setQueryData(queryKeys.companySkills.list(agent.companyId), [{ id: "skill-1", key, name: "agentmail", categories: [], sourceKind: "bundled", sourceType: "bundled" }]);

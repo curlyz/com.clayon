@@ -31,7 +31,7 @@ const MATERIALIZATION_NOTE =
   "Enabled skills are materialized into the stable Clayon-managed prompt bundle on the agent's next run.";
 
 /** Company skill key of the Clayon core skill that carries beta releases. */
-const CLAYON_CORE_SKILL_KEY = "paperclipai/paperclip/clayon";
+const CLAYON_CORE_SKILL_KEY = "clayon/clayon/clayon";
 
 /** Build the desired-skill sync payload, carrying any active version pins. */
 export function toDesiredSkillPayload(
@@ -348,7 +348,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
     // Historical assignments stay interactive so the user can remove them.
     // The server rejects new assignments and omits stale ones from native
     // runtime context, so disabling an enabled row would only trap stale data.
-    const legacyClayonBlocked = agent.adapterType === "paperclip_runner"
+    const legacyClayonBlocked = agent.adapterType === "clayon_runner"
       && variant === "available"
       && row.key === CLAYON_CORE_SKILL_KEY;
     const rowDisabled = unsupported || legacyClayonBlocked;

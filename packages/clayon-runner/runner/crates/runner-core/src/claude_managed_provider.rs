@@ -38,7 +38,7 @@ const MAX_MANAGED_SKILL_ATTACHMENTS: usize = 500;
 const MAX_SKILL_UPLOAD_FILES: usize = 10_000;
 const MAX_SKILL_UPLOAD_BYTES: usize = 32 * 1024 * 1024;
 const MAX_SKILL_RECONCILIATION_PAGES: usize = 100;
-const SESSION_OWNERSHIP_METADATA_KEY: &str = "paperclip_ownership";
+const SESSION_OWNERSHIP_METADATA_KEY: &str = "clayon_ownership";
 
 #[derive(Clone, Debug)]
 pub struct ClaudeManagedProviderStartError {
@@ -3041,7 +3041,7 @@ mod tests {
         assert_eq!(overrides.get("mcp_servers"), Some(&json!([])));
         assert!(!serde_json::to_string(&overrides)
             .unwrap()
-            .contains("paperclip_capability"));
+            .contains("clayon_capability"));
         assert!(overrides
             .get("tools")
             .and_then(Value::as_array)
@@ -3050,7 +3050,7 @@ mod tests {
                 .any(|tool| tool.get("type") == Some(&json!("agent_toolset_20260401")))));
         assert!(serde_json::to_string(&config())
             .unwrap()
-            .find("paperclip_capability")
+            .find("clayon_capability")
             .is_none());
     }
 
@@ -4215,7 +4215,7 @@ mod tests {
     }
 
     #[test]
-    fn malformed_tool_arguments_fail_closed_before_paperclip_execution() {
+    fn malformed_tool_arguments_fail_closed_before_clayon_execution() {
         let service = FakeAnthropicService::start(
             vec![json!({
                 "type": "agent.custom_tool_use",

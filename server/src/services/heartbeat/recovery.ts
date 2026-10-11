@@ -578,7 +578,7 @@ export function createHeartbeatRecovery(db: Db, dependencies: HeartbeatRecoveryD
     const nativeRunIds = activeRuns
       .filter(
         ({ run, adapterType }) =>
-          adapterType === "paperclip_runner" &&
+          adapterType === "clayon_runner" &&
           isNativeSessionId(run.nativeSessionId),
       )
       .map(({ run }) => run.id);
@@ -761,7 +761,7 @@ export function createHeartbeatRecovery(db: Db, dependencies: HeartbeatRecoveryD
         continue;
       }
 
-      if (run.runtimeMode === "native" && adapterType === "paperclip_runner") {
+      if (run.runtimeMode === "native" && adapterType === "clayon_runner") {
         classify(candidate, "skipped", "native_restart_recovery_owned", patch);
         continue;
       }
@@ -1094,7 +1094,7 @@ export function createHeartbeatRecovery(db: Db, dependencies: HeartbeatRecoveryD
       if (isNativeRunnerOwnershipHeld(run)) continue;
       if (
         run.runtimeMode === "native" &&
-        agent.adapterType === "paperclip_runner"
+        agent.adapterType === "clayon_runner"
       ) {
         // A graceful shutdown relinquishes controller authority just like a
         // hot restart. Leaving the old event consumer attached lets its

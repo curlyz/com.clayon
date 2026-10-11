@@ -654,7 +654,7 @@ function questionSetForInteraction(
 ): ClayonQuestionSet {
   if (interaction.payload.questionSet) return interaction.payload.questionSet;
   return {
-    schema: "paperclip.question_set.v1",
+    schema: "clayon.question_set.v1",
     ...(interaction.title ? { title: interaction.title } : {}),
     ...(interaction.payload.submitLabel
       ? { submitLabel: interaction.payload.submitLabel }
@@ -701,7 +701,7 @@ function questionResponseForInteraction(
 ): ClayonQuestionResponse | null {
   if (!interaction.result?.answers) return null;
   return {
-    schema: "paperclip.question_response.v1",
+    schema: "clayon.question_response.v1",
     answers: Object.fromEntries(
       interaction.result.answers.map((answer) => {
         const question = questionSet.questions.find(

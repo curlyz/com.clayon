@@ -10,9 +10,9 @@ import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const PI_PERMISSION_TITLE_PREFIX = "paperclip.pi.permission.v1:";
+export const PI_PERMISSION_TITLE_PREFIX = "clayon.pi.permission.v1:";
 export const PI_PERMISSION_OPTIONS = ["Allow once", "Allow for this session", "Deny"] as const;
-export const PI_NATIVE_QUESTION_TOOL = "paperclip_native_question";
+export const PI_NATIVE_QUESTION_TOOL = "clayon_native_question";
 const MAX_CONFIGURATION_BYTES = 64 * 1024;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
 const MAX_TOOLS = 512;

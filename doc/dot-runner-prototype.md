@@ -127,11 +127,11 @@ The registry has no MCP registration tool and no generic API executor.
 ## What is implemented
 
 - `DotHarnessDriver`: one turn per admitted run, explicit acceptance, bounded
-  lifetime, projected tools, progress and validated `paperclip.run_result.v1`
+  lifetime, projected tools, progress and validated `clayon.run_result.v1`
   completion. Reports normal PRP events consumed by the existing native backend.
 - `createDotRunnerMcpBridge`: six tools on the existing authenticated endpoint:
-  `paperclip_dot_inbox`, `paperclip_dot_read`, `paperclip_dot_accept`,
-  `paperclip_dot_tool`, `paperclip_dot_progress`, `paperclip_dot_finish`.
+  `clayon_dot_inbox`, `clayon_dot_read`, `clayon_dot_accept`,
+  `clayon_dot_tool`, `clayon_dot_progress`, `clayon_dot_finish`.
   Bound tools are visible only to the selected grant with write consent.
 - Optional `clayon.dot.work_available` event on the existing durable outbox.
   Its `companyId` and `taskId` identify a designated standing inbox task. Each
@@ -256,7 +256,7 @@ Observed live results:
   all four event definitions, including the six Dot runner actions.
 - Dot found `clayon.dot.work_available` and recognized its argument schema.
   Initially it reported no Clayon action tools in its runtime, including the
-  read-only `paperclip_connection`. An explicit @ mention did not make them
+  read-only `clayon_connection`. An explicit @ mention did not make them
   available immediately.
 - Dot also reported that its event-subscription route requires a successful
   read-only connection check, so the reduced event-only test could not proceed.
@@ -270,7 +270,7 @@ and deleting its database. Dot subsequently reported that the action tools had
 become available, but its connection check failed against that offline endpoint.
 This does not establish a Dot runtime incompatibility. A fresh lab and tunnel
 were connected as `Clayon Dot Lab Retry`; the new server observed Dot calling
-`paperclip_connection` successfully. The first plugin definition remains
+`clayon_connection` successfully. The first plugin definition remains
 installed with its expired endpoint. Production still needs the admission,
 durable mailbox, recovery and tool-authority work above.
 
@@ -285,14 +285,14 @@ Observed server evidence (UTC):
 
 | Time | Observation |
 | --- | --- |
-| 22:16:30 | Dot called `paperclip_connection` successfully. |
+| 22:16:30 | Dot called `clayon_connection` successfully. |
 | 22:17:00 | `events/subscribe` succeeded; the verified `clayon.dot.work_available` subscription was present. |
 | 22:17:24 | The operator queued the single assignment. Its webhook was observed as `delivered` after one attempt. |
-| 22:17:48 | Dot called `paperclip_dot_inbox` after the event, without another chat prompt. |
-| 22:17:56 | Dot read the assignment using `paperclip_dot_read`. |
+| 22:17:48 | Dot called `clayon_dot_inbox` after the event, without another chat prompt. |
+| 22:17:56 | Dot read the assignment using `clayon_dot_read`. |
 | 22:18:10 | Dot accepted it; the native Runner emitted `turn.started`. |
-| 22:18:23 | Dot called `save_report` through `paperclip_dot_tool`; the lab saved exactly one report: `Dot received the Clayon event. 17 + 25 = 42.` |
-| 22:18:38 | Dot submitted a valid `paperclip.run_result.v1`; the Runner emitted `run.result.proposed`, `turn.completed` and `run.terminal` with state `succeeded`. |
+| 22:18:23 | Dot called `save_report` through `clayon_dot_tool`; the lab saved exactly one report: `Dot received the Clayon event. 17 + 25 = 42.` |
+| 22:18:38 | Dot submitted a valid `clayon.run_result.v1`; the Runner emitted `run.result.proposed`, `turn.completed` and `run.terminal` with state `succeeded`. |
 | 22:18:50 | `events/unsubscribe` succeeded; no subscription remained. |
 
 Dot's final chat message confirmed event receipt and completion. It could not

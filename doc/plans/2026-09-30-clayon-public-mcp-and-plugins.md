@@ -320,7 +320,7 @@ results do not close those release gates.
 
 ## PR qualification and merge consequences (2026-10-01)
 
-[Core PR #14846](https://github.com/paperclipai/paperclip/pull/14846) contains the
+[Core PR #14846](https://github.com/clayon/clayon/pull/14846) contains the
 instance implementation, plugin packages and evals. The companion Cloud PR is
 tracked in the Cloud repository. Both use fresh worktrees and dedicated branches;
 neither has been merged or deployed by this work.

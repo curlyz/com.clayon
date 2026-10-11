@@ -128,10 +128,10 @@ export async function prepareNativeHeartbeatRun(input: {
         runtimeMode: "native",
         runtimeModeResolverVersion:
           locked.runtimeModeResolverVersion ?? NATIVE_RUNTIME_RESOLVER_VERSION,
-        runtimeModeReason: locked.runtimeModeReason ?? "explicit_paperclip_runner",
+        runtimeModeReason: locked.runtimeModeReason ?? "explicit_clayon_runner",
         runtimeModeResolvedAt: locked.runtimeModeResolvedAt ?? new Date(),
         runnerProfileJson: {
-          schema: "paperclip.runner.profile.v1",
+          schema: "clayon.runner.profile.v1",
           provider: "codex",
           turnId,
           itemId,

@@ -97,7 +97,7 @@ export async function materializeAsset(files: AssetFile[]): Promise<NativeRuntim
   const totalBytes = manifestFiles.reduce((sum, file) => sum + file.size, 0);
   if (!manifestFiles.length || manifestFiles.length > MAX_ASSET_FILES || totalBytes > MAX_ASSET_BYTES) throw new Error("runtime context bundle is empty or exceeds its bound");
   const assetDigest = sha256(JSON.stringify(manifestFiles));
-  const manifestText = `${JSON.stringify({ schema: "paperclip.runtime-asset-manifest.v1", digest: assetDigest, fileCount: manifestFiles.length, totalBytes, files: manifestFiles })}\n`;
+  const manifestText = `${JSON.stringify({ schema: "clayon.runtime-asset-manifest.v1", digest: assetDigest, fileCount: manifestFiles.length, totalBytes, files: manifestFiles })}\n`;
   const manifestDigest = sha256(manifestText);
   const assetsRoot = path.join(resolveClayonInstanceRoot(), "runtime-context-assets");
   const rootPath = path.join(assetsRoot, "bundles", assetDigest);
@@ -247,7 +247,7 @@ export async function resolveNativeRuntimeMcpSnapshot(input: { db: Db; agent: Pi
 export async function buildNativeRuntimeContext(input: { db: Db; agent: RuntimeAgent; runId: string; runtimeConfig: Record<string, unknown>; runtimeSkillEntries: ClayonSkillEntry[]; instructionWorkingCopy?: { rootPath: string; entryPath: string; kind?: "agent_files" } }): Promise<NativeRuntimeContextSnapshot> {
   const [instructions, skills, mcp] = await Promise.all([
     materializeInstructionBundle(input.db, input.agent, input.instructionWorkingCopy?.kind === "agent_files"),
-    materializeSelectedSkills(input.runtimeConfig, input.runtimeSkillEntries, input.agent.adapterType === "paperclip_runner"),
+    materializeSelectedSkills(input.runtimeConfig, input.runtimeSkillEntries, input.agent.adapterType === "clayon_runner"),
     resolveNativeRuntimeMcpSnapshot({ db: input.db, agent: input.agent, runId: input.runId }),
   ]);
   const snapshot = {

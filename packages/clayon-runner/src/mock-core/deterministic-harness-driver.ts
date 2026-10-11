@@ -396,7 +396,7 @@ class DeterministicHarnessSession implements HarnessSession {
   ): PrpEvent {
     const sourceSeq = this.#nextSourceSeq++;
     return {
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `event_${this.#input.runId}_${sourceSeq}`,
       sourceSeq,
       sourceInstanceId: `runner_${this.#input.runId}`,
@@ -420,7 +420,7 @@ class DeterministicHarnessSession implements HarnessSession {
 
 function completedResult(): PrpStructuredRunResult {
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "done",
     summary: "Deterministic harness-driver conformance completed.",
     completionClaim: {
@@ -440,7 +440,7 @@ function completedTerminal(
   disposition: PrpTerminalState["reportedWorkDisposition"] = "done",
 ): PrpTerminalState {
   return {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     turnTerminalState: "completed",
     runTerminalState: "succeeded",
     reportedWorkDisposition: disposition,
@@ -449,7 +449,7 @@ function completedTerminal(
 
 function interruptedResult(runId: string, summary: string): PrpStructuredRunResult {
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "yielded",
     summary,
     completionClaim: {
@@ -475,7 +475,7 @@ function interruptedResult(runId: string, summary: string): PrpStructuredRunResu
 
 function cancelledTerminal(): PrpTerminalState {
   return {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     turnTerminalState: "interrupted",
     runTerminalState: "cancelled",
     reportedWorkDisposition: "yielded",

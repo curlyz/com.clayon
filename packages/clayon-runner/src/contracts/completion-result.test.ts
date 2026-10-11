@@ -12,7 +12,7 @@ import {
 import { codexSemanticToolSpecs } from "../drivers/codex/codex-driver-values.js";
 
 const baseResult = {
-  schema: "paperclip.run_result.v1",
+  schema: "clayon.run_result.v1",
   reportedWorkDisposition: "done",
   summary: "Completed the requested work.",
   completionClaim: {
@@ -81,10 +81,10 @@ describe("provider-neutral completion result schema", () => {
   it("propagates answer and wait descriptions into the actual Codex semantic tool schemas", () => {
     const tools = JSON.parse(JSON.stringify(codexSemanticToolSpecs()));
     const finish = tools.find(
-      (tool: { name: string }) => tool.name === "paperclip_finish",
+      (tool: { name: string }) => tool.name === "clayon_finish",
     );
     const block = tools.find(
-      (tool: { name: string }) => tool.name === "paperclip_block",
+      (tool: { name: string }) => tool.name === "clayon_block",
     );
     expect(finish.inputSchema.properties.summary.description).toContain(
       "complete user-facing answer",
@@ -195,7 +195,7 @@ describe("provider-neutral completion result schema", () => {
     const providerValidate = new Ajv2020({ allErrors: true, strict: false })
       .compile(PRP_COMPLETION_RESULT_PROVIDER_INPUT_SCHEMA);
     const providerResult = structuredClone(baseResult);
-    providerResult.schema = "paperclip_paperclip_finish";
+    providerResult.schema = "clayon_clayon_finish";
     providerResult.reportedWorkDisposition = "completed";
     providerResult.completionClaim.criteria[0]!.status = "passed";
     providerResult.verification = [{ commandOrCheck: "model check", status: "pass" } as never];

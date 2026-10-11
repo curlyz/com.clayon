@@ -48,7 +48,7 @@
       "request": "Release Coordinator Riley; native Codex; no schedule",
       "instructions": "You are agent Riley, a Release Coordinator at Northstar. You own coordination of release readiness and publication requests.",
       "desiredSkills": [],
-      "adapterType": "paperclip_runner",
+      "adapterType": "clayon_runner",
       "provider": "codex",
       "model": "gpt-5.4",
       "timerEnabled": false,

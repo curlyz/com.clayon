@@ -141,6 +141,7 @@ import {
   Filter,
   FileCode2,
   FileText,
+  FileUp,
   Folder,
   FolderInput,
   FolderOpen,
@@ -154,7 +155,6 @@ import {
   ExternalLink,
   FlaskConical,
   MoreHorizontal,
-  Paperclip,
   Pause,
   Pencil,
   Pin,
@@ -281,7 +281,7 @@ function sourceMeta(sourceBadge: CompanySkillSourceBadge, sourceLabel: string | 
     case "local":
       return { icon: Folder, label: sourceLabel ?? "Folder", managedLabel: "Folder managed" };
     case "clayon":
-      return { icon: Paperclip, label: sourceLabel ?? "Clayon", managedLabel: "Clayon managed" };
+      return { icon: FileUp, label: sourceLabel ?? "Clayon", managedLabel: "Clayon managed" };
     default:
       return { icon: Boxes, label: sourceLabel ?? "Catalog", managedLabel: "Catalog managed" };
   }

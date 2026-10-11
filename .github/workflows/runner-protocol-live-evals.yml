@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       target_branch:
-        description: "Branch in paperclipai/paperclip to evaluate; trusted orchestration still runs from master"
+        description: "Branch in clayon/clayon to evaluate; trusted orchestration still runs from master"
         type: string
         required: false
       evals_sha:

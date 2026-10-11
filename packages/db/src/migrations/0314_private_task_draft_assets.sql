@@ -1,4 +1,4 @@
--- Runs through the Paperclip migration executor outside a file-wide transaction.
+-- Runs through the Clayon migration executor outside a file-wide transaction.
 -- Each idempotent keyset batch commits before advancing; history is recorded last.
 -- Bind historical inline draft images to their first owned task. Unbound drafts
 -- remain uploader-only. Attachment deletion never makes the draft company-open.

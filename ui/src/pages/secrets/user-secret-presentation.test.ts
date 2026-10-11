@@ -18,7 +18,7 @@ function makeSecret(status: CompanySecret["status"]): CompanySecret {
     name: "Personal GH token",
     provider: "local_encrypted",
     status,
-    managedMode: "paperclip_managed",
+    managedMode: "clayon_managed",
     externalRef: null,
     providerConfigId: null,
     providerMetadata: null,

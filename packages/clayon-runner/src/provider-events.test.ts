@@ -16,7 +16,7 @@ function envelope(
   event: ReturnType<typeof canonicalProviderEventsFromCodex>[number],
 ) {
   return {
-    schema: "paperclip.prp.event.v1",
+    schema: "clayon.prp.event.v1",
     sourceEventId: `source:${event.itemId}`,
     sourceSeq: 1,
     sourceInstanceId: "runner-1",
@@ -487,17 +487,17 @@ describe("provider-neutral events", () => {
     const event = canonicalProviderEventsFromOpenCodePart({
       id: "prt_02c35c313001X42cqyvQrpXOFv",
       type: "tool",
-      tool: "paperclip_report_progress",
+      tool: "clayon_report_progress",
       callID: "call_6cd0302e681d44c2aba3c164",
       state: { status: "pending", input: {}, raw: "" },
     })[0]!;
     expect(event).toMatchObject({
       eventType: "tool.execution.started",
       payload: {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         transport: "builtin",
         status: "running",
-        name: "paperclip_report_progress",
+        name: "clayon_report_progress",
       },
     });
     expect(validatePrpEvent(envelope(event))).toEqual({
@@ -513,10 +513,10 @@ describe("provider-neutral events", () => {
       type: "tool_call",
       tag: "tool_call",
       toolCallId: "tool-1",
-      title: "mcp__paperclip__search_tasks",
+      title: "mcp__clayon__search_tasks",
       kind: "other",
       status: "pending",
-      text: "mcp__paperclip__search_tasks (pending)",
+      text: "mcp__clayon__search_tasks (pending)",
       locations: [{ path: "doc/plan.md", line: 4 }],
     } as never);
     const progressed = normalize({
@@ -538,13 +538,13 @@ describe("provider-neutral events", () => {
     } as never);
 
     expect(progressed).toMatchObject({
-      title: "mcp__paperclip__search_tasks",
+      title: "mcp__clayon__search_tasks",
       kind: "other",
       text: "Searching the task index",
       locations: [{ path: "doc/plan.md", line: 4 }],
     });
     expect(completed).toMatchObject({
-      title: "mcp__paperclip__search_tasks",
+      title: "mcp__clayon__search_tasks",
       kind: "other",
       locations: [{ path: "doc/plan.md", line: 4 }],
     });
@@ -767,11 +767,11 @@ describe("provider-neutral events", () => {
     const event = canonicalProviderEventsFromOpenCodePart({
       id: "finish-1",
       type: "tool",
-      tool: "paperclip_paperclip_finish",
+      tool: "clayon_clayon_finish",
       state: { status: "running", input: {} },
     })[0]!;
     expect(event.payload).toMatchObject({
-      name: "paperclip_finish",
+      name: "clayon_finish",
       transport: "builtin",
     });
     expect(validatePrpEvent(envelope(event))).toEqual({

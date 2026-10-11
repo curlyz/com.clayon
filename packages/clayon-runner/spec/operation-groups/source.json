@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "documentTitle": "Clayon agent operation groups",
-  "evalRepositoryUrl": "https://github.com/paperclipai/paperclip-evals/blob/master/",
+  "evalRepositoryUrl": "https://github.com/clayon/clayon-evals/blob/master/",
   "prpEventFamilyDescriptions": {
     "runner": "Runner connection, drain, and diagnostic lifecycle.",
     "runtime": "Runner phase transitions.",

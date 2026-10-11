@@ -64,7 +64,7 @@ type NativeQuestionResponseResolver = (
 ) => Promise<"not_native" | "pending" | "queued">;
 
 export interface QuestionResponseDeliveryEnvelope {
-  schema: "paperclip.question_response_delivery.v1";
+  schema: "clayon.question_response_delivery.v1";
   interactionId: string;
   sourceRunId: string | null;
   questionSet: ClayonQuestionSetPayload;
@@ -110,7 +110,7 @@ function canonicalQuestionSet(
   if (interaction.payload.questionSet)
     return structuredClone(interaction.payload.questionSet);
   return {
-    schema: "paperclip.question_set.v1",
+    schema: "clayon.question_set.v1",
     ...(interaction.title ? { title: interaction.title } : {}),
     ...(interaction.payload.submitLabel
       ? { submitLabel: interaction.payload.submitLabel }
@@ -166,7 +166,7 @@ export function buildQuestionResponseDeliveryEnvelope(
     questionSet.questions.map((question) => [question.id, question]),
   );
   const response: ClayonQuestionResponse = {
-    schema: "paperclip.question_response.v1",
+    schema: "clayon.question_response.v1",
     answers: Object.fromEntries(
       interaction.result.answers.map((answer) => {
         const question = questionById.get(answer.questionId);
@@ -183,7 +183,7 @@ export function buildQuestionResponseDeliveryEnvelope(
     ),
   };
   return {
-    schema: "paperclip.question_response_delivery.v1",
+    schema: "clayon.question_response_delivery.v1",
     interactionId: interaction.id,
     sourceRunId: interaction.sourceRunId ?? null,
     questionSet,
@@ -310,7 +310,7 @@ export async function isRetiredExternalChatQuestionSource(
   if (
     result.externalChatContinuation !== true ||
     typeof interactionId !== "string" || !uuid.test(interactionId) ||
-    cancellation.schema !== "paperclip.native-cancellation.v1" ||
+    cancellation.schema !== "clayon.native-cancellation.v1" ||
     cancellation.companyId !== scope.companyId ||
     cancellation.runId !== scope.runId ||
     cancellation.issueId !== scope.issueId ||

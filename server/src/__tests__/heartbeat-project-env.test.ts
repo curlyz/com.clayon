@@ -849,13 +849,13 @@ describe("applyRunScopedMentionedSkillKeys", () => {
     const originalConfig = {
       command: "codex",
       clayonSkillSync: {
-        desiredSkills: ["paperclipai/paperclip/clayon"],
+        desiredSkills: ["clayon/clayon/clayon"],
       },
     };
 
     const updatedConfig = applyRunScopedMentionedSkillKeys(originalConfig, [
       "company/company-1/release-changelog",
-      "paperclipai/paperclip/clayon",
+      "clayon/clayon/clayon",
       "company/company-1/release-changelog",
     ]);
 
@@ -863,7 +863,7 @@ describe("applyRunScopedMentionedSkillKeys", () => {
       command: "codex",
       clayonSkillSync: {
         desiredSkills: [
-          "paperclipai/paperclip/clayon",
+          "clayon/clayon/clayon",
           "company/company-1/release-changelog",
         ],
       },
@@ -871,7 +871,7 @@ describe("applyRunScopedMentionedSkillKeys", () => {
     expect(originalConfig).toEqual({
       command: "codex",
       clayonSkillSync: {
-        desiredSkills: ["paperclipai/paperclip/clayon"],
+        desiredSkills: ["clayon/clayon/clayon"],
       },
     });
   });

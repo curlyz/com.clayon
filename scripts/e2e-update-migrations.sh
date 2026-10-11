@@ -17,7 +17,7 @@
 # to mutate refs on GitHub while the test runs.
 #
 # Env knobs:
-#   E2E_REPO                  GitHub repo (default: paperclipai/paperclip)
+#   E2E_REPO                  GitHub repo (default: clayon/clayon)
 #   E2E_UPDATE_BASE_REF       ref to install first (required; e.g. test/e2e-update-base)
 #   E2E_UPDATE_NEXT_REF       ref to update to (required; BASE + one probe migration)
 #   E2E_BOOTSTRAP_CLI         path to an already-built bootstrap CLI entry point
@@ -83,7 +83,7 @@ command -v corepack >/dev/null || npm install -g corepack
 if [ "$(uname -s)" = "Linux" ] && [ ! -S "/run/user/$(id -u)/bus" ]; then
   echo "no systemd user bus at /run/user/$(id -u)/bus — this test needs a real service"; exit 2
 fi
-echo "repo=$E2E_REPO base=$BASE_REF next=$NEXT_REF paperclip_home=$CLAYON_HOME"
+echo "repo=$E2E_REPO base=$BASE_REF next=$NEXT_REF clayon_home=$CLAYON_HOME"
 
 if [ -n "${E2E_BOOTSTRAP_CLI:-}" ] && [ -f "$E2E_BOOTSTRAP_CLI" ]; then
   BOOTSTRAP_CLI="$E2E_BOOTSTRAP_CLI"

@@ -9,7 +9,7 @@ const manifest = await readJson("acpx-profiles.json");
 const distributions = await readJson("cursor-distributions.json");
 const contract = await readJson("cursor-contract.json");
 const pkg = await readJson("package.json");
-assert.equal(manifest.schema, "paperclip.acpx-profiles.v1");
+assert.equal(manifest.schema, "clayon.acpx-profiles.v1");
 assert.equal(manifest.acpxVersion, pkg.dependencies.acpx);
 const entries = Object.entries(manifest.profiles);
 for (const [agent, profile] of entries) {

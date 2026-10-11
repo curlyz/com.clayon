@@ -188,7 +188,7 @@ function redact(
     const result: Record<string, ClayonJsonValue> =
       Object.fromEntries(entries);
     if (Object.keys(value).length > CLAYON_MAX_OBJECT_KEYS) {
-      result.__paperclip_truncated__ = CLAYON_SEMANTIC_TRUNCATED;
+      result.__clayon_truncated__ = CLAYON_SEMANTIC_TRUNCATED;
     }
     return result;
   }

@@ -130,10 +130,10 @@ export async function reconcileSafeNativeReplacements(
       const safeControlReads = new Set([
         "connections_search",
         "connection_request",
-        "paperclip_get_agent",
-        "paperclip_get_issue",
-        "paperclip_list_issues",
-        "paperclip_read_document",
+        "clayon_get_agent",
+        "clayon_get_issue",
+        "clayon_list_issues",
+        "clayon_read_document",
       ]);
       const uncertainProviderActions = events.flatMap((event) => {
         const envelope = record(event.payload);
@@ -157,7 +157,7 @@ export async function reconcileSafeNativeReplacements(
         if (event.eventType === "tool.execution.started") {
           const name = typeof p.name === "string" ? p.name : "unknown tool";
           const completedTaskControlCallIds = stoppedSession?.evidence.completedTaskControlCallIds;
-          if (name === "paperclip_finish" && Array.isArray(completedTaskControlCallIds) &&
+          if (name === "clayon_finish" && Array.isArray(completedTaskControlCallIds) &&
               completedTaskControlCallIds.includes(p.executionId)) return [];
           const receiptedRead = invocations.some(
             (row) =>

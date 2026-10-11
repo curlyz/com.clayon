@@ -357,8 +357,8 @@ function deriveManifestSkillKey(
   if ((sourceType === "github" || sourceType === "skills_sh" || sourceKind === "github" || sourceKind === "skills_sh") && owner && repo) {
     return `${owner}/${repo}/${slug}`;
   }
-  if (sourceKind === "paperclip_bundled") {
-    return `paperclipai/paperclip/${slug}`;
+  if (sourceKind === "clayon_bundled") {
+    return `clayon/clayon/${slug}`;
   }
   if (sourceType === "url" || sourceKind === "url") {
     try {
@@ -499,7 +499,7 @@ function deriveSkillExportDirCandidates(
     }
   };
 
-  if (sourceKind === "paperclip_bundled") {
+  if (sourceKind === "clayon_bundled") {
     pushSuffix("clayon");
   }
 
@@ -2641,15 +2641,15 @@ async function resolveBundledSkillsCommit() {
 
 async function buildSkillSourceEntry(skill: CompanySkill) {
   const metadata = isPlainRecord(skill.metadata) ? skill.metadata : null;
-  if (asString(metadata?.sourceKind) === "paperclip_bundled") {
+  if (asString(metadata?.sourceKind) === "clayon_bundled") {
     const commit = await resolveBundledSkillsCommit();
     return {
       kind: "github-dir",
-      repo: "paperclipai/paperclip",
+      repo: "clayon/clayon",
       path: `skills/${skill.slug}`,
       commit,
       trackingRef: "master",
-      url: `https://github.com/paperclipai/paperclip/tree/master/skills/${skill.slug}`,
+      url: `https://github.com/clayon/clayon/tree/master/skills/${skill.slug}`,
     };
   }
 
@@ -2683,7 +2683,7 @@ function shouldReferenceSkillOnExport(skill: CompanySkill, expandReferencedSkill
   // Bundled Clayon skills ship with every build and may contain executable
   // scripts that import policy rejects when expanded; the target re-resolves
   // them from its own catalog via the pinned reference stub instead.
-  if (asString(metadata?.sourceKind) === "paperclip_bundled") return true;
+  if (asString(metadata?.sourceKind) === "clayon_bundled") return true;
   if (expandReferencedSkills) return false;
   return skill.sourceType === "github" || skill.sourceType === "skills_sh" || skill.sourceType === "url";
 }
@@ -3322,8 +3322,8 @@ function buildManifestFromPackageFiles(
       const canonicalKey = readSkillKey(frontmatter);
       const normalizedSourceKind = owner === "clayon"
         && repoName === "clayon"
-        && canonicalKey?.startsWith("paperclipai/paperclip/")
-        ? "paperclip_bundled"
+        && canonicalKey?.startsWith("clayon/clayon/")
+        ? "clayon_bundled"
         : "github";
       sourceType = "github";
       sourceLocator = asString(primarySource?.url)
@@ -3610,7 +3610,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     adapterType: string,
     adapterConfig: Record<string, unknown>,
   ) {
-    if (adapterType === "paperclip_runner") {
+    if (adapterType === "clayon_runner") {
       let profile;
       try {
         if (adapterConfig.provider === "openai_dot") {
@@ -5268,7 +5268,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
       const runnerSelections = sourceManifest.agents.filter((agent) =>
         importedAgentSlugs.has(agent.slug)
         && (input.adapterOverrides?.[agent.slug]?.adapterType ?? agent.adapterType)
-          === "paperclip_runner",
+          === "clayon_runner",
       );
       if (runnerSelections.length > 0) {
         const experimental = await instanceSettingsService(db).getExperimental();
@@ -5277,12 +5277,12 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
           if (config.provider === "openai_dot") {
             if (experimental.enableOpenAiDot !== true) throw unprocessable(
               "OpenAI Dot is experimental and disabled on this instance.",
-              { code: "paperclip_runner_dot_disabled" },
+              { code: "clayon_runner_dot_disabled" },
             );
           } else if (experimental.enableNativeRunner !== true) {
             throw unprocessable(
               "Clayon Runner is experimental and disabled on this instance.",
-              { code: "paperclip_runner_rollout_disabled" },
+              { code: "clayon_runner_rollout_disabled" },
             );
           }
         }

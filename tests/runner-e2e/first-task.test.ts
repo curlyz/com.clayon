@@ -764,7 +764,7 @@ Accept the card above and I write it. This task stays in review until then.`;
         "adapterConfig",
         "adapterType",
       ]);
-      expect(patch.adapterType).toBe("paperclip_runner");
+      expect(patch.adapterType).toBe("clayon_runner");
       expect(patch.adapterConfig).toMatchObject({
         instructionsFilePath: "/managed/AGENTS.md",
         clayonSkillSync: original.adapterConfig.clayonSkillSync,
@@ -775,8 +775,8 @@ Accept the card above and I write it. This task stays in review until then.`;
         adapterConfig: {
           clayonSkillSync: {
             desiredSkills: [
-              "paperclipai/paperclip/clayon",
-              "paperclipai/paperclip/first-task",
+              "clayon/clayon/clayon",
+              "clayon/clayon/first-task",
             ],
           },
         },
@@ -787,7 +787,7 @@ Accept the card above and I write it. This task stays in review until then.`;
             desiredSkills: string[];
           }
         ).desiredSkills,
-      ).toEqual(["paperclipai/paperclip/first-task"]);
+      ).toEqual(["clayon/clayon/first-task"]);
       expect(patch).not.toHaveProperty("instructionsBundle");
       expect(
         (patch.adapterConfig.env as Record<string, unknown>)[

@@ -333,12 +333,12 @@ const CODEX_HOME_NON_PERSISTENT_ENTRIES = [
   "config.toml",
 ] as const;
 const RUNNERD_CONTROL_PLANE_STATE_SCHEMA =
-  "paperclip.runner.durable.control-plane-state.v1";
-const RUNNERD_STATE_SCHEMA = "paperclip.runner.durable.state.v1";
-const CODEX_PROVIDER_STATE_SCHEMA = "paperclip.runner.codex-provider-state.v1";
-const ACPX_PROVIDER_STATE_SCHEMA = "paperclip.runner.acpx-provider-state.v3";
+  "clayon.runner.durable.control-plane-state.v1";
+const RUNNERD_STATE_SCHEMA = "clayon.runner.durable.state.v1";
+const CODEX_PROVIDER_STATE_SCHEMA = "clayon.runner.codex-provider-state.v1";
+const ACPX_PROVIDER_STATE_SCHEMA = "clayon.runner.acpx-provider-state.v3";
 const MANAGED_PROVIDER_STATE_SCHEMA =
-  "paperclip.runner.managed-provider-state.v1";
+  "clayon.runner.managed-provider-state.v1";
 const RUNNERD_STATE_LIFECYCLES = new Set([
   "connecting",
   "ready",
@@ -846,7 +846,7 @@ export function runtimeQuestionFallbackFromEvent(
   if (
     payload.requestKind !== "runtime" ||
     payload.requestType !== "input" ||
-    request.schema !== "paperclip.runtime_request.v2" ||
+    request.schema !== "clayon.runtime_request.v2" ||
     request.requestKind !== "runtime" ||
     request.type !== "input" ||
     typeof request.requestId !== "string" ||
@@ -874,7 +874,7 @@ export function runtimeQuestionFallbackFromEvent(
       question.answerMode === "text"
         ? [
             {
-              id: "__paperclip_text__",
+              id: "__clayon_text__",
               label:
                 question.textValidation?.inputType === "integer"
                   ? "Enter an integer"
@@ -1172,7 +1172,7 @@ export function nativeGovernedWaitResult(input: {
     input.interaction.summary?.trim() ||
     "the requested response";
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "yielded",
     summary: `Waiting for ${label}.`,
     completionClaim: {
@@ -1220,7 +1220,7 @@ export function nativeConversationReplyResult(input: {
       reply.normalizedSessionId !== input.terminalEvent.normalizedSessionId) return null;
   const ref = `run-event:${reply.sourceEventId}`;
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "yielded",
     summary: text.slice(0, 12_000),
     completionClaim: {
@@ -1322,7 +1322,7 @@ export function nativeToolsRefreshWaitResult(input: {
 }): PrpStructuredRunResult {
   const ref = `wakeup:${input.wakeId}`;
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "yielded",
     summary: "Continuing with the newly installed connection tools.",
     completionClaim: {
@@ -1718,7 +1718,7 @@ function nativeProviderSessionScope(execution: NativeExecutionInput) {
 
 function nativeSessionScopeKey(execution: NativeExecutionInput): string {
   return canonicalJson({
-    schema: "paperclip.native-session-scope.v2",
+    schema: "clayon.native-session-scope.v2",
     companyId: execution.binding.companyId,
     agentId: execution.binding.agentId,
     workspace: nativeSessionWorkspaceScope(execution),
@@ -2267,7 +2267,7 @@ export function retainedNativeCleanupJournalMatches(input: {
       event.eventType === "semantic_tool.input" &&
       record(event.payload).semantic_tool &&
       record(record(event.payload).semantic_tool).operationId ===
-        "paperclip_finish",
+        "clayon_finish",
   );
   if (submissions.length !== 1) return false;
   const event = submissions[0]!;
@@ -2278,7 +2278,7 @@ export function retainedNativeCleanupJournalMatches(input: {
     !boundRaw(event) ||
     !result.ok ||
     canonicalJson(result.result) !== canonicalJson(envelope.result) ||
-    semantic.schema !== "paperclip.prp.semantic_tool.v1" ||
+    semantic.schema !== "clayon.prp.semantic_tool.v1" ||
     semantic.schemaVersion !== 1 ||
     semantic.phase !== "input" ||
     typeof semantic.callId !== "string" ||
@@ -2367,7 +2367,7 @@ export async function appendRetainedNativeCleanupEvent(
   }
   const event = parsed.event;
   const receipt = {
-    schema: "paperclip.native_cleanup_event.v1",
+    schema: "clayon.native_cleanup_event.v1",
     requestId: input.requestId,
     rawSourceInstanceId: event.sourceInstanceId,
     rawSourceEventId: event.sourceEventId,
@@ -2678,9 +2678,9 @@ export async function verifyStoppedNativeSessionForContinuation(
         !Array.isArray(snapshot.control.committedEvents)) return null;
     // An incomplete provider launch can own a process that never emitted its
     // session identity. It cannot be certified from an earlier owner's receipt.
-    if (snapshot.control.schema !== "paperclip.runner.durable.control-plane-state.v1" ||
+    if (snapshot.control.schema !== "clayon.runner.durable.control-plane-state.v1" ||
         snapshot.runner.schema !== RUNNERD_STATE_SCHEMA ||
-        snapshot.provider.schema !== (execution.provider.kind === "codex" ? "paperclip.runner.codex-provider-state.v1" : ACPX_PROVIDER_STATE_SCHEMA) ||
+        snapshot.provider.schema !== (execution.provider.kind === "codex" ? "clayon.runner.codex-provider-state.v1" : ACPX_PROVIDER_STATE_SCHEMA) ||
         !["turn_active", "prepared", "suspended"].includes(String(snapshot.provider.lifecycle)) ||
         snapshot.provider.startupAttempt != null) return null;
     const pending = JSON.stringify([snapshot.runner.outbox, snapshot.provider.pendingEvents, snapshot.provider.queuedEvents]);
@@ -2739,7 +2739,7 @@ export async function verifyStoppedNativeSessionForContinuation(
     const unchanged = () => idle() && cleanupProcessAbsent(stopped.processPid) &&
       [...providerPids].every(cleanupProcessAbsent) && cleanupStateSnapshot(root, providerFile).fingerprint === snapshot.fingerprint;
     return {
-      evidence: { schema: "paperclip.stopped_native_conversation.v1", runId: run.id,
+      evidence: { schema: "clayon.stopped_native_conversation.v1", runId: run.id,
         nativeSessionId: run.nativeSessionId, runnerInstanceId: run.runnerInstanceId,
         processPid: stopped.processPid, providerPids: [...providerPids], stateFingerprint: snapshot.fingerprint },
       retire: () => {
@@ -2821,7 +2821,7 @@ export async function verifyStoppedNativeSessionForReplacement(
     for (const event of events.filter(event => event.eventType === "semantic_tool.input")) {
       const semantic = record(record(event.payload).semantic_tool);
       const correlation = record(semantic.correlation);
-      if (!bound(event) || semantic.operationId !== "paperclip_finish" || semantic.phase !== "input" ||
+      if (!bound(event) || semantic.operationId !== "clayon_finish" || semantic.phase !== "input" ||
           typeof semantic.callId !== "string" || !validatePrpStructuredRunResult(semantic.input).ok ||
           correlation.runId !== run.id || correlation.normalizedSessionId !== run.nativeSessionId ||
           correlation.turnId !== identity.turnId || correlation.itemId !== identity.itemId ||
@@ -2859,7 +2859,7 @@ export async function verifyStoppedNativeSessionForReplacement(
     const rows = bytes.toString("utf8").trimEnd().split("\n").map(line => JSON.parse(line));
     if (!stoppedCodexTurnIsTextOnly({ rows, threadId: provider.providerSessionId, turnId, cwd: execution.workspace.cwd ?? "", completedTaskControlCalls })) return null;
     const rolloutSha256 = nativeSha256(bytes.toString("utf8"));
-    const evidence = { schema: "paperclip.stopped_text_turn.v1", runId: run.id, nativeSessionId: run.nativeSessionId,
+    const evidence = { schema: "clayon.stopped_text_turn.v1", runId: run.id, nativeSessionId: run.nativeSessionId,
       runnerInstanceId: run.runnerInstanceId, processPid: stopped.processPid, providerPid: provider.processId,
       providerSessionId: provider.providerSessionId, providerTurnId: turnId,
       stateFingerprint: snapshot.fingerprint, rolloutSha256,
@@ -3679,7 +3679,7 @@ export async function reconcileRetainedNativeSessionCleanup(
     writeFileSync(
       resolve(copy, CLEANUP_ACTIVATION_FILE),
       JSON.stringify({
-        schema: "paperclip.native_cleanup_activation.v1",
+        schema: "clayon.native_cleanup_activation.v1",
         companyId: owned.run.companyId,
         issueId: owned.run.nativeIssueId,
         runId: owned.run.id,
@@ -3917,7 +3917,7 @@ async function assertCleanupActivationCommitted(
     ),
   );
   if (
-    marker.schema !== "paperclip.native_cleanup_activation.v1" ||
+    marker.schema !== "clayon.native_cleanup_activation.v1" ||
     marker.companyId !== execution.binding.companyId ||
     marker.issueId !== execution.binding.issueId ||
     typeof marker.runId !== "string" ||
@@ -4224,7 +4224,7 @@ export function nativePreProviderRetryAfterCleanupStateIsSafe(input: {
         ),
       );
       if (
-        marker.schema !== "paperclip.native_cleanup_activation.v1" ||
+        marker.schema !== "clayon.native_cleanup_activation.v1" ||
         marker.companyId !== input.companyId ||
         marker.issueId !== input.issueId ||
         marker.runId !== input.retiredRunId ||
@@ -4341,8 +4341,8 @@ function hasRetainedWarmTransitionEvidence(root: string): boolean {
       if (
         Object.prototype.hasOwnProperty.call(state, "warmTransition") ||
         state.schema ===
-          "paperclip.runner.durable.control-plane-state.warm-transition.v1" ||
-        state.schema === "paperclip.runner.durable.state.warm-transition.v1"
+          "clayon.runner.durable.control-plane-state.warm-transition.v1" ||
+        state.schema === "clayon.runner.durable.state.warm-transition.v1"
       )
         return true;
     } catch {
@@ -5474,7 +5474,7 @@ export interface NativeHarnessPersistenceProfile {
 }
 
 export interface NativeHarnessBackupManifest {
-  schema: "paperclip.native-harness-backup.v1";
+  schema: "clayon.native-harness-backup.v1";
   normalizedSessionId: string;
   runnerInstanceId: string;
   providerKind: NativeProviderKind;
@@ -5896,7 +5896,7 @@ function compatibleNativeHarnessBackupManifests(input: {
       continue;
     }
     if (
-      manifest.schema !== "paperclip.native-harness-backup.v1" ||
+      manifest.schema !== "clayon.native-harness-backup.v1" ||
       manifest.normalizedSessionId !== nativeSessionKey(input.execution) ||
       manifest.runnerInstanceId !== input.runnerInstanceId ||
       manifest.providerKind !== profile.providerKind ||
@@ -5935,7 +5935,7 @@ export function buildNativeHarnessBackupManifest(input: {
     return { name: directory.name, ...digestBackupDirectory(path) };
   });
   return {
-    schema: "paperclip.native-harness-backup.v1",
+    schema: "clayon.native-harness-backup.v1",
     normalizedSessionId: nativeSessionKey(input.execution),
     runnerInstanceId: input.runnerInstanceId,
     providerKind: profile.providerKind,
@@ -6041,7 +6041,7 @@ function persistWarmNativeCheckpoint(
   writeFileSync(
     temporary,
     JSON.stringify({
-      schema: "paperclip.native-session-supervisor.v1",
+      schema: "clayon.native-session-supervisor.v1",
       configDigest,
       updatedAt: new Date().toISOString(),
       snapshot,
@@ -6076,7 +6076,7 @@ function loadWarmNativeCheckpoint(
     snapshot?: PersistedNativeSession;
   };
   if (
-    envelope.schema !== "paperclip.native-session-supervisor.v1" ||
+    envelope.schema !== "clayon.native-session-supervisor.v1" ||
     !envelope.snapshot
   ) {
     throw new Error("native_session_supervisor_checkpoint_mismatch");
@@ -6932,7 +6932,7 @@ export async function cancelNativeSession(
           : null;
       if (existingIntentId) {
         const matchingIntent =
-          existing.schema === "paperclip.native-cancellation.v1" &&
+          existing.schema === "clayon.native-cancellation.v1" &&
           existing.companyId === cancellationContext.companyId &&
           existing.runId === runId &&
           existing.issueId === cancellationContext.issueId &&
@@ -6994,7 +6994,7 @@ export async function cancelNativeSession(
           resultJson: {
             ...resultJson,
             nativeCancellation: {
-              schema: "paperclip.native-cancellation.v1",
+              schema: "clayon.native-cancellation.v1",
               intentId,
               intentAuditId,
               companyId: cancellationContext.companyId,
@@ -7195,7 +7195,7 @@ export async function cancelNativeSession(
         const resultJson = record(lockedRun.resultJson);
         const intent = record(resultJson.nativeCancellation);
         const matchingIntent =
-          intent.schema === "paperclip.native-cancellation.v1" &&
+          intent.schema === "clayon.native-cancellation.v1" &&
           intent.intentId === cancellationIntentId &&
           intent.intentAuditId === auditId &&
           intent.companyId === cancellationContext.companyId &&
@@ -7591,7 +7591,7 @@ export async function executeClayonNativeSession(input: {
         attachmentStage.cleanup(),
       ]);
       if (cleanupResults.some((result) => result.status === "rejected")) {
-        throw new Error("paperclip_runner_attachment_staging_cleanup_failed");
+        throw new Error("clayon_runner_attachment_staging_cleanup_failed");
       }
     };
     const stagedPrompt = renderNativeRunnerStagedAttachmentPrompt(
@@ -7668,7 +7668,7 @@ async function executeClayonNativeSessionWithinScope(
     input.execution.provider.kind !== "acpx" &&
     input.execution.provider.kind !== "openai_dot"
   ) {
-    throw new Error("paperclip_runner_provider_unsupported");
+    throw new Error("clayon_runner_provider_unsupported");
   }
   if (
     input.execution.provider.kind === "acpx" &&
@@ -7676,7 +7676,7 @@ async function executeClayonNativeSessionWithinScope(
     !resolveAcpxQualification(input.execution.provider, process.env)
   ) {
     throw new Error(
-      "paperclip_runner_provider_unsupported: ACPX candidate requires exact host qualification authorization",
+      "clayon_runner_provider_unsupported: ACPX candidate requires exact host qualification authorization",
     );
   }
   const preparationSpans = input.preparationSpans ?? [];
@@ -7849,7 +7849,7 @@ async function executeClayonNativeSessionWithinScope(
           ) {
             const intentMatchesBinding =
               cancellationIntent.schema ===
-                "paperclip.native-cancellation.v1" &&
+                "clayon.native-cancellation.v1" &&
               cancellationIntent.companyId ===
                 input.execution.binding.companyId &&
               cancellationIntent.runId === input.execution.binding.runId &&
@@ -8049,7 +8049,7 @@ async function executeClayonNativeSessionWithinScope(
         agentId: input.execution.binding.agentId,
         adapterType:
           input.adapterType ??
-          (input.useRunnerd ? "paperclip_runner" : "codex_local"),
+          (input.useRunnerd ? "clayon_runner" : "codex_local"),
       },
       {
         eventType: event.eventType,
@@ -8596,7 +8596,7 @@ async function executeClayonNativeSessionWithinScope(
       : null;
   }
   const runnerExecution: NativeExecutionInput =
-    input.execution.schema !== "paperclip.native-execution-input.v6" && input.useRunnerd && input.runnerExecutionTarget?.kind === "remote"
+    input.execution.schema !== "clayon.native-execution-input.v6" && input.useRunnerd && input.runnerExecutionTarget?.kind === "remote"
       ? {
           ...input.execution,
           workspace: {
@@ -9063,7 +9063,7 @@ async function executeClayonNativeSessionWithinScope(
       activeNativeSessions.delete(input.execution.binding.runId);
       clearSteeringDeliveries(input.execution.binding.runId);
       clearNativeRuntimeRequestResolutions(input.execution.binding.runId);
-      // Stop before paperclip_finish is normal. Bounded provider teardown has
+      // Stop before clayon_finish is normal. Bounded provider teardown has
       // finished; a missing result must not overwrite cancellation or trigger
       // another turn to perform completion bookkeeping.
       const stoppedBeforeFirstTurn = error instanceof Error && error.message === "native_session_cancelled";
@@ -9080,7 +9080,7 @@ async function executeClayonNativeSessionWithinScope(
         // recording its acknowledgement. Preserve that audited, exactly bound
         // cancellation instead of racing it with a generic provider failure.
         const pendingStartupStop = stoppedBeforeFirstTurn &&
-          stopIntent.schema === "paperclip.native-cancellation.v1" &&
+          stopIntent.schema === "clayon.native-cancellation.v1" &&
           stopIntent.companyId === input.execution.binding.companyId &&
           stopIntent.runId === input.execution.binding.runId &&
           stopIntent.issueId === input.execution.binding.issueId &&
@@ -9494,7 +9494,7 @@ async function executeClayonNativeSessionWithinScope(
         ...(native.turnId ? { turnId: native.turnId } : {}),
         eventType: "plan.updated",
         payload: {
-          schema: "paperclip.plan.updated.v1",
+          schema: "clayon.plan.updated.v1",
           planId: `semantic:${native.turnId ?? input.execution.binding.runId}`,
           revision: 1,
           complete: true,
@@ -9534,7 +9534,7 @@ async function executeClayonNativeSessionWithinScope(
     .then((rows) => rows[0] ?? null);
   if (!released) throw new Error("native_session_lease_lost");
   const finalization: NativeFinalizationResult = {
-    schema: "paperclip.native-finalization.v1",
+    schema: "clayon.native-finalization.v1",
     runtimeMode: "native",
     runId: input.execution.binding.runId,
     issueId: input.execution.binding.issueId,
@@ -9857,11 +9857,11 @@ export function buildRemoteCodexLauncherCommand(
   return (
     `umask 077; mkdir -p ${quote(posix.dirname(targetPath))} && ` +
     `[ ! -d ${quote(targetPath)} ] && ` +
-    `paperclip_codex_launcher_tmp=$(mktemp ${quote(targetPath + ".tmp.XXXXXX")}) && ` +
-    `trap 'rm -f "$paperclip_codex_launcher_tmp"' 0 && ` +
-    `printf '%s' ${quote(launcher)} > "$paperclip_codex_launcher_tmp" && ` +
-    `chmod 700 "$paperclip_codex_launcher_tmp" && ` +
-    `mv -f "$paperclip_codex_launcher_tmp" ${quote(targetPath)}`
+    `clayon_codex_launcher_tmp=$(mktemp ${quote(targetPath + ".tmp.XXXXXX")}) && ` +
+    `trap 'rm -f "$clayon_codex_launcher_tmp"' 0 && ` +
+    `printf '%s' ${quote(launcher)} > "$clayon_codex_launcher_tmp" && ` +
+    `chmod 700 "$clayon_codex_launcher_tmp" && ` +
+    `mv -f "$clayon_codex_launcher_tmp" ${quote(targetPath)}`
   );
 }
 
@@ -11263,7 +11263,7 @@ async function prepareRemoteDotRunner({ input, target, runner, root, identity }:
     if (result.exitCode === 3 && !result.timedOut) return null;
     if (result.exitCode !== 0 || result.timedOut) throw new Error("dot_provider_checkpoint_unavailable");
     const state = record(JSON.parse(Buffer.from(result.stdout.replace(/\s+/g, ""), "base64").toString("utf8")));
-    if (state.schema !== "paperclip.runner.dot-provider-state.v1" || state.runId !== identity.runId
+    if (state.schema !== "clayon.runner.dot-provider-state.v1" || state.runId !== identity.runId
       || state.sessionId !== identity.normalizedSessionId || state.turnId !== identity.turnId) throw new Error("dot_runner_checkpoint_authority_mismatch");
     // Retain inspectable recovery evidence on the controller without changing
     // which execution target is authoritative for replay.
@@ -11465,7 +11465,7 @@ async function createRunnerdBackendWithinSessionClaim(
     input.durableEnvironmentLeaseId ??
     input.execution.binding.executionWorkspaceId;
   mkdirSync(root, { recursive: true, mode: 0o700 });
-  if (input.execution.schema === "paperclip.native-execution-input.v6") {
+  if (input.execution.schema === "clayon.native-execution-input.v6") {
     if (target.kind === "remote" && input.dotWorkspaceRoot) throw new Error("dot_remote_workspace_access_unavailable");
     const remoteDot = target.kind === "remote"
       ? await prepareRemoteDotRunner({ input, target, runner: remoteCommandRunner!, root,
@@ -13191,8 +13191,8 @@ async function createRunnerdBackendWithinSessionClaim(
               acpxMode: input.execution.provider.mode,
               piThinkingLevel: input.execution.provider.piThinkingLevel,
               acpxPermissionModePinned:
-                input.execution.schema === "paperclip.native-execution-input.v4" ||
-                input.execution.schema === "paperclip.native-execution-input.v5",
+                input.execution.schema === "clayon.native-execution-input.v4" ||
+                input.execution.schema === "clayon.native-execution-input.v5",
               acpxRuntimeDirectory: remoteRunnerFilesystemRoot
                 ? posix.join(remoteRunnerFilesystemRoot, "acpx")
                 : resolve(

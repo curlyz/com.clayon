@@ -22,14 +22,14 @@ describe("remote deliverable admission", () => {
     { byteSize: 1.5 }, { sha256: "invalid" },
   ])("rejects invalid input before dispatch: %j", async (override) => {
     const execute = vi.fn();
-    await expect(readVerifiedRemoteWorkspaceFile({ ...request, ...override, runner: { execute } })).rejects.toThrow(/paperclip_runner_file_handoff_/);
+    await expect(readVerifiedRemoteWorkspaceFile({ ...request, ...override, runner: { execute } })).rejects.toThrow(/clayon_runner_file_handoff_/);
     expect(execute).not.toHaveBeenCalled();
   });
 
   it("sanitizes a rejected remote transport error", async () => {
     const execute = vi.fn().mockRejectedValue(new Error("/private/provider/details"));
     await expect(readVerifiedRemoteWorkspaceFile({ ...request, runner: { execute } }))
-      .rejects.toThrow("paperclip_runner_file_handoff_remote_read_failed");
+      .rejects.toThrow("clayon_runner_file_handoff_remote_read_failed");
   });
 
   it.each([
@@ -37,7 +37,7 @@ describe("remote deliverable admission", () => {
     { stdout: Buffer.alloc(body.length, 65).toString("base64") }, { timedOut: true }, { exitCode: 1, stderr: "/private/provider/details" },
   ])("rejects truncated, corrupt, or failed provider output: %j", async (override) => {
     const execute = vi.fn().mockResolvedValue({ ...success, ...override });
-    await expect(readVerifiedRemoteWorkspaceFile({ ...request, runner: { execute } })).rejects.toThrow(/paperclip_runner_file_handoff_/);
+    await expect(readVerifiedRemoteWorkspaceFile({ ...request, runner: { execute } })).rejects.toThrow(/clayon_runner_file_handoff_/);
   });
 });
 
@@ -98,7 +98,7 @@ describe.skipIf(!hasLinuxNode)("remote deliverable real Linux descriptor reads",
     if (scenario === "directory") { contentRef = "directory"; await mkdir(join(workspaceRoot, contentRef)); }
     if (scenario === "wrong size") values.byteSize++;
     if (scenario === "wrong hash") values.sha256 = "0".repeat(64);
-    await expect(readVerifiedRemoteWorkspaceFile({ ...request, workspaceRoot, contentRef, runner, ...values })).rejects.toThrow(/paperclip_runner_file_handoff_/);
+    await expect(readVerifiedRemoteWorkspaceFile({ ...request, workspaceRoot, contentRef, runner, ...values })).rejects.toThrow(/clayon_runner_file_handoff_/);
   });
 
   it.each(["replace", "grow", "hardlink"])("detects a %s during the descriptor read", async (mutation) => {
@@ -124,7 +124,7 @@ describe.skipIf(!hasLinuxNode)("remote deliverable real Linux descriptor reads",
         return handle;
       };
     `);
-    await expect(readVerifiedRemoteWorkspaceFile({ ...request, workspaceRoot, runner })).rejects.toThrow(/paperclip_runner_file_handoff_file_changed/);
+    await expect(readVerifiedRemoteWorkspaceFile({ ...request, workspaceRoot, runner })).rejects.toThrow(/clayon_runner_file_handoff_file_changed/);
   });
 
   it("accepts the 10 MiB limit with exact bytes and hash", async () => {

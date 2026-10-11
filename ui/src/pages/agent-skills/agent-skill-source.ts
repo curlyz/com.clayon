@@ -1,4 +1,4 @@
-import { Boxes, Folder, Link2, Paperclip, type LucideIcon } from "lucide-react";
+import { Boxes, FileUp, Folder, Link2, type LucideIcon } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github-icon";
 import type { CompanySkillListItem } from "@clayon/shared";
 
@@ -104,7 +104,7 @@ export function buildAgentSkillSourceMeta(skill: SourceSkill): AgentSkillSourceM
   }
 
   if (skill.sourceBadge === "clayon") {
-    return { icon: Paperclip, label: skill.sourceLabel?.trim() || "Paperclip managed" };
+    return { icon: FileUp, label: skill.sourceLabel?.trim() || "Clayon managed" };
   }
 
   if (skill.sourceBadge === "catalog" || skill.sourceType === "catalog") {

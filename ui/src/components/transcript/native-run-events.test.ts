@@ -24,7 +24,7 @@ function event(
     message: null,
     payload: {
       prpEvent: {
-        schema: "paperclip.prp.event.v1",
+        schema: "clayon.prp.event.v1",
         sourceEventId: `event-${seq}`,
         sourceSeq: seq,
         sourceInstanceId: "runner-1",
@@ -56,7 +56,7 @@ function itemEvent(
 
 function runResult(summary: string): Record<string, unknown> {
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "done",
     summary,
     completionClaim: {
@@ -75,7 +75,7 @@ function runResult(summary: string): Record<string, unknown> {
 describe("provider notice presentation", () => {
   it("omits unrelated information from saved chat without removing warnings or responses", () => {
     const legacyNotice = {
-      schema: "paperclip.provider.notice.v1",
+      schema: "clayon.provider.notice.v1",
       noticeId: "codex-warning",
       severity: "warning",
       category: "warning",
@@ -101,11 +101,11 @@ describe("provider notice presentation", () => {
   it("preserves notice text as a notice rather than a synthetic tool call", () => {
     const entries = nativeRunEventsToTranscript([
       event(1, "provider.notice.recorded", {
-        schema: "paperclip.provider.notice.v1", noticeId: "warning-1",
+        schema: "clayon.provider.notice.v1", noticeId: "warning-1",
         severity: "warning", category: "configWarning", summary: "Repository is not trusted",
       }),
       event(2, "provider.notice.recorded", {
-        schema: "paperclip.provider.notice.v1", noticeId: "error-1",
+        schema: "clayon.provider.notice.v1", noticeId: "error-1",
         severity: "error", message: "Provider connection failed",
       }),
     ]);
@@ -131,7 +131,7 @@ describe("nativeRunEventsToTranscript", () => {
       };
       const accepted = event(2, "run.result.accepted", { result });
       const terminal = event(3, "run.terminal", {
-        schema: "paperclip.prp.terminal.v1",
+        schema: "clayon.prp.terminal.v1",
         turnTerminalState: "completed",
         runTerminalState: "succeeded",
         reportedWorkDisposition: "yielded",
@@ -324,7 +324,7 @@ describe("nativeRunEventsToTranscript", () => {
       event(2, "item.delta", { itemId: "message-1", kind: "agentMessage", text: "safely." }),
       event(3, "item.completed", { itemId: "message-1", kind: "agentMessage", text: "Done safely." }),
       event(4, "tool.execution.started", {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         executionId: "exec-1",
         transport: "process",
         operation: "execute",
@@ -336,7 +336,7 @@ describe("nativeRunEventsToTranscript", () => {
         outputDigest: null,
       }),
       event(5, "tool.execution.completed", {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         executionId: "exec-1",
         transport: "process",
         operation: "execute",
@@ -378,7 +378,7 @@ describe("nativeRunEventsToTranscript", () => {
       }),
       expect.objectContaining({
         kind: "result",
-        subtype: "paperclip_runner_usage",
+        subtype: "clayon_runner_usage",
         inputTokens: 12,
         outputTokens: 3,
         cachedTokens: 2,
@@ -390,7 +390,7 @@ describe("nativeRunEventsToTranscript", () => {
   it("coalesces sparse Codex tool lifecycle events at the named write boundary", () => {
     const transcript = nativeRunEventsToTranscript([
       event(1, "tool.execution.started", {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         executionId: "exec-write-plan",
         transport: "dynamic",
         operation: "unknown",
@@ -428,7 +428,7 @@ describe("nativeRunEventsToTranscript", () => {
         },
       }),
       event(5, "tool.execution.completed", {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         executionId: "exec-write-plan",
         transport: "dynamic",
         operation: "unknown",
@@ -621,7 +621,7 @@ describe("nativeRunEventsToTranscript", () => {
     expect(transcript).toEqual([
       expect.objectContaining({
         kind: "result",
-        subtype: "paperclip_runner_usage",
+        subtype: "clayon_runner_usage",
         inputTokens: 16,
         outputTokens: 5,
         cachedTokens: 3,
@@ -669,7 +669,7 @@ describe("nativeRunEventsToTranscript", () => {
     expect(transcript).toEqual([
       expect.objectContaining({
         kind: "result",
-        subtype: "paperclip_runner_session_usage",
+        subtype: "clayon_runner_session_usage",
         inputTokens: 20,
         outputTokens: 5,
         costUsd: 0.02,
@@ -692,7 +692,7 @@ describe("nativeRunEventsToTranscript", () => {
     expect(transcript).toEqual([
       expect.objectContaining({
         kind: "result",
-        subtype: "paperclip_runner_session_usage",
+        subtype: "clayon_runner_session_usage",
         inputTokens: 112,
         outputTokens: 53,
         costUsd: 1.01,
@@ -793,13 +793,13 @@ describe("nativeRunEventsToTranscript", () => {
   it("projects provider-neutral activity without exposing provider envelopes", () => {
     expect(nativeRunEventsToTranscript([
       event(1, "research.started", {
-        schema: "paperclip.research.v1",
+        schema: "clayon.research.v1",
         researchId: "research-1",
         query: "current behavior",
         status: "running",
       }),
       event(2, "research.completed", {
-        schema: "paperclip.research.v1",
+        schema: "clayon.research.v1",
         researchId: "research-1",
         query: "current behavior",
         status: "completed",
@@ -823,7 +823,7 @@ describe("nativeRunEventsToTranscript", () => {
     (status) => {
       expect(nativeRunEventsToTranscript([
         event(1, "artifact.generated", {
-          schema: "paperclip.artifact.generated.v1",
+          schema: "clayon.artifact.generated.v1",
           artifactId: "artifact-1",
           status,
           reference: "artifacts/preview.png",
@@ -839,7 +839,7 @@ describe("nativeRunEventsToTranscript", () => {
 
   it("fails closed for unsupported versions, prefix lookalikes, and mismatched payload schemas", () => {
     const unsupportedVersion = event(1, "model.verification.updated", {
-      schema: "paperclip.model.verification.v1",
+      schema: "clayon.model.verification.v1",
       verificationId: "verification-1",
       status: "completed",
       summary: "must not render",
@@ -849,12 +849,12 @@ describe("nativeRunEventsToTranscript", () => {
     expect(nativeRunEventsToTranscript([
       unsupportedVersion,
       event(2, "model.provider_message.recorded", {
-        schema: "paperclip.model.provider_message.v1",
+        schema: "clayon.model.provider_message.v1",
         routeId: "route-1",
         message: "provider envelope must not render",
       }),
       event(3, "model.verification.updated", {
-        schema: "paperclip.provider.native.v1",
+        schema: "clayon.provider.native.v1",
         verificationId: "verification-2",
         status: "completed",
         summary: "wrong payload schema must not render",
@@ -865,24 +865,24 @@ describe("nativeRunEventsToTranscript", () => {
   it("fails closed for mismatched tool execution and run result schemas", () => {
     expect(nativeRunEventsToTranscript([
       event(1, "tool.execution.started", {
-        schema: "paperclip.provider.native.v1",
+        schema: "clayon.provider.native.v1",
         executionId: "exec-1",
         transport: "process",
         operation: "execute",
         status: "running",
       }),
       event(2, "run.result.proposed", {
-        schema: "paperclip.provider.native.v1",
+        schema: "clayon.provider.native.v1",
         summary: "malformed proposal must not render",
       }),
       event(3, "run.result.accepted", {
         result: {
-          schema: "paperclip.provider.native.v1",
+          schema: "clayon.provider.native.v1",
           summary: "malformed accepted result must not render",
         },
       }),
       event(4, "run.result.accepted", {
-        schema: "paperclip.run_result.v1",
+        schema: "clayon.run_result.v1",
         summary: "accepted wrappers must not masquerade as results",
       }),
     ])).toEqual([]);
@@ -909,14 +909,14 @@ describe("nativeRunEventsToTranscript", () => {
     expect(nativeRunEventsToTranscript([
       event(1, "runtime_request.created", {
         request: {
-          schema: "paperclip.runtime_request.v1",
+          schema: "clayon.runtime_request.v1",
           requestId: "question-1",
           requestKind: "elicitation",
           type: "input",
           status: "pending",
           prompt: "Choose a rollout",
           input: {
-            schema: "paperclip.question_set.v1",
+            schema: "clayon.question_set.v1",
             questions: [{
               id: "rollout",
               prompt: "Which rollout?",
@@ -932,7 +932,7 @@ describe("nativeRunEventsToTranscript", () => {
           requestId: "question-1",
           status: "resolved",
           response: {
-            schema: "paperclip.question_response.v1",
+            schema: "clayon.question_response.v1",
             answers: { rollout: { selectedOptionIds: ["safe"] } },
           },
         },
@@ -942,13 +942,13 @@ describe("nativeRunEventsToTranscript", () => {
         kind: "runtime_request",
         requestId: "question-1",
         status: "pending",
-        questionSet: expect.objectContaining({ schema: "paperclip.question_set.v1" }),
+        questionSet: expect.objectContaining({ schema: "clayon.question_set.v1" }),
       }),
       expect.objectContaining({
         kind: "runtime_request",
         requestId: "question-1",
         status: "resolved",
-        response: expect.objectContaining({ schema: "paperclip.question_response.v1" }),
+        response: expect.objectContaining({ schema: "clayon.question_response.v1" }),
       }),
     ]);
   });
@@ -962,12 +962,12 @@ describe("nativeRunEventsToTranscript", () => {
     (turnTerminalState, runTerminalState, expectedRunState) => {
       expect(nativeRunEventsToTranscript([
         event(1, "run.terminal", {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState,
           runTerminalState,
           reportedWorkDisposition: "needs_review",
           stopReason: {
-            schema: "paperclip.stop_reason.v1",
+            schema: "clayon.stop_reason.v1",
             code: "provider_failed",
             message: "Provider could not finish the turn.",
           },
@@ -986,7 +986,7 @@ describe("nativeRunEventsToTranscript", () => {
   it("fails closed instead of presenting malformed terminal state as success", () => {
     expect(nativeRunEventsToTranscript([
       event(1, "run.terminal", {
-        schema: "paperclip.prp.terminal.v1",
+        schema: "clayon.prp.terminal.v1",
         turnTerminalState: "mystery",
         runTerminalState: "successful-ish",
         reportedWorkDisposition: "done",

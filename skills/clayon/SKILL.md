@@ -179,7 +179,7 @@ In Agent Chat, Clayon addresses the question to the conversation owner automatic
   "payload": {
     "version": 1,
     "questionSet": {
-      "schema": "paperclip.question_set.v1",
+      "schema": "clayon.question_set.v1",
       "questions": [{ "id": "detail", "prompt": "What should I know?", "answerMode": "text", "required": true }]
     }
   }
@@ -230,10 +230,10 @@ Headers: X-Clayon-Run-Id: $CLAYON_RUN_ID
 { "status": "done", "comment": "What was done and why." }
 ```
 
-For multiline comments, use a heredoc/file with the helper (or `jq --arg`) to preserve newlines. Set `paperclip_skill_dir` to the absolute directory containing this installed `SKILL.md`, using the skill path/base directory supplied by your harness. It is not the task working directory or the Clayon source repository. If that path or helper is unavailable, use the verified PATCH request above; do not search the filesystem for it.
+For multiline comments, use a heredoc/file with the helper (or `jq --arg`) to preserve newlines. Set `clayon_skill_dir` to the absolute directory containing this installed `SKILL.md`, using the skill path/base directory supplied by your harness. It is not the task working directory or the Clayon source repository. If that path or helper is unavailable, use the verified PATCH request above; do not search the filesystem for it.
 
 ```bash
-bash "$paperclip_skill_dir/scripts/clayon-issue-update.sh" --issue-id "$CLAYON_TASK_ID" --status done <<'MD'
+bash "$clayon_skill_dir/scripts/clayon-issue-update.sh" --issue-id "$CLAYON_TASK_ID" --status done <<'MD'
 Done
 
 - Fixed the newline-preserving issue update path

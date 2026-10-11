@@ -60,7 +60,7 @@ describe("ClayonRunnerToolAuthority", () => {
       id: agentId,
       companyId,
       name: "Runner agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex", apiKey: "must-not-leak" },
       runtimeConfig: { token: "must-not-leak" },
       status: "active",
@@ -163,21 +163,21 @@ describe("ClayonRunnerToolAuthority", () => {
         callId: "hidden",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_tool_not_advertised");
+    ).rejects.toThrow("clayon_runner_tool_not_advertised");
     await expect(
       authority.execute({
         tool: "list_chat_attachments",
         callId: "historical-list-without-chat-binding",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_binding_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_binding_denied");
     await expect(
       authority.execute({
         tool: READ_CURRENT_WAKE_COMMENTS_TOOL_NAME,
         callId: "reader-without-bound-wake",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_tool_not_advertised");
+    ).rejects.toThrow("clayon_runner_tool_not_advertised");
   });
 
   it("returns public task URLs from the current claimed origin in context and search results", async () => {
@@ -351,7 +351,7 @@ describe("ClayonRunnerToolAuthority", () => {
         role: "qa",
         title: "Quality lead",
         capabilities: "Test native workflows",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         inheritRuntimeFrom: "caller",
         reportsTo: agentId,
         sourceIssueId: issueId,
@@ -490,7 +490,7 @@ describe("ClayonRunnerToolAuthority", () => {
       id: binding.agentId,
       companyId: binding.companyId,
       name: "Question agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       status: "active",
     });
     await db.insert(issues).values({
@@ -545,7 +545,7 @@ describe("ClayonRunnerToolAuthority", () => {
       : {
           version: 1,
           questionSet: {
-            schema: "paperclip.question_set.v1",
+            schema: "clayon.question_set.v1",
             questions: [
               { id: "goal", prompt: "What should we accomplish?", answerMode: "text", required: true },
               ...(answerMode === "mixed" ? [{ id: "color", prompt: "Choose one color", answerMode: "single_select", required: true, options: questions[0].options }] : []),
@@ -663,7 +663,7 @@ describe("ClayonRunnerToolAuthority", () => {
     const authority = new ClayonRunnerToolAuthority(db, { companyId, agentId, issueId, runId,
       dotRuntime: true, workspaceBridge: true, workspaceRoot: "/tmp/fixture-workspace" });
     try {
-      for (const contentRef of [".clayon/.env", "nested/.PaPeRcLiP/config.json"]) {
+      for (const contentRef of [".clayon/.env", "nested/.ClAyOn/config.json"]) {
         await expect(authority.execute({ tool: "register_deliverable", callId: contentRef, arguments: {
           idempotencyKey: contentRef, filename: "config.txt", title: "Config", contentType: "text/plain",
           byteSize: 10, sha256: "0".repeat(64), contentRef,
@@ -692,14 +692,14 @@ describe("ClayonRunnerToolAuthority", () => {
     expect(tools).toEqual(expect.arrayContaining(baseline));
     expect(tools.filter(tool => String(tool.name).startsWith("app_"))).toEqual([]);
     expect(tools.map(tool => tool.name)).toEqual(expect.arrayContaining([
-      "paperclip_search_assigned_tools", "paperclip_call_assigned_tool", "register_deliverable",
+      "clayon_search_assigned_tools", "clayon_call_assigned_tool", "register_deliverable",
     ]));
-    const call = { tool: "paperclip_search_assigned_tools", callId: "discover", arguments: { query: "Action 223" } };
+    const call = { tool: "clayon_search_assigned_tools", callId: "discover", arguments: { query: "Action 223" } };
     await expect(authority.execute(call)).resolves.toMatchObject({ tools: [expect.objectContaining({ description: "Action 223: Read a fixture" })] });
     listToolsForNamedGateway.mockClear();
     await db.update(heartbeatRuns).set({ status: "succeeded" }).where(eq(heartbeatRuns.id, runId));
     try {
-      await expect(authority.execute(call)).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+      await expect(authority.execute(call)).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
       expect(listToolsForNamedGateway).not.toHaveBeenCalled();
     } finally {
       await db.update(heartbeatRuns).set({ status: "running" }).where(eq(heartbeatRuns.id, runId));
@@ -727,7 +727,7 @@ describe("ClayonRunnerToolAuthority", () => {
     execute.mockClear();
     await db.update(heartbeatRuns).set({ status: "succeeded" }).where(eq(heartbeatRuns.id, runId));
     try {
-      await expect(authority.execute(call)).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+      await expect(authority.execute(call)).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
       expect(execute).not.toHaveBeenCalled();
     } finally {
       await db.update(heartbeatRuns).set({ status: "running" }).where(eq(heartbeatRuns.id, runId));
@@ -791,7 +791,7 @@ describe("ClayonRunnerToolAuthority", () => {
         bodySnippet: "Runner progress",
         identifier: "RNT-1",
         issueTitle: "Exercise real runner tools",
-        source: "paperclip_runner_protocol",
+        source: "clayon_runner_protocol",
       }),
     });
     await expect(
@@ -799,7 +799,7 @@ describe("ClayonRunnerToolAuthority", () => {
         ...call,
         arguments: { body: "Changed", idempotencyKey: "progress-1" },
       }),
-    ).rejects.toThrow("paperclip_runner_tool_idempotency_conflict");
+    ).rejects.toThrow("clayon_runner_tool_idempotency_conflict");
   });
 
   it("creates checkbox interactions through the real interaction service", async () => {
@@ -856,7 +856,7 @@ describe("ClayonRunnerToolAuthority", () => {
           prompt: "Use the same key for a different prompt.",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_tool_idempotency_conflict");
+    ).rejects.toThrow("clayon_runner_tool_idempotency_conflict");
   });
 
   it("writes a real revisioned document and replays the mutation receipt", async () => {
@@ -918,7 +918,7 @@ describe("ClayonRunnerToolAuthority", () => {
         entityType: "issue",
         details: expect.objectContaining({
           key: "plan",
-          source: "paperclip_runner_protocol",
+          source: "clayon_runner_protocol",
         }),
       }),
     ]);
@@ -927,7 +927,7 @@ describe("ClayonRunnerToolAuthority", () => {
         ...call,
         arguments: { ...call.arguments, body: "Conflicting retry." },
       }),
-    ).rejects.toThrow("paperclip_runner_tool_idempotency_conflict");
+    ).rejects.toThrow("clayon_runner_tool_idempotency_conflict");
   });
 
   it("returns the exact accepted plan revision in task context", async () => {
@@ -1187,7 +1187,7 @@ describe("ClayonRunnerToolAuthority", () => {
           title: "Conflicting title for the same caller key",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_tool_idempotency_conflict");
+    ).rejects.toThrow("clayon_runner_tool_idempotency_conflict");
 
     const creationEvents = (await db.select().from(activityLog).where(eq(activityLog.entityId, prerequisiteId)))
       .filter(event => event.action === "issue.created");
@@ -1206,7 +1206,7 @@ describe("ClayonRunnerToolAuthority", () => {
       id: foreignAgentId,
       companyId: foreignCompanyId,
       name: "Foreign agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       status: "active",
@@ -1229,7 +1229,7 @@ describe("ClayonRunnerToolAuthority", () => {
           assigneeActorId: foreignAgentId,
         },
       }),
-    ).rejects.toThrow("paperclip_runner_agent_not_found");
+    ).rejects.toThrow("clayon_runner_agent_not_found");
     await expect(
       retryAuthority.execute({
         tool: "create_task",
@@ -1307,7 +1307,7 @@ describe("ClayonRunnerToolAuthority", () => {
       .set({ assigneeAgentId: null })
       .where(eq(issues.id, guardedIssueId));
     await expect(authority.execute(mutation)).rejects.toThrow(
-      "paperclip_runner_tool_binding_not_authorized",
+      "clayon_runner_tool_binding_not_authorized",
     );
 
     await db
@@ -1319,7 +1319,7 @@ describe("ClayonRunnerToolAuthority", () => {
       .where(eq(issues.id, guardedIssueId));
     await expect(
       authority.execute({ ...mutation, callId: "replaced-run" }),
-    ).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+    ).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
 
     await db
       .update(issues)
@@ -1331,7 +1331,7 @@ describe("ClayonRunnerToolAuthority", () => {
       .where(eq(heartbeatRuns.id, guardedRunId));
     await expect(
       authority.execute({ ...mutation, callId: "terminal-run" }),
-    ).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+    ).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
 
     expect(
       await db
@@ -1401,6 +1401,6 @@ describe("ClayonRunnerToolAuthority", () => {
         callId: "late",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+    ).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
   });
 });

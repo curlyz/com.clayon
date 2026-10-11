@@ -3007,7 +3007,7 @@ function sanitizeHttpFailure(error: unknown): {
         code: "secret_missing",
       };
     }
-    return { status: "error", message: error.message, code: "paperclip_error" };
+    return { status: "error", message: error.message, code: "clayon_error" };
   }
   if (error instanceof Error) {
     return {
@@ -7263,7 +7263,7 @@ export function toolAccessService(
     if (
       response.status === 401 &&
       connection.authKind === "oauth" &&
-      connection.credentialSource === "paperclip_vault"
+      connection.credentialSource === "clayon_vault"
     ) {
       headers = {
         ...projectedConnectionHeaders(connection),
@@ -8230,7 +8230,7 @@ export function toolAccessService(
           eq(toolConnections.status, "active"),
           ne(toolConnections.transport, "chat_sdk"),
           ne(toolConnections.transport, "runtime_auth"),
-          ne(toolApplications.type, "paperclip_plugin"),
+          ne(toolApplications.type, "clayon_plugin"),
           or(isNull(toolConnections.healthCheckedAt), lte(toolConnections.healthCheckedAt, cutoff)),
         ),
       )
@@ -8409,7 +8409,7 @@ export function toolAccessService(
   ) {
     const metadata = {
       ...(existing?.metadata ?? {}),
-      source: "paperclip_example",
+      source: "clayon_example",
       exampleId: definition.id,
       safeDefault: true,
     };
@@ -8516,7 +8516,7 @@ export function toolAccessService(
   ) {
     const metadata = {
       ...(existing?.metadata ?? {}),
-      source: "paperclip_example",
+      source: "clayon_example",
       exampleId: definition.id,
       safeDefault: true,
     };
@@ -8580,7 +8580,7 @@ export function toolAccessService(
           catalogEntryId: entry.id,
           toolName: entry.toolName,
           riskLevel: entry.riskLevel,
-          conditions: { source: "paperclip_example" },
+          conditions: { source: "clayon_example" },
         })),
       )
       .returning();
@@ -8595,7 +8595,7 @@ export function toolAccessService(
   ): Promise<ToolProfileBinding> {
     const metadata = {
       ...(existing?.metadata ?? {}),
-      source: "paperclip_example",
+      source: "clayon_example",
       safeDefault: true,
     };
     if (existing) {
@@ -11414,7 +11414,7 @@ export function toolAccessService(
       typeof oauth.tokenUrl === "string" ? oauth.tokenUrl : null;
     if (
       connection.authKind === "oauth" &&
-      connection.credentialSource === "paperclip_vault" &&
+      connection.credentialSource === "clayon_vault" &&
       isClayonCloudConnectorStrategy(oauth.strategy)
     ) {
       const grantOauth = oauthGrantConfig(initialGrant);
@@ -11532,7 +11532,7 @@ export function toolAccessService(
               ...(grant.providerTenant ?? {}),
               oauth: {
                 ...withoutOAuthGrantRefreshLease(oauthGrantConfig(grant)),
-                strategy: "paperclip_cloud_connector",
+                strategy: "clayon_cloud_connector",
                 accessTokenExpiresAt: credentials.accessTokenExpiresAt,
                 scopes: credentials.scopes,
                 tokenType: credentials.tokenType,
@@ -11593,7 +11593,7 @@ export function toolAccessService(
     }
     if (
       connection.authKind !== "oauth" ||
-      connection.credentialSource !== "paperclip_vault" ||
+      connection.credentialSource !== "clayon_vault" ||
       !oauthTokenUrl ||
       !oauthProvider
     ) {
@@ -12674,7 +12674,7 @@ export function toolAccessService(
     }
     const transport = method?.transport ?? "mcp_remote";
     const credentialSource: ToolConnectionCredentialSource =
-      input.credentialSource ?? "paperclip_vault";
+      input.credentialSource ?? "clayon_vault";
     if (
       retainedConnection &&
       retainedConnection.credentialSource !== credentialSource
@@ -14799,7 +14799,7 @@ export function toolAccessService(
         throw unprocessable(
           `${providerName} connections through Clayon are not available on this instance yet`,
           {
-            code: "paperclip_cloud_connector_unavailable",
+            code: "clayon_cloud_connector_unavailable",
           },
         );
       }
@@ -15488,7 +15488,7 @@ export function toolAccessService(
           code:
             input.error === "access_denied"
               ? "oauth_authorization_denied"
-              : "paperclip_cloud_connector_failed",
+              : "clayon_cloud_connector_failed",
         },
       );
     }
@@ -15501,7 +15501,7 @@ export function toolAccessService(
       throw unprocessable(
         `${providerName} connections through Clayon are not available on this instance yet`,
         {
-          code: "paperclip_cloud_connector_unavailable",
+          code: "clayon_cloud_connector_unavailable",
         },
       );
     }
@@ -15697,7 +15697,7 @@ export function toolAccessService(
           name: githubMetadata?.login ?? providerName,
           externalId: credentials.subject,
           oauth: {
-            strategy: "paperclip_cloud_connector",
+            strategy: "clayon_cloud_connector",
             accessTokenExpiresAt: credentials.accessTokenExpiresAt,
             scopes: credentials.scopes,
             tokenType: credentials.tokenType,
@@ -15738,7 +15738,7 @@ export function toolAccessService(
         ...connection.config,
         oauth: {
           ...oauthConfig(connection),
-          strategy: "paperclip_cloud_connector",
+          strategy: "clayon_cloud_connector",
           provider: galleryEntry?.slug,
           connectorProfile,
           connectorSubjectUserId: subjectUserId,

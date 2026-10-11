@@ -139,7 +139,7 @@ required; no bypass or self-approval.
 ### Prior checkpoint — September 10: deferred-wake extraction reconciliation
 
 Published `7c6d36e0d7d343709f10b533a0c29dc2409f7b2b` passes all 24 jobs in
-[fresh CI](https://github.com/paperclipai/paperclip/actions/runs/34434501548).
+[fresh CI](https://github.com/clayon/clayon/actions/runs/34434501548).
 Greptile reviews that exact head at **5/5**, without actionable findings.
 The normal exact-head guarded squash merge then fails because master advanced
 to `6dd48cad4` (the deferred-wake module extraction) during the checks.
@@ -164,7 +164,7 @@ paused until normal merge succeeds.
 ### Prior checkpoint — September 10: Stop-registration review correction
 
 Master reconciliation is published as `a95d42e58afa35cf4ecf1a39cbd96f06523b90ec`.
-Its complete [CI run](https://github.com/paperclipai/paperclip/actions/runs/34433249742)
+Its complete [CI run](https://github.com/clayon/clayon/actions/runs/34433249742)
 passes all 24 jobs, including both required aggregates, at 03:42 UTC.
 Greptile's exact-head review is **4/5**, with a confirmed Stop-registration
 race. This is a merge hold, not permission to merge because CI is green.
@@ -190,7 +190,7 @@ below 500 files. Live qualification remains paused and no live binary changed.
 ### Prior checkpoint — September 10: final master reconciliation
 
 The published head `3e4e1c1cee05737fd5193e141ccd52f8815c7854` passes its
-complete [CI run](https://github.com/paperclipai/paperclip/actions/runs/34415826820),
+complete [CI run](https://github.com/clayon/clayon/actions/runs/34415826820),
 including Build and both required aggregates, at September 9, 23:28:50 UTC.
 The previously failing ambiguous-replacement and descendant-lineage cases
 both pass under Linux CI's unchanged default concurrency. This does not erase
@@ -972,9 +972,9 @@ the combined suite and next cutover. Telegram native draft Stop remains
 unobserved, and Teams still needs a work-tenant/admin installation.
 
 Two actual chat PRs now exist, in dependency order:
-[foundation #13100](https://github.com/paperclipai/paperclip/pull/13100),
+[foundation #13100](https://github.com/clayon/clayon/pull/13100),
 136 files at `29c48d25…`, then
-[integration #13038](https://github.com/paperclipai/paperclip/pull/13038),
+[integration #13038](https://github.com/clayon/clayon/pull/13038),
 366 files at `f9250078…`. Checks and fresh reviews are pending; no merge is
 claimed. Later live fixes must be included and exact-head gates renewed.
 
@@ -1876,7 +1876,7 @@ has been sent during this code-only audit.
 
 Maya E2E `31f56712-3944-423e-b7c7-404bb8fbb993`, company
 `7ffa9799-0b1b-4a26-9b44-8e897f832f89`, uses native
-`paperclip_runner` / `codex_app_server` / `gpt-5.6-luna`. Terra was not
+`clayon_runner` / `codex_app_server` / `gpt-5.6-luna`. Terra was not
 substituted. Effective reasoning effort is not yet proved; the old configured
 low field is outside the native v4 contract. Do not claim it is running low effort.
 

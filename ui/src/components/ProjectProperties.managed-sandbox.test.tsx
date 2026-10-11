@@ -39,10 +39,10 @@ const MANAGED_FOLDER = "/var/clayon/checkouts/test-project";
 function makeCodebase(overrides: Partial<ProjectCodebase> = {}): ProjectCodebase {
   return {
     workspaceId: "workspace-1",
-    repoUrl: "https://github.com/paperclipai/paperclip",
+    repoUrl: "https://github.com/clayon/clayon",
     repoRef: "master",
     defaultRef: "origin/master",
-    repoName: "paperclipai/paperclip",
+    repoName: "clayon/clayon",
     localFolder: LOCAL_FOLDER,
     managedFolder: MANAGED_FOLDER,
     effectiveLocalFolder: LOCAL_FOLDER,

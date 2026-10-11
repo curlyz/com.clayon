@@ -31,11 +31,11 @@ approval. See [the adapter runbook](../openai-dot-runner.md).
 
 ## 1. Recommendation
 
-Add **OpenAI Dot** as a provider of the existing `paperclip_runner` adapter:
+Add **OpenAI Dot** as a provider of the existing `clayon_runner` adapter:
 
 ```json
 {
-  "adapterType": "paperclip_runner",
+  "adapterType": "clayon_runner",
   "adapterConfig": {
     "provider": "openai_dot",
     "dotBindingId": "<server-owned binding>",
@@ -50,7 +50,7 @@ PRP lifecycle. Clayon owns connection authorization, durable mailboxes,
 admission, tool effects, budgets, approvals, and final task disposition.
 
 The implementation is a new Runner provider, not a new legacy `execute()`
-adapter. Keep `paperclip_runner` in the server/UI/CLI registries. The older
+adapter. Keep `clayon_runner` in the server/UI/CLI registries. The older
 `create-agent-adapter` skill remains useful for configuration, diagnostics and
 cross-surface consistency; its process-spawning package recipe does not define
 this provider's execution architecture.
@@ -82,7 +82,7 @@ the added migration replay check. Full workspace typecheck/build and token
 gates passed. Runner recovery verification passed 123 tests and the Rust
 workspace passed 318 library tests. The local full repository attempt was
 stopped after 2 hours 47 minutes when review fixes made it stale. Final branch
-CI and review are tracked in [PR #15402](https://github.com/paperclipai/paperclip/pull/15402);
+CI and review are tracked in [PR #15402](https://github.com/clayon/clayon/pull/15402);
 the adapter runbook records verification limits.
 
 The other gateway chat's subsequent assistant-tool expansion is still separate
@@ -95,7 +95,7 @@ third-party MCP bindings remain unsupported.
 The real-Dot test on October 2 demonstrated:
 
 1. Private custom-plugin installation and ordinary OAuth connection.
-2. Dot successfully calling `paperclip_connection`.
+2. Dot successfully calling `clayon_connection`.
 3. A verified MCP Events subscription and signed webhook delivery.
 4. Dot fetching and accepting an assignment without a second chat prompt.
 5. Dot invoking a projected tool and saving exactly one test report.
@@ -245,7 +245,7 @@ protocol revision. Tasks cannot override that identity or supply callback URLs.
 
 ### Contract changes
 
-The current native input is a closed `paperclip.native-execution-input.v5`
+The current native input is a closed `clayon.native-execution-input.v5`
 contract. Introduce the next input revision with a Dot provider variant; retain
 v1–v5 parsing and recovery for existing providers. Update JSON Schema,
 TypeScript and Rust together, plus export/compatibility manifests and fixtures.
@@ -275,7 +275,7 @@ The existing v2 enums cannot be expanded invisibly in persisted old contracts.
 
 Reads of assignment/receipt projections may come directly from the authorized
 broker database. Mutating lifecycle operations enter the live Runner. Normal
-`semantic_tool` dispatch, `paperclip_finish`/`paperclip_block` validation,
+`semantic_tool` dispatch, `clayon_finish`/`clayon_block` validation,
 completion feedback and PRP finalization remain authoritative.
 
 Command acknowledgement means the external operation was durably admitted to
@@ -964,7 +964,7 @@ receipt; the operator cancelled that run and Dot acknowledged its fence. Read
 failures now settle as bounded errors. A real Rust regression proves that later
 tools and finalization still work after a missing-file error.
 
-Dot then initiated its own **DOT-4** intake through `paperclip_dot_request_turn`,
+Dot then initiated its own **DOT-4** intake through `clayon_dot_request_turn`,
 created **hello from idle** for the human owner, verified the missing-file error,
 and wrote/read/executed/registered `idle-proof.txt`. The downloaded 20-byte file
 contains `idle-runner-verified` and matches its registered SHA-256. Both

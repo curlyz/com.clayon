@@ -149,7 +149,7 @@ runner binaries share SHA256
 `f7c1273cce29e521e820ad947d657e500da28477f563053148e764cdfb3730cd`.
 The restarted server reports `2026.831.0+413.git.26b6df7c1` at
 `http://127.0.0.1:3103`; its log is `server-native-checkpoint-16.log`.
-Maya remains `paperclip_runner`, provider `codex`, model `gpt-5.6-luna`.
+Maya remains `clayon_runner`, provider `codex`, model `gpt-5.6-luna`.
 
 The staged Rust-backed Codex transport suite passed **71/71** in
 `upstream-runner-staged-driver-03.log`, including cold restoration with a changed
@@ -310,7 +310,7 @@ prevent the conflicting claim.
 
 Commit `062cfcacc` is pushed and deployed on the isolated live instance. Health
 reports that exact revision, startup recovery ready, and the agent remains
-`paperclip_runner` / `codex` / `gpt-5.6-luna`. No credentials were regenerated.
+`clayon_runner` / `codex` / `gpt-5.6-luna`. No credentials were regenerated.
 The new follow-up in the original Discord conversation succeeded as run
 `b9fc4be1-3a22-44c8-9198-4527fc8b90c4`: native execution took **12.85 s** and
 the final publication followed **0.75 s** later. Its new normalized session is
@@ -506,7 +506,7 @@ coverage passed **202/202**, with server and adapter-utils typechecks.
 
 The explicit wait failure was also a tool-contract gap: the generic run-result
 schema allowed a yield, but Codex's completion tool and runnerd rejected it.
-`paperclip_finish` now accepts `yielded` only with a `response_wake` continuation;
+`clayon_finish` now accepts `yielded` only with a `response_wake` continuation;
 an immediate `same_agent` continuation remains rejected. Tool fingerprint v6
 rotates v5 catalogs. Focused runner checks passed **36/36**, resume checks
 **31/31**, exact Rust admission checks **2/2**, and Rust format/TypeScript checks
@@ -541,7 +541,7 @@ of full production readiness should omit this remaining race.
 ### Live follow-up qualification on `9c2c65ed3` (September 8, 05:33 UTC)
 
 The server reported this exact clean revision after startup at 05:29:53 UTC.
-Maya's runtime settings still showed `paperclip_runner`, Codex, and
+Maya's runtime settings still showed `clayon_runner`, Codex, and
 `gpt-5.6-luna`; no fallback to Terra was made. The frozen native matrix passed
 **1,371/1,371**, 36 files, 161.29 seconds
 (`native-followup-root-tests-02.log`). Full chat integration passed
@@ -566,7 +566,7 @@ The live browser retest did **not** pass all journeys:
 - Slack `SLACK-LUNA-WAIT-FIX-0908`, run
   `3939c72d-0849-40ff-83b8-35ddd4f70728`, failed semantic completion and retried
   before showing the failure message. The actual Codex discovery output exposed
-  `paperclip_finish(args: unknown)`: the new provider schema's conditional-only
+  `clayon_finish(args: unknown)`: the new provider schema's conditional-only
   root `allOf` hid the concrete argument fields. The model consequently guessed
   incomplete arguments, including a continuation without its summary/key.
   GitHub `GH-LUNA-WAIT-FIX-0908`, run
@@ -1098,7 +1098,7 @@ events confirm `gpt-5.6-luna` in all four initial runs and the Discord correctio
 - Discord's initial sequential request `b747a717-e0ff-4a84-88c6-91f9ec6a7bfc`
   did **not** create a native question: its canonical summary fabricated relative
   choice links, which the safe renderer reduced to a text list. A natural
-  correction `37800c84-281e-486f-9e63-15241221f6c4` then used `paperclip_block`
+  correction `37800c84-281e-486f-9e63-15241221f6c4` then used `clayon_block`
   and falsely claimed the choice interaction was unavailable. Neither run
   invoked `request_human_input`; no question interaction was created.
 
@@ -1160,7 +1160,7 @@ All four answer deliveries have one claim attempt, zero errors, and exactly one
 fallback-wake target. Both tasks remain in review.
 An independent audit of actual Codex rollouts confirms **gpt-5.6-luna in all
 six turns**, four real `request_human_input` calls using `payload.questions`,
-and two real `paperclip_finish` calls yielding to `response_wake`. All four
+and two real `clayon_finish` calls yielding to `response_wake`. All four
 provider-session declarations contain the corrected real-task question and
 completion descriptions. Each channel retains its task-scoped workspace;
 the first question uses a fresh provider session and the two answer turns
@@ -1229,7 +1229,7 @@ closed-metadata audit of all three actual Codex rollout windows confirms
 trips: five commands, file registration, and completion. Two commands supplied
 the wrong workspace and one returned a missing-file error. The failures
 themselves returned in 29–64ms, while failure-to-next-call intervals summed
-to 19.148s. The applied file receipt correctly says `paperclip_task_only`.
+to 19.148s. The applied file receipt correctly says `clayon_task_only`.
 
 The local launcher's canonical Board URLs now use the existing private
 Tailscale HTTPS origin, while the public webhook-only Funnel remains on
@@ -1401,7 +1401,7 @@ the current answer were checked beyond the deterministic test results.
 ### Live Slack cancellation and Discord DM isolation — 2026-09-08
 
 These tests used the deployed `78a7e668e` server and the same Maya E2E
-`paperclip_runner` agent configured with `gpt-5.6-luna`; both new Discord
+`clayon_runner` agent configured with `gpt-5.6-luna`; both new Discord
 runs and both Slack runs use `codex_app_server`. No model substitution,
 provider API shortcut, or direct database mutation was used.
 
@@ -1569,7 +1569,7 @@ webhook proxy remain running.
 
 ### Busy-thread follow-up qualification — 2026-09-08
 
-The live Maya configuration was re-read: `paperclip_runner`, model
+The live Maya configuration was re-read: `clayon_runner`, model
 `gpt-5.6-luna`; actual new runs use `codex_app_server`. No legacy adapter or
 Terra substitution was used. On the running `27c6dc4f8` code, a Slack picnic
 request was sent at 10:11:51.174Z and a replacement request at 10:11:58.362Z
@@ -1719,7 +1719,7 @@ at 10:31:20.672Z, **15.890s** end to end. Its working message
 `1788863466.965279` was updated in place, once; final publication
 `35675ea4-14cc-454f-9ba6-9490eb255462` took **346ms** from creation to
 published settlement. All these real runs use `codex_app_server`; Maya's
-persisted adapter/model remain `paperclip_runner` / `gpt-5.6-luna`.
+persisted adapter/model remain `clayon_runner` / `gpt-5.6-luna`.
 
 The fresh deterministic browser suite passed **9/9** on isolated port 3199.
 No external provider account was accessed by that Playwright suite.
@@ -1822,7 +1822,7 @@ a separate cadence-limited progress phase.
 Actual rollout contexts for all three clean-build runs confirm
 `gpt-5.6-luna` and `codex_app_server`. All four active provider endpoints
 (Slack, Discord, Telegram, GitHub) remain assigned to Maya's
-`paperclip_runner` / Luna configuration. Terra was not substituted.
+`clayon_runner` / Luna configuration. Terra was not substituted.
 GitHub's App delivery settings still show the six-digit Confirm access gate;
 the pending private-image delivery is not declared qualified. Teams Developer
 Portal still shows its Microsoft sign-in gate. These provider gates and the

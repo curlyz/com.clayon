@@ -95,7 +95,7 @@ describe("Clayon question-set contract", () => {
     })).toThrow(/replicas.*required/);
     expect(() => parseClayonQuestionResponse(questionSet, {
       answers: { environment: { answers: ["Staging"] } },
-    })).toThrow(/paperclip.question_response.v1/);
+    })).toThrow(/clayon.question_response.v1/);
     expect(() => parseClayonQuestionResponse(questionSet, {
       schema: CLAYON_QUESTION_RESPONSE_SCHEMA,
       answers: {

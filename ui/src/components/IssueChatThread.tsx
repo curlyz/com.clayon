@@ -241,10 +241,10 @@ import {
   ChevronDown,
   ClipboardList,
   Copy,
+  FileUp,
   Hammer,
   Loader2,
   MoreHorizontal,
-  Paperclip,
   PauseCircle,
   Search,
   Square,
@@ -1579,7 +1579,7 @@ const TOOL_ICON_MAP: Record<
   string,
   React.ComponentType<{ className?: string }>
 > = {
-  paperclip_provider_activity: ClipboardList,
+  clayon_provider_activity: ClipboardList,
 };
 
 function getToolIcon(
@@ -1602,7 +1602,7 @@ function IssueChatToolPart({
   isError?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  if (toolName === "paperclip_provider_activity") {
+  if (toolName === "clayon_provider_activity") {
     return (
       <IssueChatProviderActivity
         args={args}
@@ -3659,7 +3659,7 @@ function SystemNoticeCommentContent({
               {copiedLink ? (
                 <Check className="h-3.5 w-3.5" />
               ) : (
-                <Paperclip className="h-3.5 w-3.5" />
+                <FileUp className="h-3.5 w-3.5" />
               )}
             </button>
           ) : null}
@@ -5379,7 +5379,7 @@ const IssueChatComposer = forwardRef<
         >
           <div className="flex max-w-md items-center gap-3 rounded-md bg-background/80 px-3 py-2 text-left shadow-sm ring-1 ring-border/60">
             <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Paperclip className="h-4 w-4" />
+              <FileUp className="h-4 w-4" />
             </span>
             <div className="min-w-0">
               <div className="text-sm font-medium text-foreground">

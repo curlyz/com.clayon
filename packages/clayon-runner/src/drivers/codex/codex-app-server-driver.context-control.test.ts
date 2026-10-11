@@ -121,7 +121,7 @@ describe("Codex app-server Codex driver", () => {
       },
       permissions: "clayon-runner-workspace-only",
       runtimeWorkspaceRoots: [WORKSPACE],
-      dynamicTools: [{ name: "paperclip_finish" }, { name: "paperclip_block" }],
+      dynamicTools: [{ name: "clayon_finish" }, { name: "clayon_block" }],
     });
     const commandPolicy = transport.calls.find(
       (call) => call.method === "thread/start",
@@ -161,7 +161,7 @@ describe("Codex app-server Codex driver", () => {
     expect(JSON.stringify(appServerArgs)).not.toContain("HOME=");
     expect(CODEX_RESULT_OUTPUT_SCHEMA.properties.schema).toEqual({
       type: "string",
-      const: "paperclip.run_result.v1",
+      const: "clayon.run_result.v1",
     });
     expect(
       CODEX_BLOCK_RESULT_OUTPUT_SCHEMA.properties.reportedWorkDisposition,

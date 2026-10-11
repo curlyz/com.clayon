@@ -61,8 +61,8 @@ fn preserves_tool_operation_authority_across_payload_sanitization() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
         json!({
@@ -73,8 +73,8 @@ fn preserves_tool_operation_authority_across_payload_sanitization() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     ] {
@@ -339,7 +339,7 @@ fn does_not_label_non_usd_acpx_cost_as_usd() {
 #[test]
 fn matches_typescript_mcp_display_identity_across_tool_lifecycle() {
     for (title, namespace, name) in [
-        ("mcp__paperclip__write_document", "clayon", "write_document"),
+        ("mcp__clayon__write_document", "clayon", "write_document"),
         ("mcp.clayon.write_document", "clayon", "write_document"),
         (
             "  MCP__Clayon__write_document  ",
@@ -347,7 +347,7 @@ fn matches_typescript_mcp_display_identity_across_tool_lifecycle() {
             "write_document",
         ),
         ("McP.other.read_document", "other", "read_document"),
-        ("mcp__paperclip__nested__tool", "clayon", "nested__tool"),
+        ("mcp__clayon__nested__tool", "clayon", "nested__tool"),
         ("mcp.clayon.nested.tool", "clayon", "nested.tool"),
         ("mcp_____write_document", "_", "write_document"),
         ("mcp__é__write_document", "é", "write_document"),
@@ -436,12 +436,12 @@ fn leaves_builtin_and_malformed_mcp_titles_as_display_only_builtin_names() {
     for title in [
         "Read file",
         "write_document",
-        "paperclip__write_document",
+        "clayon__write_document",
         "mcp____write_document",
-        "mcp__paperclip__",
+        "mcp__clayon__",
         "mcp..write_document",
         "mcp.clayon.",
-        "mcp__paperclip__write\ndocument",
+        "mcp__clayon__write\ndocument",
     ] {
         let events = normalize(
             AcpxRuntimeEventKind::ToolCall,
@@ -466,7 +466,7 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src/main.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2"
+                "pathBoundary":"clayon.workspace_relative_display.v2"
             }],
             "text":"Opening"
         }),
@@ -514,8 +514,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
                 "status":"completed",
                 "locations":[{
                     "path":display_path,
-                    "pathBoundary":"paperclip.workspace_relative_display.v2",
-                    "pathAttestation":"paperclip.workspace_entry.v1"
+                    "pathBoundary":"clayon.workspace_relative_display.v2",
+                    "pathAttestation":"clayon.workspace_entry.v1"
                 }]
             }),
         );
@@ -545,7 +545,7 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
                 "status":"completed",
                 "locations":[{
                     "path":unsafe_path,
-                    "pathBoundary":"paperclip.workspace_relative_display.v2"
+                    "pathBoundary":"clayon.workspace_relative_display.v2"
                 }]
             }),
         );
@@ -562,8 +562,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     );
@@ -580,8 +580,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
                 "status":"pending",
                 "locations":[{
                     "path":"src:new.rs",
-                    "pathBoundary":"paperclip.workspace_relative_display.v2",
-                    "pathAttestation":"paperclip.workspace_create_target.v1"
+                    "pathBoundary":"clayon.workspace_relative_display.v2",
+                    "pathAttestation":"clayon.workspace_create_target.v1"
                 }]
             }),
         );
@@ -601,8 +601,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     );
@@ -622,8 +622,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     );
@@ -646,8 +646,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     );
@@ -671,8 +671,8 @@ fn maps_tool_lifecycle_and_preserves_safe_display_paths() {
             "status":"pending",
             "locations":[{
                 "path":"src:new.rs",
-                "pathBoundary":"paperclip.workspace_relative_display.v2",
-                "pathAttestation":"paperclip.workspace_create_target.v1"
+                "pathBoundary":"clayon.workspace_relative_display.v2",
+                "pathAttestation":"clayon.workspace_create_target.v1"
             }]
         }),
     );

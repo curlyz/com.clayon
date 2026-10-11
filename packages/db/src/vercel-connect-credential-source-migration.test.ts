@@ -43,7 +43,7 @@ describeEmbeddedPostgres("Vercel Connect credential-source migration", () => {
     const [legacy] = await sql<{ credential_source: string; external_credential: unknown }[]>`
       SELECT "credential_source", "external_credential" FROM "tool_connections" WHERE "id" = ${connectionId}
     `;
-    expect(legacy).toEqual({ credential_source: "paperclip_vault", external_credential: null });
+    expect(legacy).toEqual({ credential_source: "clayon_vault", external_credential: null });
 
     await expect(sql`
       UPDATE "tool_connections" SET "credential_source" = 'vercel_connect' WHERE "id" = ${connectionId}

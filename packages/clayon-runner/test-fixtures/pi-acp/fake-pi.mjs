@@ -87,8 +87,8 @@ createInterface({ input: process.stdin }).on("line", (line) => {
   if (request.type === "get_available_models") { response({ models: [{ provider: "openrouter", id: "fixture-model", name: "Fixture" }, { provider: "openrouter", id: "fixture-alternate", name: "Alternate" }] }); return; }
   if (request.type === "set_model") { model = request.modelId; if (!availableThinkingLevels().includes(thinkingLevel)) thinkingLevel = "high"; response({ model: { provider: request.provider, id: model } }); return; }
   if (request.type === "get_messages") { response({ messages: process.env.PI_FIXTURE_HISTORY ? [
-    { role: "toolResult", toolName: "mcp__paperclip__paperclip_finish", toolCallId: "call_0", content: [{ type: "text", text: "correct criteria" }], isError: true },
-    { role: "toolResult", toolName: "mcp__paperclip__paperclip_finish", toolCallId: "call_0", content: [{ type: "text", text: "accepted" }] },
+    { role: "toolResult", toolName: "mcp__clayon__clayon_finish", toolCallId: "call_0", content: [{ type: "text", text: "correct criteria" }], isError: true },
+    { role: "toolResult", toolName: "mcp__clayon__clayon_finish", toolCallId: "call_0", content: [{ type: "text", text: "accepted" }] },
     { role: "assistant", content: [{ type: "text", text: "Historical reply" }] },
   ] : [] }); return; }
   if (request.type === "get_commands") { response({ commands: process.env.PI_FIXTURE_EXTENSION_FAIL ? [] : [{ name: "clayon-runtime-ready-v1", description: "Clayon runtime gate v1", source: "extension" }] }); return; }
@@ -107,14 +107,14 @@ createInterface({ input: process.stdin }).on("line", (line) => {
     if (["narration-final", "tool-only", "empty-final"].includes(request.message)) {
       output({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: "Calling finish." } });
       endMessage("toolUse", {});
-      const args = {}; output({ type: "tool_execution_start", toolCallId: "finish", toolName: "paperclip_finish", args });
-      output({ type: "tool_execution_end", toolCallId: "finish", toolName: "paperclip_finish", result: { content: [{ type: "text", text: "accepted" }] } });
+      const args = {}; output({ type: "tool_execution_start", toolCallId: "finish", toolName: "clayon_finish", args });
+      output({ type: "tool_execution_end", toolCallId: "finish", toolName: "clayon_finish", result: { content: [{ type: "text", text: "accepted" }] } });
       if (request.message === "tool-only") { output({ type: "turn_end" }); active = false; output({ type: "agent_settled" }); }
       else finish(request.message === "empty-final" ? "" : "EXACT_MARKER");
       return;
     }
     if (request.message === "reused-tool-ids") {
-      for (const [index, toolName] of ["mcp__paperclip__paperclip_finish", "mcp__paperclip__paperclip_finish", "mcp__paperclip__get_task_context"].entries()) {
+      for (const [index, toolName] of ["mcp__clayon__clayon_finish", "mcp__clayon__clayon_finish", "mcp__clayon__get_task_context"].entries()) {
         if (index) { output({ type: "turn_end" }); begin(); }
         const args = { revision: index + 1 };
         output({ type: "message_update", assistantMessageEvent: { type: "toolcall_start", contentIndex: 0, partial: { content: [{ type: "toolCall", id: "call_0", name: toolName, arguments: args }] } } });
@@ -153,7 +153,7 @@ createInterface({ input: process.stdin }).on("line", (line) => {
       const method = request.message.slice("native-question-".length);
       output({ type: "extension_ui_request", id: `native-${method}`, method, title: "Native question", options: ["Red", "Blue"], message: "Continue?", placeholder: "Name", prefill: "Old\ntext" }); return;
     }
-    if (request.message === "permission") { output({ type: "extension_ui_request", id: "permission-id", method: "select", title: "paperclip.pi.permission.v1:" + JSON.stringify({toolCallId:toolIdentity("tool-1"),nativeToolCallId:"tool-1",modelIteration,toolName:"bash",input:{command:"pwd"}}), options: ["Allow once", "Allow for this session", "Deny"] }); return; }
+    if (request.message === "permission") { output({ type: "extension_ui_request", id: "permission-id", method: "select", title: "clayon.pi.permission.v1:" + JSON.stringify({toolCallId:toolIdentity("tool-1"),nativeToolCallId:"tool-1",modelIteration,toolName:"bash",input:{command:"pwd"}}), options: ["Allow once", "Allow for this session", "Deny"] }); return; }
     if (request.message === "failure") {
       endMessage("error", { input: 1, output: 0 });
       active = false; output({ type: "turn_end" }); output({ type: "agent_settled" }); return;

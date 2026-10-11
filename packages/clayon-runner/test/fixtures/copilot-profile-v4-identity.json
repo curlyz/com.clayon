@@ -1,7 +1,7 @@
 {
   "commandDigest": "sha256:a119e436b4ad13ee70e1f58bedad4a0f20761b5fd982b752981f0cb1bc65f797",
   "declaration": {
-    "schema": "paperclip.acpx_profile_declaration.v1",
+    "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "copilot",
     "agentProfileVersion": 4,
     "acpxVersion": "0.13.1",

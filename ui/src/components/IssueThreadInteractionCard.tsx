@@ -48,7 +48,7 @@ import { AppLogo } from "@/pages/apps/AppLogo";
 import { ConnectionIntentInteractionBody } from "@/features/connections/ConnectionIntentInteractionBody";
 import { QuestionForm } from "./task-chat/QuestionForm";
 
-const OTHER_ANSWER_ID = "__paperclip_other__";
+const OTHER_ANSWER_ID = "__clayon_other__";
 
 /**
  * The card's server-evaluated audience, shared with the per-kind subcards below
@@ -1204,7 +1204,7 @@ function AskUserQuestionsCard({
           draftKey={`issue-question:${interaction.companyId}:${interaction.id}`}
           disabled={!onSubmitInteractionAnswers}
           initialResponse={interaction.result?.answers ? {
-            schema: "paperclip.question_response.v1",
+            schema: "clayon.question_response.v1",
             answers: Object.fromEntries(interaction.result.answers.map((answer) => [
               answer.questionId,
               interaction.payload.questionSet!.questions.find((question) => question.id === answer.questionId)?.answerMode === "text"

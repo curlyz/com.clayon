@@ -576,6 +576,14 @@ async function mapHashesToMigrationFiles(migrationFiles: string[]): Promise<Map<
     }),
   );
 
+  // Migrations rewritten for the brand rename keep the hash their earlier content was applied under.
+  const legacyHashes = JSON.parse(
+    await readFile(new URL("./migrations/meta/legacy-hashes.json", import.meta.url), "utf8"),
+  );
+  for (const [hash, migrationFile] of Object.entries(legacyHashes)) {
+    if (migrationFiles.includes(String(migrationFile))) mapped.set(hash, String(migrationFile));
+  }
+
   return mapped;
 }
 

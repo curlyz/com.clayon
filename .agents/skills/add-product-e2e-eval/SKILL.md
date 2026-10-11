@@ -13,7 +13,7 @@ protocol cases against the mock control plane belong in
 
 Locate the repository using `CLAYON_ROOT` when supplied, or
 `git rev-parse --show-toplevel` from a checkout. From outside Git, inspect
-workspace roots such as `~/paperclipai/paperclip`; verify the selected root
+workspace roots such as `~/clayon/clayon`; verify the selected root
 contains `tests/runner-e2e` and `packages/clayon-runner`. Run commands from
 that repository root. The copied skill may live outside the checkout.
 Read `doc/evals.md`, then the authoritative

@@ -48,7 +48,7 @@ describe("Railway governed operations", () => {
   it("requires exact provider identity and treats shell and remote agents as privileged", () => {
     expect(isRailwayEndpoint("https://mcp.railway.com/")).toBe(true);
     for (const url of ["https://mcp.railway.com/path", "https://mcp.railway.com?token=x", "https://mcp.railway.com.evil.test", "http://mcp.railway.com"]) expect(isRailwayEndpoint(url)).toBe(false);
-    expect(isRailwayConnection({ transport: "mcp_remote", authKind: "oauth", credentialSource: "paperclip_vault", config: { url: "https://mcp.railway.com", sourceTemplateKey: "railway", connectionMethodKey: "mcp-oauth" } })).toBe(true);
+    expect(isRailwayConnection({ transport: "mcp_remote", authKind: "oauth", credentialSource: "clayon_vault", config: { url: "https://mcp.railway.com", sourceTemplateKey: "railway", connectionMethodKey: "mcp-oauth" } })).toBe(true);
     expect(railwayRisk("railwayAgent")).toBe("destructive");
     expect(isRailwayToolBlocked("accept_deploy")).toBe(true);
     expect(railwayRisk("clayon-railway-run-command")).toBe("destructive");
@@ -132,7 +132,7 @@ describe("Railway governed operations", () => {
     expect(f.request).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["clayon-railway-deploy-revision", "paperclip_railway_deploy_revision", "clayonRailwayDeployRevision"])("blocks %s before any repository preflight or deployment mutation", async (name) => {
+  it.each(["clayon-railway-deploy-revision", "clayon_railway_deploy_revision", "clayonRailwayDeployRevision"])("blocks %s before any repository preflight or deployment mutation", async (name) => {
     // Even a matching repository in the preflight can change before mutation.
     // Without an atomic provider binding, no upstream request is safe to send.
     const f = fixture();

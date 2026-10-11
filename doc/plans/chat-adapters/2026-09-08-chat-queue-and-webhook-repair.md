@@ -3,7 +3,7 @@
 ## Execution target
 
 The isolated live agent remains Maya E2E, `31f56712-3944-423e-b7c7-404bb8fbb993`,
-using `paperclip_runner` and `gpt-5.6-luna`. The initial live runner binary was
+using `clayon_runner` and `gpt-5.6-luna`. The initial live runner binary was
 `af19f64dfdf7e2e4efb5b41275e26cd873338315207c36fd4d108bdb69bae3c1`.
 Actual Codex app-server source/continuation evidence and measured Slack,
 Discord, and Telegram timings are recorded in the
@@ -282,7 +282,7 @@ Browser input became responsive again. The earlier prepared drafts were not
 counted; the following are newly submitted, provider-visible requests on the
 `84a601459` server and staged `a0fd2789…` runner. All four active endpoints
 (Slack, Discord, GitHub, Telegram) still bind to Maya E2E with adapter
-`paperclip_runner` and configured model `gpt-5.6-luna`. Each run below also
+`clayon_runner` and configured model `gpt-5.6-luna`. Each run below also
 independently records `driver_kind=codex_app_server` and the same model in its
 native execution profile. No Terra substitution or legacy adapter was used.
 
@@ -501,7 +501,7 @@ and provider lifecycles were unchanged.
 
 ## Landing CI and fresh native shutdown regression
 
-PR [#13038](https://github.com/paperclipai/paperclip/pull/13038) is open as one
+PR [#13038](https://github.com/clayon/clayon/pull/13038) is open as one
 review, currently 473 changed files. Merge `1a442f5a0` also incorporates
 upstream `b97101893`; a later fetch found no further master commits.
 Workspace typecheck and build passed after that merge. The corrected browser
@@ -575,7 +575,7 @@ submitted `TG-AFTER-RETIRED-CHECKPOINT-0908` at 14:00:46.314. Run
 `a4938fcc-dc2c-4146-a776-12512cf4b613` started at 14:00:47.771 using
 Clayon Runner, Codex app-server, and Luna. The configured low-effort field
 was later found not to reach this native path; effective effort is unverified.
-The provider produced `paperclip_finish` at 14:01:26.348, but the run stayed
+The provider produced `clayon_finish` at 14:01:26.348, but the run stayed
 active without delivering its answer. Working/progress publications each
 used one attempt against Telegram message `417200359:123`.
 
@@ -1051,7 +1051,7 @@ event diagnostics were added; none of the ownership, archive or result
 assertions was relaxed. The exact historical failure cause remains unproven.
 
 Independent investigation did produce a deterministic related failure: an
-authenticated `paperclip_finish` can arrive on the semantic callback path
+authenticated `clayon_finish` can arrive on the semantic callback path
 before the turn-start response establishes the driver’s active provider turn.
 The driver rejected that valid call as `tool_binding_mismatch`. Waiting only
 in the driver is insufficient because the transport had already copied its
@@ -1937,7 +1937,7 @@ Its only current input was comment `af4df257-af6c-4361-9abc-4badc39a71b8`.
 The actual `reuse_chat_attachment` call at sequence 34 used original comment
 `54a3c07b-2f34-4a8c-8c0e-432b4d1fa751` and attachment
 `5040777e-5fa6-424c-9c50-8eb3e8cc1021`. Sequence 35 returned
-`paperclip_runner_chat_attachment_source_denied`, `is_error: true`, at
+`clayon_runner_chat_attachment_source_denied`, `is_error: true`, at
 **20:58:58.873**. There was one reuse attempt and zero new attachments, work
 products or file publications. The original stored asset remained unchanged.
 Working and final each used one attempt on Slack message `1788901131.307639`.
@@ -4915,7 +4915,7 @@ The Mac became available and the user restored Eigenjoy's Discord login.
 Root operated the signed-in in-app browser for every provider action below;
 parallel agents correlated only the exact fresh tasks, receipts and files.
 These observations are on **server 78**, loaded `ea528f44c`, with the retained
-qualified runner and Maya's native `paperclip_runner` / Codex / Luna path.
+qualified runner and Maya's native `clayon_runner` / Codex / Luna path.
 They supersede the earlier locked-browser state, not the historical failures.
 
 ### Slack: one thread, FIFO, real files, actual Stop and continuation
@@ -5107,7 +5107,7 @@ provider results do not satisfy its live qualification.
 
 All provider actions used the already signed-in in-app browser, Eigenjoy's
 account and the existing Maya bot. The live process still loaded server 78
-(`ea528f44c`), with `paperclip_runner` / Codex / `gpt-5.6-luna`.
+(`ea528f44c`), with `clayon_runner` / Codex / `gpt-5.6-luna`.
 
 DM command attempts at 13:20 and 13:25 were rejected before Clayon because
 Discord required a shared guild with DMs enabled. They later appeared as
@@ -7304,7 +7304,7 @@ bootstrap. Log: physical `integration-base-verify-YAhDBQ/official-lock-frozen-in
 Its complete tree matches the current CI merge tree `aed58114…`; the successor
 still requires its own exact-head checks after publication.
 
-CI run [34405038082](https://github.com/paperclipai/paperclip/actions/runs/34405038082)
+CI run [34405038082](https://github.com/clayon/clayon/actions/runs/34405038082)
 ended **cancelled**, with required `ci / verify` failed. Neither root nor the
 landing owner cancelled it. GitHub's annotation for general-server shard four,
 job `102646337040`, states that its 20-minute maximum elapsed. The test step
@@ -7398,11 +7398,11 @@ interaction. No artificial producer delay or repeated blind sends are justified.
 ## Completed CI and post-login live qualification — September 9, 22:16 UTC
 
 Integration PR #13038 head `2148ea2f50cdc547cc33456b91c7ad2095bfa676` contains
-386 files. [CI run 34407804049](https://github.com/paperclipai/paperclip/actions/runs/34407804049)
+386 files. [CI run 34407804049](https://github.com/clayon/clayon/actions/runs/34407804049)
 completed successfully at 21:53:03 UTC, all 24 jobs green. The isolated chat
 suite passes 985/985 with no skips, 591.97s test time / 604.32s total, within
 its 10m55s job. The slowest general shard takes 14m53s with unchanged limits.
-Exact-head [Greptile review](https://github.com/paperclipai/paperclip/pull/13038#issuecomment-5587250594)
+Exact-head [Greptile review](https://github.com/clayon/clayon/pull/13038#issuecomment-5587250594)
 completed 5/5 at 21:41:57 UTC, accepting the official lock and measured shard
 allocation. Human CODEOWNER approval remains missing. This supersedes the
 earlier cancelled run, not its recorded outcome. No bypass, self-approval or
@@ -7759,7 +7759,7 @@ Greptile 5/5 and actual human CODEOWNER approval before normal merge.
 ## September 10 — passing CI and subsequent master reconciliation
 
 Published head `3e4e1c1cee05737fd5193e141ccd52f8815c7854` passes every PR
-workflow job in [run 34415826820](https://github.com/paperclipai/paperclip/actions/runs/34415826820),
+workflow job in [run 34415826820](https://github.com/clayon/clayon/actions/runs/34415826820),
 completed September 9, 23:28:50 UTC. Required `ci / verify` and `ci / e2e`
 are green. The Build log independently confirms both the originally failing
 ambiguous-replacement test and the descendant-lineage test pass; its Codex
@@ -7824,7 +7824,7 @@ qualification. The next exact published head still needs fresh CI and review.
 
 The master reconciliation is published as
 `a95d42e58afa35cf4ecf1a39cbd96f06523b90ec`. Its
-[CI run](https://github.com/paperclipai/paperclip/actions/runs/34433249742)
+[CI run](https://github.com/clayon/clayon/actions/runs/34433249742)
 passes all 24 PR jobs and both required aggregates. UI CI passes 2,768 cases;
 browser shards pass 104 with four explicitly skipped optional cases. Those
 skips are not live or native-runner qualification.
@@ -7883,7 +7883,7 @@ review. Normal GitHub policy remains authoritative; no bypass or self-approval.
 ## September 10, 04:03 UTC — final gates passed; new master conflict
 
 Published `7c6d36e0d7d343709f10b533a0c29dc2409f7b2b` passes all 24 jobs in
-[CI 34434501548](https://github.com/paperclipai/paperclip/actions/runs/34434501548),
+[CI 34434501548](https://github.com/clayon/clayon/actions/runs/34434501548),
 including both required aggregates. Full UI is 2,768/2,768; browser shards are
 104 passed with four existing optional skips. No retry or deadline change.
 The one exact-head Greptile review completes **5/5** at 03:48:23 UTC, explicitly
@@ -7936,7 +7936,7 @@ successor has 397 changed files and still needs fresh exact-head CI and review.
 
 The preceding composition was published as
 `e02a63d462ce5d47433b0aeb632bb6fd20aab1ba`. Its
-[CI run](https://github.com/paperclipai/paperclip/actions/runs/34436462958)
+[CI run](https://github.com/clayon/clayon/actions/runs/34436462958)
 passed all 24 PR jobs, and its exact-head Greptile review completed 5/5.
 Normal merge remained blocked by required CODEOWNER review; no bypass or
 self-approval occurred. Master then advanced to
@@ -7992,7 +7992,7 @@ the normal server and UI typechecks passed as reported above.
 The reconciliation is published as `102fa25b87b70d6346d569a5bef7553a4b980185`.
 GitHub reports it conflict-free, with 398 files. Exact-head Greptile review
 completes **5/5** at 12:34:58 UTC without actionable findings. Fresh
-[CI 34477184777](https://github.com/paperclipai/paperclip/actions/runs/34477184777)
+[CI 34477184777](https://github.com/clayon/clayon/actions/runs/34477184777)
 then fails the chat shard: **993 passed, two failed**, in 693.19 seconds total.
 The failures are the replaced-runtime and changed-credentials variants of the
 Discord modal connection-lock race, at the pre-mutation waiting assertion.
@@ -8040,7 +8040,7 @@ and Greptile review before normal merge, without bypass or self-approval.
 The Discord fixture successor is published as
 `a8a32c60d2034e7b0efb4eb7d1dde585a75c509b`. Exact-head Greptile review completes
 **5/5** at 13:00:16 UTC without actionable findings. Fresh
-[CI 34479680858](https://github.com/paperclipai/paperclip/actions/runs/34479680858)
+[CI 34479680858](https://github.com/clayon/clayon/actions/runs/34479680858)
 fails serialized server shard 1 on the first agent-skills route case, which
 exceeds its explicit ten-second body timeout. The following **35 cases pass**.
 The first app-construction log arrives more than eleven seconds after the

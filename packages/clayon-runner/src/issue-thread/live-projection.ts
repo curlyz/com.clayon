@@ -43,7 +43,7 @@ import type {
 } from "./types.js";
 import { CAPABILITY_ISSUE_THREAD_VIEW_SCHEMA } from "./types.js";
 
-const INTERACTION_RESULT_SCHEMA = "paperclip.semantic-interaction-result.v1";
+const INTERACTION_RESULT_SCHEMA = "clayon.semantic-interaction-result.v1";
 
 const PROVIDER_FAMILY_PREFIXES = {
   "plan.": "plan", "tool.execution.": "tool_execution", "research.": "research",
@@ -629,7 +629,7 @@ function networkGuardRecord(
     id: `network-guard-${snapshot.sessionId}`,
     turnId: "turn-0",
     category: "session",
-    outcome: realClayonRequests === 0 ? "no_real_paperclip_request" : "real_paperclip_request",
+    outcome: realClayonRequests === 0 ? "no_real_clayon_request" : "real_clayon_request",
     reason:
       `Real Clayon API requests: ${realClayonRequests}. ` +
       `Child CLAYON_* environment keys: ${

@@ -1583,7 +1583,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
   it("keeps managed GitHub personal identity even under a legacy shared policy", async () => {
     const { company, agent, issue, run } = await createRunFixture(db);
     const { connection } = await createRemoteMcpToolFixture(db, company.id);
-    await db.update(toolConnections).set({ authKind: "oauth", credentialSource: "paperclip_vault",
+    await db.update(toolConnections).set({ authKind: "oauth", credentialSource: "clayon_vault",
       config: { ...connection.config, sourceTemplateKey: "github" },
     }).where(eq(toolConnections.id, connection.id));
     await db.insert(toolConnectionInstalls).values({ companyId: company.id,
@@ -1639,7 +1639,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
       });
       await db.insert(companySecretBindings).values({ companyId: company.id, secretId: secret.id,
         targetType: "tool_connection", targetId: connection.id, configPath: "oauth.access_token" });
-      await db.update(toolConnections).set({ authKind: "oauth", credentialSource: "paperclip_vault",
+      await db.update(toolConnections).set({ authKind: "oauth", credentialSource: "clayon_vault",
         config: { ...connection.config, sourceTemplateKey: "github" },
       }).where(eq(toolConnections.id, connection.id));
       await db.insert(toolConnectionInstalls).values({ companyId: company.id,
@@ -1701,7 +1701,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
     });
     await db.update(toolConnections).set({
       authKind: "oauth",
-      credentialSource: "paperclip_vault",
+      credentialSource: "clayon_vault",
       credentialRefs: [{ name: "oauth.access_token", placement: "header", key: "Authorization", prefix: "Bearer ", secretId: accessSecret.id, versionSelector: "latest" }],
       config: {
         url: "https://example.invalid/mcp",
@@ -1836,11 +1836,11 @@ describeEmbeddedPostgres("tool gateway service", () => {
     });
     await db.update(toolConnections).set({
       authKind: "oauth",
-      credentialSource: "paperclip_vault",
+      credentialSource: "clayon_vault",
       config: {
         url: "https://example.invalid/mcp",
         oauth: {
-          strategy: "paperclip_cloud_connector",
+          strategy: "clayon_cloud_connector",
           connectorProfile: "github.code",
           connectorSubjectUserId: "responsible-user",
         },
@@ -1860,7 +1860,7 @@ describeEmbeddedPostgres("tool gateway service", () => {
       }],
       providerTenant: {
         oauth: {
-          strategy: "paperclip_cloud_connector",
+          strategy: "clayon_cloud_connector",
           accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         },
       },

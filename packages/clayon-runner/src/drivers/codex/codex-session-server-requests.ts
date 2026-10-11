@@ -206,8 +206,8 @@ async function handleServerRequestBody(
               type: "inputText",
               text:
                 tool === CODEX_BLOCK_TOOL_NAME
-                  ? "paperclip_block requires reportedWorkDisposition=blocked."
-                  : "paperclip_finish accepts done, needs_review, or yielded with a response_wake or persisted monitor continuation.",
+                  ? "clayon_block requires reportedWorkDisposition=blocked."
+                  : "clayon_finish accepts done, needs_review, or yielded with a response_wake or persisted monitor continuation.",
             },
           ],
         };

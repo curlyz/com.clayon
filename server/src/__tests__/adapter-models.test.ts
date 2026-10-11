@@ -291,7 +291,7 @@ describe("adapter model listing", () => {
   });
 
   it("returns current provider-qualified OpenCode models when discovery is unavailable", async () => {
-    process.env.CLAYON_OPENCODE_COMMAND = "__paperclip_missing_opencode_command__";
+    process.env.CLAYON_OPENCODE_COMMAND = "__clayon_missing_opencode_command__";
 
     const models = await listAdapterModels("opencode_local");
 
@@ -367,7 +367,7 @@ describe("adapter model listing", () => {
 
     it("fails soft on malformed values: falls back to adapter models instead of throwing", async () => {
       process.env.CLAYON_ADAPTER_MODELS = "{not json";
-      process.env.CLAYON_OPENCODE_COMMAND = "__paperclip_missing_opencode_command__";
+      process.env.CLAYON_OPENCODE_COMMAND = "__clayon_missing_opencode_command__";
       const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const models = await listAdapterModels("opencode_local");

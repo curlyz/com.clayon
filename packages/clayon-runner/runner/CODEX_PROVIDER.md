@@ -2,7 +2,7 @@
 
 `clayon-runnerd` supports one provider in this layer: Codex app-server as a
 local supervised process. The Clayon server selects this path only for the
-default-off `paperclip_runner` adapter. Every direct adapter keeps its existing
+default-off `clayon_runner` adapter. Every direct adapter keeps its existing
 execution and finalization path.
 
 ## Command lifecycle
@@ -19,7 +19,7 @@ execution and finalization path.
 - `turn.start` requires bounded non-empty `payload.text`. `turn.steer`,
   `turn.interrupt`, `turn.stop`, and `run.cancel` use Codex's native turn IDs,
   while PRP continues to use its own stable run and turn identities.
-- `request.resolve` translates a validated `paperclip.question_response.v1`
+- `request.resolve` translates a validated `clayon.question_response.v1`
   response back to Codex's user-input response shape.
 - `session.close` and `session.destroy` explicitly terminate the provider
   process group. Runner suspend and shutdown also stop the process without

@@ -254,7 +254,7 @@ test("real pinned Pi executes all four owned native question methods without per
     assert.deepEqual(errors, []); assert.equal(results.length, 4);
     assert.ok(results.every(event => !event.isError));
     assert.deepEqual(dialogs.map(dialog => dialog.method), ["select", "confirm", "input", "editor"]);
-    assert.ok(dialogs.every(dialog => !dialog.title.startsWith("paperclip.pi.permission.v1:")));
+    assert.ok(dialogs.every(dialog => !dialog.title.startsWith("clayon.pi.permission.v1:")));
     assert.deepEqual(results.map(event => event.result.details), [{ status: "answered", optionId: "blue" }, { status: "negative_or_cancelled", confirmed: false }, { status: "answered", value: "Ada" }, { status: "answered", value: "New\ntext" }]);
   } finally { session?.dispose(); await rm(root, { recursive: true, force: true }); }
 });
@@ -352,7 +352,7 @@ test("real pinned Pi tool dispatch admits registered agent files and rejects una
     assert.equal(await readFile(memory, "utf8"), "private memory nonce\n");
     assert.match(JSON.stringify(results[1].result), /private memory nonce/);
     for (const path of [join(outside, "denied.txt"), join(privateRoot, "denied.txt")]) await assert.rejects(readFile(path), { code: "ENOENT" });
-    assert.equal(dialogs.length, 2); assert.ok(dialogs.every(title => title.startsWith("paperclip.pi.permission.v1:")));
+    assert.equal(dialogs.length, 2); assert.ok(dialogs.every(title => title.startsWith("clayon.pi.permission.v1:")));
   } finally { session?.dispose(); await rm(root, { recursive: true, force: true }); }
 });
 
@@ -402,7 +402,7 @@ for (const scenario of ["hello", "interleaved-tools", "provider-error", "provide
       evidence: [], verification: [],
     });
     let stalledResponse;
-    const tools = ["paperclip_get_context", "paperclip_finish"].map(name => ({ name, description: name, inputSchema: { type: "object", properties: {}, additionalProperties: true } }));
+    const tools = ["clayon_get_context", "clayon_finish"].map(name => ({ name, description: name, inputSchema: { type: "object", properties: {}, additionalProperties: true } }));
     server = createServer(async (request, response) => {
       let body = ""; for await (const chunk of request) { body += chunk; assert.ok(body.length < 1_048_576); }
       const value = JSON.parse(body);
@@ -425,7 +425,7 @@ for (const scenario of ["hello", "interleaved-tools", "provider-error", "provide
             ? { name: index === 0 ? "write" : "read", arguments: index === 0
               ? { path: join(agentHomes[index], "memory.txt"), content: "T1 fixture memory\n" }
               : { path: join(agentHomes[index], "memory.txt") } }
-            : { name: "mcp__paperclip__paperclip_finish", arguments: finishArguments(index) };
+            : { name: "mcp__clayon__clayon_finish", arguments: finishArguments(index) };
           const chunks = [];
           if (step < 2) {
             const args = JSON.stringify(tool.arguments);
@@ -447,7 +447,7 @@ for (const scenario of ["hello", "interleaved-tools", "provider-error", "provide
         const names = scenario === "interleaved-tools" ? tools.map(tool => tool.name) : [n === 1 ? tools[0].name : tools[1].name];
         const chunks = [];
         if (toolTurn) {
-          chunks.push({ choices: [{ index: 0, delta: { tool_calls: names.map((name, index) => ({ index, id: `call_${n}_${index}`, type: "function", function: { name: `mcp__paperclip__${name}`, arguments: '{"fixture":' } })) } }] });
+          chunks.push({ choices: [{ index: 0, delta: { tool_calls: names.map((name, index) => ({ index, id: `call_${n}_${index}`, type: "function", function: { name: `mcp__clayon__${name}`, arguments: '{"fixture":' } })) } }] });
           // Reverse delivery order proves index correlation, not FIFO guessing.
           for (const index of names.map((_, index) => index).reverse()) chunks.push({ choices: [{ index: 0, delta: { tool_calls: [{ index, function: { arguments: `${index}}` } }] } }] });
         } else chunks.push({ choices: [{ index: 0, delta: { reasoning: "Fixture thought", content: "HELLO_COMPLETE" } }] });
@@ -458,7 +458,7 @@ for (const scenario of ["hello", "interleaved-tools", "provider-error", "provide
       assert.equal(request.url, "/mcp");
       calls.push({ method: value.method, name: value.params?.name, args: value.params?.arguments });
       if (warm && value.method === "tools/call") {
-        assert.equal(value.params.name, "paperclip_finish");
+        assert.equal(value.params.name, "clayon_finish");
         const index = calls.filter(call => call.method === "tools/call").length - 1;
         assert.deepEqual(value.params.arguments, finishArguments(index));
       }
@@ -566,11 +566,11 @@ await import(${JSON.stringify(pathToFileURL(join(wrapperRoot, "dist/index.js")).
     if (warm) {
       const low = await call("session/set_config_option", { sessionId: session.sessionId, configId: "thought_level", value: "low" });
       assert.equal(low.configOptions.find(option => option.id === "thought_level").currentValue, "low");
-      const prompt = index => [{ type: "text", text: JSON.stringify({ schema: "paperclip.native-continuation.v1", completion: contracts[index], events: [{ type: "fixture", agentHome: agentHomes[index] }] }) }];
+      const prompt = index => [{ type: "text", text: JSON.stringify({ schema: "clayon.native-continuation.v1", completion: contracts[index], events: [{ type: "fixture", agentHome: agentHomes[index] }] }) }];
       assert.equal((await call("session/prompt", { sessionId: session.sessionId, prompt: prompt(0) })).stopReason, "end_turn");
       assert.equal(await readFile(join(agentHomes[0], "memory.txt"), "utf8"), "T1 fixture memory\n");
       const firstUpdates = notifications.map(event => event.params?.update).filter(Boolean);
-      const firstFinish = firstUpdates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__paperclip__paperclip_finish");
+      const firstFinish = firstUpdates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__clayon__clayon_finish");
       assert.ok(firstFinish);
       assert.equal(firstUpdates.filter(update => update.toolCallId === firstFinish.toolCallId && update.status === "completed").length, 1);
       // Product ends the old provider for registered-file collection. Reopen
@@ -592,7 +592,7 @@ await import(${JSON.stringify(pathToFileURL(join(wrapperRoot, "dist/index.js")).
           const until = Date.now() + 5000;
           const check = () => {
             const updates = notifications.slice(secondStart).map(event => event.params?.update).filter(Boolean);
-            const finish = updates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__paperclip__paperclip_finish");
+            const finish = updates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__clayon__clayon_finish");
             if (stalledResponse && finish && updates.some(update => update.toolCallId === finish.toolCallId && JSON.stringify(update.rawInput) === JSON.stringify(finishArguments(1)))) return resolve();
             if (Date.now() >= until) return reject(new Error("pending-only fixture boundary not observed"));
             setTimeout(check, 10);
@@ -612,7 +612,7 @@ await import(${JSON.stringify(pathToFileURL(join(wrapperRoot, "dist/index.js")).
       const readCompleted = readLifecycle.filter(update => update.status === "completed");
       assert.equal(readCompleted.length, 1);
       assert.ok(readCompleted[0].content.some(block => block.type === "content" && block.content?.type === "text" && block.content.text.includes("T1 fixture memory")));
-      const secondFinish = updates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__paperclip__paperclip_finish");
+      const secondFinish = updates.find(update => update.sessionUpdate === "tool_call" && update.title === "mcp__clayon__clayon_finish");
       assert.ok(secondFinish); assert.notEqual(secondFinish.toolCallId, firstFinish.toolCallId);
       const lifecycle = updates.filter(update => update.toolCallId === secondFinish.toolCallId);
       const executed = scenario === "warm-recovery";
@@ -650,7 +650,7 @@ await import(${JSON.stringify(pathToFileURL(join(wrapperRoot, "dist/index.js")).
       assert.equal(calls.filter(call => call.method === "tools/call").length, 0);
       return;
     }
-    const result = await call("session/prompt", { sessionId: session.sessionId, prompt: [{ type: "text", text: "Call paperclip_get_context, then paperclip_finish. Finally say HELLO_COMPLETE." }] });
+    const result = await call("session/prompt", { sessionId: session.sessionId, prompt: [{ type: "text", text: "Call clayon_get_context, then clayon_finish. Finally say HELLO_COMPLETE." }] });
     assert.deepEqual(JSON.parse(await readFile(join(root, "network-denial.json"), "utf8")), { deniedBeforeConnect: true, underlyingConnections: 0 });
     assert.ok(modelRequests.every(value => value === "deepseek/deepseek-v4-flash-0731"));
     assert.doesNotMatch(JSON.stringify({ result, notifications, stderr }), /sensitive-canary/);
@@ -661,7 +661,7 @@ await import(${JSON.stringify(pathToFileURL(join(wrapperRoot, "dist/index.js")).
       assert.equal(notice?.params.details.reason, scenario === "provider-error" ? "provider_http_401" : "unknown_native_failure"); return;
     }
     assert.equal(result.stopReason, "end_turn"); assert.equal(result._meta?.jetbrains, undefined);
-    assert.deepEqual(calls.filter(call => call.method === "tools/call").map(call => call.name), ["paperclip_get_context", "paperclip_finish"]);
+    assert.deepEqual(calls.filter(call => call.method === "tools/call").map(call => call.name), ["clayon_get_context", "clayon_finish"]);
     assert.equal(result.usage.totalTokens, (scenario === "hello" ? 3 : 2) * 13);
     const updates = notifications.map(event => event.params?.update).filter(Boolean);
     assert.equal(updates.filter(update => update.content?.text === "HELLO_COMPLETE").length, 1);

@@ -110,7 +110,7 @@ export async function materializePinnedCursorDistribution(options = {}) {
     const closure = await verifyCursorDistribution(packageRoot, distribution);
     // Record the pinned inventory for a later runtime lease. Its digest must be
     // checked against the checked-in distribution pin before trusting entries.
-    await writeFile(join(packageRoot, TREE_MANIFEST), `${JSON.stringify({ schema: "paperclip.cursor_closure.v1", ...distribution, entries: closure.entries })}\n`, { mode: 0o600 });
+    await writeFile(join(packageRoot, TREE_MANIFEST), `${JSON.stringify({ schema: "clayon.cursor_closure.v1", ...distribution, entries: closure.entries })}\n`, { mode: 0o600 });
     for (const entry of closure.entries) await chmod(join(packageRoot, ...entry.path.split("/")), entry.executable ? 0o500 : 0o400);
     await chmod(packageRoot, 0o700);
     await rename(packageRoot, destination);

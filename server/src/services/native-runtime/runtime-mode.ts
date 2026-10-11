@@ -28,7 +28,7 @@ export type HeartbeatRuntimeResolution =
   | {
       kind: "native";
       resolverVersion: typeof NATIVE_RUNTIME_RESOLVER_VERSION;
-      reason: "explicit_paperclip_runner" | "persisted_native_selection";
+      reason: "explicit_clayon_runner" | "persisted_native_selection";
       provider: ClayonRunnerProviderProfile["provider"];
     };
 
@@ -105,7 +105,7 @@ export function resolveNativeRuntimeMode(input: {
   target: { kind?: string } | null | undefined;
   workspaceId: string | null;
 }): NativeRuntimeResolution {
-  const runnerAdapterSelected = input.agent.adapterType === "paperclip_runner";
+  const runnerAdapterSelected = input.agent.adapterType === "clayon_runner";
   // Fresh direct-adapter runs never enter the native control plane, even if an
   // obsolete runtimeConfig.nativeRunner value is still present. Persisted
   // native runs are handled by resolveHeartbeatNativeRuntimeMode above this
@@ -128,26 +128,26 @@ export function resolveNativeRuntimeMode(input: {
   }
   // Dot has its own rollout; enabling it does not opt in other Runner providers.
   if (runnerProfile.provider === "openai_dot") {
-    if (input.dotEnabled !== true) throw ineligible("paperclip_runner_dot_disabled", "Enable OpenAI Dot and Assistant connections (MCP) in experimental settings before assigning new work.");
+    if (input.dotEnabled !== true) throw ineligible("clayon_runner_dot_disabled", "Enable OpenAI Dot and Assistant connections (MCP) in experimental settings before assigning new work.");
   } else if (!input.enabled) {
     throw ineligible(
-      "paperclip_runner_rollout_disabled",
+      "clayon_runner_rollout_disabled",
       "Clayon Runner is experimental and disabled on this instance.",
     );
   }
   if (
-    input.agent.adapterType !== "paperclip_runner"
+    input.agent.adapterType !== "clayon_runner"
     || input.agent.status !== "active" && input.agent.status !== "running"
   ) {
     throw ineligible(
-      "paperclip_runner_agent_ineligible",
+      "clayon_runner_agent_ineligible",
       "Clayon Runner requires an active agent.",
     );
   }
   const allowedWorkModes = ["standard", "planning", "ask"];
   if (!input.issue || !allowedWorkModes.includes(input.issue.workMode)) {
     throw ineligible(
-      "paperclip_runner_issue_ineligible",
+      "clayon_runner_issue_ineligible",
       "Clayon Runner requires a standard, planning, or ask task.",
     );
   }
@@ -158,7 +158,7 @@ export function resolveNativeRuntimeMode(input: {
   });
   if (!rollout.effects.some((effect) => effect.kind === "record_mode_native")) {
     throw ineligible(
-      "paperclip_runner_rollout_policy_rejected",
+      "clayon_runner_rollout_policy_rejected",
       "Native rollout policy did not select native mode.",
     );
   }
@@ -242,7 +242,7 @@ export function resolveHeartbeatRuntimeMode(input: {
   return {
     kind: "native",
     resolverVersion: NATIVE_RUNTIME_RESOLVER_VERSION,
-    reason: "explicit_paperclip_runner",
+    reason: "explicit_clayon_runner",
     provider: resolution.profile.backend === "opencode_server"
       ? "opencode"
       : resolution.profile.backend === "claude_managed_agents_api"
@@ -279,9 +279,9 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
 }): NativeRuntimeResolution {
   if (input.persisted.runtimeModeResolvedAt) {
     if (input.persisted.runtimeMode === "native") {
-      if (input.agent.adapterType !== "paperclip_runner") {
+      if (input.agent.adapterType !== "clayon_runner") {
         throw ineligible(
-          "paperclip_runner_adapter_binding_mismatch",
+          "clayon_runner_adapter_binding_mismatch",
           "A persisted native run must remain bound to the Clayon Runner adapter.",
         );
       }
@@ -290,7 +290,7 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
         input.agent.status !== "running"
       ) {
         throw ineligible(
-          "paperclip_runner_agent_ineligible",
+          "clayon_runner_agent_ineligible",
           "A persisted Clayon Runner run cannot recover through a non-invokable agent.",
         );
       }
@@ -312,7 +312,7 @@ export function resolveHeartbeatNativeRuntimeMode(input: {
             : null;
       if (backend === null) {
         throw ineligible(
-          "paperclip_runner_driver_unsupported",
+          "clayon_runner_driver_unsupported",
           `Persisted Clayon Runner driver is unsupported: ${driverKind}`,
         );
       }

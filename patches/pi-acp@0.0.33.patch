@@ -42,7 +42,7 @@
 +      this.exited = error;
 +      for (const [, pending] of this.pending) pending.reject(error);
 +      this.pending.clear();
-+      for (const handler of this.eventHandlers) handler({ type: "paperclip_process_exit", failure: piNativeFailure(error) });
++      for (const handler of this.eventHandlers) handler({ type: "clayon_process_exit", failure: piNativeFailure(error) });
 +    };
 +    const frames = new PiRpcFrames((msg) => {
 +      if (msg.type === "response") {
@@ -121,7 +121,7 @@
    }
    onEvent(handler) {
      this.eventHandlers.push(handler);
-+    if (this.exited) queueMicrotask(() => handler({ type: "paperclip_process_exit", failure: piNativeFailure(this.exited) }));
++    if (this.exited) queueMicrotask(() => handler({ type: "clayon_process_exit", failure: piNativeFailure(this.exited) }));
      return () => {
        this.eventHandlers = this.eventHandlers.filter((h) => h !== handler);
      };
@@ -324,7 +324,7 @@
    handlePiEvent(ev) {
      const type = String(ev.type ?? "");
      switch (type) {
-+      case "paperclip_process_exit": {
++      case "clayon_process_exit": {
 +        this.uiBridge.cancelAll();
 +        const failure = piNativeFailure(ev.failure?.summary);
 +        this.emitNotice("runtime_failure", failure.summary, "error", { reason: failure.reason });
@@ -899,7 +899,7 @@
 +import { isAbsolute, relative, resolve, sep } from "node:path";
 +import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync, realpathSync } from "node:fs";
 +
-+const PERMISSION_PREFIX = "paperclip.pi.permission.v1:";
++const PERMISSION_PREFIX = "clayon.pi.permission.v1:";
 +const PERMISSION_CHOICES = [
 +  { optionId: "allow_once", name: "Allow once", kind: "allow_once" },
 +  { optionId: "allow_always", name: "Allow for this session", kind: "allow_always" },

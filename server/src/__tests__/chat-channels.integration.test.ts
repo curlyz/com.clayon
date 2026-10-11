@@ -1155,7 +1155,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         name: "Maya",
         role: "engineer",
         status: "idle",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         adapterConfig: {},
         runtimeConfig: {},
         permissions: {},
@@ -1166,7 +1166,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         name: "Linus",
         role: "engineer",
         status: "idle",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         adapterConfig: {},
         runtimeConfig: {},
         permissions: {},
@@ -1962,8 +1962,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     let repositories = [
       {
         id: 97531,
-        full_name: "paperclipai/paperclip",
-        html_url: "https://github.com/paperclipai/paperclip",
+        full_name: "clayon/clayon",
+        html_url: "https://github.com/clayon/clayon",
         owner: { id: 1357, login: "clayon" },
         private: false,
       },
@@ -2031,7 +2031,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         const id = ++nextResponseId;
         const thread = list ? `${list[1]}:${list[2]}` : `pulls:${reply![1]}`;
         const body = JSON.parse(String(init.body)).body;
-        const comment = { id, body, thread, html_url: `https://github.com/paperclipai/paperclip/issues/${list?.[2] ?? reply![1]}#issuecomment-${id}`,
+        const comment = { id, body, thread, html_url: `https://github.com/clayon/clayon/issues/${list?.[2] ?? reply![1]}#issuecomment-${id}`,
           user: { login: `maya-${fixture.companyId.slice(0, 8)}[bot]` } };
         responseComments.set(id, comment);
         responseWrites.push({ method: "POST", id, body });
@@ -2294,9 +2294,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       );
       return { ...fixture, ...context, endpoint, principal, management };
     }
-    async function subscribedGitHubFixture(threadId = "github:paperclipai/paperclip:issue:419") {
+    async function subscribedGitHubFixture(threadId = "github:clayon/clayon:issue:419") {
       const f = await reviewBotFixture();
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: threadId }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: threadId }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41901", text: `@${f.endpoint.botUsername} start this thread`, userId: "42", userName: "octocat", mentioned: true }) });
       const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, f.endpoint.id));
@@ -2328,7 +2328,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           prompts: { ...saved.configuration.defaults.prompts, mention: `Use ${ref(mention)}.`, opened: ref(injected) },
         },
       } }, "owner-user");
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: "github:paperclipai/paperclip:issue:419" }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: "github:clayon/clayon:issue:419" }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41901", text: `@${f.endpoint.botUsername} ${ref(injected)}`, userId: "42", userName: "octocat", mentioned: true }) });
       const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, f.endpoint.id));
@@ -2356,9 +2356,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       expect(await resolveRunScopedMentionedSkillKeys({ ...args, commentIds: [] })).toEqual([next.key]);
     });
     it.each([
-      "github:paperclipai/paperclip:issue:419",
-      "github:paperclipai/paperclip:419",
-      "github:paperclipai/paperclip:419:rc:41899",
+      "github:clayon/clayon:issue:419",
+      "github:clayon/clayon:419",
+      "github:clayon/clayon:419:rc:41899",
     ])("suppresses subscribed GitHub comments for another connected bot in %s", async threadId => {
       const f = await subscribedGitHubFixture(threadId);
       await addPeerGitHubBot(f);
@@ -2429,9 +2429,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       expect(f.wakeup).toHaveBeenCalledTimes(wakeCount);
       expect(await db.select().from(issueComments).where(eq(issueComments.issueId, f.conversation.issueId!))).toHaveLength(1);
     });
-    async function toolReplyFixture(threadId = "github:paperclipai/paperclip:issue:418") {
+    async function toolReplyFixture(threadId = "github:clayon/clayon:issue:418") {
       const f = await reviewBotFixture();
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: threadId }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: threadId }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41801", text: "Are you there?", userId: "42", userName: "octocat", mentioned: true }) });
       const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, f.endpoint.id));
@@ -2460,7 +2460,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         });
         return null;
       });
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: "github:paperclipai/paperclip:issue:418" }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: "github:clayon/clayon:issue:418" }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41801", text: "Are you there?", userId: "42", userName: "octocat", mentioned: true }) });
       const [action] = await db.select().from(chatActions).where(and(eq(chatActions.endpointId, f.endpoint.id), eq(chatActions.kind, "inbound_wakeup")));
@@ -2472,7 +2472,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     it("acknowledges a GitHub request after a durable scheduler retry succeeds", async () => {
       const f = await reviewBotFixture();
       f.wakeup.mockRejectedValueOnce(new Error("Temporary scheduler outage"));
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: "github:paperclipai/paperclip:issue:418" }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: "github:clayon/clayon:issue:418" }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41801", text: "Are you there?", userId: "42", userName: "octocat", mentioned: true }) });
       const [action] = await db.select().from(chatActions).where(and(eq(chatActions.endpointId, f.endpoint.id), eq(chatActions.kind, "inbound_wakeup")));
@@ -2487,7 +2487,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     it("finalizes every working comment in a coalesced GitHub run", async () => {
       const f = await toolReplyFixture();
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: f.conversation.externalThreadId }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: f.conversation.externalThreadId }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41802", text: "And this too", userId: "42", userName: "octocat", mentioned: true }) });
       // Acknowledgements use a best-effort publication lane. Establish both
@@ -2506,7 +2506,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     it("settles a deleted coalesced working comment without blocking the current GitHub response", async () => {
       const f = await toolReplyFixture();
-      const thread = makeThread({ channelId: "paperclipai/paperclip", id: f.conversation.externalThreadId }).thread;
+      const thread = makeThread({ channelId: "clayon/clayon", id: f.conversation.externalThreadId }).thread;
       await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
         trigger: "mention", message: makeMessage({ id: "41802", text: "And this too", userId: "42", userName: "octocat", mentioned: true }) });
       await expect.poll(async () => { await githubResponseCommentService(db, f.providerFetch).processPending(); return f.responseComments.size; }, { timeout: 10_000 }).toBe(2);
@@ -2550,8 +2550,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       await expect(githubRunReplyState(db, { ...f.session, endpointId: f.endpoint.id })).resolves.toBe("unsettled");
     });
     it("loads an old GitHub review directly without crossing endpoint or company boundaries", async () => {
-      const f = await toolReplyFixture("github:paperclipai/paperclip:418");
-      const event = githubAutomaticReviewEvent({ action: "opened", repository: { id: 97531, full_name: "paperclipai/paperclip" }, sender: { id: 42, login: "octocat" },
+      const f = await toolReplyFixture("github:clayon/clayon:418");
+      const event = githubAutomaticReviewEvent({ action: "opened", repository: { id: 97531, full_name: "clayon/clayon" }, sender: { id: 42, login: "octocat" },
         pull_request: { number: 418, title: "Review", body: "", draft: false, base: { sha: "a".repeat(40), ref: "master" }, head: { sha: "b".repeat(40) }, user: { id: 42, login: "octocat" }, labels: [] } }, randomUUID())!;
       const records = await db.insert(chatGitHubReviews).values(Array.from({ length: 101 }, (_, index) => ({ companyId: f.companyId, endpointId: f.endpoint.id,
         issueId: f.conversation.issueId!, repositoryId: "97531", repository: event.repository, pullNumber: 418, headSha: event.headSha,
@@ -2563,7 +2563,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const other = await reviewBotFixture();
       await expect(other.management.review(other.endpoint.id, records[0].id)).rejects.toMatchObject({ status: 404 });
     });
-    it.each(["github:paperclipai/paperclip:issue:418", "github:paperclipai/paperclip:418", "github:paperclipai/paperclip:418:rc:41799"])(
+    it.each(["github:clayon/clayon:issue:418", "github:clayon/clayon:418", "github:clayon/clayon:418:rc:41799"])(
       "updates one GitHub acknowledgement through progress and final answer in %s", async threadId => {
       const f = await toolReplyFixture(threadId);
       const service = githubChatReviewService(db, f.providerFetch);
@@ -2659,9 +2659,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       expect([...f.responseComments.values()][0].body).toContain("Done");
     });
     it.each([false, true])("closes an inline-only GitHub review when an earlier working comment was deleted: %s", async deletedSibling => {
-      const f = await toolReplyFixture("github:paperclipai/paperclip:418");
+      const f = await toolReplyFixture("github:clayon/clayon:418");
       if (deletedSibling) {
-        const thread = makeThread({ channelId: "paperclipai/paperclip", id: f.conversation.externalThreadId }).thread;
+        const thread = makeThread({ channelId: "clayon/clayon", id: f.conversation.externalThreadId }).thread;
         await deliverMessage({ callbacks: f.callbacks, endpointId: f.endpoint.id, provider: "github", thread,
           trigger: "mention", message: makeMessage({ id: "41802", text: "Review this too", userId: "42", userName: "octocat", mentioned: true }) });
         await expect.poll(async () => { await githubResponseCommentService(db, f.providerFetch).processPending(); return f.responseComments.size; }, { timeout: 10_000 }).toBe(2);
@@ -2686,7 +2686,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         if (url.includes("/pulls/418/comments?")) return Response.json([]);
         if (url.endsWith("/pulls/418/comments") && init?.method === "POST") {
           inlineWrites.push(JSON.parse(String(init.body)));
-          return Response.json({ id: 420, html_url: "https://github.com/paperclipai/paperclip/pull/418#discussion_r420" });
+          return Response.json({ id: 420, html_url: "https://github.com/clayon/clayon/pull/418#discussion_r420" });
         }
         return undefined;
       });
@@ -2702,13 +2702,13 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       expect(f.responseComments.size).toBe(1);
       const comment = [...f.responseComments.values()][0];
       expect(comment.body).toContain("Review complete.");
-      expect(comment.body).toContain("https://github.com/paperclipai/paperclip/pull/418");
+      expect(comment.body).toContain("https://github.com/clayon/clayon/pull/418");
       expect(comment.body).not.toContain("Disabled summary");
       expect(comment.body).toContain("clayon-response-state:final");
       await expect(githubRunReplyState(db, { ...f.session, endpointId: f.endpoint.id })).resolves.toBe("confirmed");
     });
     it.each(["during_summary", "after_summary"] as const)("keeps partial review delivery authoritative when the head changes %s", async phase => {
-      const f = await toolReplyFixture("github:paperclipai/paperclip:418");
+      const f = await toolReplyFixture("github:clayon/clayon:418");
       const original = "b".repeat(40);
       let head = original;
       let summaryDelivered = false;
@@ -2771,7 +2771,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             status: scenario === "unsettled" ? "processing" : scenario === "denied" || scenario === "cancelled_after_ambiguous" ? "cancelled" : scenario === "ambiguous_exhausted" ? "failed" : "processed",
             result: scenario === "check_only" || scenario === "missing_receipt" ? {} : scenario === "denied" ? { code: "authorization_changed", attempts: 1 } : scenario === "cancelled_after_ambiguous" ? { code: "authorization_changed", attempts: 2 }
               : scenario === "ambiguous_exhausted" ? { code: "publication_failed", retryable: false, attempts: 8 }
-              : { id: "41802", url: "https://github.com/paperclipai/paperclip/issues/418#issuecomment-41802" },
+              : { id: "41802", url: "https://github.com/clayon/clayon/issues/418#issuecomment-41802" },
           });
         }
         const unresolved = ["unsettled", "ambiguous_exhausted", "cancelled_after_ambiguous", "missing_receipt"].includes(scenario);
@@ -3893,15 +3893,15 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       context.setRepositories([
         {
           id: 97531,
-          full_name: "paperclipai/paperclip",
-          html_url: "https://github.com/paperclipai/paperclip",
+          full_name: "clayon/clayon",
+          html_url: "https://github.com/clayon/clayon",
           owner: { id: 1357, login: "clayon" },
           private: false,
         },
         {
           id: 97532,
           full_name: "clayon/later",
-          html_url: "https://github.com/paperclipai/later",
+          html_url: "https://github.com/clayon/later",
           owner: { id: 1357, login: "clayon" },
           private: true,
         },
@@ -4357,8 +4357,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         "owner-user",
       );
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:94",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:94",
         name: "Guest review",
       }).thread;
       await deliverMessage({
@@ -4459,7 +4459,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, f.endpoint.id));
         expect(conversation.externalThreadId).toBe(`github:Clayon/Clayon:${event === "issues" || event === "issue_comment" ? "issue:" : ""}83${event === "pull_request_review_comment" ? ":rc:83000" : ""}`);
         expect(conversation.providerUrl).not.toContain("mention-event");
-        if (event === "issues") expect(conversation.providerUrl).toBe("https://github.com/paperclipai/paperclip/issues/83");
+        if (event === "issues") expect(conversation.providerUrl).toBe("https://github.com/clayon/clayon/issues/83");
         const [task] = await db.select().from(issues).where(eq(issues.id, conversation.issueId!));
         expect(task).toMatchObject({ assigneeAgentId: f.assignedAgentId, responsibleUserId: "owner-user" });
         const comments = await db.select().from(issueComments).where(eq(issueComments.issueId, task.id));
@@ -4486,7 +4486,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const file = "https://github.com/user-attachments/files/31917991/proof.txt";
       const body = `@${f.endpoint.botUsername!} read [this proof](${file})`;
       const payload = { action, installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 42, login: "octocat", type: "User" }, issue: { number: 83, body: "", title: "Proof", user: { id: 42, login: "octocat" } },
         comment: { id: 83001, body, user: { id: 42, login: "octocat" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
         ...(action === "edited" ? { changes: { body: { from: "No mention" } } } : {}) };
@@ -4502,7 +4502,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const body = `@${f.endpoint.botUsername!} help`;
       const payload = {
         action: "edited", installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 77, login: "unlinked-editor", type: "User" },
         issue: { number: 84, title: "Say hello", body, user: { id: 42, login: "octocat", type: "User" }, labels: [] },
         changes: { body: { from: "No mention" } },
@@ -4529,7 +4529,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const target = { number: 83, title: "Say hello", body: "Description", user: { id: 42, login: "octocat", type: "User" } };
       const payload = {
         action: "edited", installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: target.user, issue: target, pull_request: target,
         comment: { id: 83001, body: `@${f.endpoint.botUsername!} help`, user: target.user, updated_at: new Date().toISOString() },
         changes: { body: { from: "No mention" } },
@@ -4554,7 +4554,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       await f.management.saveConfiguration(f.endpoint.id, { expectedRevision: saved.revision, configuration: { ...saved.configuration, defaults: { ...saved.configuration.defaults, invocation: "mentions_only" } } }, "owner-user");
       const payload = {
         action: "opened", installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 42, login: "octocat" },
         issue: { number: 86, title: "Private title", body: "Private body", user: { id: 42, login: "octocat", type: "User" }, labels: [] },
       };
@@ -4582,7 +4582,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const instruction = `Use [/automatic-playbook](${buildSkillMentionHref(skill.id, skill.slug)}).`;
       const payload = {
         action: "opened", installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 77, login: "maintainer" },
         issue: { number: 83, title: "Say hello", body: "Untrusted issue body", user: { id: 42, login: "octocat", type: "User" }, labels: [] },
       };
@@ -4603,7 +4603,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, f.endpoint.id));
       const [task] = await db.select().from(issues).where(eq(issues.id, conversation.issueId!));
       expect(task).toMatchObject({ title: "GitHub issue #83: Say hello", assigneeAgentId: f.assignedAgentId, responsibleUserId: "owner-user", originKind: "chat_channel" });
-      expect(conversation.providerUrl).toBe("https://github.com/paperclipai/paperclip/issues/83");
+      expect(conversation.providerUrl).toBe("https://github.com/clayon/clayon/issues/83");
       const comments = await db.select().from(issueComments).where(eq(issueComments.issueId, task.id));
       expect(comments).toHaveLength(1);
       expect(comments[0].body).toContain(instruction);
@@ -4637,7 +4637,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         event: "issues", delivery: randomUUID(), webhookSecret: f.webhookSecret,
         payload: {
           action: "opened", installation: { id: 2468 },
-          repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+          repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
           sender: { id: 42, login: "octocat" },
           issue: { number: 84, title: "No authority", body: "", user: { id: 999, login: "unknown", type: "User" }, labels: [] },
         },
@@ -4663,7 +4663,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         installation: { id: 2468 },
         repository: {
           id: 97531,
-          full_name: "paperclipai/paperclip",
+          full_name: "clayon/clayon",
           name: "clayon",
           owner: { id: 1357, login: "clayon" },
         },
@@ -4720,7 +4720,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         originKind: "chat_channel",
       });
       const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.issueId, task.id));
-      expect(conversation.providerUrl).toBe("https://github.com/paperclipai/paperclip/pull/81");
+      expect(conversation.providerUrl).toBe("https://github.com/clayon/clayon/pull/81");
       expect(reviews[0].event.sender.id).toBe("77");
       expect(reviews[0].event.author.id).toBe("42");
       expect(reviews[0].policySnapshot.ratingThreshold).toBe(5);
@@ -4756,7 +4756,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const payload = {
         action: "synchronize",
         installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 42, login: "octocat" },
         pull_request: {
           number: 82, title: "Rapid pushes", body: "", draft: false,
@@ -4800,7 +4800,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const head = "b".repeat(40);
       const event = githubAutomaticReviewEvent({
         action: "opened", installation: { id: 2468 },
-        repository: { id: 97531, full_name: "paperclipai/paperclip", name: "clayon", owner: { id: 1357, login: "clayon" } },
+        repository: { id: 97531, full_name: "clayon/clayon", name: "clayon", owner: { id: 1357, login: "clayon" } },
         sender: { id: 42, login: "octocat" },
         pull_request: {
           number: 83, title: "Manual review required", body: "", draft: false,
@@ -4835,8 +4835,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const f = await reviewBotFixture();
       const [company] = await db.select().from(companies).where(eq(companies.id, f.companyId));
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:91",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:91",
         name: "Review PR",
       }).thread;
       await deliverMessage({
@@ -4916,7 +4916,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       });
       f.setSupplementalProviderFetch(async (input, init) => {
         const url = String(input);
-        if (!url.includes("/repos/paperclipai/paperclip/")) return undefined;
+        if (!url.includes("/repos/clayon/clayon/")) return undefined;
         const commentId = /\/issues\/comments\/([1-9][0-9]*)$/.exec(url)?.[1];
         if (commentId && init?.method === "GET") return Response.json(comments.get(Number(commentId)));
         if (init?.method === "POST" || init?.method === "PATCH") {
@@ -4988,7 +4988,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       expect(await db.select().from(chatGitHubReviews).where(eq(chatGitHubReviews.endpointId, f.endpoint.id))).toHaveLength(1);
       await githubReviewCheckService(db, f.providerFetch).processPending();
       expect(mutations.at(-1)).toMatchObject({
-        url: "https://api.github.com/repos/paperclipai/paperclip/check-runs",
+        url: "https://api.github.com/repos/clayon/clayon/check-runs",
         body: {
           status: "in_progress", external_id: `${f.endpoint.id}:91:${head}`,
           details_url: `https://current-vanity.example/${company.issuePrefix}/issues/${conversation.issueId}`,
@@ -5883,11 +5883,11 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       ...(event === "issue_comment"
         ? {
             issue_url:
-              "https://api.github.com/repos/paperclipai/paperclip/issues/91",
+              "https://api.github.com/repos/clayon/clayon/issues/91",
           }
         : {
             pull_request_url:
-              "https://api.github.com/repos/paperclipai/paperclip/pulls/91",
+              "https://api.github.com/repos/clayon/clayon/pulls/91",
           }),
     };
     const payload = {
@@ -5895,7 +5895,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       installation: { id: 2468 },
       repository: {
         id: 97531,
-        full_name: "paperclipai/paperclip",
+        full_name: "clayon/clayon",
         name: "clayon",
         owner: { id: 1357, login: "clayon" },
       },
@@ -5929,7 +5929,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     let beforePost: (() => Promise<void>) | undefined;
     const requests: Array<{ method: string; pathname: string }> = [];
     const posts: string[] = [];
-    const commentPath = `/repos/paperclipai/paperclip/${event === "issue_comment" ? "issues" : "pulls"}/comments/9191`;
+    const commentPath = `/repos/clayon/clayon/${event === "issue_comment" ? "issues" : "pulls"}/comments/9191`;
     // Emit the actual unsafe JSON numeric literal, not a string-only mock.
     const json = (value: unknown) =>
       new Response(
@@ -7244,7 +7244,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     expect(assignments.map(a => a.key)).toEqual(["slack"]);
     expect(assignments[0].resources[0].metadata?.channelId).toBe("CTOOLS");
     const skillConfig = await applyConnectorSkills({}, [], assignments);
-    const runnerDelivery = await prepareConnectorSkillDelivery(skillConfig, "paperclip_runner");
+    const runnerDelivery = await prepareConnectorSkillDelivery(skillConfig, "clayon_runner");
     expect(runnerDelivery.instructions).toContain('"channelId": "CTOOLS"');
     expect(runnerDelivery.instructions).toContain("untrusted source material");
     expect(runnerDelivery.instructions).not.toContain("xoxb-test-token");
@@ -7400,7 +7400,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     await expect(resolveChatRunPresentationAuthorizationReason(db, presentation)).resolves.toBe(CHAT_RUN_PRESENTATION_AUTHORIZATION_REASON);
     const approvalBookkeeping = await issueService(db).addComment(
       conversation.issueId, "Recorded approved operation", { agentId: fixture.assignedAgentId, runId: continuationRunId },
-      { authorType: "agent", authorizationReason: "paperclip_runner_protocol" },
+      { authorType: "agent", authorizationReason: "clayon_runner_protocol" },
     );
     expect(await db.select().from(chatPublications).where(eq(chatPublications.commentId, approvalBookkeeping.id))).toHaveLength(0);
     const approvalFinal = await issueService(db).addComment(
@@ -8702,15 +8702,15 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               repositories: [
                 {
                   id: 97531,
-                  full_name: "paperclipai/paperclip",
-                  html_url: "https://github.com/paperclipai/paperclip",
+                  full_name: "clayon/clayon",
+                  html_url: "https://github.com/clayon/clayon",
                   owner: { id: 1357, login: "clayon" },
                   private: false,
                 },
                 {
                   id: 97532,
                   full_name: "clayon/clayon-disabled",
-                  html_url: "https://github.com/paperclipai/paperclip-disabled",
+                  html_url: "https://github.com/clayon/clayon-disabled",
                   owner: { id: 1357, login: "clayon" },
                   private: false,
                 },
@@ -8843,7 +8843,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       })),
     ).toEqual([
       {
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
         enabled: false,
       },
@@ -8862,7 +8862,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       thread: makeThread({
         channelId: "Clayon/Clayon",
         id: "github:Clayon/Clayon:issue:17",
-        name: "paperclipai/paperclip",
+        name: "clayon/clayon",
       }).thread,
       message: makeMessage({
         id: "github-root-17",
@@ -8883,7 +8883,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         enabled: resource.enabled,
       })),
     ).toEqual([
-      { providerResourceId: "paperclipai/paperclip", enabled: true },
+      { providerResourceId: "clayon/clayon", enabled: true },
       {
         providerResourceId: "clayon/clayon-disabled",
         enabled: false,
@@ -8901,8 +8901,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           repositories_removed: [
             {
               id: 97531,
-              full_name: "paperclipai/paperclip",
-              html_url: "https://github.com/paperclipai/paperclip",
+              full_name: "clayon/clayon",
+              html_url: "https://github.com/clayon/clayon",
               owner: { id: 1357, login: "clayon" },
             },
           ],
@@ -8912,7 +8912,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     );
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
         enabled: true,
       }),
@@ -8965,7 +8965,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       installation: { id: 2468 },
       repository: {
         id: 97531,
-        full_name: "paperclipai/paperclip",
+        full_name: "clayon/clayon",
         name: "clayon",
         owner: { id: 1357, login: "clayon" },
       },
@@ -9012,7 +9012,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     expect(accepted.status).toBe(202);
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         enabled: true,
       }),
     ]);
@@ -9027,8 +9027,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       await configuredGitHubEndpoint(fixture);
     const current = await service.get(endpoint.id);
     const { thread, subscribe } = makeThread({
-      channelId: "paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:903",
+      channelId: "clayon/clayon",
+      id: "github:clayon/clayon:903",
     });
     let release!: () => void;
     let acquired!: () => void;
@@ -9127,7 +9127,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     const roots = [
       {
-        channelId: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
         issueNumber: 901,
         messageId: 901001,
         repositoryId: 97531,
@@ -9316,8 +9316,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             repositories: [
               {
                 id: 97531,
-                full_name: "paperclipai/paperclip",
-                html_url: "https://github.com/paperclipai/paperclip",
+                full_name: "clayon/clayon",
+                html_url: "https://github.com/clayon/clayon",
                 owner: { id: 1357, login: "clayon" },
                 private: false,
               },
@@ -9358,7 +9358,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
       }),
     ]);
@@ -9893,9 +9893,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const { callbacks, endpoint, service } =
       await configuredGitHubEndpoint(fixture);
     const setupThread = makeThread({
-      channelId: "paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:811",
-      name: "paperclipai/paperclip",
+      channelId: "clayon/clayon",
+      id: "github:clayon/clayon:issue:811",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -10276,9 +10276,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       receiptReactionTransportBarrier: async () => { reactionTransportCalls += 1; },
     });
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:909",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:909",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks, endpointId: endpoint.id, provider: "github", thread: thread.thread,
@@ -10303,9 +10303,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const obsoleteRuntime = runtime.endpoints.get(endpoint.id);
     if (!obsoleteRuntime) throw new Error("Expected initial GitHub runtime");
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:910",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:910",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -10424,20 +10424,20 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const { callbacks, endpoint } = await configuredGitHubEndpoint(fixture);
     const cases = [
       {
-        id: "github:paperclipai/paperclip:issue:51",
+        id: "github:clayon/clayon:issue:51",
         rootId: "51001",
       },
-      { id: "github:paperclipai/paperclip:52", rootId: "52001" },
+      { id: "github:clayon/clayon:52", rootId: "52001" },
       {
-        id: "github:paperclipai/paperclip:52:rc:88001",
+        id: "github:clayon/clayon:52:rc:88001",
         rootId: "88001",
       },
     ];
     for (const item of cases) {
       const thread = makeThread({
-        channelId: "github:paperclipai/paperclip",
+        channelId: "github:clayon/clayon",
         id: item.id,
-        name: "paperclipai/paperclip",
+        name: "clayon/clayon",
       });
       const rootDelivery = {
         callbacks,
@@ -10504,9 +10504,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     );
     const githubUserId = "18446744073709551";
     const thread = makeThread({
-      channelId: "paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:59",
-      name: "paperclipai/paperclip",
+      channelId: "clayon/clayon",
+      id: "github:clayon/clayon:issue:59",
+      name: "clayon/clayon",
     });
     const send = (
       id: string,
@@ -10644,9 +10644,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         scheduleDeferredWork: (task) => deferred.push(task),
       });
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:71",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:71",
+      name: "clayon/clayon",
     });
     const providerSentAt = new Date("2026-09-05T18:00:00.000Z");
     const laterReply = makeMessage({
@@ -10730,9 +10730,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         scheduleDeferredWork: (task) => deferred.push(task),
       });
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:72",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:72",
+      name: "clayon/clayon",
     });
     const laterReply = makeMessage({
       id: "72002",
@@ -10842,9 +10842,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         scheduleDeferredWork: (task) => deferred.push(task),
       });
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:73",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:73",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -10893,9 +10893,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const context = await configuredGitHubEndpoint(fixture);
     const { callbacks, endpoint, runtime, service, webhookSecret } = context;
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:61",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:61",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -11001,7 +11001,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
         enabled: true,
       }),
@@ -11037,9 +11037,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const context = await configuredGitHubEndpoint(fixture);
     const { callbacks, endpoint, runtime, service, webhookSecret } = context;
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:62",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:62",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -11154,9 +11154,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const context = await configuredGitHubEndpoint(fixture);
     const { callbacks, endpoint, service, webhookSecret } = context;
     const thread = makeThread({
-      channelId: "github:paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:63",
-      name: "paperclipai/paperclip",
+      channelId: "github:clayon/clayon",
+      id: "github:clayon/clayon:issue:63",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -11230,8 +11230,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const { endpoint, runtime, service, webhookSecret } = context;
     const repository = {
       id: 97531,
-      full_name: "paperclipai/paperclip",
-      html_url: "https://github.com/paperclipai/paperclip",
+      full_name: "clayon/clayon",
+      html_url: "https://github.com/clayon/clayon",
       owner: { id: 1357, login: "clayon" },
       private: false,
     };
@@ -11259,7 +11259,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     );
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "removed",
         enabled: true,
       }),
@@ -11293,7 +11293,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
         enabled: true,
       }),
@@ -11433,7 +11433,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           repository: {
             id: 86420,
             full_name: "clayon/stale-secret-repository",
-            html_url: "https://github.com/paperclipai/stale-secret-repository",
+            html_url: "https://github.com/clayon/stale-secret-repository",
             owner: { id: 1357, login: "clayon" },
             private: false,
           },
@@ -11615,7 +11615,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "unavailable",
       }),
     ]);
@@ -11658,7 +11658,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     await expect(service.listResources(endpoint.id)).resolves.toEqual([
       expect.objectContaining({
-        providerResourceId: "paperclipai/paperclip",
+        providerResourceId: "clayon/clayon",
         availability: "available",
       }),
     ]);
@@ -12084,7 +12084,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           installation: { id: 2468 },
           repository: {
             id: 97531,
-            full_name: "paperclipai/paperclip",
+            full_name: "clayon/clayon",
             name: "clayon",
             owner: { id: 1357, login: "clayon" },
           },
@@ -12129,7 +12129,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           installation: { id: 2468 },
           repository: {
             id: 97531,
-            full_name: "paperclipai/paperclip",
+            full_name: "clayon/clayon",
             name: "clayon",
             owner: { id: 1357, login: "clayon" },
           },
@@ -12204,7 +12204,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           installation: { id: 2468 },
           repository: {
             id: 97531,
-            full_name: "paperclipai/paperclip",
+            full_name: "clayon/clayon",
             name: "clayon",
             owner: { id: 1357, login: "clayon" },
           },
@@ -12938,7 +12938,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         installation: { id: 2468 },
         repository: {
           id: 97531,
-          full_name: "paperclipai/paperclip",
+          full_name: "clayon/clayon",
           name: "clayon",
           owner: { id: 1357, login: "clayon" },
         },
@@ -13005,7 +13005,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           installation: { id: 2468 },
           repository: {
             id: 97531,
-            full_name: "paperclipai/paperclip",
+            full_name: "clayon/clayon",
             name: "clayon",
             owner: { id: 1357, login: "clayon" },
           },
@@ -13530,7 +13530,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const renamedRepository = {
       id: 97531,
       full_name: "clayon/clayon-renamed",
-      html_url: "https://github.com/paperclipai/paperclip-renamed",
+      html_url: "https://github.com/clayon/clayon-renamed",
       owner: { id: 1357, login: "clayon" },
       private: false,
     };
@@ -15775,7 +15775,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 ok: true,
                 result: {
                   id: botId,
-                  username: "maya_paperclip_bot",
+                  username: "maya_clayon_bot",
                   first_name: "Maya",
                 },
               }),
@@ -15877,11 +15877,11 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         status: "verifying",
         providerAccountId: String(botId),
         botExternalId: String(botId),
-        botUsername: "maya_paperclip_bot",
+        botUsername: "maya_clayon_bot",
         capabilities: { messageEdits: true, messageDeletes: false },
         setup: {
           step: "test",
-          providerUrl: "https://t.me/maya_paperclip_bot",
+          providerUrl: "https://t.me/maya_clayon_bot",
         },
       });
       const providerConfig = runtime.configurations.get(
@@ -15995,7 +15995,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             ok: true,
             result: {
               id: botId,
-              username: "paperclip_maintenance_bot",
+              username: "clayon_maintenance_bot",
               first_name: "Clayon Maintenance",
             },
           }),
@@ -16233,7 +16233,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             ok: true,
             result: {
               id: botId,
-              username: "paperclip_maintenance_race_bot",
+              username: "clayon_maintenance_race_bot",
               first_name: "Clayon Maintenance Race",
             },
           }),
@@ -23968,13 +23968,13 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         scheduleDeferredWork: (work) => deferred.push(work),
       });
       const { service, endpoint, callbacks } = context;
-      const sourceThreadId = "github:paperclipai/paperclip:issue:93";
+      const sourceThreadId = "github:clayon/clayon:issue:93";
       const sourceUrl =
         "https://github.com/user-attachments/files/31917991/public-proof.txt";
       const thread = makeThread({
         id: sourceThreadId,
-        channelId: "github:paperclipai/paperclip",
-        name: "paperclipai/paperclip",
+        channelId: "github:clayon/clayon",
+        name: "clayon/clayon",
       });
       const publicBody = Buffer.from("exact current GitHub public file");
       const batch = new AbortController();
@@ -24013,7 +24013,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               type: "issue_comment",
               threadType: "issue",
               prNumber: 93,
-              repository: { full_name: "paperclipai/paperclip" },
+              repository: { full_name: "clayon/clayon" },
               comment: {
                 id: Number(id),
                 body: urls.map((url) => `[file](${url})`).join("\n"),
@@ -24212,7 +24212,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         scheduleDeferredWork: () => {},
       });
       const { service, endpoint, callbacks } = context;
-      const sourceThreadId = "github:paperclipai/paperclip:issue:93";
+      const sourceThreadId = "github:clayon/clayon:issue:93";
       const sourceUrl =
         "https://github.com/user-attachments/assets/11111111-2222-3333-4444-555555555555";
       const signedUrl =
@@ -24235,9 +24235,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         .spyOn(FakeEndpointRuntime.prototype, "resolveGitHubAttachmentComment")
         .mockResolvedValue({
           id: 93002,
-          url: "https://api.github.com/repos/paperclipai/paperclip/issues/comments/93002",
+          url: "https://api.github.com/repos/clayon/clayon/issues/comments/93002",
           issue_url:
-            "https://api.github.com/repos/paperclipai/paperclip/issues/93",
+            "https://api.github.com/repos/clayon/clayon/issues/93",
           body,
           body_html:
             `<a href="${["signed_anchor", "ambiguous_anchor"].includes(revokeAt) ? signedUrl : sourceUrl}"><img src="${signedUrl}"></a>`.repeat(
@@ -24338,8 +24338,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       try {
         const thread = makeThread({
           id: sourceThreadId,
-          channelId: "github:paperclipai/paperclip",
-          name: "paperclipai/paperclip",
+          channelId: "github:clayon/clayon",
+          name: "clayon/clayon",
         });
         const message = makeMessage({
           id: "93002",
@@ -24350,7 +24350,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             type: "issue_comment",
             threadType: "issue",
             prNumber: 93,
-            repository: { full_name: "paperclipai/paperclip" },
+            repository: { full_name: "clayon/clayon" },
             comment: { id: 93002, body, user: { id: 42 } },
           },
         });
@@ -24386,7 +24386,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         if (receiptMutation) expect(await receiptMutation).toBeNull();
         expect(resolve).toHaveBeenCalledExactlyOnceWith(
           {
-            url: "https://api.github.com/repos/paperclipai/paperclip/issues/comments/93002",
+            url: "https://api.github.com/repos/clayon/clayon/issues/comments/93002",
             accept: "application/vnd.github.full+json",
           },
           expect.any(AbortSignal),
@@ -26496,8 +26496,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         .set({ status: "active" })
         .where(eq(chatEndpoints.id, endpoint.id));
       const thread = makeThread({
-        channelId: "github:paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:5",
+        channelId: "github:clayon/clayon",
+        id: "github:clayon/clayon:issue:5",
       });
       await deliverLegacyGitHubReceipt({
         callbacks,
@@ -26761,8 +26761,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const originalRuntime = runtime.endpoints.get(endpoint.id)!;
       attach(originalRuntime);
       const thread = makeThread({
-        channelId: "github:paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:5",
+        channelId: "github:clayon/clayon",
+        id: "github:clayon/clayon:issue:5",
       });
       const runId = randomUUID();
       const publish = async () => {
@@ -27052,9 +27052,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const endpointRuntime = runtime.endpoints.get(endpoint.id);
       if (!endpointRuntime) throw new Error("Expected GitHub runtime");
       const github = makeThread({
-        channelId: "github:paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:receipt-reaction",
-        name: "paperclipai/paperclip",
+        channelId: "github:clayon/clayon",
+        id: "github:clayon/clayon:issue:receipt-reaction",
+        name: "clayon/clayon",
       });
       for (const failure of failures) {
         endpointRuntime.reactionErrors.push(failure);
@@ -28575,7 +28575,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -28728,7 +28728,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -29136,7 +29136,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
   it("suppresses persisted GitHub queued, progress and completion comments on replay", async () => {
     const fixture = await seedCompany();
     const { callbacks, endpoint, runtime, service } = await configuredGitHubEndpoint(fixture);
-    const thread = makeThread({ channelId: "github:paperclipai/paperclip", id: "github:paperclipai/paperclip:issue:417" });
+    const thread = makeThread({ channelId: "github:clayon/clayon", id: "github:clayon/clayon:issue:417" });
     await deliverMessage({ callbacks, endpointId: endpoint.id, provider: "github", thread: thread.thread,
       message: makeMessage({ id: "41701", text: "@maya produce one quiet response", mentioned: true }), trigger: "mention" });
     const config = await githubChatManagementService(db).configuration(endpoint.id, "owner-user");
@@ -29172,7 +29172,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
   it("preserves automatic final replies for legacy GitHub connections without saved review configuration", async () => {
     const fixture = await seedCompany();
     const { callbacks, endpoint, runtime, service } = await configuredGitHubEndpoint(fixture);
-    const thread = makeThread({ channelId: "github:paperclipai/paperclip", id: "github:paperclipai/paperclip:issue:417" });
+    const thread = makeThread({ channelId: "github:clayon/clayon", id: "github:clayon/clayon:issue:417" });
     await deliverMessage({ callbacks, endpointId: endpoint.id, provider: "github", thread: thread.thread,
       message: makeMessage({ id: "41701", text: "@maya answer", mentioned: true }), trigger: "mention" });
     const [conversation] = await db.select().from(chatConversations).where(eq(chatConversations.endpointId, endpoint.id));
@@ -30087,7 +30087,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       oldConversation.issueId,
       "late-old-generation-final-stays-in-clayon",
       { agentId: fixture.assignedAgentId, runId: oldRunId },
-      { authorType: "agent", authorizationReason: "paperclip_runner_protocol" },
+      { authorType: "agent", authorizationReason: "clayon_runner_protocol" },
     );
     await expect(
       db
@@ -30616,7 +30616,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           { agentId: f.assignedAgentId, runId: f.runId },
           {
             authorType: "agent",
-            authorizationReason: "paperclip_runner_protocol",
+            authorizationReason: "clayon_runner_protocol",
           },
         );
         await expect(
@@ -31374,12 +31374,12 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         channelId:
           provider === "slack"
             ? "C-MULTI-FINAL"
-            : "github:paperclipai/paperclip",
+            : "github:clayon/clayon",
         id:
           provider === "slack"
             ? "slack:C-MULTI-FINAL:4045.1"
-            : "github:paperclipai/paperclip:issue:418",
-        name: provider === "slack" ? "multi-final" : "paperclipai/paperclip",
+            : "github:clayon/clayon:issue:418",
+        name: provider === "slack" ? "multi-final" : "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -31441,7 +31441,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             { agentId: fixture.assignedAgentId, runId },
             {
               authorType: "agent",
-              authorizationReason: "paperclip_runner_protocol",
+              authorizationReason: "clayon_runner_protocol",
             },
           ),
         );
@@ -34085,7 +34085,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             ok: true,
             result: {
               id: 884422,
-              username: "paperclip_lease_reclaim_bot",
+              username: "clayon_lease_reclaim_bot",
               first_name: "Clayon Lease Reclaim",
             },
           }),
@@ -34261,7 +34261,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             ok: true,
             result: {
               id: 884423,
-              username: "paperclip_removal_reclaim_bot",
+              username: "clayon_removal_reclaim_bot",
               first_name: "Clayon Removal Reclaim",
             },
           }),
@@ -36789,7 +36789,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                   allowOther: true,
                   options: [
                     {
-                      id: "__paperclip_text__",
+                      id: "__clayon_text__",
                       label: "Type an answer",
                       freeText: true,
                     },
@@ -36797,7 +36797,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 },
               ],
               questionSet: {
-                schema: "paperclip.question_set.v1",
+                schema: "clayon.question_set.v1",
                 title: "Deployment details",
                 questions: [
                   {
@@ -38000,7 +38000,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       payload: {
         text: source,
         card: {
-          schema: "paperclip.chat.card.v1",
+          schema: "clayon.chat.card.v1",
           kind: "status",
           title: "Long structured card",
         },
@@ -39863,7 +39863,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId: unrelatedRunId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -39883,7 +39883,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId: sourceRunId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -39903,7 +39903,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId: sourceRunId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -39976,7 +39976,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.replacementAgentId, runId: reassignedRunId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -40149,7 +40149,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 allowOther: true,
                 options: [
                   {
-                    id: "__paperclip_text__",
+                    id: "__clayon_text__",
                     label: "Type an answer",
                     freeText: true,
                   },
@@ -40769,7 +40769,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 allowOther: true,
                 options: [
                   {
-                    id: "__paperclip_text__",
+                    id: "__clayon_text__",
                     label: "Type an answer",
                     freeText: true,
                   },
@@ -41602,7 +41602,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       { agentId: fixture.assignedAgentId, runId: sourceRunId },
       {
         authorType: "agent",
-        authorizationReason: "paperclip_runner_protocol",
+        authorizationReason: "clayon_runner_protocol",
       },
     );
     await expect(
@@ -42074,7 +42074,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               ok: true,
               result: {
                 id: botId,
-                username: "paperclip_denial_test_bot",
+                username: "clayon_denial_test_bot",
                 first_name: "Clayon Denial Test",
               },
             }),
@@ -43715,9 +43715,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const { callbacks, endpoint, runtime, service } =
         await configuredGitHubEndpoint(fixture);
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:451",
-        name: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:issue:451",
+        name: "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -43842,9 +43842,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const { callbacks, endpoint, runtime, service } =
         await configuredGitHubEndpoint(fixture, { wakeup });
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:455",
-        name: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:issue:455",
+        name: "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -44020,9 +44020,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const { callbacks, endpoint, runtime, service, wakeup } =
       await configuredGitHubEndpoint(fixture);
     const thread = makeThread({
-      channelId: "paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:454",
-      name: "paperclipai/paperclip",
+      channelId: "clayon/clayon",
+      id: "github:clayon/clayon:issue:454",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -44178,9 +44178,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           storage: storage.storage,
         });
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:452",
-        name: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:issue:452",
+        name: "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -44523,9 +44523,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const thread =
         provider === "github"
           ? makeThread({
-              channelId: "paperclipai/paperclip",
-              id: "github:paperclipai/paperclip:issue:97",
-              name: "paperclipai/paperclip",
+              channelId: "clayon/clayon",
+              id: "github:clayon/clayon:issue:97",
+              name: "clayon/clayon",
             })
           : makeThread({
               channelId: "teams-personal-cleanup",
@@ -45800,7 +45800,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           phase: "delivered",
           privateState: {
             resolution: {
-              schema: "paperclip.teams.file-resolution.v1",
+              schema: "clayon.teams.file-resolution.v1",
               action: "mark_delivered",
               fromPhase: "upload_unknown",
             },
@@ -48454,7 +48454,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       conversation.issueId,
       "Recorded a direct upload before final presentation.",
       { agentId: fixture.assignedAgentId, runId },
-      { authorType: "agent", authorizationReason: "paperclip_runner_protocol" },
+      { authorType: "agent", authorizationReason: "clayon_runner_protocol" },
     );
     const storedDirect = await storage.storage.putFile({
       companyId: fixture.companyId,
@@ -49831,7 +49831,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             .set({
               payload: { registration: priorRegistration },
               result: {
-                schema: "paperclip.discord.command-registration-result.v1",
+                schema: "clayon.discord.command-registration-result.v1",
                 outcome: legacyCopy ? "registered" : "unavailable",
                 retryAt: legacyCopy
                   ? new Date(0).toISOString()
@@ -54804,7 +54804,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               ok: true,
               result: {
                 id: botId,
-                username: "paperclip_guidance_test_bot",
+                username: "clayon_guidance_test_bot",
                 first_name: "Clayon Guidance Test",
               },
             }),
@@ -54960,8 +54960,8 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           .filter(({ method }) => method === "sendMessage")
           .map(({ body }) => (JSON.parse(body) as { text?: string }).text),
       ).toEqual([
-        "Send a direct message to start work with Maya. In a group, use /task@paperclip_guidance_test_bot followed by your request. Use /status, /new, or /close to manage the active task in this chat.",
-        "Available commands: /task@paperclip_guidance_test_bot followed by your request, /status, /new, and /close.",
+        "Send a direct message to start work with Maya. In a group, use /task@clayon_guidance_test_bot followed by your request. Use /status, /new, or /close to manage the active task in this chat.",
+        "Available commands: /task@clayon_guidance_test_bot followed by your request, /status, /new, and /close.",
       ]);
 
       await service.update(
@@ -55706,7 +55706,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               callId: "edited-source-read",
               arguments: selection,
             }),
-          ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+          ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
           await expect(
             tools.execute({
               tool: "reuse_chat_attachment",
@@ -55717,7 +55717,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 idempotencyKey: "edited-source-reuse",
               },
             }),
-          ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+          ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
           expect(storage.putFile).toHaveBeenCalledTimes(1);
           const textEdit = {
             ...original,
@@ -56299,7 +56299,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               arguments: selection,
             }),
           ).rejects.toThrow(
-            "paperclip_runner_chat_attachment_read_not_authorized",
+            "clayon_runner_chat_attachment_read_not_authorized",
           );
           await db
             .update(chatIdentityLinks)
@@ -56333,14 +56333,14 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               title: "Must remain unavailable",
             },
           }),
-        ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+        ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
         await expect(
           authority.execute({
             tool: "read_chat_attachment",
             callId: "deleted-source-read",
             arguments: selection,
           }),
-        ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+        ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
         await expect(
           authority.execute({
             tool: "list_chat_attachments",
@@ -56741,7 +56741,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             installation: { id: 2468 },
             repository: {
               id: 97531,
-              full_name: "paperclipai/paperclip",
+              full_name: "clayon/clayon",
               name: "clayon",
               owner: { id: 1357, login: "clayon" },
             },
@@ -58683,7 +58683,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
 
   it.each([
     {
-      authorizationReason: "paperclip_runner_protocol",
+      authorizationReason: "clayon_runner_protocol",
       chatId: "77112241",
       publishesComment: false,
     },
@@ -59287,7 +59287,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         const nativeSessionId = context.binding.normalizedSessionId;
         const runnerInstanceId = context.binding.runnerSourceInstanceId;
         const inputFor = (id: string) => ({
-          schema: "paperclip.native-execution-input.v1",
+          schema: "clayon.native-execution-input.v1",
           provider: { kind: "codex", model: null },
           binding: {
             companyId: context.fixture.companyId,
@@ -59318,7 +59318,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           completionContract: {
             id: context.binding.completionContractId,
             sha256: context.binding.completionContractSha256,
-            schemaVersion: "paperclip.completion-contract.v1",
+            schemaVersion: "clayon.completion-contract.v1",
             contract: {
               revision: "recovered-response-v1",
               objective: "Exact request",
@@ -59465,7 +59465,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         const key = createHash("sha256")
           .update(
             canonical({
-              schema: "paperclip.native-session-scope.v2",
+              schema: "clayon.native-session-scope.v2",
               companyId: context.fixture.companyId,
               agentId: context.fixture.assignedAgentId,
               workspace: { kind: "transient", ...inputFor(runId).workspace },
@@ -59490,14 +59490,14 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           [
             "control-plane/control-plane-state.json",
             {
-              schema: "paperclip.runner.durable.control-plane-state.v1",
+              schema: "clayon.runner.durable.control-plane-state.v1",
               identity,
             },
           ],
           [
             "runner/runner-state.json",
             {
-              schema: "paperclip.runner.durable.state.v1",
+              schema: "clayon.runner.durable.state.v1",
               ...identity,
               lifecycle: "suspended",
               outbox: [],
@@ -59506,7 +59506,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           [
             "runner/codex-provider-state.json",
             {
-              schema: "paperclip.runner.codex-provider-state.v1",
+              schema: "clayon.runner.codex-provider-state.v1",
               lifecycle: "prepared",
               threadId: "same-retained-thread",
               providerSessionId: providerAccount,
@@ -59565,7 +59565,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           writeFileSync(
             path.join(root, "cleanup-activation.json"),
             JSON.stringify({
-              schema: "paperclip.native_cleanup_activation.v1",
+              schema: "clayon.native_cleanup_activation.v1",
               companyId: context.fixture.companyId,
               issueId: context.issue.id,
               runId: context.runId,
@@ -59719,7 +59719,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         const nativeSessionId = randomUUID();
         const runnerInstanceId = randomUUID();
         const nativeExecutionInput = {
-          schema: "paperclip.native-execution-input.v1",
+          schema: "clayon.native-execution-input.v1",
           provider: { kind: "codex", model: null },
           binding: {
             companyId: context.fixture.companyId,
@@ -59750,7 +59750,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           completionContract: {
             id: randomUUID(),
             sha256: "sha",
-            schemaVersion: "paperclip.completion-contract.v1",
+            schemaVersion: "clayon.completion-contract.v1",
             contract: {
               revision: "1",
               objective: "Exact request",
@@ -59853,7 +59853,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                   .join(",")}}`
               : JSON.stringify(value);
           const scope = {
-            schema: "paperclip.native-session-scope.v2",
+            schema: "clayon.native-session-scope.v2",
             companyId: context.fixture.companyId,
             agentId: context.fixture.assignedAgentId,
             workspace: { kind: "transient", ...nativeExecutionInput.workspace },
@@ -59878,14 +59878,14 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           writeFileSync(
             path.join(root, "control-plane", "control-plane-state.json"),
             JSON.stringify({
-              schema: "paperclip.runner.durable.control-plane-state.v1",
+              schema: "clayon.runner.durable.control-plane-state.v1",
               identity,
             }),
           );
           writeFileSync(
             path.join(root, "runner", "runner-state.json"),
             JSON.stringify({
-              schema: "paperclip.runner.durable.state.v1",
+              schema: "clayon.runner.durable.state.v1",
               ...identity,
               lifecycle: "suspended",
               outbox: [],
@@ -59894,7 +59894,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           writeFileSync(
             path.join(root, "runner", "codex-provider-state.json"),
             JSON.stringify({
-              schema: "paperclip.runner.codex-provider-state.v1",
+              schema: "clayon.runner.codex-provider-state.v1",
               lifecycle: "prepared",
               threadId: "exact-retry-thread",
               providerSessionId: providerAccount,
@@ -61282,9 +61282,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
           })
         : provider === "github"
           ? makeThread({
-              channelId: "github:paperclipai/paperclip",
-              id: `github:paperclipai/paperclip:issue:${700 + Number(suffix)}`,
-              name: "paperclipai/paperclip",
+              channelId: "github:clayon/clayon",
+              id: `github:clayon/clayon:issue:${700 + Number(suffix)}`,
+              name: "clayon/clayon",
             })
           : provider === "discord"
             ? makeThread({
@@ -61354,7 +61354,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         type: "issue_comment",
         threadType: "issue",
         prNumber: 700 + Number(suffix),
-        repository: { full_name: "paperclipai/paperclip" },
+        repository: { full_name: "clayon/clayon" },
         comment: {
           id: Number(messageId),
           body: sourceMessage.text,
@@ -62164,7 +62164,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             payload: {
               code: "provider_startup_ownership",
               startup: {
-                schema: "paperclip.provider_startup.v1",
+                schema: "clayon.provider_startup.v1",
                 phase,
                 launchId: "PRIVATE-STARTUP-LAUNCH",
                 requestedThreadId: "PRIVATE-REQUESTED-THREAD",
@@ -64676,12 +64676,12 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       const fixtureWakeups = () =>
         wakeup.mock.calls.filter((call) => call[0] === fixture.assignedAgentId);
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
         id:
           mode === "outbound_review_link"
-            ? "github:paperclipai/paperclip:84:rc:99080"
-            : "github:paperclipai/paperclip:issue:84",
-        name: "paperclipai/paperclip",
+            ? "github:clayon/clayon:84:rc:99080"
+            : "github:clayon/clayon:issue:84",
+        name: "clayon/clayon",
       });
       try {
         await deliverMessage({
@@ -64716,7 +64716,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                     .values({
                       ...conversation!,
                       id: randomUUID(),
-                      externalThreadId: "github:paperclipai/paperclip:issue:85",
+                      externalThreadId: "github:clayon/clayon:issue:85",
                     })
                     .returning()
                 )[0]!
@@ -64767,7 +64767,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
                 pull_request: { number: 84 },
                 repository: {
                   id: 97531,
-                  full_name: "paperclipai/paperclip",
+                  full_name: "clayon/clayon",
                   name: "clayon",
                   owner: { id: 1357, login: "clayon" },
                 },
@@ -65070,9 +65070,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     const { service, wakeup, endpoint, webhookSecret, callbacks } =
       await configuredGitHubEndpoint(fixture);
     const thread = makeThread({
-      channelId: "paperclipai/paperclip",
-      id: "github:paperclipai/paperclip:issue:42",
-      name: "paperclipai/paperclip",
+      channelId: "clayon/clayon",
+      id: "github:clayon/clayon:issue:42",
+      name: "clayon/clayon",
     });
     await deliverMessage({
       callbacks,
@@ -65089,18 +65089,18 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
     });
     for (const item of [
       {
-        id: "github:paperclipai/paperclip:43",
+        id: "github:clayon/clayon:43",
         messageId: "77002",
       },
       {
-        id: "github:paperclipai/paperclip:43:rc:88001",
+        id: "github:clayon/clayon:43:rc:88001",
         messageId: "88001",
       },
     ]) {
       const nativeThread = makeThread({
-        channelId: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
         id: item.id,
-        name: "paperclipai/paperclip",
+        name: "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -65156,7 +65156,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             pull_request: { number: input.number },
             repository: {
               id: 97531,
-              full_name: "paperclipai/paperclip",
+              full_name: "clayon/clayon",
               name: "clayon",
               owner: { id: 1357, login: "clayon" },
             },
@@ -65238,9 +65238,9 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       await configuredGitHubEndpoint(fixture);
     try {
       const thread = makeThread({
-        channelId: "paperclipai/paperclip",
-        id: "github:paperclipai/paperclip:issue:91",
-        name: "paperclipai/paperclip",
+        channelId: "clayon/clayon",
+        id: "github:clayon/clayon:issue:91",
+        name: "clayon/clayon",
       });
       await deliverMessage({
         callbacks,
@@ -65356,7 +65356,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             issue: { number: 91 },
             repository: {
               id: 97531,
-              full_name: "paperclipai/paperclip",
+              full_name: "clayon/clayon",
               name: "clayon",
               owner: { id: 1357, login: "clayon" },
             },
@@ -65632,7 +65632,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             name: "Telegram production group",
             isDM: false,
           } as never,
-          command: "/task@paperclip_test_bot",
+          command: "/task@clayon_test_bot",
           text: input.prompt,
           user: {
             userId: "telegram-group-user",
@@ -65654,11 +65654,11 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
               title: "Telegram production group",
             },
             from: { id: 77112233, is_bot: false },
-            text: `/task@paperclip_test_bot${input.prompt ? ` ${input.prompt}` : ""}`,
+            text: `/task@clayon_test_bot${input.prompt ? ` ${input.prompt}` : ""}`,
             entities: [
               {
                 offset: 0,
-                length: "/task@paperclip_test_bot".length,
+                length: "/task@clayon_test_bot".length,
                 type: "bot_command",
               },
             ],
@@ -67200,7 +67200,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       companyId: context.fixture.companyId,
       issueId: context.issue.id,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "phase6-v3",
       risk: "low",
       completionAuthority: "agent_claim_policy",
@@ -67240,7 +67240,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       .set({ status: "in_review", executionRunId: null })
       .where(eq(issues.id, context.issue.id));
     const result: PrpStructuredRunResult = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary:
         summary?.(context.issue.id) ??
@@ -67264,7 +67264,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       },
     };
     const terminal: PrpTerminalState = {
-      schema: "paperclip.prp.terminal.v1",
+      schema: "clayon.prp.terminal.v1",
       turnTerminalState: "completed",
       runTerminalState: "succeeded",
       reportedWorkDisposition: "yielded",
@@ -68365,7 +68365,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       companyId: fixture.companyId,
       issueId,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "phase6-v3",
       risk: "low",
       completionAuthority: "agent_claim_policy",
@@ -68423,7 +68423,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       sourceInstanceId: runnerInstanceId,
     });
     const responseResult: PrpStructuredRunResult = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary: "The exact response and files are prepared. I will wait.",
       completionClaim: {
@@ -68449,7 +68449,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       },
     };
     const terminal: PrpTerminalState = {
-      schema: "paperclip.prp.terminal.v1",
+      schema: "clayon.prp.terminal.v1",
       turnTerminalState: "completed",
       runTerminalState: "succeeded",
       reportedWorkDisposition: "yielded",
@@ -68562,7 +68562,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
       issueId,
       "Prepared the exact requested files for this response.",
       { agentId: fixture.assignedAgentId, runId },
-      { authorizationReason: "paperclip_runner_protocol" },
+      { authorizationReason: "clayon_runner_protocol" },
     );
     const attachments = [];
     for (const [originalFilename, contentType, body] of [
@@ -70083,7 +70083,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         };
         const proof = received!.normalizedEvent.teamsPersonalRecipient;
         expect(proof).toEqual({
-          schema: "paperclip.teams.personal-recipient.v1",
+          schema: "clayon.teams.personal-recipient.v1",
           companyId: context.fixture.companyId,
           endpointId: context.endpoint.id,
           runtimeGeneration: origin.generation,
@@ -71954,7 +71954,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         companyId: context.fixture.companyId,
         issueId: context.issue.id,
         revision: 1,
-        schemaVersion: "paperclip.completion-contract.v1",
+        schemaVersion: "clayon.completion-contract.v1",
         policyVersion: "phase6-v3",
         risk: "low",
         completionAuthority: "agent_claim_policy",
@@ -72030,7 +72030,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         .set({ status: "in_review", executionRunId: null })
         .where(eq(issues.id, context.issue.id));
       const result: PrpStructuredRunResult = {
-        schema: "paperclip.run_result.v1",
+        schema: "clayon.run_result.v1",
         reportedWorkDisposition: "yielded",
         summary:
           "Here is the exact requested file. I will wait for your next message.",
@@ -72053,7 +72053,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         },
       };
       const terminal: PrpTerminalState = {
-        schema: "paperclip.prp.terminal.v1",
+        schema: "clayon.prp.terminal.v1",
         turnTerminalState: "completed",
         runTerminalState: "succeeded",
         reportedWorkDisposition: "yielded",
@@ -72090,7 +72090,7 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
         status: "succeeded",
         resultJson: {
           nativeCommittedChatResponse: {
-            schema: "paperclip.native_committed_chat_response.v1",
+            schema: "clayon.native_committed_chat_response.v1",
           },
         },
       });
@@ -73094,13 +73094,13 @@ describeEmbeddedPostgres("chat channel control-plane integration", () => {
             provider === "slack"
               ? "C-LONG-BOARD"
               : provider === "github"
-                ? "paperclipai/paperclip"
+                ? "clayon/clayon"
                 : teamsChannel,
           id:
             provider === "slack"
               ? "slack:C-LONG-BOARD:9900.1"
               : provider === "github"
-                ? "github:paperclipai/paperclip:issue:9900"
+                ? "github:clayon/clayon:issue:9900"
                 : `teams:${Buffer.from("19:long-publication@thread.tacv2;messageid=99001").toString("base64url")}:${Buffer.from("https://smba.trafficmanager.net/amer/").toString("base64url")}`,
           name: "long-board",
         });

@@ -3,7 +3,7 @@
 Date: 2026-09-04
 Clayon base: `8430bd897f01dd4b91e0970efffb71b97e5a2685`
 Historical viewer: [Git archive](./wireframes-archive.md).
-Archived wireframes: [v6 SVG snapshot](https://github.com/paperclipai/paperclip/tree/1c4a45f0ef7d627aa98e4f3ae3116d4507386d1a/doc/plans/chat-adapters/wireframes-v6) ([archive and regeneration notes](./wireframes-archive.md))
+Archived wireframes: [v6 SVG snapshot](https://github.com/clayon/clayon/tree/1c4a45f0ef7d627aa98e4f3ae3116d4507386d1a/doc/plans/chat-adapters/wireframes-v6) ([archive and regeneration notes](./wireframes-archive.md))
 
 ## Relevance rule
 

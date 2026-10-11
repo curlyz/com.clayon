@@ -3,7 +3,7 @@ group "default" {
 }
 
 variable "VERSION" { default = "dev" }
-variable "REGISTRY" { default = "ghcr.io/paperclipai" }
+variable "REGISTRY" { default = "ghcr.io/clayon" }
 
 target "base" {
   context = "."

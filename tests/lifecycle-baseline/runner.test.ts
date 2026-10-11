@@ -4,7 +4,7 @@ import { normalizePrpResultSignals } from "../../packages/clayon-runner/src/prot
 import { narratives } from "./narratives.js";
 import { observe } from "./observe.js";
 const result = {
-  schema: "paperclip.run_result.v1",
+  schema: "clayon.run_result.v1",
   reportedWorkDisposition: "done",
   summary: "Completed work",
   completionClaim: {

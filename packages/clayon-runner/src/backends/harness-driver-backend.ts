@@ -96,7 +96,7 @@ export class HarnessDriverBackend implements NativeSessionBackend {
     const recoveredTerminal =
       recoveredSemanticTurn && snapshot.semanticResult
         ? {
-            schema: "paperclip.prp.terminal.v1" as const,
+            schema: "clayon.prp.terminal.v1" as const,
             turnTerminalState: "completed" as const,
             runTerminalState: "succeeded" as const,
             reportedWorkDisposition:
@@ -559,7 +559,7 @@ class HarnessNativeSession implements NativeSession {
         if (event.eventType === "runtime_request.created") {
           const request = plainRecord(event.payload.request);
           if (
-            request?.schema === "paperclip.runtime_request.v2" &&
+            request?.schema === "clayon.runtime_request.v2" &&
             request.type === "input" &&
             typeof request.requestId === "string"
           )
@@ -597,7 +597,7 @@ class HarnessNativeSession implements NativeSession {
             snapshot.semanticResult?.result.reportedWorkDisposition ??
             "yielded";
           this.#terminal = {
-            schema: "paperclip.prp.terminal.v1",
+            schema: "clayon.prp.terminal.v1",
             turnTerminalState:
               event.eventType === "turn.completed"
                 ? "completed"
@@ -643,7 +643,7 @@ class HarnessNativeSession implements NativeSession {
         const itemId =
           typeof request.itemId === "string" ? request.itemId : requestId;
         yield {
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           sourceEventId: `${sourceInstanceId}:${this.#input.identity.runId}:${sourceSeq}`,
           sourceSeq,
           sourceInstanceId,
@@ -680,13 +680,13 @@ class HarnessNativeSession implements NativeSession {
         synthesizedProviderFailure = true;
         sawTerminal = true;
         this.#terminal = {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState: "failed",
           runTerminalState: "failed",
           reportedWorkDisposition: "yielded",
         };
         yield {
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           sourceEventId: `${sourceInstanceId}:${this.#input.identity.runId}:${sourceSeq}`,
           sourceSeq,
           sourceInstanceId,

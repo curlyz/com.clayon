@@ -44,7 +44,7 @@ const HARNESS_LABELS: Record<string, string> = {
   claude_local: "Claude Code", codex_local: "Codex", opencode_local: "OpenCode",
   pi_local: "Pi", kimi_local: "Kimi Code", gemini_local: "Gemini CLI",
   cursor: "Cursor", cursor_cloud: "Cursor Cloud", grok_local: "Grok CLI",
-  hermes_local: "Hermes CLI", paperclip_runner: "Clayon Runner",
+  hermes_local: "Hermes CLI", clayon_runner: "Clayon Runner",
   process: "Process", http: "HTTP", openclaw_gateway: "OpenClaw Gateway",
   hermes_gateway: "Hermes Gateway",
 };
@@ -153,7 +153,7 @@ export function ComposerRunSettingsPicker({
     `${item.label} ${item.id}`.toLowerCase().includes(query.toLowerCase()));
   const exactMatch = models.some((item) => item.id.toLowerCase() === query.toLowerCase());
   const needsProvider = agent && (["opencode_local", "pi_local", "kimi_local"].includes(agent.adapterType)
-    || (agent.adapterType === "paperclip_runner" && provider === "opencode"));
+    || (agent.adapterType === "clayon_runner" && provider === "opencode"));
   const manualValid = query.length > 0 && !/\s/.test(query)
     && (!needsProvider || /^[^/]+\/.+[^/]$/.test(query))
     && (provider !== "openrouter" || /^openrouter\/[^/]+\/.+[^/]$/.test(query));

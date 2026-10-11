@@ -41,7 +41,7 @@ function validEvidence(notificationCount = 0): HiringTemplateEvidence {
     hiredInstructionsAfterReuse: { mode: "managed", entryFile: "AGENTS.md", files: { "AGENTS.md": coder } },
     hiredSkills: [], hiredSkillsAfterReuse: [],
     agents: [{ ...turnFixture.evidence.agents[0], id: "lead", name: "CEO", adapterConfig: { model: "model" } },
-      { ...turnFixture.evidence.agents[1], id: "coder", name: "Casey", role: "engineer", reportsTo: "lead", adapterType: "paperclip_runner", createdAt: hiredAt,
+      { ...turnFixture.evidence.agents[1], id: "coder", name: "Casey", role: "engineer", reportsTo: "lead", adapterType: "clayon_runner", createdAt: hiredAt,
         adapterConfig: { model: "model" }, runtimeConfig: { aiConnection: binding } }],
     connectionId: "account", binding, tasks, runs, first, firstAfterReuse: { ...first }, second: document("second-task", "REUSEHIREfixture", reuseValues),
     turnApiState: turnFixture.apiState,
@@ -239,7 +239,7 @@ describe("production hiring fixture wiring and source observations", () => {
       expect(buildRunnerE2EProcessEnvironment({}, [cell]).CLAYON_RUNNER_API_TOOLS_ENABLED).toBe("true");
       const payload = cell.profile.buildAgent({ executionId: "fixture", workspacePath: "/workspace", environmentId: "env", environmentFixtureId: "local",
         secretRefs: { [cell.profile.credential]: { type: "secret_ref", secretId: "secret", version: "latest" } } });
-      expect(payload).toMatchObject({ role: "ceo", adapterType: "paperclip_runner" });
+      expect(payload).toMatchObject({ role: "ceo", adapterType: "clayon_runner" });
       expect(payload).not.toHaveProperty("instructionsBundle");
       expect(payload.adapterConfig).not.toHaveProperty("instructionsBundleMode");
       expect(payload.adapterConfig).not.toHaveProperty("codexPermissionMode");

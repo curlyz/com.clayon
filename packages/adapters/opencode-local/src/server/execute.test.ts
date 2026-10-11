@@ -154,7 +154,7 @@ describe("OpenCode local skill injection", () => {
             OPENCODE_ALLOW_ALL_MODELS: "1",
           },
           clayonRuntimeSkills: [{
-            key: "paperclipai/paperclip/clayon",
+            key: "clayon/clayon/clayon",
             runtimeName: "clayon",
             source: skillSource,
           }],

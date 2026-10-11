@@ -4,7 +4,7 @@ import type { ClayonJsonSchema } from "../catalog/semantic-action-types.js";
 import type { ClayonSemanticToolDefinition } from "./types.js";
 
 export const CLAYON_RUNNER_AUTHORIZED_TOOLS_SCHEMA =
-  "paperclip.runner.authorized-tools.v1" as const;
+  "clayon.runner.authorized-tools.v1" as const;
 
 export interface ClayonRunnerAuthorizedTool {
   readonly operationId: string;
@@ -28,7 +28,7 @@ export function createClayonRunnerAuthorizedToolSet(
   const operations = definitions
     .map((definition): ClayonRunnerAuthorizedTool => {
       if (definition.annotations.version !== 1 || names.has(definition.name)) {
-        throw new Error("paperclip_runner_authorized_tools_invalid");
+        throw new Error("clayon_runner_authorized_tools_invalid");
       }
       names.add(definition.name);
       return {
@@ -75,7 +75,7 @@ function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== "object") {
     const encoded = JSON.stringify(value);
     if (encoded === undefined) {
-      throw new Error("paperclip_runner_authorized_tools_invalid");
+      throw new Error("clayon_runner_authorized_tools_invalid");
     }
     return encoded;
   }

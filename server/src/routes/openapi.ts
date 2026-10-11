@@ -1011,7 +1011,7 @@ const chatActivityResponseSchema = z
 
 const safeExternalChatCardResponseSchema = z
   .object({
-    schema: z.literal("paperclip.chat.card.v1"),
+    schema: z.literal("clayon.chat.card.v1"),
     kind: z.enum(["status", "question", "confirmation"]),
     title: z.string(),
     body: z.string().optional(),
@@ -1764,7 +1764,7 @@ function applyDocumentFixups(document: any): any {
     [BOARD_SESSION_AUTH_SCHEME]: {
       type: "apiKey",
       in: "cookie",
-      name: "paperclip_session",
+      name: "clayon_session",
       description:
         "Board session cookie in authenticated mode. Clayon uses Better Auth; cookie transport may vary by deployment.",
     },

@@ -676,10 +676,10 @@ export function canReplayOpenClawGatewayInviteAccept(input: {
 export function assertLegacyAgentInviteAdapterType(
   adapterType: string | null | undefined,
 ) {
-  if (adapterType === "paperclip_runner") {
+  if (adapterType === "clayon_runner") {
     throw badRequest(
       "Clayon Runner is not available through agent invite onboarding.",
-      { code: "paperclip_runner_invite_onboarding_disabled" },
+      { code: "clayon_runner_invite_onboarding_disabled" },
     );
   }
 }
@@ -1057,21 +1057,21 @@ export function normalizeAgentDefaultsForJoin(input: {
         parsedClayonApiUrl.protocol !== "https:"
       ) {
         diagnostics.push({
-          code: "openclaw_gateway_paperclip_api_url_protocol",
+          code: "openclaw_gateway_clayon_api_url_protocol",
           level: "warn",
           message: `clayonApiUrl must use http:// or https:// (got ${parsedClayonApiUrl.protocol}).`
         });
       } else {
         normalized.clayonApiUrl = parsedClayonApiUrl.toString();
         diagnostics.push({
-          code: "openclaw_gateway_paperclip_api_url_configured",
+          code: "openclaw_gateway_clayon_api_url_configured",
           level: "info",
           message: `clayonApiUrl set to ${parsedClayonApiUrl.toString()}`
         });
       }
     } catch {
       diagnostics.push({
-        code: "openclaw_gateway_paperclip_api_url_invalid",
+        code: "openclaw_gateway_clayon_api_url_invalid",
         level: "warn",
         message: `Invalid clayonApiUrl: ${rawClayonApiUrl}`
       });

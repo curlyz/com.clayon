@@ -95,7 +95,7 @@ import {
 
 const execFile = promisify(execFileCallback);
 
-const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
+const REPO_ONLY_CWD_SENTINEL = "/__clayon_repo_only__";
 
 const MANAGED_WORKSPACE_GIT_CLONE_TIMEOUT_MS = 10 * 60 * 1000;
 

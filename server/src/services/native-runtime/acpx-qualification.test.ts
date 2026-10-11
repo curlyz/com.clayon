@@ -11,13 +11,13 @@ describe("host ACPX qualification admission", () => {
   it.each(["copilot"])("admits %s through agent validation and native input only for the exact host pair", (agent) => {
     const config = { provider: "acpx", acpxAgent: agent, model: "exact-model" };
     vi.stubEnv(ACPX_QUALIFICATION_ENV, undefined);
-    expect(() => resolveClayonRunnerProviderProfile(config)).toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_agent_unavailable" }));
-    expect(() => resolveClayonRunnerProviderProfile({ ...config, env: authorize([{ agent, model: config.model }]), [ACPX_QUALIFICATION_ENV]: JSON.stringify([{ agent, model: config.model }]) })).toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_agent_unavailable" }));
+    expect(() => resolveClayonRunnerProviderProfile(config)).toThrow(expect.objectContaining({ code: "clayon_runner_acpx_agent_unavailable" }));
+    expect(() => resolveClayonRunnerProviderProfile({ ...config, env: authorize([{ agent, model: config.model }]), [ACPX_QUALIFICATION_ENV]: JSON.stringify([{ agent, model: config.model }]) })).toThrow(expect.objectContaining({ code: "clayon_runner_acpx_agent_unavailable" }));
     vi.stubEnv(ACPX_QUALIFICATION_ENV, JSON.stringify([{ agent, model: config.model }]));
     expect(resolveClayonRunnerProviderProfile(config)).toMatchObject({ acpxAgent: agent, model: config.model });
     expect(resolveClayonRunnerNativeProviderInput({ backend: "acpx_runtime", adapterConfig: config })).toMatchObject({ acpxAgent: agent, model: config.model });
-    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "other-model" })).toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_qualification_invalid" }));
-    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "" })).toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_model_required" }));
+    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "other-model" })).toThrow(expect.objectContaining({ code: "clayon_runner_acpx_qualification_invalid" }));
+    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "" })).toThrow(expect.objectContaining({ code: "clayon_runner_acpx_model_required" }));
   });
   it("admits only the exact Pi model without host authorization and preserves permission modes", () => {
     const config = { provider: "acpx", acpxAgent: "pi", model: "openrouter/deepseek/deepseek-v4-flash-0731" };
@@ -30,7 +30,7 @@ describe("host ACPX qualification admission", () => {
       }
       for (const model of [undefined, ""]) {
         expect(() => resolveClayonRunnerProviderProfile({ ...config, model }))
-          .toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_model_required" }));
+          .toThrow(expect.objectContaining({ code: "clayon_runner_acpx_model_required" }));
       }
     }
   });
@@ -53,7 +53,7 @@ describe("host ACPX qualification admission", () => {
     expect(resolveClayonRunnerProviderProfile(config)).toMatchObject({ acpxAgent: "cursor", model: config.model });
     expect(resolveClayonRunnerNativeProviderInput({ backend: "acpx_runtime", adapterConfig: config })).toMatchObject({ acpxAgent: "cursor", model: config.model });
     expect(resolveAcpxQualification({ ...provider, agent: "cursor" } as typeof provider, authorize([]))).toBeUndefined();
-    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "" })).toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_model_required" }));
+    expect(() => resolveClayonRunnerProviderProfile({ ...config, model: "" })).toThrow(expect.objectContaining({ code: "clayon_runner_acpx_model_required" }));
   });
   it("does not alter existing qualified providers", () => {
     expect(resolveAcpxQualification({ ...provider, agent: "codex" } as typeof provider, authorize([]))).toBeUndefined();
@@ -68,7 +68,7 @@ describe("host ACPX qualification admission", () => {
   it("requires an explicit Codex ACP selection", () => {
     for (const model of [undefined, "", " "]) {
       expect(() => resolveClayonRunnerProviderProfile({ provider: "acpx", acpxAgent: "codex", model }))
-        .toThrow(expect.objectContaining({ code: "paperclip_runner_acpx_model_unqualified" }));
+        .toThrow(expect.objectContaining({ code: "clayon_runner_acpx_model_unqualified" }));
     }
   });
   it("preserves product defaults separately from qualification examples", () => {
@@ -87,5 +87,5 @@ describe("host ACPX qualification admission", () => {
 it.each([undefined, "off", "low", "high", "max"] as const)("validates saved Pi thinking %s and projects it explicitly", piThinkingLevel => {
   const adapterConfig = { provider: "acpx", acpxAgent: "pi", model: "openrouter/deepseek/deepseek-v4-flash-0731", piThinkingLevel };
   expect(resolveClayonRunnerNativeProviderInput({ backend: "acpx_runtime", adapterConfig })).toMatchObject({ piThinkingLevel: piThinkingLevel ?? "low" });
-  for (const alias of ["medium", "minimal", "xhigh"]) expect(() => resolveClayonRunnerProviderProfile({ ...adapterConfig, piThinkingLevel: alias })).toThrow(expect.objectContaining({ code: "paperclip_runner_pi_thinking_invalid" }));
+  for (const alias of ["medium", "minimal", "xhigh"]) expect(() => resolveClayonRunnerProviderProfile({ ...adapterConfig, piThinkingLevel: alias })).toThrow(expect.objectContaining({ code: "clayon_runner_pi_thinking_invalid" }));
 });

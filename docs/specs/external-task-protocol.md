@@ -380,7 +380,7 @@ Per-link data flow direction:
 
 Per-link execution posture:
 
-- `paperclip_controlled` — Clayon governance decides when agents run; external state changes
+- `clayon_controlled` — Clayon governance decides when agents run; external state changes
   inform but do not command execution.
 - `symphony_compatible` — active external states create/wake Clayon work automatically per
   Section 9; the external tracker effectively drives dispatch.
@@ -677,7 +677,7 @@ Comment commands give external users explicit control without new UI in the prov
 ## 9. Execution Orchestration: Symphony Profile
 
 This section defines how tracker-driven execution maps onto host primitives. It applies to links
-with `runMode=symphony_compatible`; `paperclip_controlled` links use only Sections 9.4–9.5 advice.
+with `runMode=symphony_compatible`; `clayon_controlled` links use only Sections 9.4–9.5 advice.
 
 ### 9.1 Dispatch Model
 

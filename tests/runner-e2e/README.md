@@ -638,7 +638,7 @@ or publish the current source locally:
 ```bash
 content_id="$(pnpm --silent test:e2e:runner:image-id)"
 source_revision="$(git rev-parse HEAD)"
-image="ghcr.io/paperclipai/paperclip-daytona-runner:e2e-content-${content_id}"
+image="ghcr.io/clayon/clayon-daytona-runner:e2e-content-${content_id}"
 if ! docker buildx imagetools inspect "$image" >/dev/null 2>&1; then
   docker buildx build \
     --platform linux/amd64 \
@@ -661,7 +661,7 @@ reused image when it builds the controller-side provider pack, preserving the
 exact manifest match required to avoid restaging the pack into Daytona.
 
 Resolve the manifest digest and set `CLAYON_E2E_DAYTONA_IMAGE` to
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:...`. The repository
+`ghcr.io/clayon/clayon-daytona-runner@sha256:...`. The repository
 workflow signs that digest with Cosign/OIDC and verifies that it is publicly
 pullable, includes the provider pack, and advertises `dial_ws_loopback`,
 `dial_wss`, and `listen_ws`. The GHCR package must be configured as public;
@@ -847,7 +847,7 @@ public structured evidence files. The Pages artifact has already had private
 visual and generated report evidence removed:
 
 ```bash
-gh run download <run-id> --repo paperclipai/paperclip --name github-pages --dir /tmp/runner-e2e-pages
+gh run download <run-id> --repo clayon/clayon --name github-pages --dir /tmp/runner-e2e-pages
 mkdir /tmp/runner-e2e-site
 tar -xf /tmp/runner-e2e-pages/artifact.tar -C /tmp/runner-e2e-site
 pnpm test:e2e:runner:dashboard -- /tmp/runner-e2e-site
@@ -888,7 +888,7 @@ It adds twelve single-attempt cells and does not expand `--all`.
 `Runner Full-Stack E2E` has only `schedule` and `workflow_dispatch` triggers; it
 never runs for a pull request or ordinary push. Start the trusted workflow from
 the default branch. A CODEOWNER can set the optional `target_branch` input to
-any branch in `paperclipai/paperclip`. The authorization job resolves that
+any branch in `clayon/clayon`. The authorization job resolves that
 branch to one immutable commit before any checkout. A separate credential-free
 job checks out the resolved commit and regenerates `pnpm-lock.yaml` once with
 `--ignore-scripts --no-frozen-lockfile --lockfile-only`. It uploads that exact
@@ -980,7 +980,7 @@ administrators, then configure these repository variables:
 
 The job exchanges GitHub OIDC for short-lived AWS credentials; never add AWS
 access-key secrets. Its IAM role must trust only
-`repo:paperclipai/paperclip:environment:runner-e2e-history`, and permit only
+`repo:clayon/clayon:environment:runner-e2e-history`, and permit only
 Get/List/Put under the configured prefix—never Delete. Enable S3 versioning and
 Block Public Access. CloudFront reads the private bucket through Origin Access
 Control. Immutable campaign bundles live under `campaigns/<run-id>-<attempt>/`;
@@ -1622,7 +1622,7 @@ pnpm test:e2e:runner -- --list --suite pi-native
 pnpm test:e2e:runner -- --id pi-native.runner-acpx-pi.local.native-questions
 ```
 
-Native questions exercise the runner-owned `paperclip_native_question` tool and
+Native questions exercise the runner-owned `clayon_native_question` tool and
 the durable browser form bridge. The existing five extended-harness journeys
 continue to prove semantic Clayon questions and planning separately. Personal
 file persistence uses two fresh task runs and independent byte checks; restrictive
@@ -1824,7 +1824,7 @@ command origin before emitting permission evidence; Copilot can emit the
 permission notice first. Both still require the exact tool origin before Stop.
 
 Suite version 4 uses the normalized Product cancellation contract and writes
-`paperclip.e2e.native-active-stop-settlement.v2`. It requires the exact request,
+`clayon.e2e.native-active-stop-settlement.v2`. It requires the exact request,
 item and turn closure with `reason: turn_terminal`, followed by the same stream's
 `turn.cancelled` with `status: cancelled` and `error: null`. The Product harness
 emits these fields; raw backend-only cancellation metadata is not its contract.
@@ -1855,7 +1855,7 @@ safe ownership of the native provider process in both environments.
 
 ### Copilot attached semantic completion evidence (suite 8)
 
-Attached settlement now requires one native `paperclip_finish` lifecycle joined
+Attached settlement now requires one native `clayon_finish` lifecycle joined
 to an invocation-captured, bounded Clayon bridge receipt by exact call, input
 and result digests in the same run/turn/native session and durable source stream.
 A matching display title is not authority. The exact proposed completion input
@@ -1880,8 +1880,8 @@ the native lifecycle; its normalized input hash must also match the authority.
 Exactly one proposed body must hash to that normalized digest and equal exactly
 one accepted body; identical duplicate proposals or receipts still fail.
 
-Suite 8 writes `paperclip.e2e.copilot-semantic-completion.v2` and requires
-`paperclip.semantic_tool_receipt.v2` under `paperclip_semantic_tool_receipt_v2`.
+Suite 8 writes `clayon.e2e.copilot-semantic-completion.v2` and requires
+`clayon.semantic_tool_receipt.v2` under `clayon_semantic_tool_receipt_v2`.
 The authority has exactly eight bounded details. An explicit null normalized
 digest is diagnostic only and cannot qualify a successful finish. Legacy v1
 receipts do not qualify fresh runs. This fixture depends on the corresponding
@@ -1957,7 +1957,7 @@ contribute to the existing billing contract. Evidence includes the waiting and
 final task screenshots, saved checkpoints, final observations, source revision,
 profile/model, catalog digest, and SHA-256 fingerprints of both changed skill
 files and the grader/flow in `snapshots/blocker-guidance.json`. Grader version
-`paperclip.blocker-guidance.v6` requires the approved public note, a saved answer
+`clayon.blocker-guidance.v6` requires the approved public note, a saved answer
 before the confirmation wake, and a new worker reply after the waiting checkpoint,
 accepts writable confirmations and multiple questions, and records `inputUx` separately from
 the blocking checks. Direct text input is the preferred UX for these open-ended
@@ -2079,7 +2079,7 @@ failed, retried or extra work runs, and notification-created tasks fail. Every
 actual run remains in usage/cost accounting. The hiring scorer and final chat
 count guard use the same rule. All other chat count guards stay unchanged.
 
-The versioned `paperclip.hiring-templates.v3` oracle separately checks the production CEO bundle, assigned hiring
+The versioned `clayon.hiring-templates.v3` oracle separately checks the production CEO bundle, assigned hiring
 skill, source hashes, completed pre-hire read receipts, the saved source-derived
 coder example, and durable instruction/skill selections.
 

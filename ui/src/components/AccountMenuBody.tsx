@@ -133,7 +133,7 @@ export function AccountMenuHeader({ close }: { close: () => void }) {
         {stagingCommit ? (
           <a
             className="pointer-events-auto block truncate font-mono text-(length:--text-micro) leading-(--profile-popover-meta-line-height) text-muted-foreground hover:underline focus-visible:underline"
-            href={`https://github.com/paperclipai/paperclip/commit/${stagingCommit}`}
+            href={`https://github.com/clayon/clayon/commit/${stagingCommit}`}
             target="_blank"
             rel="noreferrer"
             aria-label={`View commit ${stagingCommit} on GitHub`}

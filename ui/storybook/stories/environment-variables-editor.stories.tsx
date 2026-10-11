@@ -20,7 +20,7 @@ function secret(
     name,
     provider: "local_encrypted",
     status: "active" as SecretStatus,
-    managedMode: "paperclip_managed",
+    managedMode: "clayon_managed",
     externalRef: null,
     providerConfigId: null,
     providerMetadata: null,

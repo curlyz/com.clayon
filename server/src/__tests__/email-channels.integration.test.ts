@@ -122,8 +122,8 @@ describe("AgentMail durable email pipeline", () => {
     const base = { clayonSkillSync: { desiredSkills: [] } };
     const configured = await applyConnectorSkills(base, [], assignments);
     expect(base.clayonSkillSync.desiredSkills).toEqual([]);
-    expect(resolveClayonDesiredSkillNames(configured, configured.clayonRuntimeSkills)).toEqual(["paperclipai/paperclip/agentmail"]);
-    expect(resolveLegacyClayonDesiredSkillNames(configured, configured.clayonRuntimeSkills)).toContain("paperclipai/paperclip/agentmail");
+    expect(resolveClayonDesiredSkillNames(configured, configured.clayonRuntimeSkills)).toEqual(["clayon/clayon/agentmail"]);
+    expect(resolveLegacyClayonDesiredSkillNames(configured, configured.clayonRuntimeSkills)).toContain("clayon/clayon/agentmail");
     const markdown = readFileSync(path.join(configured.clayonRuntimeSkills[0].source, "SKILL.md"), "utf8");
     expect(markdown).toContain(f.endpointId);
     expect(markdown).toContain("agentmail_send");
@@ -136,7 +136,7 @@ describe("AgentMail durable email pipeline", () => {
         expect(renderClayonWakePrompt({ connectorSkillInstructions: delivery.instructions }, { resumedSession })).toContain(f.endpointId);
       }
     }
-    const nativeDelivery = await prepareConnectorSkillDelivery(configured, "paperclip_runner");
+    const nativeDelivery = await prepareConnectorSkillDelivery(configured, "clayon_runner");
     expect(nativeDelivery.instructions).toBe("");
     expect(nativeDelivery.config.clayonRuntimeSkills).toHaveLength(1);
     const authority = new ClayonRunnerToolAuthority(db, { ...binding, issueId: randomUUID(), runId: randomUUID(), connectorAssignments: assignments });

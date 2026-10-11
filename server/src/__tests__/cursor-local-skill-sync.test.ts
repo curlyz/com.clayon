@@ -19,7 +19,7 @@ async function createSkillDir(root: string, name: string) {
 }
 
 describe("cursor local skill sync", () => {
-  const clayonKey = "paperclipai/paperclip/clayon";
+  const clayonKey = "clayon/clayon/clayon";
   const cleanupDirs = new Set<string>();
 
   afterEach(async () => {
@@ -66,7 +66,7 @@ describe("cursor local skill sync", () => {
       },
     }, []);
 
-    expect(snapshot.desiredSkills).toEqual([clayonKey, "paperclipai/paperclip/complain", "paperclipai/paperclip/suggestion-box"]);
+    expect(snapshot.desiredSkills).toEqual([clayonKey, "clayon/clayon/complain", "clayon/clayon/suggestion-box"]);
     expect(snapshot.entries.find((entry) => entry.key === clayonKey)?.state).toBe("installed");
     expect((await fs.lstat(path.join(home, ".cursor", "skills", "clayon"))).isSymbolicLink()).toBe(true);
   });

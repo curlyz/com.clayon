@@ -134,7 +134,7 @@ try {
     const subscriptions = await db.select().from(mcpEventSubscriptions);
     assert(subscriptions.some(s => s.grantId === grantId && s.name === "clayon.dot.work_available" && !s.stoppedAt && s.expiresAt > new Date()), "Dot must establish its event subscription first");
     queued = true;
-    await native.startTurn({ message: { role: "user", text: "Live integration test: compute 17 + 25. Call the projected save_report tool with body 'Dot received the Clayon event. 17 + 25 = 42.' Then finish with schema paperclip.run_result.v1, reportedWorkDisposition 'done', summary stating the saved result, completionClaim {contractRevision:'dot-live-v1',objectiveSatisfied:true,criteria:[],remainingWork:[]}, and empty arrays for evidence, verification, attentionRequests, artifacts. Do not use any other apps, private data, external messages, or additional tasks." } });
+    await native.startTurn({ message: { role: "user", text: "Live integration test: compute 17 + 25. Call the projected save_report tool with body 'Dot received the Clayon event. 17 + 25 = 42.' Then finish with schema clayon.run_result.v1, reportedWorkDisposition 'done', summary stating the saved result, completionClaim {contractRevision:'dot-live-v1',objectiveSatisfied:true,criteria:[],remainingWork:[]}, and empty arrays for evidence, verification, attentionRequests, artifacts. Do not use any other apps, private data, external messages, or additional tasks." } });
     await service!.tick(); res.json({ queued: true });
   });
   control.post("/stop", (_req, res) => { res.json({ stopping: true }); stopLab(); });
@@ -143,7 +143,7 @@ try {
   await writeFile(join(scratch, "control.json"), JSON.stringify({ origin, controlOrigin: `http://127.0.0.1:${port + 1}`, token: controlToken, companyId: company.id, taskId: task.id }), { mode: 0o600 });
   console.log(`LIVE LAB READY ${origin}/mcp/clayon`);
   console.log(`Local control file: ${join(scratch, "control.json")}`);
-  console.log(`Standing instruction: Subscribe to clayon.dot.work_available for companyId ${company.id}, taskId ${task.id}. When an event arrives, check paperclip_dot_inbox; read, accept, execute and finish its assignment. Do not poll. Wait for the event before taking work.`);
+  console.log(`Standing instruction: Subscribe to clayon.dot.work_available for companyId ${company.id}, taskId ${task.id}. When an event arrives, check clayon_dot_inbox; read, accept, execute and finish its assignment. Do not poll. Wait for the event before taking work.`);
   process.once("SIGINT", stopLab); process.once("SIGTERM", stopLab);
   const timer = setTimeout(stopLab, 2 * 3600_000); timer.unref();
   await stopped; clearTimeout(timer);

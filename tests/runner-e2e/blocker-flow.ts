@@ -75,7 +75,7 @@ export async function runBlockerFlow(input: {
     }
     const setup = await setupBlockerFixtures(input);
     managerId = setup.manager.id;
-    const skill = (await api.get<Row[]>(`${company}/skills`)).find(s => s.key === "paperclipai/paperclip/clayon");
+    const skill = (await api.get<Row[]>(`${company}/skills`)).find(s => s.key === "clayon/clayon/clayon");
     if (!skill) throw new Error("Missing assigned operational skill");
     const servedHashes: Record<string, string> = {};
     for (const file of ["SKILL.md", "references/api-reference.md"]) {

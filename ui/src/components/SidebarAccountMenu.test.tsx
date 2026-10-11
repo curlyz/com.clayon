@@ -189,7 +189,7 @@ describe("SidebarAccountMenu", () => {
       if (visible) {
         expect(label?.textContent).toBe("SHA 8751e2d");
         expect(label?.previousElementSibling?.textContent).toBe("jane@example.com");
-        expect(label?.getAttribute("href")).toBe(`https://github.com/paperclipai/paperclip/commit/${commit}`);
+        expect(label?.getAttribute("href")).toBe(`https://github.com/clayon/clayon/commit/${commit}`);
         expect(label?.getAttribute("aria-label")).toBe(`View commit ${commit} on GitHub`);
         expect(mockHealthApi.get).toHaveBeenCalledOnce();
       } else {

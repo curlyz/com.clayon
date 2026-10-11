@@ -675,7 +675,7 @@ export interface ClayonQuestion {
 }
 
 export interface ClayonQuestionSet {
-  schema: "paperclip.question_set.v1";
+  schema: "clayon.question_set.v1";
   title?: string;
   description?: string;
   submitLabel?: string;
@@ -683,7 +683,7 @@ export interface ClayonQuestionSet {
 }
 
 export interface ClayonQuestionResponse {
-  schema: "paperclip.question_response.v1";
+  schema: "clayon.question_response.v1";
   answers: Record<string, { selectedOptionIds?: string[]; text?: string; customText?: string }>;
 }
 

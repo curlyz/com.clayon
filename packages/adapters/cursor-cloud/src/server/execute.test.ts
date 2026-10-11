@@ -102,7 +102,7 @@ function createContext(
       CURSOR_API_KEY: "cursor-secret",
       EXTRA_FLAG: "1",
     },
-    repoUrl: "https://github.com/paperclipai/paperclip.git",
+    repoUrl: "https://github.com/clayon/clayon.git",
     repoStartingRef: "main",
     runtimeEnvType: "cloud",
     promptTemplate: "Do the work for {{agent.name}}",
@@ -229,7 +229,7 @@ describe("cursor_cloud execute", () => {
       model: { id: "gpt-5.4" },
       cloud: {
         env: { type: "cloud" },
-        repos: [{ url: "https://github.com/paperclipai/paperclip.git", startingRef: "main" }],
+        repos: [{ url: "https://github.com/clayon/clayon.git", startingRef: "main" }],
       },
     });
     expect(createMock.mock.calls[0]?.[0]?.cloud?.envVars).toMatchObject({
@@ -255,7 +255,7 @@ describe("cursor_cloud execute", () => {
         latestRunId: "run-123",
         runtime: "cloud",
         envType: "cloud",
-        repos: [{ url: "https://github.com/paperclipai/paperclip.git", startingRef: "main" }],
+        repos: [{ url: "https://github.com/clayon/clayon.git", startingRef: "main" }],
       },
     });
     expect(ctx.logs.map((entry) => entry.chunk)).toEqual(
@@ -281,7 +281,7 @@ describe("cursor_cloud execute", () => {
       CURSOR_API_KEY: "cursor-secret",
       CLAYON_AGENT_KEY_ID: "configured-override",
       CLAYON_AGENT_PRIVATE_KEY: "configured-override",
-      paperclip_agent_private_key: "configured-override",
+      clayon_agent_private_key: "configured-override",
     };
 
     await execute(ctx);
@@ -292,7 +292,7 @@ describe("cursor_cloud execute", () => {
       CLAYON_AGENT_PUBLIC_KEY: identity.publicKeyPem,
       CLAYON_AGENT_PRIVATE_KEY: identity.privateKeyPem,
     });
-    expect(env).not.toHaveProperty("paperclip_agent_private_key");
+    expect(env).not.toHaveProperty("clayon_agent_private_key");
     const challenge = Buffer.from("managed cloud identity");
     expect(verify(null, challenge, identity.publicKeyPem,
       sign(null, challenge, env.CLAYON_AGENT_PRIVATE_KEY))).toBe(true);
@@ -377,7 +377,7 @@ describe("cursor_cloud execute", () => {
           latestRunId: "run-previous",
           runtime: "cloud",
           envType: "cloud",
-          repos: [{ url: "https://github.com/paperclipai/paperclip.git", startingRef: "main" }],
+          repos: [{ url: "https://github.com/clayon/clayon.git", startingRef: "main" }],
         },
       },
     });
@@ -437,7 +437,7 @@ describe("cursor_cloud execute", () => {
           latestRunId: "run-attached",
           runtime: "cloud",
           envType: "cloud",
-          repos: [{ url: "https://github.com/paperclipai/paperclip.git", startingRef: "main" }],
+          repos: [{ url: "https://github.com/clayon/clayon.git", startingRef: "main" }],
         },
       },
     });
@@ -469,7 +469,7 @@ describe("cursor_cloud execute", () => {
     expect(ctx.meta[0]?.context).toMatchObject({
       cursorCloud: {
         canReuseSession: true,
-        repoUrl: "https://github.com/paperclipai/paperclip.git",
+        repoUrl: "https://github.com/clayon/clayon.git",
       },
     });
   });
@@ -499,7 +499,7 @@ describe("cursor_cloud execute", () => {
     const result = await execute(createContext());
 
     expect(result.exitCode).toBe(1);
-    expect(result.errorMessage).toContain("Cursor's GitHub integration can access https://github.com/paperclipai/paperclip.git");
+    expect(result.errorMessage).toContain("Cursor's GitHub integration can access https://github.com/clayon/clayon.git");
     expect(result.errorMessage).toContain("https://cursor.com/dashboard/cloud-agents");
     expect(sdkAgent.send).toHaveBeenCalledTimes(1);
   });

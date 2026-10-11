@@ -8,7 +8,7 @@ export const announcementPreview: Announcement = {
   title: "Give your next idea a team",
   description: "Bring agents, projects, and work together. Set the direction, then follow your team’s progress in Clayon.",
   image: { path: `assets/${"0".repeat(64)}.png`, alt: "Clayon — ideas become work" },
-  secondaryLink: { kind: "external", label: "Learn more", url: "https://clayon.ing" },
+  secondaryLink: { kind: "external", label: "Learn more", url: "https://clayon.app" },
   primaryAction: { kind: "route", label: "Explore your projects", path: "/projects" },
 };
 

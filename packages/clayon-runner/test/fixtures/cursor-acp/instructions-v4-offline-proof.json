@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.cursor.instructions-proof.v1",
+  "schema": "clayon.cursor.instructions-proof.v1",
   "providerCalls": 0,
   "qualification": "offline-only",
   "profileDigest": "sha256:b1440d559ebc4eef5c7a582f1c81fc153270cfbafa1731a8ee76d83713bdf61b",

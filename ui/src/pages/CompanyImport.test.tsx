@@ -1112,13 +1112,13 @@ describe("CompanyImport", () => {
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },
       { type: "codex_local", disabled: false },
-      { type: "paperclip_runner", disabled: true },
+      { type: "clayon_runner", disabled: true },
     ]);
     await previewMixedAdapterPackage();
 
     for (const select of findAdapterSelects()) {
       expect(Array.from(select.options).map((option) => option.value))
-        .not.toContain("paperclip_runner");
+        .not.toContain("clayon_runner");
     }
   });
 
@@ -1127,13 +1127,13 @@ describe("CompanyImport", () => {
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },
       { type: "codex_local", disabled: false },
-      { type: "paperclip_runner", disabled: false },
+      { type: "clayon_runner", disabled: false },
     ]);
     await previewMixedAdapterPackage();
 
     for (const select of findAdapterSelects()) {
       expect(Array.from(select.options).map((option) => option.value))
-        .toContain("paperclip_runner");
+        .toContain("clayon_runner");
     }
   });
 
@@ -1141,12 +1141,12 @@ describe("CompanyImport", () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableNativeRunner: false, enableOpenAiDot: true });
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },
-      { type: "paperclip_runner", disabled: false },
+      { type: "clayon_runner", disabled: false },
     ]);
     const preview = buildMixedAdapterPreviewResult();
-    preview.manifest.agents[0]!.adapterType = "paperclip_runner";
+    preview.manifest.agents[0]!.adapterType = "clayon_runner";
     preview.manifest.agents[0]!.adapterConfig = { provider: "openai_dot", allowUnmeteredProvider: true };
-    preview.manifest.agents[1]!.adapterType = "paperclip_runner";
+    preview.manifest.agents[1]!.adapterType = "clayon_runner";
     preview.manifest.agents[1]!.adapterConfig = { provider: "codex" };
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
@@ -1157,7 +1157,7 @@ describe("CompanyImport", () => {
     for (const select of findAdapterSelects()) {
       const choices = Array.from(select.options).map((option) => option.value);
       expect(choices).toContain("openai_dot");
-      expect(choices).not.toContain("paperclip_runner");
+      expect(choices).not.toContain("clayon_runner");
     }
     await clickButton((text) => text.startsWith("Import 3 file"));
     await settle();
@@ -1168,7 +1168,7 @@ describe("CompanyImport", () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableNativeRunner: false, enableOpenAiDot: true });
     mockAdaptersApi.list.mockResolvedValue([
       { type: "claude_local", disabled: false },
-      { type: "paperclip_runner", disabled: false },
+      { type: "clayon_runner", disabled: false },
     ]);
     await previewMixedAdapterPackage();
     const select = findAdapterSelects()[0]!;
@@ -1194,7 +1194,7 @@ describe("CompanyImport", () => {
     await clickButton((text) => text.startsWith("Import 3 file"));
     await settle();
     expect(lastImportMeta().adapterOverrides?.coder).toEqual({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: {
         provider: "openai_dot", lifecycleMode: "per_turn", allowUnmeteredProvider: true,
         dotAttachmentAccess: false, dotWorkspaceAccess: false,
@@ -1204,11 +1204,11 @@ describe("CompanyImport", () => {
 
   it("does not expose Dot when only the general Runner option is enabled", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableNativeRunner: true, enableOpenAiDot: false });
-    mockAdaptersApi.list.mockResolvedValue([{ type: "paperclip_runner", disabled: false }]);
+    mockAdaptersApi.list.mockResolvedValue([{ type: "clayon_runner", disabled: false }]);
     await previewMixedAdapterPackage();
     for (const select of findAdapterSelects()) {
       const choices = Array.from(select.options).map((option) => option.value);
-      expect(choices).toContain("paperclip_runner");
+      expect(choices).toContain("clayon_runner");
       expect(choices).not.toContain("openai_dot");
     }
   });

@@ -66,19 +66,19 @@ describe("managed install commands", () => {
     const sha = "a".repeat(40);
     const runCommand = vi.fn(async (_file: string, _args: string[]) => ({ stdout: JSON.stringify({ sha }), stderr: "" }));
     for (const ref of ["master", "v1.2.3", sha, sha.slice(0, 12)]) {
-      await expect(resolveGitHubRef("paperclipai/paperclip", ref, runCommand)).resolves.toBe(sha);
+      await expect(resolveGitHubRef("clayon/clayon", ref, runCommand)).resolves.toBe(sha);
     }
     expect(runCommand.mock.calls.map((call) => call[1].at(-1))).toEqual([
-      "https://api.github.com/repos/paperclipai/paperclip/commits/master",
-      "https://api.github.com/repos/paperclipai/paperclip/commits/v1.2.3",
-      `https://api.github.com/repos/paperclipai/paperclip/commits/${sha}`,
-      `https://api.github.com/repos/paperclipai/paperclip/commits/${sha.slice(0, 12)}`,
+      "https://api.github.com/repos/clayon/clayon/commits/master",
+      "https://api.github.com/repos/clayon/clayon/commits/v1.2.3",
+      `https://api.github.com/repos/clayon/clayon/commits/${sha}`,
+      `https://api.github.com/repos/clayon/clayon/commits/${sha.slice(0, 12)}`,
     ]);
   });
 
   it("supports fork overrides and classifies SHA refs as pinned", () => {
     expect(resolveGitInstallRequest({ ref: "feature/test", repo: "HenkDz/clayon" })).toEqual({ repo: "HenkDz/clayon", ref: "feature/test", pinned: false });
-    expect(resolveGitInstallRequest({ ref: "abcdef1" })).toEqual({ repo: "paperclipai/paperclip", ref: "abcdef1", pinned: true });
+    expect(resolveGitInstallRequest({ ref: "abcdef1" })).toEqual({ repo: "clayon/clayon", ref: "abcdef1", pinned: true });
     expect(() => resolveGitInstallRequest({ repo: "HenkDz/clayon" })).toThrow("requires --ref");
   });
 
@@ -100,7 +100,7 @@ describe("managed install commands", () => {
     fs.writeFileSync(path.join(packageRoot, "package.json"), JSON.stringify({ version: "0.3.1" }));
     fs.writeFileSync(path.join(packageRoot, "dist", "index.js"), "#!/usr/bin/env node\n");
     const runCommand = vi.fn(async (_file: string, _args: string[]) => ({ stdout: "0.3.1\n", stderr: "" }));
-    await expect(installGitPayload("paperclipai/paperclip", sha, runCommand, paths)).resolves.toEqual({ payloadPath, reused: true, version: "0.3.1" });
+    await expect(installGitPayload("clayon/clayon", sha, runCommand, paths)).resolves.toEqual({ payloadPath, reused: true, version: "0.3.1" });
     expect(runCommand).toHaveBeenCalledOnce();
     expect(runCommand.mock.calls[0]?.[0]).toBe(process.execPath);
   });
@@ -172,7 +172,7 @@ describe("managed install commands", () => {
     process.env.NODE_ENV = "production";
     const sha = "d".repeat(40);
     const runCommand = createGitCheckoutRunCommand(sha);
-    await expect(installGitPayload("paperclipai/paperclip", sha, runCommand, resolveInstallStorePaths())).resolves.toMatchObject({ version: "0.3.1", reused: false });
+    await expect(installGitPayload("clayon/clayon", sha, runCommand, resolveInstallStorePaths())).resolves.toMatchObject({ version: "0.3.1", reused: false });
     const buildCalls = runCommand.mock.calls.filter(([file, args]) =>
       file === "bash" ||
       file === "corepack" ||
@@ -369,7 +369,7 @@ describe("managed install commands", () => {
     const outside = path.join(root, "outside-git"); fs.mkdirSync(outside);
     fs.symlinkSync(outside, path.join(paths.installsRoot, "git"));
     const runCommand = vi.fn(async () => ({ stdout: "", stderr: "" }));
-    await expect(installGitPayload("paperclipai/paperclip", "4".repeat(40), runCommand, paths)).rejects.toThrow("unsafe payload root");
+    await expect(installGitPayload("clayon/clayon", "4".repeat(40), runCommand, paths)).rejects.toThrow("unsafe payload root");
     expect(runCommand).not.toHaveBeenCalled();
   });
 

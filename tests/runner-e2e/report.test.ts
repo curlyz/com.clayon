@@ -223,7 +223,7 @@ describe("runner E2E report aggregation", () => {
           GITHUB_SHA: "trusted-default-workflow-sha",
           GITHUB_REF: "refs/heads/master",
           GITHUB_SERVER_URL: "https://github.com",
-          GITHUB_REPOSITORY: "paperclipai/paperclip",
+          GITHUB_REPOSITORY: "clayon/clayon",
           GITHUB_RUN_ID: "123456",
           CLAYON_RUNNER_E2E_HISTORY_PUBLIC_BASE_URL:
             "https://reports.example.test/",
@@ -246,7 +246,7 @@ describe("runner E2E report aggregation", () => {
         sha: "0123456789abcdef0123456789abcdef01234567",
         ref: "refs/heads/fix/runner-paid-source-attribution",
         workflowRunUrl:
-          "https://github.com/paperclipai/paperclip/actions/runs/123456",
+          "https://github.com/clayon/clayon/actions/runs/123456",
       },
     });
     expect(normalized.billing).toMatchObject({
@@ -264,7 +264,7 @@ describe("runner E2E report aggregation", () => {
         sha: "0123456789abcdef0123456789abcdef01234567",
         ref: "refs/heads/fix/runner-paid-source-attribution",
         workflowRunUrl:
-          "https://github.com/paperclipai/paperclip/actions/runs/123456",
+          "https://github.com/clayon/clayon/actions/runs/123456",
       },
     });
     const dashboard = await readFile(
@@ -353,10 +353,10 @@ describe("runner E2E report aggregation", () => {
       "[Open the exact interactive campaign report](https://reports.example.test/runner-e2e/campaigns/gha-123456-1/index.html)",
     );
     expect(summary).toContain(
-      "[Open the workflow run and per-cell job logs](https://github.com/paperclipai/paperclip/actions/runs/123456)",
+      "[Open the workflow run and per-cell job logs](https://github.com/clayon/clayon/actions/runs/123456)",
     );
     expect(summary).toContain(
-      "[Download the merged report and per-cell evidence](https://github.com/paperclipai/paperclip/actions/runs/123456#artifacts)",
+      "[Download the merged report and per-cell evidence](https://github.com/clayon/clayon/actions/runs/123456#artifacts)",
     );
     expect(summary).toContain(
       `[core-compatibility.${executionId}](https://reports.example.test/runner-e2e/campaigns/gha-123456-1/index.html#execution-core-compatibility.${executionId})`,

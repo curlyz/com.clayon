@@ -51,8 +51,8 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
  		const parsed = parseTokenUsage(value);
  		if (parsed == null) return null;
 -		usage[key] = parsed;
-+		const receipt = parseClayonPiReceipt(asRecord$4(value)?.paperclip_pi);
-+		usage[key] = receipt ? { ...parsed, paperclip_pi: receipt } : parsed;
++		const receipt = parseClayonPiReceipt(asRecord$4(value)?.clayon_pi);
++		usage[key] = receipt ? { ...parsed, clayon_pi: receipt } : parsed;
  	}
  	return usage;
  }
@@ -84,7 +84,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
 +            "limits",
 +            "truncated"
 +        ])) return null;
-+        if (r.schema !== "paperclip.cursor.native-usage.v1" || r.source !== "native_turn_ended" || r.completeness !== "partial" || typeof r.promptId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(r.promptId) || typeof r.truncated !== "boolean") return null;
++        if (r.schema !== "clayon.cursor.native-usage.v1" || r.source !== "native_turn_ended" || r.completeness !== "partial" || typeof r.promptId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(r.promptId) || typeof r.truncated !== "boolean") return null;
 +        const reasons = [
 +            "native_counter_semantics_unverified",
 +            "native_counters_missing",
@@ -792,7 +792,7 @@ diff --git a/dist/live-checkpoint-BSIrfgVo.js b/dist/live-checkpoint-BSIrfgVo.js
 +	if (!tokenUsage && !receipt) return false;
 +	if (tokenUsage) applyTokenUsage(conversation, tokenUsage, promptMessageId);
 +	const userId = promptMessageId ?? lastUserMessageId(conversation);
-+	if (receipt && userId) conversation.request_token_usage[userId] = { ...conversation.request_token_usage[userId], paperclip_pi: receipt };
++	if (receipt && userId) conversation.request_token_usage[userId] = { ...conversation.request_token_usage[userId], clayon_pi: receipt };
  	updateConversationTimestamp(conversation, timestamp);
  	trimConversationForRuntime(conversation);
  	return true;
@@ -1303,7 +1303,7 @@ index c3da16452..40ae05653 100644
    cumulative_cost?: SessionUsageCost;
 -  request_token_usage: Record<string, SessionTokenUsage>;
 +  request_token_usage: Record<string, SessionTokenUsage & {
-+    paperclip_pi?: { provenance: "assistant_message_receipts" | "assistant_message_and_compaction_receipts"; cost_usd?: number };
++    clayon_pi?: { provenance: "assistant_message_receipts" | "assistant_message_and_compaction_receipts"; cost_usd?: number };
 +  }>;
 +  cursor_prompt_usage?: { request_id: string; prompt_message_id: string; receipt: Record<string, unknown> };
    acpx?: SessionAcpxState;

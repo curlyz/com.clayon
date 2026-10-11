@@ -10,7 +10,7 @@
 # The machine's $HOME must not already contain a managed install.
 #
 # Env knobs:
-#   E2E_REPO          GitHub repo to install from (default: paperclipai/paperclip)
+#   E2E_REPO          GitHub repo to install from (default: clayon/clayon)
 #   E2E_REF           branch/tag/sha to install   (default: master)
 #   E2E_SKIP_NPM=1      skip the npm-channel install step (canary is tested separately;
 #                       the npm leg uses the latest channel)

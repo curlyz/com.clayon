@@ -312,7 +312,7 @@ export const chatIdentityLinks = pgTable(
       .references(() => companies.id, { onDelete: "cascade" }),
     endpointId: uuid("endpoint_id").notNull(),
     principalId: uuid("principal_id").notNull(),
-    clayonUserId: text("paperclip_user_id"),
+    clayonUserId: text("clayon_user_id"),
     status: text("status")
       .$type<ChatIdentityLinkStatus>()
       .notNull()

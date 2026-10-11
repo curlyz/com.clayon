@@ -19,7 +19,7 @@ import type { PrpStructuredRunResult } from "../../vendor/clayon-runner/index.js
 const questionTime = new Date("2026-01-01T12:00:00Z");
 const messageTime = new Date("2026-01-01T12:01:00Z");
 const done: PrpStructuredRunResult = {
-  schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", summary: "Configuration verified.",
+  schema: "clayon.run_result.v1", reportedWorkDisposition: "done", summary: "Configuration verified.",
   completionClaim: { contractRevision: "test", objectiveSatisfied: true, criteria: [], remainingWork: [] },
   evidence: [], verification: [], attentionRequests: [], artifacts: [],
 };
@@ -36,7 +36,7 @@ describe("historical task questions", () => {
   async function fixture(conversationMode = false) {
     const companyId = randomUUID(), agentId = randomUUID(), issueId = randomUUID(), runId = randomUUID();
     await db.insert(companies).values({ id: companyId, name: "Question history", issuePrefix: `Q${companyId.slice(0, 8)}` });
-    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "paperclip_runner", status: "active" });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "clayon_runner", status: "active" });
     await db.insert(issues).values({ id: issueId, companyId, title: "Verify configuration", status: "in_progress",
       assigneeAgentId: agentId, ...(conversationMode ? { conversationAgentId: agentId,
         conversationUserId: "board-user", conversationState: "active" as const } : {}) });
@@ -102,7 +102,7 @@ describe("historical task questions", () => {
     const contractId = randomUUID(), sessionId = randomUUID(), runnerId = randomUUID();
     const contractSha256 = "historical-question-contract";
     await db.insert(completionContracts).values({ id: contractId, companyId: f.companyId, issueId: f.issueId,
-      revision: 1, schemaVersion: "paperclip.completion-contract.v1", policyVersion: "test", risk: "standard",
+      revision: 1, schemaVersion: "clayon.completion-contract.v1", policyVersion: "test", risk: "standard",
       completionAuthority: "server_arbiter", incompleteCriteriaPolicy: "preserve_non_terminal",
       contractJson: { revision: "standalone-v1", objective: "Verify configuration", criteria: [{ id: "objective", requirement: "Verify configuration" }] },
       canonicalSha256: contractSha256, createdByActorType: "system", createdByActorId: "test" });

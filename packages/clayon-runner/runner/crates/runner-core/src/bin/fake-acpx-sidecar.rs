@@ -126,7 +126,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 _ => {}
             }
             let projection = json!({
-                "schema":"paperclip.session_goal.snapshot.v1", "goal":goal,"workingNow":false,
+                "schema":"clayon.session_goal.snapshot.v1", "goal":goal,"workingNow":false,
                 "sessionGoals":{"availability":"available","actions":["set","pause","resume","clear"],
                     "autonomousUpdates":true,"persistentAcrossResume":true,"maxObjectiveChars":4000,
                     "tokenBudgetControl":false,"usageReporting":false},
@@ -198,7 +198,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                     turn_id,
                     json!({
                         "callId":"call-finish-2",
-                        "operationId":"paperclip_finish",
+                        "operationId":"clayon_finish",
                         "input":valid_reserved_completion_result(),
                     }),
                 )?;
@@ -562,9 +562,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 {
                     let (operation_id, result) = if mode == "turns-reserved-feedback-roundtrip" {
                         (
-                            "paperclip_finish",
+                            "clayon_finish",
                             json!({
-                                "schema":"paperclip.run_result.v1",
+                                "schema":"clayon.run_result.v1",
                                 "reportedWorkDisposition":"needs_review",
                                 "summary":"Needs review before completion.",
                                 "completionClaim":{"contractRevision":"acpx-provider-turns-v1","objectiveSatisfied":false,"criteria":[],"remainingWork":[]},
@@ -576,9 +576,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                         "turns-reserved-block-terminal" | "turns-invalid-reserved-block-terminal"
                     ) {
                         (
-                            "paperclip_block",
+                            "clayon_block",
                             json!({
-                                "schema":"paperclip.run_result.v1",
+                                "schema":"clayon.run_result.v1",
                                 "reportedWorkDisposition":"blocked",
                                 "summary":"Reserved blocker accepted.",
                                 "completionClaim":{
@@ -608,9 +608,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                         )
                     } else if mode == "turns-reserved-yielded-terminal" {
                         (
-                            "paperclip_finish",
+                            "clayon_finish",
                             json!({
-                                "schema":"paperclip.run_result.v1",
+                                "schema":"clayon.run_result.v1",
                                 "reportedWorkDisposition":"yielded",
                                 "summary":"Reserved continuation accepted.",
                                 "completionClaim":{
@@ -632,9 +632,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                         )
                     } else {
                         (
-                            "paperclip_finish",
+                            "clayon_finish",
                             json!({
-                                "schema":"paperclip.run_result.v1",
+                                "schema":"clayon.run_result.v1",
                                 "reportedWorkDisposition":"done",
                                 "summary":if matches!(
                                     mode,
@@ -753,7 +753,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                                     "input-1"
                                 },
                                 "questionSet":{
-                                    "schema":"paperclip.question_set.v1",
+                                    "schema":"clayon.question_set.v1",
                                     "questions":[{
                                         "id":"target",
                                         "prompt":"Which target?",
@@ -834,7 +834,7 @@ fn bootstrap_success(
                 "exactModelVerification": true,
                 "permissions": "runner_policy",
                 "semanticTools": "runner_bridge",
-                "structuredInput": "paperclip.question_set.v1",
+                "structuredInput": "clayon.question_set.v1",
             },
         }),
         "session.open" => {
@@ -931,7 +931,7 @@ fn bootstrap_success(
         }),
         "session.close" => json!({"closed":true}),
         "session.goal.get" => json!({
-            "schema":"paperclip.session_goal.snapshot.v1", "goal":null, "workingNow":false,
+            "schema":"clayon.session_goal.snapshot.v1", "goal":null, "workingNow":false,
             "sessionGoals": {"availability":"unsupported", "actions":[], "autonomousUpdates":false,
                 "persistentAcrossResume":false, "maxObjectiveChars":4000, "tokenBudgetControl":false, "usageReporting":false}
         }),
@@ -980,7 +980,7 @@ fn success(id: u64, command: &str, request: &Value) -> Value {
 
 fn valid_reserved_completion_result() -> Value {
     json!({
-        "schema":"paperclip.run_result.v1",
+        "schema":"clayon.run_result.v1",
         "reportedWorkDisposition":"done",
         "summary":"Corrected completion.",
         "completionClaim":{"contractRevision":"acpx-provider-turns-v1","objectiveSatisfied":true,"criteria":[],"remainingWork":[]},

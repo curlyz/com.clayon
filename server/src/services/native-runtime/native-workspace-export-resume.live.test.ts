@@ -100,13 +100,13 @@ describeLive("live Daytona export-resume failure recovery", () => {
     plugin = plugin.definition;
     ({ default: manifest } = await import(new URL("../../../../packages/plugins/sandbox-providers/daytona/dist/manifest.js", import.meta.url).href));
     await db.insert(companies).values({ id: ids.company, name: "Disposable export lifecycle", issuePrefix: "LXR" });
-    await db.insert(agents).values({ id: ids.agent, companyId: ids.company, name: "No provider turn", adapterType: "paperclip_runner" });
+    await db.insert(agents).values({ id: ids.agent, companyId: ids.company, name: "No provider turn", adapterType: "clayon_runner" });
     await db.insert(environments).values({ id: ids.environment, name: `Lifecycle ${nonce}`, driver: "sandbox", config });
     environment = (await db.select().from(environments).where(eq(environments.id, ids.environment)))[0] as unknown as Environment;
     await db.insert(plugins).values({ id: ids.plugin, pluginKey: manifest.id, packageName: "@clayon/plugin-daytona", version: manifest.version,
       apiVersion: 1, categories: ["automation"], manifestJson: manifest, status: "ready", installOrder: 1 });
     await db.insert(issues).values({ id: ids.issue, companyId: ids.company, title: "Preserved accepted result", status: "blocked", assigneeAgentId: ids.agent });
-    await db.insert(completionContracts).values({ id: ids.contract, companyId: ids.company, issueId: ids.issue, revision: 1, schemaVersion: "paperclip.completion-contract.v1", policyVersion: "live-test", risk: "standard", completionAuthority: "server_arbiter", incompleteCriteriaPolicy: "preserve_non_terminal", contractJson: { objective: "Preserve saved work" }, canonicalSha256: digest, createdByActorType: "system", createdByActorId: "live-test" });
+    await db.insert(completionContracts).values({ id: ids.contract, companyId: ids.company, issueId: ids.issue, revision: 1, schemaVersion: "clayon.completion-contract.v1", policyVersion: "live-test", risk: "standard", completionAuthority: "server_arbiter", incompleteCriteriaPolicy: "preserve_non_terminal", contractJson: { objective: "Preserve saved work" }, canonicalSha256: digest, createdByActorType: "system", createdByActorId: "live-test" });
     await db.insert(heartbeatRuns).values({ id: ids.run, companyId: ids.company, agentId: ids.agent, status: "failed", runtimeMode: "native", nativeIssueId: ids.issue, nativePhase: "terminal_failure", completionContractId: ids.contract });
     await db.insert(nativeRunResults).values({ id: ids.result, companyId: ids.company, issueId: ids.issue, runId: ids.run, completionContractId: ids.contract, serverFingerprint: digest, schemaStatus: "accepted", resultJson: { work: "preserve saved work" }, canonicalSha256: digest });
     await db.insert(nativeRunFinalizations).values({ runId: ids.run, companyId: ids.company, issueId: ids.issue, phase: "terminal_failure", resultId: ids.result, failureCode: "native_workspace_sync_out_retry_exhausted" });
@@ -114,7 +114,7 @@ describeLive("live Daytona export-resume failure recovery", () => {
     let setupPhase = "acquire";
     try {
       const acquired = await plugin.onEnvironmentAcquireLease({ driverKey: "daytona", companyId: ids.company, environmentId: ids.environment,
-        issueId: ids.issue, runId: ids.run, agentId: ids.agent, adapterType: "paperclip_runner", config });
+        issueId: ids.issue, runId: ids.run, agentId: ids.agent, adapterType: "clayon_runner", config });
       setupPhase = "sdk_lookup";
       const require = createRequire(new URL("../../../../packages/plugins/sandbox-providers/daytona/package.json", import.meta.url));
       const { Daytona } = require("@daytonaio/sdk");

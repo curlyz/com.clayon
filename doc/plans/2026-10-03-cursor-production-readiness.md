@@ -88,7 +88,7 @@ The tracked lockfile was not changed.
 | Public Daytona plugin tarball | `a6cf4e9070503757be0505d6a1a8df219dca493f801831b3cc1ca83a185d07db` |
 
 The immutable qualification image is
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:d6259b6bba094702c13fc2283bd85550849c1c53145b656fb2746778f9fa1747`.
+`ghcr.io/clayon/clayon-daytona-runner@sha256:d6259b6bba094702c13fc2283bd85550849c1c53145b656fb2746778f9fa1747`.
 Its Linux provider-pack digest is
 `sha256:1916578945ba709e00904688792e50bedf505d45d69cc2023a4c95235c86cb18`.
 The complete extracted pack passed verification. Anonymous registry inspection
@@ -288,7 +288,7 @@ package; it is additional live proof, not a new certification identity.
 
 ## Historical qualified release candidate — before generic cleanup
 
-Cursor admission is enabled in [PR #15075](https://github.com/paperclipai/paperclip/pull/15075).
+Cursor admission is enabled in [PR #15075](https://github.com/clayon/clayon/pull/15075).
 All ten local and ten fresh Daytona gates passed, including cleanup. The final
 ordinary installed-product local and Daytona smokes also passed. Pi and Copilot
 remain gated. Production merge and deployment are separate actions; the PR must
@@ -346,7 +346,7 @@ from certification.
 | Linux x64 | `6a32a7955c56f7eec26272cde996faa20e678146480ffb95bc909abe25fd0adb` | `34d1b96550669613e91b3df75752164609ddfbeec70ea821e540558f8a96ddb6` |
 
 The final image is
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:681b56d2e2fcbde12f6677fbd54c617bfcc66df43a02c267bb355d46e16e7caf`.
+`ghcr.io/clayon/clayon-daytona-runner@sha256:681b56d2e2fcbde12f6677fbd54c617bfcc66df43a02c267bb355d46e16e7caf`.
 Its source is 630ed. Publication returned this registry OCI index digest;
 independent registry inspection confirmed it. The image's provider-pack file
 SHA-256 is `723451cf01d4538693884bc37ece71ff31e64dfc2254e4b8fd5386bf23fb81da`.
@@ -391,7 +391,7 @@ confirmed destruction of the owned environment lease.
 ### Retained failures, validation and budget
 
 The qualification image was
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:16c7be3610f45e409f67873dd4bd829f9a1e0e5f017c8826d01db4bb05720f97`.
+`ghcr.io/clayon/clayon-daytona-runner@sha256:16c7be3610f45e409f67873dd4bd829f9a1e0e5f017c8826d01db4bb05720f97`.
 Its registry push and independent inspection confirmed that OCI index, with Linux
 amd64 manifest `sha256:c70f25e76503ce2d9cc1f87ed5a221f8e423f4a45f5519e8aa0581b033be353e`.
 Docker's local containerd store uses the same index identity; it is not an inferred
@@ -657,7 +657,7 @@ Latest-head CI completed with 53 successful and four skipped checks. Greptile
 reported 5/5. An unchanged chat timing failure was diagnosed and rerun once.
 
 The actual Linux image is
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:b5d4a95d7b4c2291a3a133afdf475846569e16588e4ae9f4bb6fde326756946c`.
+`ghcr.io/clayon/clayon-daytona-runner@sha256:b5d4a95d7b4c2291a3a133afdf475846569e16588e4ae9f4bb6fde326756946c`.
 Its entire extracted provider pack was verified, and anonymous registry access
 was confirmed. All three platform packs bind source `5623ff` and Cursor v11.
 
@@ -716,7 +716,7 @@ Review found three recovery gaps. Permission-decline lookup now scopes the query
 
 The second local denial repeat passed its behavioral and cleanup assertions but failed a browser assertion because the Blocked status label includes the current blocker count. The assertion now checks the actual Blocked status while allowing that displayed count. This failed attempt retains its original result; the affected repeat remains required.
 
-Review-fix verification passed: 538 controller tests and 38 fixture tests, server and fixture typechecks, and production verification of the actual Linux pack. The first controller test invocation hit sandbox denial for its default checkpoint directory; the isolated-home repeat passed. The immutable c45cf9 qualification image is `ghcr.io/paperclipai/paperclip-daytona-runner@sha256:1344d8168f15b8c1102ffbf60bf518f278b1804c9672135fb7f10642499e70ec`. All three actual platform packs now bind runtime source c45cf9.
+Review-fix verification passed: 538 controller tests and 38 fixture tests, server and fixture typechecks, and production verification of the actual Linux pack. The first controller test invocation hit sandbox denial for its default checkpoint directory; the isolated-home repeat passed. The immutable c45cf9 qualification image is `ghcr.io/clayon/clayon-daytona-runner@sha256:1344d8168f15b8c1102ffbf60bf518f278b1804c9672135fb7f10642499e70ec`. All three actual platform packs now bind runtime source c45cf9.
 
 Both affected local repeats passed on runtime c45cf9 with controller/harness df1c65. The first new Daytona denied-write case also passed, including a completed read attestation, exact delivered denial, no automatic resume, continuous absent effects, owned retirement and confirmed sandbox deletion.
 
@@ -768,7 +768,7 @@ The rebuilt d0b907 runtime passed all ten local Product E2E workflows with confi
 
 Review then repaired the installed server's independent daemon lookup to use the Runner's verified platform selector. The public npm probe now verifies both selectors agree. Harness diagnostic retention follows the final verdict and preserves incomplete publication; remote-admission uncertainty is marked only for Daytona. The file gate now additionally downloads the registered run-attributed artifact and verifies its exact bytes and stored hash. The earlier local file result retains its original oracle and identity; an affected repeat is required for the new download proof. These repairs do not change the frozen Runner source.
 
-The d0b907 Linux qualification image built successfully and its extracted provider pack passed manifest and command verification. Publishing `ghcr.io/paperclipai/paperclip-daytona-runner:cursor-qualification-d0b90756e3ab` was rejected by automatic approval review because explicit authorization for that payload and registry destination is required. The image remains local at `sha256:16c7be3610f45e409f67873dd4bd829f9a1e0e5f017c8826d01db4bb05720f97`; an approval request is pending. The fresh Daytona matrix has not started. Production admission remains disabled.
+The d0b907 Linux qualification image built successfully and its extracted provider pack passed manifest and command verification. Publishing `ghcr.io/clayon/clayon-daytona-runner:cursor-qualification-d0b90756e3ab` was rejected by automatic approval review because explicit authorization for that payload and registry destination is required. The image remains local at `sha256:16c7be3610f45e409f67873dd4bd829f9a1e0e5f017c8826d01db4bb05720f97`; an approval request is pending. The fresh Daytona matrix has not started. Production admission remains disabled.
 
 The current public npm proof is `/tmp/cursor-public-npm-install-473206.log`; its provider-free report remains at the task-owned consumer root printed there. The file-download repeat is `cursor-v11-d0b907-local-file-edit-validate-02`, with status and cleanup passed. The seven Runner proof summary is `/tmp/cursor-production-20261003/runner-results/semantic-summary-d0b907.json`. Private provider traces and databases are not published.
 

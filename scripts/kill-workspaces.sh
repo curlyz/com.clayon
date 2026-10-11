@@ -62,9 +62,9 @@ append_runtime_dir() {
   fi
 }
 
-paperclip_home="$(expand_home "${CLAYON_HOME:-$HOME/.clayon}")"
-paperclip_instance_id="${CLAYON_INSTANCE_ID:-default}"
-append_runtime_dir "$paperclip_home/instances/$paperclip_instance_id/runtime-services"
+clayon_home="$(expand_home "${CLAYON_HOME:-$HOME/.clayon}")"
+clayon_instance_id="${CLAYON_INSTANCE_ID:-default}"
+append_runtime_dir "$clayon_home/instances/$clayon_instance_id/runtime-services"
 
 if [[ "${CLAYON_KILL_WORKSPACES_ONLY_CURRENT:-}" != "1" ]]; then
   for dir in \

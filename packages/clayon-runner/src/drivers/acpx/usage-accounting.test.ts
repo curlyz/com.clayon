@@ -136,7 +136,7 @@ describe("persisted terminal ACPX usage", () => {
 
 describe("Pi prompt accounting authority", () => {
   const after = { lastRequestId: "turn", usageCost: { amount: 999, currency: "USD" }, requestTokenUsage: {
-    message: { input_tokens: 12, paperclip_pi: { provenance: "assistant_message_receipts", cost_usd: 0.123 } },
+    message: { input_tokens: 12, clayon_pi: { provenance: "assistant_message_receipts", cost_usd: 0.123 } },
   } };
   it("preserves an exact new Pi receipt estimate without charging it as billed spend", () => {
     const usage = persistedAcpxTurnUsage({}, after, "turn", "pi")!;
@@ -153,7 +153,7 @@ describe("Pi prompt accounting authority", () => {
       { provenance: "assistant_message_receipts", cost_usd: -1 },
       { provenance: "assistant_message_receipts", cost_usd: Infinity }]) {
       const usage = persistedAcpxTurnUsage({}, { ...after, requestTokenUsage: {
-        message: { input_tokens: 12, paperclip_pi: receipt },
+        message: { input_tokens: 12, clayon_pi: receipt },
       } }, "turn", "pi")!;
       expect(usage.cost).toBeUndefined();
       expect(acpxUsageEstimateNotice(usage, "turn:pricing")).toBeNull();
@@ -161,7 +161,7 @@ describe("Pi prompt accounting authority", () => {
   });
   it("preserves compaction receipt provenance without treating estimates as billing", () => {
     const usage = persistedAcpxTurnUsage({}, { ...after, requestTokenUsage: {
-      message: { input_tokens: 12, paperclip_pi: {
+      message: { input_tokens: 12, clayon_pi: {
         provenance: "assistant_message_and_compaction_receipts", cost_usd: 0.25,
       } },
     } }, "turn", "pi")!;
@@ -176,7 +176,7 @@ describe("Pi prompt accounting authority", () => {
 
 describe("partial native Cursor observations", () => {
   const receipt = () => ({ request_id: "request-1", prompt_message_id: "message-1", receipt: {
-    schema: "paperclip.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc",
+    schema: "clayon.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc",
     completeness: "partial", reasons: ["native_counter_semantics_unverified", "child_run_attribution_unverified"],
     observations: [{ invocationId: "invocation-1", role: "parent", nativeRun: 1, sequence: 1, counters: { inputTokens: 12, outputTokens: 3 } }],
     limits: { maxObservations: 64, maxInvocations: 64, maxBytes: 16384 }, truncated: false,

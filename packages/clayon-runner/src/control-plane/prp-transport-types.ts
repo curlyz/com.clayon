@@ -9,7 +9,7 @@ export interface DurableRecoveryIdentity {
 
 /** Private, immutable handoff evidence; never a provider/work authorization. */
 export interface DurableWarmRunTransition {
-  schema: "paperclip.runner.warm-transition.v1";
+  schema: "clayon.runner.warm-transition.v1";
   transitionId: string;
   oldIdentity: DurableRecoveryIdentity;
   newIdentity: DurableRecoveryIdentity;
@@ -27,7 +27,7 @@ export interface DurableWarmRunTransition {
 }
 
 export interface DurableRecoveryCoreCommand {
-  schema: "paperclip.prp.command.v1" | "paperclip.prp.command.v2" | "paperclip.prp.command.v3";
+  schema: "clayon.prp.command.v1" | "clayon.prp.command.v2" | "clayon.prp.command.v3";
   commandId: string;
   controllerSeq: number;
   type: string;

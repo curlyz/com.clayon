@@ -2173,13 +2173,13 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
   });
 
   async function seedPendingNativeFinalization(accept = true) {
-    const fixture = await seedRunFixture({ runtimeMode: "native", adapterType: "paperclip_runner", processPid: 2_000_000_000 });
+    const fixture = await seedRunFixture({ runtimeMode: "native", adapterType: "clayon_runner", processPid: 2_000_000_000 });
     const { companyId, agentId, issueId, runId } = fixture;
     const contractId = randomUUID(), runnerInstanceId = randomUUID();
     const contractSha = `finalization-contract-${runId}`;
     await db.insert(completionContracts).values({
       id: contractId, companyId, issueId, revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1", policyVersion: "phase6-v1",
+      schemaVersion: "clayon.completion-contract.v1", policyVersion: "phase6-v1",
       risk: "low", completionAuthority: "agent_claim_policy", incompleteCriteriaPolicy: "preserve_non_terminal",
       contractJson: { revision: CONTROL_PLANE_CONFORMANCE_RESULT.completionClaim.contractRevision,
         objective: "Keep completed work", criteria: [{ id: "objective", requirement: "Keep completed work" }] },
@@ -2439,7 +2439,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
           companyId,
           issueId,
           revision: 1,
-          schemaVersion: "paperclip.completion-contract.v1",
+          schemaVersion: "clayon.completion-contract.v1",
           policyVersion: "phase6-v1",
           risk: "low",
           completionAuthority: "agent_claim_policy",
@@ -2710,7 +2710,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     expect(child.pid).toBeTypeOf("number");
 
     const { agentId, runId, wakeupRequestId } = await seedRunFixture({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       runtimeMode: "native",
       processPid: child.pid ?? null,
       includeIssue: false,
@@ -2752,7 +2752,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     async (coordinatorPhase) => {
       const { companyId, agentId, runId, issueId, wakeupRequestId } =
         await seedRunFixture({
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           runtimeMode: "native",
           runErrorCode: "native_execution_ownership_unverified",
         });
@@ -2906,7 +2906,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     expect(child.pid).toBeTypeOf("number");
 
     const { companyId, runId, issueId } = await seedRunFixture({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       runtimeMode: "native",
       processPid: child.pid ?? null,
     });
@@ -2945,7 +2945,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
   it("does not reap a retryable native run while its same-run recovery path owns it", async () => {
     const { companyId, agentId, runId, issueId, wakeupRequestId } =
       await seedRunFixture({
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         runtimeMode: "native",
       });
     const nextAttemptAt = new Date(Date.now() + 60_000);
@@ -2991,7 +2991,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
 
   it("does not grant a dead native run legacy retry authority after adapter reassignment", async () => {
     const { agentId, runId } = await seedRunFixture({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       runtimeMode: "native",
       processPid: 999_999_999,
       includeIssue: false,
@@ -3274,7 +3274,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
   it("fences native selection when cancellation wins during preparation", async () => {
     await withTempClayonHome(async () => {
       const { agentId, issueId, runId } = await seedQueuedIssueRunFixture();
-      await db.update(agents).set({ adapterType: "paperclip_runner",
+      await db.update(agents).set({ adapterType: "clayon_runner",
         adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
       }).where(eq(agents.id, agentId));
       const factory = vi.fn(() => { throw new Error("provider must not start"); });
@@ -3305,7 +3305,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
   it("does not dispatch when cancellation wins after native selection", async () => {
     await withTempClayonHome(async () => {
       const { agentId, issueId, runId } = await seedQueuedIssueRunFixture();
-      await db.update(agents).set({ adapterType: "paperclip_runner",
+      await db.update(agents).set({ adapterType: "clayon_runner",
         adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
       }).where(eq(agents.id, agentId));
       await db.update(heartbeatRuns).set({ invocationSource: "automation" }).where(eq(heartbeatRuns.id, runId));
@@ -3342,7 +3342,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       await db
         .update(agents)
         .set({
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
         })
         .where(eq(agents.id, agentId));
@@ -3395,7 +3395,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     await withTempClayonHome(async () => {
       const { agentId, issueId, runId } = await seedQueuedIssueRunFixture();
       await db.update(agents).set({
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
       }).where(eq(agents.id, agentId));
       const nativeSessionBackendFactory = vi.fn(
@@ -3426,7 +3426,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       expect(input.task.prompt).toContain(description);
       expect(input.task.prompt.split(description)).toHaveLength(2);
       const modelEnvelope = buildNativeModelEnvelope(input);
-      expect(modelEnvelope.schema).toBe("paperclip.native-model-envelope.v3");
+      expect(modelEnvelope.schema).toBe("clayon.native-model-envelope.v3");
       expect(modelEnvelope.task).not.toHaveProperty("description");
       expect(modelEnvelope.task.prompt.split(description)).toHaveLength(2);
       expect(modelEnvelope.completionContract.criteria).toEqual([{
@@ -3466,7 +3466,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
         completionContract: {
           id: randomUUID(),
           sha256: `sha256:${"a".repeat(64)}`,
-          schemaVersion: "paperclip.run-result.v1",
+          schemaVersion: "clayon.run-result.v1",
           contract: {
             revision: "1",
             objective: "Retain ownership",
@@ -3483,7 +3483,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       await db
         .update(agents)
         .set({
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
         })
         .where(eq(agents.id, agentId));
@@ -4360,7 +4360,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
 
   it("suspends native Clayon Runner ownership on graceful restart without cancelling or creating a retry run", async () => {
     const { agentId, runId, issueId, wakeupRequestId } = await seedRunFixture({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       agentStatus: "running",
       runtimeMode: "native",
     });
@@ -9027,7 +9027,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       const payload = Array.from({ length: 8192 }, () => randomUUID()).join("");
       const [run] = await db.update(heartbeatRuns).set({ resultJson: { payload } }).where(eq(heartbeatRuns.id, runId)).returning();
       await recordLegacyWorkspaceRestoreFailure(db, run, { workspaceRestoreFailure: "restore_failed" });
-      expect((await heartbeat.getRun(runId))?.resultJson?.workspaceRestoreRecovery).toEqual({ schema: "paperclip.workspace-restore-recovery.v1" });
+      expect((await heartbeat.getRun(runId))?.resultJson?.workspaceRestoreRecovery).toEqual({ schema: "clayon.workspace-restore-recovery.v1" });
       stopping = heartbeat.cancelRun(runId, "Stopped by test operator");
       await expect(stopping).resolves.toMatchObject({ status: "cancelled" });
       await heartbeat.waitForRunExecutionDrain(runId);
@@ -9036,7 +9036,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       expect(finished).toMatchObject({ status: "cancelled", resultJson: {
         lateAdapterReceipt: true,
         workspaceRestoreFailure: "restore_failed",
-        workspaceRestoreRecovery: { schema: "paperclip.workspace-restore-recovery.v1", leaseIds: [lease.id] },
+        workspaceRestoreRecovery: { schema: "clayon.workspace-restore-recovery.v1", leaseIds: [lease.id] },
         cancellation: { expected: true },
       } });
       expect((await db.select().from(environmentLeases).where(eq(environmentLeases.id, lease.id)))[0])
@@ -11988,7 +11988,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     await db.insert(agentTaskSessions).values({
       companyId,
       agentId,
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       taskKey: issueId,
       lastRunId: runId,
       goalJson: {
@@ -13320,7 +13320,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       }
       if (mode === "native") {
         await db.update(agents).set({
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
         }).where(eq(agents.id, source.agentId));
       }
@@ -13573,7 +13573,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     await db
       .update(agents)
       .set({
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         adapterConfig: { provider: "codex", model: "gpt-5.6-luna" },
       })
       .where(eq(agents.id, source.agentId));
@@ -13882,7 +13882,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
         companyId: source.companyId,
         issueId: source.issueId,
         revision: 1,
-        schemaVersion: "paperclip.completion-contract.v1",
+        schemaVersion: "clayon.completion-contract.v1",
         policyVersion: "phase6-v3",
         risk: "low",
         completionAuthority: "agent_claim_policy",
@@ -14977,7 +14977,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       companyId,
       issueId,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "phase6-v4",
       risk: "low",
       completionAuthority: "agent_claim_policy",
@@ -15025,7 +15025,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     });
     await port.completeRun({
       result: {
-        schema: "paperclip.run_result.v1",
+        schema: "clayon.run_result.v1",
         reportedWorkDisposition: "yielded",
         summary,
         continuation: {
@@ -15048,7 +15048,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
         artifacts: [],
       },
       terminal: {
-        schema: "paperclip.prp.terminal.v1",
+        schema: "clayon.prp.terminal.v1",
         runTerminalState: "succeeded",
         turnTerminalState: "completed",
         reportedWorkDisposition: "yielded",
@@ -16137,7 +16137,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       companyId,
       issueId,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "phase6-v3",
       risk: "low",
       completionAuthority: "agent_claim_policy",
@@ -16183,7 +16183,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     });
     await port.completeRun({
       result: {
-        schema: "paperclip.run_result.v1",
+        schema: "clayon.run_result.v1",
         reportedWorkDisposition: "blocked",
         summary: "The current Board attachment could not be read.",
         blocker: {
@@ -16210,7 +16210,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
         artifacts: [],
       },
       terminal: {
-        schema: "paperclip.prp.terminal.v1",
+        schema: "clayon.prp.terminal.v1",
         runTerminalState: "succeeded",
         turnTerminalState: "completed",
         reportedWorkDisposition: "blocked",
@@ -16499,7 +16499,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       livenessState: "advanced",
       resultJson: {
         nativeResult: {
-          schema: "paperclip.run_result.v1",
+          schema: "clayon.run_result.v1",
           reportedWorkDisposition: "blocked",
           blocker: {
             scope: "current_track",
@@ -16820,7 +16820,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     // Production binds policy/schema as well as the body; a body-only hash is not a valid contract receipt.
     expect(contractSha).not.toBe(nativeSha256(contract));
     const model = "gpt-5.6-luna[context=272k,reasoning=medium,fast=false]";
-    await db.update(agents).set({ adapterType: "paperclip_runner", adapterConfig: { provider: "acpx", acpxAgent: "cursor", model, acpxSessionMode: "plan", acpxPermissionMode: "approve-all" } }).where(eq(agents.id, f.agentId));
+    await db.update(agents).set({ adapterType: "clayon_runner", adapterConfig: { provider: "acpx", acpxAgent: "cursor", model, acpxSessionMode: "plan", acpxPermissionMode: "approve-all" } }).where(eq(agents.id, f.agentId));
     await db.update(agentWakeupRequests).set({ status: "completed" }).where(eq(agentWakeupRequests.id, f.wakeupRequestId));
     await db.update(heartbeatRuns).set({ runtimeMode: "native", nativeIssueId: f.issueId, nativeSessionId: f.runId,
       completionContractId: contractId, completionContractSha256: contractSha, runnerInstanceId: instance,
@@ -16828,7 +16828,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
         profile: clayonRunner.resolveQualifiedAcpxProfile("cursor", model) }, session: { normalizedSessionId: f.runId },
         completionContract: { id: contractId, sha256: contractSha, contract } } } }).where(eq(heartbeatRuns.id, f.runId));
     const planId = `plan-${"a".repeat(64)}`;
-    const questionSet = { schema: "paperclip.question_set.v1", title: "Native plan", description: "Exact accepted revision", questions: [{ id: planId, prompt: "Proceed?", required: true,
+    const questionSet = { schema: "clayon.question_set.v1", title: "Native plan", description: "Exact accepted revision", questions: [{ id: planId, prompt: "Proceed?", required: true,
       answerMode: "single_select", options: [{ id: "accept", label: "Accept" }, { id: "reject", label: "Reject" }, { id: "cancel", label: "Cancel" }] }] };
     const [interaction] = await db.insert(issueThreadInteractions).values({ id: interactionId, companyId: f.companyId, issueId: f.issueId, sourceRunId: f.runId,
       createdByAgentId: f.agentId, kind: "ask_user_questions", status: "answered", continuationPolicy: "none",
@@ -16840,21 +16840,21 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     const port = new ClayonControlPlanePort(db, { companyId: f.companyId, issueId: f.issueId, runId: f.runId, agentId: f.agentId,
       sessionId: f.runId, completionContractId: contractId, completionContractSha256: contractSha, sourceInstanceId: instance, controlPlaneSourceInstanceId: `control-${f.runId}` });
     const events = [
-      { eventType: "runtime_request.created", payload: { request: { schema: "paperclip.runtime_request.v2", requestKind: "runtime", requestId: "request", type: "input", status: "pending", turnId: "turn", itemId: "native-plan-tool", prompt: "Review plan",
+      { eventType: "runtime_request.created", payload: { request: { schema: "clayon.runtime_request.v2", requestKind: "runtime", requestId: "request", type: "input", status: "pending", turnId: "turn", itemId: "native-plan-tool", prompt: "Review plan",
         origin: { adapter: "acpx-runtime-sidecar", provider: "cursor", method: "cursor/create_plan" }, input: questionSet } } },
-      { eventType: "tool.execution.started", payload: { schema: "paperclip.tool.execution.v1", executionId: "native-plan-tool", transport: "builtin", operation: "execute", status: "running", readOnly: false, namespace: null, name: "Create Plan", target: null, inputUpdated: true, output: null, outputBytes: 0, outputTruncated: false, outputDigest: null, progress: null, exitCode: null, durationMs: null } },
+      { eventType: "tool.execution.started", payload: { schema: "clayon.tool.execution.v1", executionId: "native-plan-tool", transport: "builtin", operation: "execute", status: "running", readOnly: false, namespace: null, name: "Create Plan", target: null, inputUpdated: true, output: null, outputBytes: 0, outputTruncated: false, outputDigest: null, progress: null, exitCode: null, durationMs: null } },
       { eventType: "runtime_request.resolved", payload: { requestId: "request", turnId: "turn", action: "submit", response: answer.response } },
-      { eventType: "tool.execution.completed", payload: { schema: "paperclip.tool.execution.v1", executionId: "native-plan-tool", transport: "builtin", operation: "execute", status: "completed", readOnly: false, namespace: null, name: "Create Plan", target: null, inputUpdated: false, output: null, outputBytes: 0, outputTruncated: false, outputDigest: null, progress: null, exitCode: null, durationMs: null } },
+      { eventType: "tool.execution.completed", payload: { schema: "clayon.tool.execution.v1", executionId: "native-plan-tool", transport: "builtin", operation: "execute", status: "completed", readOnly: false, namespace: null, name: "Create Plan", target: null, inputUpdated: false, output: null, outputBytes: 0, outputTruncated: false, outputDigest: null, progress: null, exitCode: null, durationMs: null } },
       { eventType: "turn.completed", payload: { status: "completed", error: null } },
     ];
-    for (const [index, event] of events.entries()) await port.appendEvent({ schema: "paperclip.prp.event.v1", sourceEventId: `${instance}:${sourceSequenceOffset + index + 1}`, sourceSeq: sourceSequenceOffset + index + 1,
+    for (const [index, event] of events.entries()) await port.appendEvent({ schema: "clayon.prp.event.v1", sourceEventId: `${instance}:${sourceSequenceOffset + index + 1}`, sourceSeq: sourceSequenceOffset + index + 1,
       sourceInstanceId: instance, sourceKind: "runner", runId: f.runId, normalizedSessionId: f.runId, turnId: "turn", schemaVersion: 1, priority: 0,
       emittedAt: new Date().toISOString(), ...event } as clayonRunner.PrpEvent);
     const proof = await readNativePlanWait(db, f);
     expect(proof).not.toBeNull();
     const result = semanticFinish ? { ...proof!.result, reportedWorkDisposition: "done" as const, summary: "Explicit semantic finish wins", continuation: undefined,
       completionClaim: { contractRevision: "1", objectiveSatisfied: true, criteria: [{ criterionId: "objective", status: "satisfied" as const, evidenceRefs: [] }], remainingWork: [] } } : proof!.result;
-    await port.completeRun({ result, turnId: "turn", terminal: { schema: "paperclip.prp.terminal.v1", runTerminalState: "succeeded", turnTerminalState: "completed", reportedWorkDisposition: result.reportedWorkDisposition } });
+    await port.completeRun({ result, turnId: "turn", terminal: { schema: "clayon.prp.terminal.v1", runTerminalState: "succeeded", turnTerminalState: "completed", reportedWorkDisposition: result.reportedWorkDisposition } });
     return { ...f, interactionId, deliveryId: delivery!.id, proof: proof! };
   }
 
@@ -16916,7 +16916,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     profile.nativeExecutionInput.provider.cursorMode = profile.nativeExecutionInput.provider.mode;
     delete profile.nativeExecutionInput.provider.mode;
     await db.update(heartbeatRuns).set({ runnerProfileJson: profile }).where(eq(heartbeatRuns.id, f.runId));
-    const legacy = { ...f.proof.source, schema: "paperclip.native_cursor_plan_wait.v1" }; delete legacy.toolExecutionId; delete legacy.toolLifecycleSha256;
+    const legacy = { ...f.proof.source, schema: "clayon.native_cursor_plan_wait.v1" }; delete legacy.toolExecutionId; delete legacy.toolLifecycleSha256;
     legacy.authoritySha256 = nativeSha256({ admission: profile.nativeExecutionInput, contract, created: event("runtime_request.created"), resolved: event("runtime_request.resolved"), terminal: event("turn.completed"), interaction, delivery, resolvedAt: interaction!.resolvedAt!.toISOString(), acknowledgedAt: delivery!.acknowledgedAt!.toISOString() });
     const [decision] = await db.select().from(statusDecisions).where(eq(statusDecisions.runId, f.runId));
     const [savedResult] = await db.select().from(nativeRunResults).where(eq(nativeRunResults.runId, f.runId));
@@ -16938,7 +16938,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     const progress = Array.from({ length: progressCount }, (_, index) => {
       const seq = index + 1;
       const prpEvent = { ...event("runtime_request.created"), sourceEventId: `${run!.runnerInstanceId}:${seq}`, sourceSeq: seq, eventType: "tool.execution.progressed",
-        payload: { schema: "paperclip.tool.execution.v1", executionId: "earlier-tool", transport: "builtin", operation: "read", status: "running" } };
+        payload: { schema: "clayon.tool.execution.v1", executionId: "earlier-tool", transport: "builtin", operation: "read", status: "running" } };
       return { companyId: f.companyId, runId: f.runId, agentId: f.agentId, seq, eventType: prpEvent.eventType, payload: { prpEvent }, sourceInstanceId: run!.runnerInstanceId,
         sourceEventId: prpEvent.sourceEventId, sourceSeq: seq, sourcePayloadSha256: nativeSha256(prpEvent), protocolSchemaVersion: 1 };
     });

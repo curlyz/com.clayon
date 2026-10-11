@@ -73,7 +73,11 @@ export function serviceWorkerBuildIdPlugin(
     },
     closeBundle() {
       const swPath = path.resolve(outDir, serviceWorkerFileName);
+      // closeBundle also fires after a failed bundle; stay quiet so the bundler's own error is the one reported.
+      if (!fs.existsSync(swPath)) return;
       const source = fs.readFileSync(swPath, "utf8");
+      // The bundler can close the same bundle twice; the second pass finds the worker already stamped.
+      if (buildId !== null && source.includes(`const BUILD_ID = "${buildId}"`)) return;
       const stamped = stampServiceWorkerBuildId(source, buildId ?? "build");
       fs.writeFileSync(swPath, stamped);
     },

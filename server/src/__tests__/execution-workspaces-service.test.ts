@@ -336,7 +336,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       cwd: worktreePath,
       providerRef: worktreePath,
       providerType: "git_worktree",
-      repoUrl: "https://github.com/paperclipai/paperclip.git",
+      repoUrl: "https://github.com/clayon/clayon.git",
       baseRef: "main",
       branchName: "PAP-16015-delivery",
     });
@@ -375,7 +375,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
         type: "pull_request",
         provider: "github",
         title: "Delivered PR",
-        url: "https://github.com/paperclipai/paperclip/pull/10623",
+        url: "https://github.com/clayon/clayon/pull/10623",
         status: "merged",
       });
     }
@@ -441,7 +441,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       providerRef: worktreePath,
       providerType: "git_worktree",
       baseRef: "main",
-      repoUrl: "https://github.com/paperclipai/paperclip.git",
+      repoUrl: "https://github.com/clayon/clayon.git",
       branchName: "PAP-16015-delivery",
     }).where(eq(executionWorkspaces.id, seeded.executionWorkspaceId));
     await db.insert(issueWorkProducts).values({
@@ -450,7 +450,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       type: "pull_request",
       provider: "github",
       title: "Cross-branch delivery",
-      url: "https://github.com/paperclipai/paperclip/pull/10623",
+      url: "https://github.com/clayon/clayon/pull/10623",
       status: "merged",
     });
 
@@ -518,7 +518,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       cwd: worktreePath,
       providerRef: worktreePath,
       providerType: "git_worktree",
-      repoUrl: "https://github.com/paperclipai/paperclip.git",
+      repoUrl: "https://github.com/clayon/clayon.git",
       baseRef: "main",
       branchName,
     });
@@ -962,7 +962,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       type: "pull_request",
       provider: "github",
       title: "Unrelated merged PR",
-      url: "https://github.com/paperclipai/paperclip/pull/10624",
+      url: "https://github.com/clayon/clayon/pull/10624",
       status: "merged",
     });
 
@@ -996,7 +996,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
         type: "pull_request",
         provider: "github",
         title: "Wrong branch merged PR",
-        url: "https://github.com/paperclipai/paperclip/pull/10624",
+        url: "https://github.com/clayon/clayon/pull/10624",
         status: "merged",
       },
       {
@@ -1828,7 +1828,7 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
       type: "pull_request",
       provider: "github",
       title: "Descendant delivery",
-      url: "https://github.com/paperclipai/paperclip/pull/10625",
+      url: "https://github.com/clayon/clayon/pull/10625",
       status: "merged",
     });
 

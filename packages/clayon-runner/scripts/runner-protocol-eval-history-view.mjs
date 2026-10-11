@@ -25,9 +25,9 @@ function commit(repository, sha, label) {
 
 function sourceLinks(run) {
   const url = run.source?.workflowRunUrl;
-  const workflow = /^https:\/\/github\.com\/paperclipai\/paperclip\/actions\/runs\/[1-9][0-9]*$/.test(url ?? "")
+  const workflow = /^https:\/\/github\.com\/clayon\/clayon\/actions\/runs\/[1-9][0-9]*$/.test(url ?? "")
     ? `<small><a href="${url}">GitHub Actions ↗</a></small>` : "";
-  return `${commit("paperclipai/paperclip", run.source?.clayon?.sha, "Clayon")}${commit("clayon/clayon-evals", run.source?.evals?.sha, "Evals")}${workflow}<small>${escape(run.source?.clayon?.ref ?? "")}</small>`;
+  return `${commit("clayon/clayon", run.source?.clayon?.sha, "Clayon")}${commit("clayon/clayon-evals", run.source?.evals?.sha, "Evals")}${workflow}<small>${escape(run.source?.clayon?.ref ?? "")}</small>`;
 }
 
 function chart(runs, analytics, kind, id) {

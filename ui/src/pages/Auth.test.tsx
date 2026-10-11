@@ -5,8 +5,8 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { queryKeys } from "../lib/queryKeys";
-import { AuthPage } from "./Auth";
+import { queryKeys } from "@/lib/queryKeys";
+import { AuthPage } from "@/pages/Auth";
 
 const getSessionMock = vi.hoisted(() => vi.fn());
 const signInEmailMock = vi.hoisted(() => vi.fn());
@@ -14,14 +14,15 @@ const signUpEmailMock = vi.hoisted(() => vi.fn());
 const signInSocialMock = vi.hoisted(() => vi.fn());
 const healthMock = vi.hoisted(() => vi.fn());
 const beginCloudSignInMock = vi.hoisted(() => vi.fn());
+const clearCloudSignInAttemptMock = vi.hoisted(() => vi.fn());
 
-vi.mock("../api/health", () => ({ healthApi: { get: () => healthMock() } }));
+vi.mock("@/api/health", () => ({ healthApi: { get: () => healthMock() } }));
 vi.mock("@/lib/cloud-sign-in", () => ({
   beginCloudSignIn: (url: string) => beginCloudSignInMock(url),
-  clearCloudSignInAttempt: vi.fn(),
+  clearCloudSignInAttempt: clearCloudSignInAttemptMock,
 }));
 
-vi.mock("../api/auth", () => ({
+vi.mock("@/api/auth", () => ({
   authApi: {
     getSession: () => getSessionMock(),
     signInEmail: (input: unknown) => signInEmailMock(input),
@@ -39,7 +40,7 @@ vi.mock("@/components/AsciiArtAnimation", () => ({
 // The auth page renders a ThemeToggle, which reads ThemeContext. The provider
 // lives in main.tsx (above the router), so mock the hook here the same way
 // SidebarAccountMenu.test.tsx does.
-vi.mock("../context/ThemeContext", () => ({
+vi.mock("@/context/ThemeContext", () => ({
   useTheme: () => ({
     theme: "dark",
     setTheme: vi.fn(),
@@ -62,8 +63,7 @@ vi.mock("@/context/CompanyContext", () => ({
   }),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
 
 async function act(callback: () => void | Promise<void>) {
   let result: void | Promise<void> = undefined;
@@ -108,7 +108,7 @@ describe("AuthPage", () => {
     vi.clearAllMocks();
   });
 
-  async function mount(path = "/auth") {
+  async function mount(path = "/auth", enterPortal = true) {
     const { root, queryClient } = renderAuthPage(container);
     await act(async () => {
       root.render(
@@ -123,14 +123,38 @@ describe("AuthPage", () => {
     });
     await flushReact();
     await flushReact();
+    if (enterPortal) {
+      const entry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Enter Clayon"));
+      await act(() => entry?.click());
+      await flushReact();
+    }
     return { root, queryClient };
   }
 
-  it.each(["https://my.clayon.app", "https://my-staging.clayon.app"])("recovers Cloud auth through %s without rendering an instance form", async (origin) => {
+  it("reveals sign-in only after entering the portal and focuses the email field", async () => {
+    const { root } = await mount("/auth", false);
+    expect(container.querySelector("h1")?.textContent).toContain("Your mission.");
+    expect(container.querySelector(".halo-portal-emblem")?.getAttribute("src")).toBe("/portal/emblem.webp");
+    expect(container.querySelectorAll(".halo-portal-sprite")).toHaveLength(2);
+    expect(container.querySelector("#portal-scene-description")?.textContent).toContain("floating scanner drone");
+    expect(container.querySelector("form")).toBeNull();
+    expect(signInEmailMock).not.toHaveBeenCalled();
+    const entry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Enter Clayon"));
+    expect(entry).toBeDefined();
+    await act(() => entry?.click());
+    await flushReact();
+    expect(container.querySelector("form")).not.toBeNull();
+    expect(document.activeElement).toBe(container.querySelector('input[name="email"]'));
+    await act(() => root.unmount());
+  });
+
+  it.each(["https://my.clayon.app", "https://my-staging.clayon.app"])("offers Cloud entry through %s while preserving the return path", async (origin) => {
     healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "clayon-cloud", cloudBaseUrl: origin, stackSlug: "team" } });
     const { root } = await mount("/auth?next=%2FTEST%2Fissues%2FTEST-1%3Ftab%3Dactivity%23comment");
-    await vi.waitFor(() => expect(beginCloudSignInMock).toHaveBeenCalledTimes(1));
-    const target = new URL(beginCloudSignInMock.mock.calls[0][0]);
+    const link = container.querySelector<HTMLAnchorElement>("a.halo-portal-action");
+    expect(link?.textContent).toContain("Enter Clayon");
+    expect(beginCloudSignInMock).not.toHaveBeenCalled();
+    const target = new URL(link?.href ?? "");
     expect(target.origin).toBe(origin);
     expect(target.pathname).toBe("/v1/stacks/team/entry-redirect");
     expect(target.searchParams.get("returnTo")).toBe("/TEST/issues/TEST-1?tab=activity#comment");
@@ -155,11 +179,16 @@ describe("AuthPage", () => {
     await act(() => root.unmount());
   });
 
-  it("offers a manual Cloud retry after the automatic recovery limit", async () => {
+  it("clears the Cloud recovery limit when the user activates entry", async () => {
     healthMock.mockResolvedValue({ cloud: { managed: true, managedBy: "clayon-cloud", cloudBaseUrl: "https://my.clayon.app", stackSlug: "team" } });
     beginCloudSignInMock.mockReturnValue(false);
     const { root } = await mount();
-    await vi.waitFor(() => expect(container.textContent).toContain("Continue to Clayon Cloud"));
+    const link = container.querySelector<HTMLAnchorElement>("a.halo-portal-action");
+    expect(link).not.toBeNull();
+    link?.addEventListener("click", (event) => event.preventDefault());
+    await act(() => link?.click());
+    expect(clearCloudSignInAttemptMock).toHaveBeenCalledTimes(1);
+    expect(beginCloudSignInMock).not.toHaveBeenCalled();
     expect(container.querySelector("form")).toBeNull();
     await act(() => root.unmount());
   });
@@ -176,8 +205,8 @@ describe("AuthPage", () => {
   it("exposes password-manager metadata and a11y attributes on the sign-in form", async () => {
     const { root } = await mount();
 
-    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement;
-    const passwordInput = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const emailInput = container.querySelector<HTMLInputElement>('input[name="email"]')!;
+    const passwordInput = container.querySelector<HTMLInputElement>('input[name="password"]')!;
 
     expect(emailInput).not.toBeNull();
     expect(passwordInput).not.toBeNull();
@@ -235,7 +264,7 @@ describe("AuthPage", () => {
     const { root } = await mount();
 
     const createOne = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Create one",
+      (button) => button.textContent === "Create an account",
     );
     expect(createOne).not.toBeNull();
 
@@ -244,8 +273,8 @@ describe("AuthPage", () => {
     });
     await flushReact();
 
-    const nameInput = container.querySelector('input[name="name"]') as HTMLInputElement;
-    const passwordInput = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const nameInput = container.querySelector<HTMLInputElement>('input[name="name"]')!;
+    const passwordInput = container.querySelector<HTMLInputElement>('input[name="password"]')!;
     expect(nameInput).not.toBeNull();
     expect(nameInput.getAttribute("autocomplete")).toBe("name");
     expect(nameInput.required).toBe(true);
@@ -263,8 +292,8 @@ describe("AuthPage", () => {
       HTMLInputElement.prototype,
       "value",
     )?.set;
-    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement;
-    const passwordInput = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const emailInput = container.querySelector<HTMLInputElement>('input[name="email"]')!;
+    const passwordInput = container.querySelector<HTMLInputElement>('input[name="password"]')!;
 
     await act(async () => {
       inputValueSetter!.call(emailInput, "jane@example.com");
@@ -275,14 +304,14 @@ describe("AuthPage", () => {
 
     signInEmailMock.mockRejectedValueOnce(new Error("Invalid email or password"));
 
-    const form = container.querySelector("form") as HTMLFormElement;
+    const form = container.querySelector<HTMLFormElement>("form")!;
     await act(async () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });
     await flushReact();
     await flushReact();
 
-    const alert = container.querySelector('[role="alert"]') as HTMLElement;
+    const alert = container.querySelector<HTMLElement>('[role="alert"]')!;
     expect(alert).not.toBeNull();
     expect(alert.hasAttribute("aria-live")).toBe(false);
     expect(alert.textContent).toContain("Invalid email or password");
@@ -310,8 +339,8 @@ describe("AuthPage", () => {
       HTMLInputElement.prototype,
       "value",
     )?.set;
-    const emailInput = container.querySelector('input[name="email"]') as HTMLInputElement;
-    const passwordInput = container.querySelector('input[name="password"]') as HTMLInputElement;
+    const emailInput = container.querySelector<HTMLInputElement>('input[name="email"]')!;
+    const passwordInput = container.querySelector<HTMLInputElement>('input[name="password"]')!;
 
     await act(async () => {
       inputValueSetter!.call(emailInput, "jane@example.com");
@@ -320,7 +349,7 @@ describe("AuthPage", () => {
       passwordInput.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const form = container.querySelector("form") as HTMLFormElement;
+    const form = container.querySelector<HTMLFormElement>("form")!;
     await act(async () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });

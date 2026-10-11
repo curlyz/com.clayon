@@ -58,7 +58,7 @@ Every agent is a character. A character is one `.riv` file plus a still sprite.
 | artboard | one square artboard, transparent background, pixel-snapped |
 | state machine | named `main` |
 | data | data binding, not legacy state-machine inputs (Rive marks the "Input Change" listener action deprecated; read 2026-10-11, rive.app/docs/editor/state-machine/listeners). One view model per file with `mood` number (0 idle, 1 working, 2 stalled, 3 happy), `hover` boolean, `press` trigger |
-| pointer | Rive listeners (pointer enter, exit, down, click) on a hit-area shape handle hover and press inside the file; the app forwards no extra events |
+| pointer | Rive listeners (pointer enter, exit, down, up, click) on a hit-area shape handle hover and press inside the file; the app additionally writes `lookX` and `lookY` each frame (see Character events) |
 | mood source | derived from the agent's real status: running = 1, paused or blocked = 2, just completed = 3, otherwise 0 |
 | runtime | `useRive` with `autoBind: true` and the `main` state machine (react runtime docs, read 2026-10-11); renderer package chosen per rive.app "Choose a renderer"; the canvas parent has a fixed width and height; one canvas per visible character; pause when off screen; show the still sprite until the file loads or if it fails |
 | motion | steps only (a few frames), never eased. Honour `prefers-reduced-motion` by showing the still sprite |
@@ -93,6 +93,65 @@ One fixed layer, mounted once at the app root, holds every character. It never t
 | sound | off by default; soft, low tones only |
 
 Art needed beyond the character sheets: transparent per-character cut-outs, and for each character a walk loop, idle loop, working loop, stalled loop, happy loop, plus hover and press reactions. A character's frames share one pixel scale.
+
+## Character events: mouse and AG-UI (operator, 2026-10-11)
+
+"all the characters must be animated rive, with full support for mouse interaction and copilotkit agui events list"
+
+Pattern borrowed from infinia's scene engine: a character's picture is a pure function of one **character state** and time. The app owns the state; Rive draws it. Rest state (no pointer, `mood` idle) is what reduced motion and print show.
+
+### Rive view model (every character, one model)
+
+| property | type | meaning |
+| :-- | :-- | :-- |
+| `mood` | number | 0 idle, 1 working, 2 stalled, 3 happy |
+| `walking`, `facing` | boolean, number | movement; facing is -1 left, 1 right |
+| `talking` | boolean | a text message is streaming |
+| `thinking` | boolean | reasoning is streaming |
+| `tool` | number | 0 none, otherwise the tool pose (1 signature tool, 2 reading, 3 typing, 4 scanning) |
+| `progress` | number | 0 to 1, from the agent's todos |
+| `waiting` | boolean | the agent is blocked on the operator (sign-off or question) |
+| `hover`, `held` | boolean | pointer over; picked up |
+| `lookX`, `lookY` | number | -1 to 1, gaze toward the pointer |
+| `press`, `cheer`, `flinch`, `nod`, `arrive` | trigger | one-shot reactions |
+
+Properties are bound through data binding (`autoBind: true`). The app writes them; pointer hit-testing and the in-file reactions (enter, exit, down, up, click) run as Rive listeners. The app also forwards the pointer position as `lookX` and `lookY`, throttled to one write per frame, so the gaze follows.
+
+### Mouse and touch (full support)
+
+| input | result |
+| :-- | :-- |
+| move near | gaze follows the pointer |
+| hover | wakes, `hover` on, a short line appears beside it |
+| press and release | `press` reaction; click opens a short status line |
+| double click | the character's trick (`cheer`) |
+| drag | `held` on, legs dangle, drop on another ledge |
+| right click or long press | square menu: open agent, send a message, pause, rest |
+| keyboard | every character is a button: focus wakes it, Enter opens the agent, Escape closes the line |
+
+Touch matches: tap = click, long press = menu, drag = drag.
+
+### AG-UI events to character
+
+The app subscribes to the agent's AG-UI stream (CopilotKit `HttpAgent`) and maps each event for the run's agent. Event names are the AG-UI spec's; check against the pinned `@ag-ui/*` version (`0.0.59`) before wiring.
+
+| AG-UI event | character reaction |
+| :-- | :-- |
+| `RUN_STARTED` | `arrive`, `mood` 1, walks to the dock |
+| `RUN_FINISHED` | `cheer`, `mood` 3 for 4 seconds, then 0 |
+| `RUN_ERROR` | `flinch`, `mood` 2, sits and sleeps |
+| `TEXT_MESSAGE_START` / `CONTENT` / `END` | `talking` on; the bubble streams the text; off at the end |
+| `TOOL_CALL_START` | `tool` set from the tool name (signature tool, reading, typing, scanning) |
+| `TOOL_CALL_ARGS` | a small pulse on the tool |
+| `TOOL_CALL_END` | `tool` 0 |
+| `TOOL_CALL_RESULT` | `nod` |
+| `REASONING_START` / `CONTENT` / `END` | `thinking` on or off |
+| `STATE_SNAPSHOT` / `STATE_DELTA` | `progress` = completed todos over total todos |
+| `ACTIVITY_SNAPSHOT` / `DELTA` | picks a micro-loop (reading, typing, scanning) |
+| interrupt (human-in-the-loop) | `waiting` on, the character raises a hand, the dock badge counts it |
+| `MESSAGES_SNAPSHOT`, `RAW`, `CUSTOM` | no animation; logged only |
+
+Mood is derived, never stored: it comes from the latest events plus the agent's real status. A character with no live stream falls back to status from the API.
 
 ## The token layer
 

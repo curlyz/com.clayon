@@ -51,24 +51,24 @@ describe("isGithubShorthand", () => {
 describe("normalizeGithubImportSource", () => {
   it("normalizes shorthand imports to canonical GitHub sources", () => {
     expect(normalizeGithubImportSource("clayon/companies/gstack")).toBe(
-      "https://github.com/paperclipai/companies?ref=main&path=gstack",
+      "https://github.com/clayon/companies?ref=main&path=gstack",
     );
   });
 
   it("applies --ref to shorthand imports", () => {
     expect(normalizeGithubImportSource("clayon/companies/gstack", "feature/demo")).toBe(
-      "https://github.com/paperclipai/companies?ref=feature%2Fdemo&path=gstack",
+      "https://github.com/clayon/companies?ref=feature%2Fdemo&path=gstack",
     );
   });
 
   it("applies --ref to existing GitHub tree URLs without losing the package path", () => {
     expect(
       normalizeGithubImportSource(
-        "https://github.com/paperclipai/companies/tree/main/gstack",
+        "https://github.com/clayon/companies/tree/main/gstack",
         "release/2026-03-23",
       ),
     ).toBe(
-      "https://github.com/paperclipai/companies?ref=release%2F2026-03-23&path=gstack",
+      "https://github.com/clayon/companies?ref=release%2F2026-03-23&path=gstack",
     );
   });
 });

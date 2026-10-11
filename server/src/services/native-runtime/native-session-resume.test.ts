@@ -84,12 +84,12 @@ const CONDITIONAL_READER_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash(
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v1",
+      schema: "clayon.native-tool-contract.v1",
       tools: [
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
       ],
@@ -102,7 +102,7 @@ const PRE_CHAT_ATTACHMENT_REUSE_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v2",
+      schema: "clayon.native-tool-contract.v2",
       executionTargetKind: "local",
       advertisementPolicy: {
         readCurrentWakeComments: "always_advertised_binding_gated.v1",
@@ -112,7 +112,7 @@ const PRE_CHAT_ATTACHMENT_REUSE_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
       ],
@@ -125,7 +125,7 @@ const PRE_CHAT_ATTACHMENT_READ_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash(
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v3",
+      schema: "clayon.native-tool-contract.v3",
       executionTargetKind: "local",
       advertisementPolicy: {
         readCurrentWakeComments: "always_advertised_binding_gated.v1",
@@ -137,17 +137,17 @@ const PRE_CHAT_ATTACHMENT_READ_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash(
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
         {
           name: "list_chat_attachments",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "reuse_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
       ],
@@ -160,7 +160,7 @@ const PRE_STRUCTURED_HUMAN_INPUT_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHas
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v4",
+      schema: "clayon.native-tool-contract.v4",
       executionTargetKind: "local",
       advertisementPolicy: {
         readCurrentWakeComments: "always_advertised_binding_gated.v1",
@@ -173,22 +173,22 @@ const PRE_STRUCTURED_HUMAN_INPUT_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHas
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
         {
           name: "list_chat_attachments",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "reuse_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "read_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-read.v1",
+          semanticContract: "clayon.server-chat-attachment-read.v1",
           version: 1,
         },
       ],
@@ -201,7 +201,7 @@ const PRE_RESPONSE_WAKE_YIELD_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash(
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v5",
+      schema: "clayon.native-tool-contract.v5",
       executionTargetKind: "local",
       advertisementPolicy: {
         readCurrentWakeComments: "always_advertised_binding_gated.v1",
@@ -216,22 +216,22 @@ const PRE_RESPONSE_WAKE_YIELD_TOOL_CONTRACT_FINGERPRINT = `sha256:${createHash(
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
         {
           name: "list_chat_attachments",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "reuse_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "read_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-read.v1",
+          semanticContract: "clayon.server-chat-attachment-read.v1",
           version: 1,
         },
         { name: "request_human_input", version: 1 },
@@ -245,7 +245,7 @@ const PRE_EXPLICIT_CHAT_ATTACHMENT_GUIDANCE_TOOL_CONTRACT_FINGERPRINT = `sha256:
 )
   .update(
     JSON.stringify({
-      schema: "paperclip.native-tool-contract.v7",
+      schema: "clayon.native-tool-contract.v7",
       executionTargetKind: "local",
       advertisementPolicy: {
         readCurrentWakeComments: "always_advertised_binding_gated.v1",
@@ -261,22 +261,22 @@ const PRE_EXPLICIT_CHAT_ATTACHMENT_GUIDANCE_TOOL_CONTRACT_FINGERPRINT = `sha256:
         { name: "register_deliverable", version: 1 },
         {
           name: "read_current_wake_comments",
-          semanticContract: "paperclip.server-current-wake-comments.v1",
+          semanticContract: "clayon.server-current-wake-comments.v1",
           version: 1,
         },
         {
           name: "list_chat_attachments",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "reuse_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-reuse.v1",
+          semanticContract: "clayon.server-chat-attachment-reuse.v1",
           version: 1,
         },
         {
           name: "read_chat_attachment",
-          semanticContract: "paperclip.server-chat-attachment-read.v1",
+          semanticContract: "clayon.server-chat-attachment-read.v1",
           version: 1,
         },
         { name: "request_human_input", version: 1 },
@@ -320,7 +320,7 @@ function execution(
     completionContract: {
       id: "70000000-0000-4000-8000-000000000007",
       sha256: `sha256:${"a".repeat(64)}`,
-      schemaVersion: "paperclip.run-result.v1",
+      schemaVersion: "clayon.run-result.v1",
       contract: {
         revision: "1",
         objective: "Test session resumption",
@@ -390,12 +390,12 @@ function previousRun(overrides: Record<string, unknown> = {}) {
           agentId,
         },
         semanticResult: {
-          schema: "paperclip.run-result.v1",
+          schema: "clayon.run-result.v1",
           reportedWorkDisposition: "done",
           summary: "old",
         },
         terminal: {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState: "completed",
           runTerminalState: "succeeded",
           reportedWorkDisposition: "done",
@@ -526,7 +526,7 @@ const recoveryFakeCodex = resolve(
           companyId,
           name: "Fixture",
           status: "active",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
         });
       await db
         .insert(issues)
@@ -773,7 +773,7 @@ const recoveryFakeCodex = resolve(
         );
         return {
           ...value,
-          schema: "paperclip.native-execution-input.v2",
+          schema: "clayon.native-execution-input.v2",
           provider: { kind: "codex", model: "gpt-5.6-luna" },
           completionContract: {
             ...value.completionContract,
@@ -806,7 +806,7 @@ const recoveryFakeCodex = resolve(
         companyId,
         name: "Recovery runner",
         status: "active",
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
       });
       await db.insert(issues).values({
         id: issueId,
@@ -820,7 +820,7 @@ const recoveryFakeCodex = resolve(
         companyId,
         issueId,
         revision: 1,
-        schemaVersion: "paperclip.completion-contract.v1",
+        schemaVersion: "clayon.completion-contract.v1",
         policyVersion: "damaged-recovery-v1",
         risk: "standard",
         completionAuthority: "server_arbiter",
@@ -904,7 +904,7 @@ const recoveryFakeCodex = resolve(
       // an unacknowledged input whose digest predates bounded sanitization.
       const badPayload = {
         semantic_tool: {
-          schema: "paperclip.prp.semantic_tool.v1",
+          schema: "clayon.prp.semantic_tool.v1",
           schemaVersion: 1,
           phase: "input",
           input: { summary: "bounded historical answer" },
@@ -922,7 +922,7 @@ const recoveryFakeCodex = resolve(
         turnId: runner.turnId,
         itemId: runner.itemId,
         payload: {
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           sourceEventId: "historical-bad-input-44",
           sourceSeq: 44,
           sourceInstanceId: runner.runnerInstanceId,
@@ -1832,8 +1832,8 @@ describe("rebindNativeSessionCheckpoint", () => {
   );
 
   it.each([
-    ["paperclip.native-execution-input.v4", "paperclip.native-execution-input.v5"],
-    ["paperclip.native-execution-input.v5", "paperclip.native-execution-input.v4"],
+    ["clayon.native-execution-input.v4", "clayon.native-execution-input.v5"],
+    ["clayon.native-execution-input.v5", "clayon.native-execution-input.v4"],
   ] as const)("retains a recoverable %s session when the constructor defaults to %s", (priorSchema, currentSchema) => {
     const prior = previousRun();
     const profile = prior.runnerProfileJson as Record<string, unknown>;
@@ -2201,7 +2201,7 @@ describe("rebindNativeSessionCheckpoint", () => {
     const profile = source.runnerProfileJson as Record<string, unknown>;
     const checkpoint = profile.sessionCheckpoint as Record<string, unknown>;
     checkpoint.semanticResult = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary: "Waiting for a response.",
       continuation: {
@@ -2235,7 +2235,7 @@ describe("rebindNativeSessionCheckpoint", () => {
       timeUsedSeconds: 12,
     };
     checkpoint.semanticResult = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary: "Paused at a quiescent boundary.",
       continuation: {
@@ -2508,7 +2508,7 @@ describe("buildNativeExecutionInput wake projection", () => {
       completionContract: {
         id: "70000000-0000-4000-8000-000000000007",
         sha256: `sha256:${"a".repeat(64)}`,
-        schemaVersion: "paperclip.run-result.v1",
+        schemaVersion: "clayon.run-result.v1",
         contract: {
           revision: "2",
           objective: "Respond to the latest comment",
@@ -2644,15 +2644,15 @@ describe("buildNativeExecutionInput wake projection", () => {
     });
 
     expect(codex).toMatchObject({
-      schema: "paperclip.native-execution-input.v5",
+      schema: "clayon.native-execution-input.v5",
       provider: { kind: "codex", approvalPolicy: "on-request" },
     });
     expect(opencode).toMatchObject({
-      schema: "paperclip.native-execution-input.v5",
+      schema: "clayon.native-execution-input.v5",
       provider: { kind: "opencode", permissionMode: "ask" },
     });
     expect(acpx).toMatchObject({
-      schema: "paperclip.native-execution-input.v5",
+      schema: "clayon.native-execution-input.v5",
       provider: { kind: "acpx", permissionMode: "deny-all" },
     });
     expect(claudeManaged).toMatchObject({
@@ -2742,7 +2742,7 @@ describe("buildNativeExecutionInput wake projection", () => {
       completionContract: {
         id: "70000000-0000-4000-8000-000000000007",
         sha256: `sha256:${"a".repeat(64)}`,
-        schemaVersion: "paperclip.run-result.v1",
+        schemaVersion: "clayon.run-result.v1",
         contract: {
           revision: "1",
           objective: "Finish after the child",

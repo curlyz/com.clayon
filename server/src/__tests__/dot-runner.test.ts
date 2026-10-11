@@ -82,7 +82,7 @@ describe("durable Dot Runner integration", () => {
       enabled: true,
       runtimeConfig: {},
       adapterConfig: { provider: "openai_dot", dotBindingId: randomUUID(), allowUnmeteredProvider: true },
-      agent: { status: "active", adapterType: "paperclip_runner" },
+      agent: { status: "active", adapterType: "clayon_runner" },
       issue: { id: randomUUID(), workMode: "standard" },
       target: { kind: "local" },
       workspaceId: null,
@@ -102,7 +102,7 @@ describe("durable Dot Runner integration", () => {
     await db.insert(authUsers).values({ id: userId, name: "Dot operator", email: userId + "@example.test", createdAt: new Date(), updatedAt: new Date() });
     const [company] = await db.insert(companies).values({ name: "Dot test", issuePrefix: "DT" + randomBytes(3).toString("hex") }).returning();
     await db.insert(companyMemberships).values({ companyId: company!.id, principalType: "user", principalId: userId, membershipRole: "owner", status: "active" });
-    const [agent] = await db.insert(agents).values({ companyId: company!.id, name: "Dot", adapterType: "paperclip_runner", status: "active", adapterConfig: { provider: "openai_dot", allowUnmeteredProvider: true } }).returning();
+    const [agent] = await db.insert(agents).values({ companyId: company!.id, name: "Dot", adapterType: "clayon_runner", status: "active", adapterConfig: { provider: "openai_dot", allowUnmeteredProvider: true } }).returning();
     const config = { origin: "https://clayon.example", resource: "https://clayon.example/mcp/runner" };
     const oauth = createPublicMcpOAuth(db, config);
     const client = await oauth.register({ client_name: "Dedicated Dot", redirect_uris: ["https://chatgpt.com/connector_platform/oauth/callback"] }, randomUUID());
@@ -220,7 +220,7 @@ describe("durable Dot Runner integration", () => {
       const intake = await db.select().from(issues).where(eq(issues.id, requests[0]!.issueId));
       expect(intake).toHaveLength(1);
       expect(intake[0]).toMatchObject({ assigneeAgentId: f.agent.id, createdByAgentId: f.agent.id, responsibleUserId: f.userId });
-      expect(await f.broker.capabilities(f.principal)).toMatchObject({ agentId: f.agent.id, responsibleUser: { id: f.userId }, idle: { start: "paperclip_dot_request_turn" } });
+      expect(await f.broker.capabilities(f.principal)).toMatchObject({ agentId: f.agent.id, responsibleUser: { id: f.userId }, idle: { start: "clayon_dot_request_turn" } });
       await expect(f.broker.requestTurn(f.principal, "Different request", requestId)).rejects.toThrow("reused");
       await db.update(companies).set({ budgetMonthlyCents: 1, spentMonthlyCents: 1 }).where(eq(companies.id, f.company.id));
       await expect(f.broker.requestTurn(f.principal, "Spend more", randomUUID())).rejects.toThrow("budget");
@@ -474,7 +474,7 @@ describe("durable Dot Runner integration", () => {
       const fences = inbox.items.filter(item => item.assignmentId === assignment.id && item.kind === "authority_revoked");
       expect(fences).toHaveLength(1);
       expect(fences[0]?.references).toMatchObject({ assignmentId: assignment.id, runId: run.id, externalStopConfirmed: false });
-      await expect(createDotRunnerMcpTools(db).callTool(f.principal, "paperclip_dot_accept", { assignmentId: assignment.id, requestId: randomUUID() })).rejects.toThrow("revoked");
+      await expect(createDotRunnerMcpTools(db).callTool(f.principal, "clayon_dot_accept", { assignmentId: assignment.id, requestId: randomUUID() })).rejects.toThrow("revoked");
     } finally { await f.events.unsubscribe(f.principal, f.subscription); await f.events.stop(); }
   }, 30000);
 
@@ -494,23 +494,23 @@ describe("durable Dot Runner integration", () => {
     const tools = createDotRunnerMcpTools(db);
     await f.events.tick();
     expect(f.received.at(-1)?.data.kind).toBe("authority_revoked");
-    const inbox = await tools.callTool(principal, "paperclip_dot_inbox", { after: 0 });
+    const inbox = await tools.callTool(principal, "clayon_dot_inbox", { after: 0 });
     expect(inbox).toMatchObject({ result: { nextCursor: 0, items: [{ kind: "authority_revoked", assignmentId: assignment.id, references: { assignmentId: assignment.id } }] } });
     const fencedAssignmentId = (inbox!.result as { items: Array<{ references: { assignmentId: string } }> }).items[0]!.references.assignmentId;
-    await expect(tools.callTool(principal, "paperclip_dot_tasks", {})).rejects.toThrow("authority");
-    await expect(tools.callTool(principal, "paperclip_dot_read", { assignmentId: assignment.id })).rejects.toThrow("authority");
-    await expect(tools.callTool(principal, "paperclip_dot_accept", { assignmentId: assignment.id, requestId: randomUUID() })).rejects.toThrow("authority");
-    expect(await tools.callTool(principal, "paperclip_dot_control_ack", { assignmentId: fencedAssignmentId, requestId: randomUUID() })).toMatchObject({ result: { status: "acknowledged", externalStopConfirmed: false } });
+    await expect(tools.callTool(principal, "clayon_dot_tasks", {})).rejects.toThrow("authority");
+    await expect(tools.callTool(principal, "clayon_dot_read", { assignmentId: assignment.id })).rejects.toThrow("authority");
+    await expect(tools.callTool(principal, "clayon_dot_accept", { assignmentId: assignment.id, requestId: randomUUID() })).rejects.toThrow("authority");
+    expect(await tools.callTool(principal, "clayon_dot_control_ack", { assignmentId: fencedAssignmentId, requestId: randomUUID() })).toMatchObject({ result: { status: "acknowledged", externalStopConfirmed: false } });
     await f.events.unsubscribe(principal, f.subscription); await f.events.stop();
   }, 30000);
 
   it("authorizes admitted Dot reviews while preserving the worker and rejecting stale review authority", async () => {
     const f = await fixture();
     const companyId = f.company.id;
-    const [worker] = await db.insert(agents).values({ companyId, name: "Original worker", status: "active", adapterType: "paperclip_runner" }).returning();
+    const [worker] = await db.insert(agents).values({ companyId, name: "Original worker", status: "active", adapterType: "clayon_runner" }).returning();
     const [issue] = await db.insert(issues).values({ companyId, title: "Review another agent's work", status: "in_review", statusVersion: 3, assigneeAgentId: worker!.id }).returning();
     const issueId = issue!.id;
-    const [contract] = await db.insert(completionContracts).values({ companyId, issueId, revision: 1, schemaVersion: "paperclip.completion-contract.v1", policyVersion: "fixture",
+    const [contract] = await db.insert(completionContracts).values({ companyId, issueId, revision: 1, schemaVersion: "clayon.completion-contract.v1", policyVersion: "fixture",
       risk: "low", completionAuthority: "agent", incompleteCriteriaPolicy: "block", contractJson: {}, canonicalSha256: randomUUID(), createdByActorType: "user", createdByActorId: f.userId }).returning();
     const [source] = await db.insert(heartbeatRuns).values({ companyId, agentId: worker!.id, nativeIssueId: issueId, runtimeMode: "native", status: "succeeded",
       completionContractId: contract!.id, completionContractSha256: contract!.canonicalSha256 }).returning();
@@ -769,10 +769,10 @@ describe("durable Dot Runner integration", () => {
             criteria: execution.completionContract.contract.criteria.map(c => ({ criterionId: c.id, status: "passed", evidenceRefs: [] })), remainingWork: [] },
           evidence: [], verification: [{ commandOrCheck: "17 + 25", status: "pass" }] };
         const completionId = randomUUID();
-        await f.broker.operation(f.principal, assignment!.id, completionId, "tool", { name: "paperclip_finish", arguments: result });
+        await f.broker.operation(f.principal, assignment!.id, completionId, "tool", { name: "clayon_finish", arguments: result });
         await vi.waitFor(async () => expect(await f.broker.operationStatus(f.principal, assignment!.id, completionId)).toMatchObject({ status: "completed", isError: false }), { timeout: 10000 });
         expect(await f.broker.operationStatus(f.principal, assignment!.id, completionId)).toMatchObject({ result: { completionReport: {
-          schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", artifacts: [], attentionRequests: [],
+          schema: "clayon.run_result.v1", reportedWorkDisposition: "done", artifacts: [], attentionRequests: [],
           verification: [{ commandOrCheck: "17 + 25", status: "passed" }],
         } } });
         await f.broker.operation(f.principal, assignment!.id, randomUUID(), "finish", { result });

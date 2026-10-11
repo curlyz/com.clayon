@@ -83,9 +83,9 @@ export function firstTaskNativeRuntimePatch(
   if (agent.adapterConfig?.model == null) delete config.model;
   else config.model = agent.adapterConfig.model;
   return {
-    adapterType: "paperclip_runner",
+    adapterType: "clayon_runner",
     adapterConfig: normalizeClayonOperationalSkillPreference(
-      "paperclip_runner",
+      "clayon_runner",
       config,
     ),
   };

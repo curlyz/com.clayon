@@ -2,7 +2,7 @@
 
 This layer gives `clayon-runnerd` a provider-neutral PRP v1 transport. The
 Clayon server invokes durable mode only for a selected, flag-enabled
-`paperclip_runner` agent or recovery of its persisted native run. Codex is the
+`clayon_runner` agent or recovery of its persisted native run. Codex is the
 only installed provider; other providers remain unavailable.
 
 ## Trust boundary

@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-paid-qualification-progress.v1",
+  "schema": "clayon.pi-paid-qualification-progress.v1",
   "recordedAt": "2026-09-28T22:41:36.062345+00:00",
   "qualificationStatus": "pending",
   "environment": {
@@ -340,7 +340,7 @@
       "retainedMachineDisposition": null,
       "retainedStatus": "passed",
       "cleanup": "passed",
-      "diagnosis": "All six canonical hello matchers pass. Authenticated Pi executes paperclip_finish over semantic MCP; the provider turn completes, task becomes done, and native run succeeds. Sleep assertion and dual-clock supervision avoid the prior environmental interruption. USD remains unpriced; independent measured billing delta is separate.",
+      "diagnosis": "All six canonical hello matchers pass. Authenticated Pi executes clayon_finish over semantic MCP; the provider turn completes, task becomes done, and native run succeeds. Sleep assertion and dual-clock supervision avoid the prior environmental interruption. USD remains unpriced; independent measured billing delta is separate.",
       "submittedProviderTurns": 1,
       "providerRequestCount": null,
       "billingDeltaUsd": 0.000654767,

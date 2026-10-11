@@ -11,7 +11,7 @@ coverage belongs in [add-product-e2e-eval](../add-product-e2e-eval/SKILL.md).
 
 Locate the Clayon checkout using `CLAYON_ROOT` when supplied, or
 `git rev-parse --show-toplevel` from a checkout. From outside Git, inspect the
-workspace roots (for example `~/paperclipai/paperclip`) and verify that the
+workspace roots (for example `~/clayon/clayon`) and verify that the
 selected root contains `packages/clayon-runner` and `tests/runner-e2e`.
 Locate `clayon-evals` using `CLAYON_EVALS_ROOT` or a discovered sibling;
 a worktree's parent directory need not contain that repository. Read

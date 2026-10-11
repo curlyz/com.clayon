@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-native-controls-proof.v1",
+  "schema": "clayon.pi-native-controls-proof.v1",
   "sourceRevision": "7710736ca3924c655c5b0efd172cfd3c0173766a",
   "providerPackDigest": "sha256:eb31cadae93805b901d2565912121fca6e79024c0120b1bd7982e05215b5aa5a",
   "profileDigest": "sha256:72cb225288376f733b9ed3afa5e13565eb4152f0de509bc1181382fa44bee472",

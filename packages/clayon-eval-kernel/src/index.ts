@@ -1,5 +1,5 @@
 export const CLAYON_EVAL_KERNEL_COMPATIBILITY = Object.freeze({
-  schema: "paperclip.eval-kernel.compatibility.v1" as const,
+  schema: "clayon.eval-kernel.compatibility.v1" as const,
   packageName: "@clayon/clayon-eval-kernel" as const,
   packageVersion: "0.1.0" as const,
   apiVersion: 1 as const,
@@ -25,7 +25,7 @@ export interface ClayonEvalResult<TOutput = unknown, TScore = unknown> {
 }
 
 export class ClayonEvalKernelConfigurationError extends Error {
-  readonly code = "paperclip_eval_kernel_configuration_invalid" as const;
+  readonly code = "clayon_eval_kernel_configuration_invalid" as const;
 
   constructor(message: string) {
     super(message);

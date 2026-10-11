@@ -66,7 +66,7 @@ export const controlWorkspaceServiceAction = {
   "live": {
     "order": 20,
     "descriptor": {
-      "schema": "paperclip.semantic-tool.v1",
+      "schema": "clayon.semantic-tool.v1",
       "operationId": "control_workspace_service",
       "version": 1,
       "title": "Control workspace service",
@@ -206,7 +206,7 @@ export const controlWorkspaceServiceAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

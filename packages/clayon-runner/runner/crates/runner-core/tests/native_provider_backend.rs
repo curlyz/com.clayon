@@ -149,7 +149,7 @@ fn assert_valid_terminal(payload: &Value) {
     .unwrap();
     let registry = jsonschema::Registry::new()
         .add(
-            "https://paperclip.dev/schemas/prp/v1/stop-reason.schema.json",
+            "https://clayon.dev/schemas/prp/v1/stop-reason.schema.json",
             stop_reason,
         )
         .unwrap()
@@ -164,7 +164,7 @@ fn assert_valid_terminal(payload: &Value) {
 
 fn command(sequence: u64, command_type: &str, payload: Value) -> Command {
     Command {
-        schema: "paperclip.prp.command.v1".to_owned(),
+        schema: "clayon.prp.command.v1".to_owned(),
         command_id: format!("command-{sequence}"),
         controller_seq: sequence,
         command_type: command_type.to_owned(),
@@ -188,7 +188,7 @@ fn prepare_payload_with_mode(directory: &Path, agent: &str, mode: &str) -> Value
     };
     json!({
         "authorizedTools": {
-            "schema": "paperclip.runner.authorized-tools.v1",
+            "schema": "clayon.runner.authorized-tools.v1",
             "schemaVersion": 1,
             "catalogDigest": authorized_tool_catalog_digest(&operations).unwrap(),
             "operations": operations,
@@ -318,7 +318,7 @@ fn pending_acpx_runtime_request(
 fn acpx_runtime_resolution(mode: &str, request_id: &str) -> Value {
     json!({"requestId":request_id, "turnId":"turn-1", "resolution":
         if mode.starts_with("permissions-") { json!({"action":"accept"}) }
-        else { json!({"action":"submit", "response":{"schema":"paperclip.question_response.v1",
+        else { json!({"action":"submit", "response":{"schema":"clayon.question_response.v1",
             "answers":{"target":{"selectedOptionIds":["first"]}}}}) }
     })
 }
@@ -786,7 +786,7 @@ fn opencode_prepare_payload(directory: &Path) -> Value {
     let operations = Vec::new();
     json!({
         "authorizedTools": {
-            "schema": "paperclip.runner.authorized-tools.v1",
+            "schema": "clayon.runner.authorized-tools.v1",
             "schemaVersion": 1,
             "catalogDigest": authorized_tool_catalog_digest(&operations).unwrap(),
             "operations": operations,
@@ -855,7 +855,7 @@ fn managed_prepare_payload(kind: &str) -> Value {
     };
     json!({
         "authorizedTools": {
-            "schema": "paperclip.runner.authorized-tools.v1",
+            "schema": "clayon.runner.authorized-tools.v1",
             "schemaVersion": 1,
             "catalogDigest": authorized_tool_catalog_digest(&operations).unwrap(),
             "operations": operations,
@@ -945,7 +945,7 @@ fn routes_reserved_completion_feedback_with_the_full_controller_catalog() {
     let mode = "turns-reserved-feedback-roundtrip";
     let config = acpx_config(&directory, mode);
     let mut executor = NativeProviderCommandExecutor::with_runner_config(&directory, &config);
-    let operations = ["paperclip_block", "paperclip_finish"]
+    let operations = ["clayon_block", "clayon_finish"]
         .map(|name| AuthorizedTool {
             operation_id: name.to_owned(),
             version: 1,
@@ -956,7 +956,7 @@ fn routes_reserved_completion_feedback_with_the_full_controller_catalog() {
         .to_vec();
     let mut prepare = prepare_payload_with_mode(&directory, "codex", mode);
     prepare["authorizedTools"] = json!({
-        "schema":"paperclip.runner.authorized-tools.v1", "schemaVersion":1,
+        "schema":"clayon.runner.authorized-tools.v1", "schemaVersion":1,
         "catalogDigest":authorized_tool_catalog_digest(&operations).unwrap(),
         "operations":operations,
     });
@@ -986,7 +986,7 @@ fn routes_reserved_completion_feedback_with_the_full_controller_catalog() {
         .any(|event| event.event_type == "turn.completed"));
     executor.acknowledge_events(events.len()).unwrap();
     executor.execute(&command(4, "semantic_tool.result", json!({
-        "callId":"call-finish", "operationId":"paperclip_finish", "isError":true,
+        "callId":"call-finish", "operationId":"clayon_finish", "isError":true,
         "result":{"success":false,"contentItems":[{"type":"inputText","text":"Name the reviewer and decision."}]},
     }))).unwrap();
     // The sidecar emits this correction only after receiving the exact reason.
@@ -1004,11 +1004,11 @@ fn routes_reserved_completion_feedback_with_the_full_controller_catalog() {
         .any(|event| event.event_type == "turn.completed"));
     executor.acknowledge_events(events.len()).unwrap();
     assert!(executor.execute(&command(5, "semantic_tool.result", json!({
-        "callId":"call-finish-2", "operationId":"paperclip_finish", "isError":false,
+        "callId":"call-finish-2", "operationId":"clayon_finish", "isError":false,
         "result":{"success":true,"contentItems":[{"type":"inputText","text":"Accepted"}],"unchecked":true},
     }))).is_err(), "Unexpected fields must not weaken the acknowledgement contract");
     executor.execute(&command(6, "semantic_tool.result", json!({
-        "callId":"call-finish-2", "operationId":"paperclip_finish", "isError":false,
+        "callId":"call-finish-2", "operationId":"clayon_finish", "isError":false,
         "result":{"success":true,"contentItems":[{"type":"inputText","text":"Completion report accepted."}]},
     }))).unwrap();
     let events = executor.poll_events().unwrap();
@@ -1088,7 +1088,7 @@ fn keeps_native_acpx_semantic_events_on_the_durable_controller_turn() {
     }];
     let mut prepare = prepare_payload_with_mode(&directory, "codex", "turns-tool");
     prepare["authorizedTools"] = json!({
-        "schema": "paperclip.runner.authorized-tools.v1",
+        "schema": "clayon.runner.authorized-tools.v1",
         "schemaVersion": 1,
         "catalogDigest": authorized_tool_catalog_digest(&operations).unwrap(),
         "operations": operations,

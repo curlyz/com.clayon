@@ -53,7 +53,7 @@ describe("runner compatibility preflight", () => {
       });
     } catch (error) {
       expect(error).toBeInstanceOf(ClayonRunnerCompatibilityError);
-      expect((error as ClayonRunnerCompatibilityError).code).toBe("paperclip_runner_incompatible");
+      expect((error as ClayonRunnerCompatibilityError).code).toBe("clayon_runner_incompatible");
       expect((error as ClayonRunnerCompatibilityError).issues.map((issue) => issue.code)).toEqual([
         "component_version_mismatch",
         "eval_corpus_version_unsupported",

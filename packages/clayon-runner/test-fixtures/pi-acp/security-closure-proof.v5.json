@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-security-closure-proof.v1",
+  "schema": "clayon.pi-security-closure-proof.v1",
   "sourceRevision": "aec26ad83f1d082f0d0a5eaffbd615a9e2e26155",
   "advisory": "https://github.com/advisories/GHSA-3wwx-pv8p-q78v",
   "profileVersion": 5,

@@ -18,7 +18,7 @@ async function buildCodexSkillSnapshot(
   adapterType: string,
 ): Promise<AdapterSkillSnapshot> {
   const availableEntries = await readClayonRuntimeSkillEntries(config, __moduleDir);
-  const desiredSkills = adapterType === "paperclip_runner"
+  const desiredSkills = adapterType === "clayon_runner"
     ? resolveClayonDesiredSkillNames(config, availableEntries)
     : resolveLegacyClayonDesiredSkillNames(config, availableEntries);
   return buildRuntimeMountedSkillSnapshot({

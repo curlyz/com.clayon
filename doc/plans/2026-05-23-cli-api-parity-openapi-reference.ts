@@ -326,7 +326,7 @@ function applyDocumentFixups(document: any): any {
     [BOARD_SESSION_AUTH_SCHEME]: {
       type: "apiKey",
       in: "cookie",
-      name: "paperclip_session",
+      name: "clayon_session",
       description:
         "Board session cookie in authenticated mode. Clayon uses Better Auth; cookie transport may vary by deployment.",
     },

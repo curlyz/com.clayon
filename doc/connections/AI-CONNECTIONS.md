@@ -218,7 +218,7 @@ On 2026-10-02, a real local Codex access token was saved to an encrypted,
 disposable test connection. The actual connection usage HTTP route returned 200
 with `status: ok`, a weekly window at 100% used, its reset time, denied included
 usage, and available overage credits. The same stored connection passed selection
-checks for both `codex_local` and `paperclip_runner` with the native Codex provider.
+checks for both `codex_local` and `clayon_runner` with the native Codex provider.
 This verifies the connection API/vault/provider path and both selection paths;
 it does not claim a live runner turn or browser acceptance test. The disposable
 database and vault home were removed after verification.
@@ -226,7 +226,7 @@ After the operator signed in again on 2026-10-02, real Claude Keychain and Grok
 file credentials were saved to encrypted disposable connections. Both the
 provider requests and actual connection usage HTTP route returned 200 with
 `status: ok`. Selection checks passed for `claude_local`, native Claude,
-ACP Claude, `grok_local`, and ACP Grok through `paperclip_runner`.
+ACP Claude, `grok_local`, and ACP Grok through `clayon_runner`.
 Claude returned session and weekly usage at 0%, a scoped weekly window, and
 enabled extra usage. Grok returned a weekly period and zero on-demand allowance
 and prepaid balance, but omitted included-plan usage; it remains unknown rather
@@ -337,7 +337,7 @@ they must not be replaced by a fresh execution with a pre-provider receipt.
 
 Session reuse includes grant identity, responsible user, and credential
 generation. A changed identity starts a fresh provider session. Native Codex
-(`paperclip_runner`) honors the configured warm lifecycle. It copies refreshed
+(`clayon_runner`) honors the configured warm lifecycle. It copies refreshed
 credentials back to the current invocation before deleting that invocation's
 private home. The session-owned credential stays private until idle timeout or
 explicit closure. Each follow-up rechecks current authorization and account
@@ -709,7 +709,7 @@ follow-up timeout also remain live qualification limits.
 
 ### Gateway completion compatibility
 
-Provider-facing `paperclip_finish` accepts an omitted or `null` continuation for
+Provider-facing `clayon_finish` accepts an omitted or `null` continuation for
 `done`, `completed`, and `needs_review`. This supports gateways that require all
 declared tool properties to be present. Normalization removes only `null`;
 non-yielding tool calls still reject a continuation object, and `yielded` still

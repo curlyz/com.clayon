@@ -1,3 +1,3 @@
-module github.com/paperclipai/paperclip/tools/agent-shim
+module github.com/clayon/clayon/tools/agent-shim
 
 go 1.22

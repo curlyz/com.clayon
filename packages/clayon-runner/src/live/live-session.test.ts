@@ -259,7 +259,7 @@ class FakeCapabilityCodexTransport implements CodexAppServerTransport {
             interactionKind: "questions",
             title: "Choose the mock path",
             prompt: "Which path should the mock agent take?",
-            payload: { version: 1, questionSet: { schema: "paperclip.question_set.v1", questions: [{ id: "path", prompt: "Which path?", required: true, answerMode: "single_select", options: [{ id: "safe", label: "Safe path" }, { id: "fast", label: "Fast path" }] }] } },
+            payload: { version: 1, questionSet: { schema: "clayon.question_set.v1", questions: [{ id: "path", prompt: "Which path?", required: true, answerMode: "single_select", options: [{ id: "safe", label: "Safe path" }, { id: "fast", label: "Fast path" }] }] } },
             continuationPolicy: "wake_assignee",
           },
         },
@@ -761,7 +761,7 @@ describe("Capability live runnerd and Codex session", () => {
     const result = await session.sendMessage("reference file");
     expect(result.snapshot.workspaceFileReferences).toHaveLength(1);
     expect(result.snapshot.workspaceFileReferences?.[0]?.reference).toMatchObject({
-      schema: "paperclip.workspace.file_reference.v1",
+      schema: "clayon.workspace.file_reference.v1",
       source: "runner_verified",
       path: "guide.md",
       preview: null,
@@ -794,7 +794,7 @@ describe("Capability live runnerd and Codex session", () => {
       expect(result.snapshot.workspaceDiffs?.[0]).toMatchObject({
         turnId: "turn-1",
         diff: {
-          schema: "paperclip.workspace.diff.v1",
+          schema: "clayon.workspace.diff.v1",
           source: "runner_verified",
           complete: true,
           totals: { files: 2 },
@@ -930,8 +930,8 @@ describe("Capability live runnerd and Codex session", () => {
     const first = await firstService.create();
     const opened = state.transports[0]!.requests.find((request) => request.method === "thread/start")!;
     const names = (opened.params.dynamicTools as Array<{ name: string }>).map((tool) => tool.name);
-    expect(names.filter((name) => name === "paperclip_finish")).toHaveLength(1);
-    expect(names.filter((name) => name === "paperclip_block")).toHaveLength(1);
+    expect(names.filter((name) => name === "clayon_finish")).toHaveLength(1);
+    expect(names.filter((name) => name === "clayon_block")).toHaveLength(1);
     expect(names).not.toContain("create_task");
     expect(opened.params).not.toHaveProperty("baseInstructions");
     expect(opened.params.developerInstructions).toContain('"revision":"clayon-capability-live-v1"');
@@ -941,7 +941,7 @@ describe("Capability live runnerd and Codex session", () => {
     const restored = await restoredService.restore(first.id);
     // The facade appends native completion schemas to this admitted semantic list.
     expect(authority[1]?.resumeDynamicTools?.map((tool) => tool.name)).toEqual(
-      names.filter((name) => name !== "paperclip_finish" && name !== "paperclip_block"),
+      names.filter((name) => name !== "clayon_finish" && name !== "clayon_block"),
     );
     const resumed = state.transports[1]!.requests.find((request) => request.method === "thread/resume")!;
     expect(resumed.params).not.toHaveProperty("baseInstructions");
@@ -956,7 +956,7 @@ describe("Capability live runnerd and Codex session", () => {
     const session = await service.create();
     const before = session.mockState();
     const result = {
-      schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", summary: "Orientation complete",
+      schema: "clayon.run_result.v1", reportedWorkDisposition: "done", summary: "Orientation complete",
       completionClaim: { contractRevision: "clayon-capability-live-v1", objectiveSatisfied: true,
         criteria: [{ criterionId: "objective", status: "satisfied", evidenceRefs: [] }], remainingWork: [] },
       evidence: [], verification: [],
@@ -969,18 +969,18 @@ describe("Capability live runnerd and Codex session", () => {
         id: `call-${outcomes.length}`, method: "item/tool/call",
         params: { threadId: state.threadId, turnId: overrideTurn, callId: `call-${outcomes.length}`, tool, arguments: arguments_ },
       });
-      outcomes.push(await call("paperclip_finish", { ...result, completionClaim: { ...result.completionClaim, contractRevision: "stale" } }));
-      outcomes.push(await call("paperclip_finish", result, "wrong-turn"));
-      outcomes.push(await call("paperclip_block", result));
-      outcomes.push(await call("paperclip_finish", result));
-      outcomes.push(await call("paperclip_finish", { ...result, summary: "Conflicting report" }));
+      outcomes.push(await call("clayon_finish", { ...result, completionClaim: { ...result.completionClaim, contractRevision: "stale" } }));
+      outcomes.push(await call("clayon_finish", result, "wrong-turn"));
+      outcomes.push(await call("clayon_block", result));
+      outcomes.push(await call("clayon_finish", result));
+      outcomes.push(await call("clayon_finish", { ...result, summary: "Conflicting report" }));
       outcomes.push(await call("create_task", { title: "Unauthorized task", idempotencyKey: "unauthorized-task" }));
       expect(session.snapshot().terminalTurns).toHaveLength(0);
     };
     await session.sendMessage("Orient to the assigned task.");
     expect(outcomes.map((outcome) => outcome.success)).toEqual([false, false, false, true, false, false]);
     expect(session.snapshot().semanticResult).toMatchObject(result);
-    const completionEvidence = session.snapshot().evidence.filter((entry) => entry.data.operationId === "paperclip_finish");
+    const completionEvidence = session.snapshot().evidence.filter((entry) => entry.data.operationId === "clayon_finish");
     expect(completionEvidence.map((entry) => entry.kind)).toEqual(["tool_call", "tool_result"]);
     expect(completionEvidence[1]?.data.beforeRevision).toBe(completionEvidence[1]?.data.afterRevision);
     expect(session.mockState().tasks).toEqual(before.tasks);
@@ -1186,7 +1186,7 @@ describe("Capability live runnerd and Codex session", () => {
       const canonical = persistedCursorUsageNotice({ promptMessageIds: [] }, {
         lastRequestId: "request-1", promptMessageIds: ["prompt-1"], cursorPromptUsage: {
           request_id: "request-1", prompt_message_id: "prompt-1", receipt: {
-            schema: "paperclip.cursor.native-usage.v1", source: "native_turn_ended",
+            schema: "clayon.cursor.native-usage.v1", source: "native_turn_ended",
             promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
             reasons: ["native_counter_semantics_unverified", "child_run_attribution_unverified"],
             observations: [

@@ -207,9 +207,9 @@ const EXACT_ACTIONS: Record<string, ExactAction> = {
   write_document: { action: "update", running: "Writing a document", completed: "Wrote a document" },
   register_deliverable: { action: "create", running: "Registering a deliverable", completed: "Registered a deliverable" },
   finish_task: { action: "finish", running: "Reporting completion", completed: "Reported completion" },
-  paperclip_finish: { action: "finish", running: "Reporting completion", completed: "Reported completion" },
+  clayon_finish: { action: "finish", running: "Reporting completion", completed: "Reported completion" },
   block_task: { action: "block", running: "Reporting a blocker", completed: "Reported a blocker" },
-  paperclip_block: { action: "block", running: "Reporting a blocker", completed: "Reported a blocker" },
+  clayon_block: { action: "block", running: "Reporting a blocker", completed: "Reported a blocker" },
   request_review: { action: "request", running: "Requesting review", completed: "Requested review" },
   list_agents: { action: "list", running: "Listing agents", completed: "Listed agents" },
   get_agent: { action: "read", running: "Reading agent details", completed: "Read agent details" },
@@ -351,7 +351,7 @@ function defaultSummaryGroup(action: Action): ToolSummaryGroup {
 }
 
 function clayonSummaryGroup(action: Action): ToolSummaryGroup {
-  if (action === "read" || action === "list") return group("paperclip_read", "Clayon read", "Clayon reads");
+  if (action === "read" || action === "list") return group("clayon_read", "Clayon read", "Clayon reads");
   return group("task_operation", "task operation", "task operations");
 }
 

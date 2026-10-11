@@ -3,7 +3,7 @@
 ## Scope and runtime
 
 The live Maya E2E fixture was switched from legacy ACP/Sol to
-`adapterType: paperclip_runner`, Codex provider, model `gpt-5.6-luna`.
+`adapterType: clayon_runner`, Codex provider, model `gpt-5.6-luna`.
 The isolated instance has native execution enabled. Persisted run records
 confirm `runtimeMode: native`, `driverKind: codex_app_server`, and the explicit
 Luna model in the native execution input. This is not an inference from the
@@ -179,7 +179,7 @@ The corresponding provider thread contains the selected answers, not the
 internal operational commentary.
 
 Follow-up read-only audit on September 7 reconfirmed the live agent configuration
-as `paperclip_runner` / `codex` / `gpt-5.6-luna`, and the four text-run records
+as `clayon_runner` / `codex` / `gpt-5.6-luna`, and the four text-run records
 above as `native` / `codex_app_server`. No global defaults were changed. Focused
 projection, stream, run-publication, interaction-publication, and heartbeat
 summary tests passed **82/82** across five files. No live model call was made for

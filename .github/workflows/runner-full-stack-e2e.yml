@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       target_branch:
-        description: "Branch in paperclipai/paperclip to test; the trusted workflow still runs from master"
+        description: "Branch in clayon/clayon to test; the trusted workflow still runs from master"
         type: string
         required: false
       max_parallel:
@@ -429,8 +429,8 @@ jobs:
         env:
           NEEDS_DAYTONA: ${{ needs.catalog.outputs.needs_daytona }}
           IMAGE_CONTENT_ID: ${{ needs.catalog.outputs.daytona_image_content_id }}
-          IMAGE_TAG: ghcr.io/paperclipai/paperclip-daytona-runner:e2e-content-${{ needs.catalog.outputs.daytona_image_content_id }}
-          IMAGE_CACHE: ghcr.io/paperclipai/paperclip-daytona-runner:e2e-buildcache-amd64
+          IMAGE_TAG: ghcr.io/clayon/clayon-daytona-runner:e2e-content-${{ needs.catalog.outputs.daytona_image_content_id }}
+          IMAGE_CACHE: ghcr.io/clayon/clayon-daytona-runner:e2e-buildcache-amd64
           TARGET_SHA: ${{ needs.authorize.outputs.target_sha }}
           TARGET_LOCK_SHA256: ${{ needs.target_lock.outputs.lock_sha256 }}
           TARGET_REF: ${{ needs.authorize.outputs.target_ref }}

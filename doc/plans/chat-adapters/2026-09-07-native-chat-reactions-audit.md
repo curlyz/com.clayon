@@ -3,7 +3,7 @@
 ## Environment and journey
 
 Isolated Board `http://127.0.0.1:3103`, company Chat Adapter E2E, native Maya
-E2E (`paperclip_runner` → `codex` → `gpt-5.6-luna`). The running backend was
+E2E (`clayon_runner` → `codex` → `gpt-5.6-luna`). The running backend was
 `639bf1a20`; the updated UI was served through the development middleware.
 These tests do not start model turns and do not qualify model quota recovery.
 
@@ -171,7 +171,7 @@ freshness retests pass and supersede the failed reaction baselines above.
 Replay/startup-buffer behavior has deterministic coverage, not an injected
 live Gateway outage qualification.
 
-The Maya agent was rechecked as `paperclip_runner` → `codex` → `gpt-5.6-luna`.
+The Maya agent was rechecked as `clayon_runner` → `codex` → `gpt-5.6-luna`.
 The current Codex usage tool still reports the general weekly limit exhausted;
 no reset, billing change, or model-starting prompt was attempted in this batch.
 

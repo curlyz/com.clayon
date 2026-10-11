@@ -91,7 +91,7 @@ function connectResult(overrides: Partial<ConnectToolAppResult> = {}): ConnectTo
       ownership: "customer",
       transport: "mcp_remote",
       authKind: "none",
-      credentialSource: "paperclip_vault",
+      credentialSource: "clayon_vault",
       credentialPolicy: "shared",
       status: "draft",
       enabled: false,
@@ -422,7 +422,7 @@ describe("PasteConfigTab — activation handoff (PAP-11092)", () => {
     const result = oauthConnectResult("https://my.clayon.app/connections/confirm?session=legacy");
     result.auth = {
       ...result.auth!,
-      handoff: { kind: "paperclip_cloud", session },
+      handoff: { kind: "clayon_cloud", session },
     };
     toolsApiMock.connectApp.mockResolvedValue(result);
 

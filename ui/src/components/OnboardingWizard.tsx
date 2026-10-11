@@ -153,11 +153,11 @@ type AdapterType = string;
 const ONBOARDING_EXCLUDED_ADAPTER_TYPES = new Set([
   "process",
   "http",
-  "paperclip_runner",
+  "clayon_runner",
 ]);
 
 function restoreOnboardingAdapterType(savedAdapterType: unknown): AdapterType {
-  return typeof savedAdapterType === "string" && savedAdapterType !== "paperclip_runner"
+  return typeof savedAdapterType === "string" && savedAdapterType !== "clayon_runner"
     ? savedAdapterType
     : "claude_local";
 }
@@ -619,7 +619,7 @@ function OnboardingWizardInner({
    * whether the row has been *answered* on this visit.
    */
   const [sourcePicked, setSourcePicked] = useState(false);
-  const savedNativeRunnerDraft = saved?.adapterType === "paperclip_runner";
+  const savedNativeRunnerDraft = saved?.adapterType === "clayon_runner";
   const [cwd, setCwd] = useState((saved?.cwd as string) ?? "");
   // Native drafts may carry provider-specific configuration that is invalid
   // for the legacy adapter selected above. Keep the portable working
@@ -2021,7 +2021,7 @@ function OnboardingWizardInner({
     // The grid and restore path both exclude native runner. Keep this final
     // guard at the mutation boundary so a stale or modified client cannot use
     // first-run onboarding to create a native agent.
-    if (adapterType === "paperclip_runner") {
+    if (adapterType === "clayon_runner") {
       setAdapterType("claude_local");
       setModel("");
       setError("Clayon Runner is not available during onboarding. Choose a legacy adapter.");

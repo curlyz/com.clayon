@@ -395,9 +395,9 @@ describe("handoff URL handling", () => {
     expect(redacted).toContain("next=%2F");
 
     const capability = "pcgw_secret-capability";
-    const gatewayLine = `POST /mcp/gateways/gw_test?paperclip_capability=${capability} 200`;
+    const gatewayLine = `POST /mcp/gateways/gw_test?clayon_capability=${capability} 200`;
     const redactedGatewayLine = redactWorkspaceHandoffTicket(gatewayLine);
     expect(redactedGatewayLine).not.toContain(capability);
-    expect(redactedGatewayLine).toContain("paperclip_capability=[redacted]");
+    expect(redactedGatewayLine).toContain("clayon_capability=[redacted]");
   });
 });

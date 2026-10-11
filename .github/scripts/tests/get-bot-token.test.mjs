@@ -7,10 +7,10 @@ test('resolveInstallationId: uses the repo installation endpoint when repo conte
   const installationId = await resolveInstallationId(async (path) => {
     seenPaths.push(path);
     return { id: 42 };
-  }, 'jwt', 'paperclipai/paperclip', 'clayon');
+  }, 'jwt', 'clayon/clayon', 'clayon');
 
   assert.equal(installationId, 42);
-  assert.deepEqual(seenPaths, ['/repos/paperclipai/paperclip/installation']);
+  assert.deepEqual(seenPaths, ['/repos/clayon/clayon/installation']);
 });
 
 test('resolveInstallationId: falls back to the matching owner installation', async () => {

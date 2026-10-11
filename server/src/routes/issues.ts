@@ -16433,7 +16433,7 @@ export function issueRoutes(
             queueId: req.body.queueId,
             revision: req.body.revision,
           });
-          if (locked.queue.protocol !== "paperclip_runner_v1") {
+          if (locked.queue.protocol !== "clayon_runner_v1") {
             throw conflict("This runner does not support same-turn steering", {
               code: "steering_unsupported",
             });

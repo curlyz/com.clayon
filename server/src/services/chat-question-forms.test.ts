@@ -61,7 +61,7 @@ function interaction(
           allowOther: true,
           options: [
             {
-              id: "__paperclip_text__",
+              id: "__clayon_text__",
               label: "Type an answer",
               freeText: true,
             },
@@ -69,7 +69,7 @@ function interaction(
         },
       ],
       questionSet: {
-        schema: "paperclip.question_set.v1",
+        schema: "clayon.question_set.v1",
         title: "Deployment details",
         submitLabel: "Continue",
         questions: [

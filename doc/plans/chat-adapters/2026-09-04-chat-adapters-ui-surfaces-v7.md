@@ -5,7 +5,7 @@
 Date: 2026-09-04
 Clayon base: `7b094724e65c04949706df638d497afb02c84b62`
 Historical review viewer: [Git archive](./wireframes-archive.md).
-Archived wireframes: [v7 SVG snapshot](https://github.com/paperclipai/paperclip/tree/1c4a45f0ef7d627aa98e4f3ae3116d4507386d1a/doc/plans/chat-adapters/wireframes-v7) ([archive and regeneration notes](./wireframes-archive.md))
+Archived wireframes: [v7 SVG snapshot](https://github.com/clayon/clayon/tree/1c4a45f0ef7d627aa98e4f3ae3116d4507386d1a/doc/plans/chat-adapters/wireframes-v7) ([archive and regeneration notes](./wireframes-archive.md))
 
 ## Product decision
 

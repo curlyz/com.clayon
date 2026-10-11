@@ -202,14 +202,14 @@ describe("OnboardingWizard adapter selection", () => {
 
   it("keeps onboarding on legacy adapters even when Clayon Runner is enabled", async () => {
     mockAdapterRegistry.list = [
-      { type: "paperclip_runner" },
+      { type: "clayon_runner" },
       { type: "codex_local" },
     ];
     window.localStorage.setItem(
       ONBOARDING_STORAGE_KEY,
       JSON.stringify({
         step: 0,
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         model: "gpt-runner-only",
         command: "runnerd",
         args: "--native",
@@ -240,7 +240,7 @@ describe("OnboardingWizard adapter selection", () => {
       ONBOARDING_STORAGE_KEY,
       JSON.stringify({
         step: 0,
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         model: "gpt-runner-only",
         command: "runnerd",
         args: "--native",

@@ -25,7 +25,7 @@ describe("bounded fresh-session handoff", () => {
       issue: { id: "task", identifier: "BOT-2", title: "Chat", description: null, workMode: "standard" },
       taskPrompt: "GitHub is connected", freshSessionHandoff: "original goal: build the PR review bot", initialCommunicationGuidance: "Lead with the answer",
       workspace: { id: "workspace", cwd: "/workspace", repoUrl: null, repoRef: null, branchName: null },
-      completionContract: { id: "contract", sha256: "a".repeat(64), schemaVersion: "paperclip.run-result.v1", contract: {
+      completionContract: { id: "contract", sha256: "a".repeat(64), schemaVersion: "clayon.run-result.v1", contract: {
         revision: "1", objective: "Build bot", criteria: [{ id: "objective", requirement: "Build bot" }],
       } }, runtimeContext: nativeRuntimeContextFixture(),
     });
@@ -46,7 +46,7 @@ const support = await getEmbeddedPostgresTestSupport();
     database = await startEmbeddedPostgresTestDatabase("clayon-native-handoff-");
     db = createDb(database.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Handoff", issuePrefix: "HAND" });
-    await db.insert(agents).values({ id: agentId, companyId, name: "Dickens", role: "general", adapterType: "paperclip_runner" });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Dickens", role: "general", adapterType: "clayon_runner" });
     await db.insert(issues).values({ id: issueId, companyId, title: "Chat", status: "in_progress", assigneeAgentId: agentId,
       conversationAgentId: agentId, conversationUserId: "user", conversationState: "active", conversationSessionGeneration: 2 });
     await db.insert(issueComments).values([

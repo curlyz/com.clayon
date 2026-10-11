@@ -14,7 +14,7 @@ and binds the pack to the runner source revision, avoiding artifact upload and
 npm installation on every fresh lease.
 
 The fleet pins are intentionally copied from
-[`clayon-cloud/fleet-sandbox-image/Dockerfile`](https://github.com/paperclipai/paperclip-cloud/blob/master/fleet-sandbox-image/Dockerfile).
+[`clayon-cloud/fleet-sandbox-image/Dockerfile`](https://github.com/clayon/clayon-cloud/blob/master/fleet-sandbox-image/Dockerfile).
 Update both definitions together until the fleet base is published as a stable
 image that this Dockerfile can extend directly.
 

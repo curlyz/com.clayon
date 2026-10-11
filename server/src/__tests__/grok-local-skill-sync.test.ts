@@ -5,7 +5,7 @@ import {
 } from "@clayon/adapter-grok-local/server";
 
 describe("grok local skill sync", () => {
-  const clayonKey = "paperclipai/paperclip/clayon";
+  const clayonKey = "clayon/clayon/clayon";
 
   it("defaults the operational Clayon skill as ephemeral workspace-mounted state", async () => {
     const snapshot = await listGrokSkills({

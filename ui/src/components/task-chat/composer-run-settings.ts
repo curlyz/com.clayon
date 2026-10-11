@@ -19,7 +19,7 @@ export const EFFORT_LABELS: Record<string, string> = {
 
 const MODEL_ADAPTERS = new Set([
   "claude_local", "codex_local", "opencode_local", "pi_local", "kimi_local",
-  "gemini_local", "cursor", "cursor_cloud", "grok_local", "hermes_local", "paperclip_runner",
+  "gemini_local", "cursor", "cursor_cloud", "grok_local", "hermes_local", "clayon_runner",
 ]);
 
 export function supportsComposerModel(agent: Agent | undefined): boolean {
@@ -41,7 +41,7 @@ export function composerDefaultModel(agent: Agent | undefined): string {
   }
   if (agent.adapterType === "grok_local") return DEFAULT_GROK_LOCAL_MODEL;
   if (agent.adapterType === "kimi_local") return DEFAULT_KIMI_LOCAL_MODEL;
-  if (agent.adapterType === "paperclip_runner") {
+  if (agent.adapterType === "clayon_runner") {
     const provider = composerCatalogProvider(agent);
     if (provider === "codex" || provider === "opencode") return resolveClayonRunnerModel(provider, config.model);
     if (provider === "acpx" && config.acpxAgent !== "grok") return resolveClayonRunnerModel(provider, config.model);
@@ -51,7 +51,7 @@ export function composerDefaultModel(agent: Agent | undefined): string {
 
 export function composerCatalogProvider(agent: Agent | undefined): string | undefined {
   if (!agent) return undefined;
-  if (agent.adapterType === "paperclip_runner") return String(agent.adapterConfig.provider ?? "codex");
+  if (agent.adapterType === "clayon_runner") return String(agent.adapterConfig.provider ?? "codex");
   if (agent.adapterType !== "opencode_local") return undefined;
   const binding = aiConnectionBindingSchema.safeParse(agent.runtimeConfig?.aiConnection).data;
   const configuredModel = agent.adapterConfig.model;
@@ -65,8 +65,8 @@ export function composerEfforts(agent: Agent | undefined, model: string, catalog
     : agent.adapterType === "kimi_local" ? DEFAULT_KIMI_LOCAL_MODEL : "");
   if (!effectiveModel) return [];
   const pool = aiRuntimeConnectionBindingSchema.safeParse(agent.runtimeConfig?.aiConnection).data?.mode === "router";
-  if (pool && agent.adapterType === "paperclip_runner") return isCodexLocalKnownModel(effectiveModel) ? codexLocalReasoningEffortsForModel(effectiveModel) : [];
-  if (agent.adapterType === "codex_local" || (agent.adapterType === "paperclip_runner" && composerCatalogProvider(agent) === "codex")) {
+  if (pool && agent.adapterType === "clayon_runner") return isCodexLocalKnownModel(effectiveModel) ? codexLocalReasoningEffortsForModel(effectiveModel) : [];
+  if (agent.adapterType === "codex_local" || (agent.adapterType === "clayon_runner" && composerCatalogProvider(agent) === "codex")) {
     return isCodexLocalKnownModel(effectiveModel) ? codexLocalReasoningEffortsForModel(effectiveModel) : [];
   }
   if (!catalogIds.includes(effectiveModel)) return [];
@@ -86,7 +86,7 @@ export function readComposerRunSettings(overrides: IssueAssigneeAdapterOverrides
   const config = overrides?.adapterConfig ?? {};
   const effortKey = composerEffortKey(adapterType);
   const effortValue = effortKey && (config[effortKey]
-    ?? (adapterType === "codex_local" || adapterType === "paperclip_runner" ? config.reasoningEffort ?? config.effort : undefined));
+    ?? (adapterType === "codex_local" || adapterType === "clayon_runner" ? config.reasoningEffort ?? config.effort : undefined));
   return {
     model: typeof config.model === "string" ? config.model : null,
     effort: typeof effortValue === "string" ? effortValue : null,
@@ -95,7 +95,7 @@ export function readComposerRunSettings(overrides: IssueAssigneeAdapterOverrides
 }
 
 function composerEffortKey(adapterType: string | undefined): string | null {
-  if (adapterType === "codex_local" || adapterType === "paperclip_runner") return "modelReasoningEffort";
+  if (adapterType === "codex_local" || adapterType === "clayon_runner") return "modelReasoningEffort";
   if (adapterType === "claude_local" || adapterType === "kimi_local") return "effort";
   if (adapterType === "grok_local") return "reasoningEffort";
   if (adapterType === "pi_local") return "thinking";

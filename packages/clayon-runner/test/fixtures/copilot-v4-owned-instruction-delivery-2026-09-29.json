@@ -1,11 +1,11 @@
 {
-  "schema": "paperclip.copilot-v4-owned-instruction-delivery.v1",
+  "schema": "clayon.copilot-v4-owned-instruction-delivery.v1",
   "date": "2026-09-29",
   "candidateBaseRevision": "0f33a9080ab05f92b909261a20d79ca487889346",
   "profileIdentity": {
     "commandDigest": "sha256:ce58142849d196faee8898f34c7149b4fbeb7b09966bb523b9cdf39c2ff66a6f",
     "declaration": {
-      "schema": "paperclip.acpx_profile_declaration.v1",
+      "schema": "clayon.acpx_profile_declaration.v1",
       "agent": "copilot",
       "agentProfileVersion": 4,
       "acpxVersion": "0.13.1",

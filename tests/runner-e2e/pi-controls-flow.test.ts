@@ -41,7 +41,7 @@ async function exercise(taskId: string, remote: boolean, failure?: "mutation" | 
     const target = remote ? "pi-control-fixture.txt" : harness.target;
     f.scope.target = target; f.tool.target = target; f.issue.title = "Provider-generated task name"; f.issue.companyId = "company"; f.issue.assigneeAgentId = "agent";
   };
-  const queue = () => ({ queueId: "queue", targetRunId: "run", revision: "revision", protocol: "paperclip_runner_v1", steeringDisposition: "available", entries: harness.message ? [{ comment: { id: "comment", body: harness.message + (failure === "foreign-queued-body" ? " altered" : "") } }] : [] });
+  const queue = () => ({ queueId: "queue", targetRunId: "run", revision: "revision", protocol: "clayon_runner_v1", steeringDisposition: "available", entries: harness.message ? [{ comment: { id: "comment", body: harness.message + (failure === "foreign-queued-body" ? " altered" : "") } }] : [] });
   const api = {
     post: async (path: string, body: any) => {
       if (path.endsWith("/projects")) return { name: "Pi controls fixture" };
@@ -159,7 +159,7 @@ async function exercise(taskId: string, remote: boolean, failure?: "mutation" | 
       expect(browserSteers).toBe(stopCase ? 0 : 1); expect(browserDeclines).toBe(stopCase ? 0 : 1);
       if (!stopCase) {
         const receipt = saved.get("pi-steering-presentation.json");
-        expect(receipt).toMatchObject({ schema: "paperclip.e2e.pi-steering-presentation.v1", phase: "final", companyId: "company", issueId: "issue", runId: "run", commentsApiPath: "/api/issues/issue/comments" });
+        expect(receipt).toMatchObject({ schema: "clayon.e2e.pi-steering-presentation.v1", phase: "final", companyId: "company", issueId: "issue", runId: "run", commentsApiPath: "/api/issues/issue/comments" });
         expect(receipt.comments).toEqual(publicComments.at(-1));
         expect(receipt.run.resultJson.presentationDecision).toEqual(f.run.resultJson.presentationDecision);
         expect(receipt).not.toHaveProperty("finalMessage");

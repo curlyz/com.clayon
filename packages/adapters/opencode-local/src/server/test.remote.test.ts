@@ -103,7 +103,7 @@ describe("opencode remote environment diagnostics", () => {
         ...successfulProbe, exitCode: 1, stdout: "", timedOut: outcome === "timed_out",
         stderr: outcome === "auth_required" ? "invalid API key" : "ProviderModelNotFoundError",
       });
-      const result = await testEnvironment({ companyId: "company-1", adapterType: "paperclip_runner",
+      const result = await testEnvironment({ companyId: "company-1", adapterType: "clayon_runner",
         config: { model: "openrouter/deepseek/deepseek-v4-flash-0731", env: { XDG_CONFIG_HOME: configHome } } });
       expect(discoverOpenCodeModels).not.toHaveBeenCalled();
       expect(ensureOpenCodeModelConfiguredAndAvailable).not.toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe("opencode remote environment diagnostics", () => {
   );
 
   it("rejects a malformed native model before starting the probe", async () => {
-    const result = await testEnvironment({ companyId: "company-1", adapterType: "paperclip_runner",
+    const result = await testEnvironment({ companyId: "company-1", adapterType: "clayon_runner",
       config: { model: "missing-provider", env: { XDG_CONFIG_HOME: configHome } } });
     expect(result.status).toBe("fail");
     expect(runAdapterExecutionTargetProcess).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe("opencode remote environment diagnostics", () => {
   });
 
   it("preserves an explicitly configured native probe directory", async () => {
-    await testEnvironment({ companyId: "company-1", adapterType: "paperclip_runner",
+    await testEnvironment({ companyId: "company-1", adapterType: "clayon_runner",
       config: { model: "provider/model", cwd: configHome, env: { XDG_CONFIG_HOME: configHome } } });
     const call = runAdapterExecutionTargetProcess.mock.calls[0] as unknown as [unknown, unknown, unknown, unknown, { cwd: string }];
     expect(call[4].cwd).toBe(configHome);

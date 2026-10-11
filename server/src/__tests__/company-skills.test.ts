@@ -219,7 +219,7 @@ describe("project workspace skill discovery", () => {
         "metadata:",
         "  sources:",
         "    - kind: github-dir",
-        "      repo: paperclipai/paperclip",
+        "      repo: clayon/clayon",
         "      path: skills/clayon",
         "---",
         "",
@@ -240,7 +240,7 @@ describe("project workspace skill discovery", () => {
       sources: [
         {
           kind: "github-dir",
-          repo: "paperclipai/paperclip",
+          repo: "clayon/clayon",
           path: "skills/clayon",
         },
       ],

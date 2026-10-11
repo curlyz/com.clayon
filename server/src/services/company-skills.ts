@@ -309,10 +309,10 @@ function assertImportedSkillSourceAllowed(skill: ImportedSkill) {
 }
 
 function assertImportedSkillKeyAllowed(skill: ImportedSkill) {
-  if (!skill.key.startsWith("paperclipai/paperclip/")) return;
+  if (!skill.key.startsWith("clayon/clayon/")) return;
   const metadata = isPlainRecord(skill.metadata) ? skill.metadata : null;
   const sourceKind = asString(metadata?.sourceKind);
-  if (sourceKind === "paperclip_bundled") return;
+  if (sourceKind === "clayon_bundled") return;
   throw unprocessable(
     `Reserved Clayon skill key "${skill.key}" cannot be imported from unbundled sources.`,
     {
@@ -589,7 +589,7 @@ function uniqueImportedSkillKey(companyId: string, baseSlug: string, usedKeys: S
 }
 
 function buildSkillRuntimeName(key: string, slug: string) {
-  if (key.startsWith("paperclipai/paperclip/")) return slug;
+  if (key.startsWith("clayon/clayon/")) return slug;
   return `${slug}--${hashSkillValue(key)}`;
 }
 
@@ -639,14 +639,14 @@ function readCanonicalSkillKey(frontmatter: Record<string, unknown>, metadata: R
  * `ensureSkillInventoryCurrent` imports into every company library.
  */
 export const CLAYON_CORE_SKILL_KEYS = [
-  "paperclipai/paperclip/clayon",
-  "paperclipai/paperclip/clayon-board",
-  "paperclipai/paperclip/clayon-converting-plans-to-tasks",
-  "paperclipai/paperclip/clayon-create-agent",
-  "paperclipai/paperclip/para-memory-files",
+  "clayon/clayon/clayon",
+  "clayon/clayon/clayon-board",
+  "clayon/clayon/clayon-converting-plans-to-tasks",
+  "clayon/clayon/clayon-create-agent",
+  "clayon/clayon/para-memory-files",
 ] as const;
 
-export const ONBOARDING_FIRST_TASK_SKILL_KEY = "paperclipai/paperclip/first-task";
+export const ONBOARDING_FIRST_TASK_SKILL_KEY = "clayon/clayon/first-task";
 
 function deriveCanonicalSkillKey(
   companyId: string,
@@ -658,8 +658,8 @@ function deriveCanonicalSkillKey(
   if (explicitKey) return explicitKey;
 
   const sourceKind = asString(metadata?.sourceKind);
-  if (sourceKind === "paperclip_bundled") {
-    return `paperclipai/paperclip/${slug}`;
+  if (sourceKind === "clayon_bundled") {
+    return `clayon/clayon/${slug}`;
   }
 
   const owner = normalizeSkillSlug(asString(metadata?.owner));
@@ -1011,8 +1011,8 @@ function deriveImportedSkillSource(
     if (repo && owner && repoName) {
       const sourceKind = owner === "clayon"
         && repoName === "clayon"
-        && canonicalKey?.startsWith("paperclipai/paperclip/")
-        ? "paperclip_bundled"
+        && canonicalKey?.startsWith("clayon/clayon/")
+        ? "clayon_bundled"
         : "github";
       return {
         sourceType: "github",
@@ -1313,7 +1313,7 @@ function stableJsonEqual(left: unknown, right: unknown) {
 }
 
 function isClayonBundledSkillKey(key: string) {
-  return key.startsWith("paperclipai/paperclip/");
+  return key.startsWith("clayon/clayon/");
 }
 
 function clayonBundledFolderCategory(key: string, metadata?: unknown) {
@@ -1322,7 +1322,7 @@ function clayonBundledFolderCategory(key: string, metadata?: unknown) {
     return keyParts[2];
   }
   if (isClayonBundledSkillKey(key)) return "clayon-core";
-  if (isPlainRecord(metadata) && asString(metadata.sourceKind) === "paperclip_bundled") {
+  if (isPlainRecord(metadata) && asString(metadata.sourceKind) === "clayon_bundled") {
     return "clayon-core";
   }
   return null;
@@ -1343,14 +1343,14 @@ function stripDerivedClayonBundledMetadata(key: string, metadata: unknown): unkn
 
   const out = { ...comparable };
   if (out.skillKey === key) delete out.skillKey;
-  if (out.sourceKind === "paperclip_bundled") delete out.sourceKind;
+  if (out.sourceKind === "clayon_bundled") delete out.sourceKind;
   delete out.missingSource;
   return out;
 }
 
 function importedSkillMetadataEqual(existing: CompanySkill, values: ImportedSkillPersistValues) {
   const incomingMetadata = isPlainRecord(values.metadata) ? values.metadata : null;
-  if (isClayonBundledSkillKey(values.key) && asString(incomingMetadata?.sourceKind) === "paperclip_bundled") {
+  if (isClayonBundledSkillKey(values.key) && asString(incomingMetadata?.sourceKind) === "clayon_bundled") {
     return JSON.stringify(stripDerivedClayonBundledMetadata(existing.key, existing.metadata))
       === JSON.stringify(stripDerivedClayonBundledMetadata(values.key, values.metadata));
   }
@@ -2691,7 +2691,7 @@ function deriveSkillSourceInfo(skill: SkillSourceInfoTarget): {
 } {
   const metadata = getSkillMeta(skill);
   const localSkillDir = normalizeSkillDirectory(skill);
-  if (metadata.sourceKind === "paperclip_bundled") {
+  if (metadata.sourceKind === "clayon_bundled") {
     return {
       editable: false,
       editableReason: "Bundled Clayon skills are read-only.",
@@ -2986,7 +2986,7 @@ export function companySkillService(db: Db) {
     const firstTaskSkill = await readLocalSkillImportFromDirectory(
       companyId,
       fileURLToPath(new URL("../onboarding-assets/first-task/skills/first-task/", import.meta.url)),
-      { metadata: { sourceKind: "paperclip_bundled" } },
+      { metadata: { sourceKind: "clayon_bundled" } },
     );
     for (const skillsRoot of resolveBundledSkillsRoot()) {
       const stats = await fs.stat(skillsRoot).catch(() => null);
@@ -2998,12 +2998,12 @@ export function companySkillService(db: Db) {
             ...skill,
             metadata: {
               ...(skill.metadata ?? {}),
-              sourceKind: "paperclip_bundled",
+              sourceKind: "clayon_bundled",
             },
           }),
           metadata: {
             ...(skill.metadata ?? {}),
-            sourceKind: "paperclip_bundled",
+            sourceKind: "clayon_bundled",
           },
         })))
         .catch(() => [] as ImportedSkill[]);
@@ -3051,7 +3051,7 @@ export function companySkillService(db: Db) {
   }
 
   async function ensureBundledSkillReleases(companyId: string, bundledSkills: CompanySkill[]) {
-    const clayonSkill = bundledSkills.find((skill) => skill.key === "paperclipai/paperclip/clayon");
+    const clayonSkill = bundledSkills.find((skill) => skill.key === "clayon/clayon/clayon");
     if (!clayonSkill) return;
     for (const release of await readBundledSkillReleaseRegistry()) {
       const fileInventory = serializeVersionFileInventory(
@@ -3153,7 +3153,7 @@ export function companySkillService(db: Db) {
 
     for (const skill of skills) {
       if (skill.sourceType !== "local_path") continue;
-      if (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled") continue;
+      if (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "clayon_bundled") continue;
 
       if (!missingIds.has(skill.id)) {
         const metadata = getMissingSourceMarker(skill.metadata)
@@ -5290,7 +5290,7 @@ export function companySkillService(db: Db) {
 
         const existingBundledBySlug = acceptedSkills.find((skill) => (
           skill.slug === nextSkill.slug
-          && (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "paperclip_bundled")
+          && (isClayonBundledSkillKey(skill.key) || asString(skill.metadata?.sourceKind) === "clayon_bundled")
         )) ?? null;
         if (existingBundledBySlug) {
           candidates.push({
@@ -6247,7 +6247,7 @@ export function companySkillService(db: Db) {
       const incomingKind = asString(incomingMeta.sourceKind);
       if (
         existing
-        && existingMeta.sourceKind === "paperclip_bundled"
+        && existingMeta.sourceKind === "clayon_bundled"
         && incomingKind === "github"
         && incomingOwner === "clayon"
         && incomingRepo === "clayon"

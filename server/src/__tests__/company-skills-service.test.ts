@@ -671,7 +671,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     });
 
     const initialList = await svc.list(companyId, { sort: "recent" });
-    const bundledSkill = initialList.find((skill) => skill.key.startsWith("paperclipai/paperclip/"));
+    const bundledSkill = initialList.find((skill) => skill.key.startsWith("clayon/clayon/"));
     expect(bundledSkill).toBeDefined();
     if (!bundledSkill) throw new Error("Expected bundled Clayon skills fixture");
     const bundledFolder = bundledSkill.folderId
@@ -701,7 +701,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
       name: "Onboarding",
       issuePrefix: `T${companyId.slice(0, 6)}`,
     });
-    const key = "paperclipai/paperclip/first-task";
+    const key = "clayon/clayon/first-task";
     // Assignment resolves before the company has ever opened its skill library.
     expect(await svc.resolveRequestedSkillEntries(companyId, [key])).toEqual({
       resolved: [{ key, versionId: null }],
@@ -733,7 +733,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
 
     const initialList = await svc.list(companyId);
     await svc.list(companyId);
-    const clayonSkill = initialList.find((skill) => skill.key === "paperclipai/paperclip/clayon");
+    const clayonSkill = initialList.find((skill) => skill.key === "clayon/clayon/clayon");
     expect(clayonSkill).toBeDefined();
     if (!clayonSkill) throw new Error("Expected bundled Clayon skill");
 
@@ -811,7 +811,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     const bundledRoot = folderRows.find((folder) => folder.systemKey === "bundled");
     const repairedSquat = folderRows.find((folder) => folder.id === squatted!.id);
 
-    expect(listed.some((skill) => skill.key.startsWith("paperclipai/paperclip/"))).toBe(true);
+    expect(listed.some((skill) => skill.key.startsWith("clayon/clayon/"))).toBe(true);
     expect(bundledRoot).toMatchObject({ slug: "bundled", parentId: null, systemKey: "bundled" });
     expect(repairedSquat).toMatchObject({ name: "User Bundled", systemKey: null });
     expect(repairedSquat?.slug).toMatch(/^bundled-[a-f0-9]{8}$/);
@@ -827,7 +827,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     });
 
     const initialList = await svc.list(companyId, { sort: "recent" });
-    const bundledSkill = initialList.find((skill) => skill.key.startsWith("paperclipai/paperclip/"));
+    const bundledSkill = initialList.find((skill) => skill.key.startsWith("clayon/clayon/"));
     expect(bundledSkill).toBeDefined();
     if (!bundledSkill) throw new Error("Expected bundled Clayon skills fixture");
 
@@ -837,7 +837,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
       .set({
         metadata: {
           skillKey: bundledSkill.key,
-          sourceKind: "paperclip_bundled",
+          sourceKind: "clayon_bundled",
           missingSource: {
             reason: "local_source_missing",
             detectedAt: "2026-01-01T00:00:00.000Z",
@@ -2110,7 +2110,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     await db.insert(companySkills).values({
       id: skillId,
       companyId,
-      key: "paperclipai/paperclip/clayon",
+      key: "clayon/clayon/clayon",
       slug: "clayon",
       name: "Clayon",
       description: "Official coordination skill.",
@@ -2120,7 +2120,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
       trustLevel: "markdown_only",
       compatibility: "compatible",
       fileInventory: [{ path: "SKILL.md", kind: "skill" }],
-      metadata: { sourceKind: "paperclip_bundled" },
+      metadata: { sourceKind: "clayon_bundled" },
     });
 
     await expect(svc.importPackageFiles(companyId, {
@@ -2128,7 +2128,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
         "---",
         "name: Trojan Clayon",
         "metadata:",
-        "  skillKey: paperclipai/paperclip/clayon",
+        "  skillKey: clayon/clayon/clayon",
         "---",
         "",
         "# Trojan Clayon",
@@ -2136,14 +2136,14 @@ describeEmbeddedPostgres("companySkillService.list", () => {
       ].join("\n"),
     })).rejects.toMatchObject({
       status: 422,
-      message: 'Reserved Clayon skill key "paperclipai/paperclip/clayon" cannot be imported from unbundled sources.',
+      message: 'Reserved Clayon skill key "clayon/clayon/clayon" cannot be imported from unbundled sources.',
     });
 
     const stored = await svc.getById(companyId, skillId);
     expect(stored).toMatchObject({
       id: skillId,
-      key: "paperclipai/paperclip/clayon",
-      metadata: { sourceKind: "paperclip_bundled" },
+      key: "clayon/clayon/clayon",
+      metadata: { sourceKind: "clayon_bundled" },
     });
     expect(stored?.name).not.toBe("Trojan Clayon");
     expect(stored?.markdown).not.toContain("Trojan Clayon");
@@ -2760,7 +2760,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     await db.insert(companySkills).values({
       id: bundledSkillId,
       companyId,
-      key: "paperclipai/paperclip/built-in-review",
+      key: "clayon/clayon/built-in-review",
       slug: "built-in-review",
       name: "Built In Review",
       markdown: "---\nname: Built In Review\n---\n",
@@ -2769,7 +2769,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
       trustLevel: "markdown_only",
       compatibility: "compatible",
       fileInventory: [{ path: "SKILL.md", kind: "skill" }],
-      metadata: { sourceKind: "paperclip_bundled" },
+      metadata: { sourceKind: "clayon_bundled" },
     });
     await db.insert(projects).values({ id: projectId, companyId, name: "Skills Project" });
     await db.insert(projectWorkspaces).values({
@@ -3173,7 +3173,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
   }
 
   function runtimeSkillName(key: string, slug: string) {
-    if (key.startsWith("paperclipai/paperclip/")) return slug;
+    if (key.startsWith("clayon/clayon/")) return slug;
     return `${slug}--${createHash("sha256").update(key).digest("hex").slice(0, 10)}`;
   }
 

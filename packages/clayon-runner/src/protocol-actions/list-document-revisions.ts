@@ -46,7 +46,7 @@ export const listDocumentRevisionsAction = {
   "live": {
     "order": 4,
     "descriptor": {
-      "schema": "paperclip.semantic-tool.v1",
+      "schema": "clayon.semantic-tool.v1",
       "operationId": "list_document_revisions",
       "version": 1,
       "title": "List document revisions",
@@ -89,7 +89,7 @@ export const listDocumentRevisionsAction = {
   "scenario": {
     "order": 4,
     "successExample": {
-      "schema": "paperclip.capability.tool-result.v1",
+      "schema": "clayon.capability.tool-result.v1",
       "ok": true,
       "operationId": "list_document_revisions",
       "operationResultId": "example-result",
@@ -121,7 +121,7 @@ export const listDocumentRevisionsAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

@@ -61,7 +61,7 @@ export interface ClayonRunnerdArtifact {
 }
 
 export class ClayonRunnerdArtifactError extends Error {
-  readonly code = "paperclip_runnerd_artifact_invalid" as const;
+  readonly code = "clayon_runnerd_artifact_invalid" as const;
 
   constructor(
     message: string,

@@ -16,7 +16,7 @@ import {
 } from "./lib.mjs";
 
 export async function findCandidates(options) {
-  const getClayon = options.paperclip_get ?? clayonGet;
+  const getClayon = options.clayon_get ?? clayonGet;
   const getGhJson = options.gh_json ?? ghJson;
   const repository = normalizeRepository(options.repo ?? repositoryFromGh());
   const authorAllowlist = resolveAuthorAllowlist(options, getGhJson);

@@ -10,10 +10,10 @@ harness are all inside `packages/clayon-runner/`.
 
 | Boundary | Transport | Input | Output |
 |---|---|---|---|
-| Mock core → runner | stdin JSONL | `paperclip.prp.command.v1` | — |
-| Runner → mock core | stdout JSONL | — | `paperclip.runner.stream.v1` |
-| Runner → fake harness | stdin JSONL | `paperclip.fake_harness.command.v1` | — |
-| Fake harness → runner | stdout JSONL | — | `paperclip.fake_harness.message.v1` |
+| Mock core → runner | stdin JSONL | `clayon.prp.command.v1` | — |
+| Runner → mock core | stdout JSONL | — | `clayon.runner.stream.v1` |
+| Runner → fake harness | stdin JSONL | `clayon.fake_harness.command.v1` | — |
+| Fake harness → runner | stdout JSONL | — | `clayon.fake_harness.message.v1` |
 | Mock core → browser | local HTTP + NDJSON | start/actions | validated events and final trace |
 
 Stderr is diagnostic input. It never becomes a command or canonical event.

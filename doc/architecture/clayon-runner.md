@@ -27,7 +27,7 @@ Add a standalone package named `@clayon/clayon-runner`. The package owns
 the language-neutral Clayon Runner Protocol (PRP), the Rust runner process,
 provider drivers, deterministic replay, and semantic action dispatch contracts.
 
-Add one explicit adapter named `paperclip_runner`. The adapter is available only
+Add one explicit adapter named `clayon_runner`. The adapter is available only
 when an instance-level, default-off rollout flag is enabled. Provider selection
 is persisted per run and may use only a qualified provider profile.
 
@@ -204,7 +204,7 @@ the authenticated connection binding.
 
 ## Structured input
 
-Questions use `paperclip.question_set.v1`. Responses use the matching canonical
+Questions use `clayon.question_set.v1`. Responses use the matching canonical
 response contract. Drivers translate between these provider-neutral records and
 provider-native input APIs.
 
@@ -233,7 +233,7 @@ finalization of that run.
 The rollout has three gates:
 
 1. The instance flag is enabled.
-2. The agent explicitly selects `paperclip_runner`.
+2. The agent explicitly selects `clayon_runner`.
 3. The adapter selects a provider from the qualified catalog: Codex, OpenCode,
    pinned Claude/Codex ACPX, Claude Managed, or AWS AgentCore.
 

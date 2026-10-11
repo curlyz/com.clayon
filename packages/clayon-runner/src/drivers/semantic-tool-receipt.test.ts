@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appendSemanticToolReceipt, parseSemanticToolReceipt, readNativeSemanticReceipt, semanticInputSha256 } from "./semantic-tool-receipt.js";
-const call = { tool: "paperclip_finish", callId: "3", arguments: { revision: "current", summary: "private" } };
+const call = { tool: "clayon_finish", callId: "3", arguments: { revision: "current", summary: "private" } };
 const original = { content: [{ type: "text" as const, text: '{"accepted":false}' }] };
 describe("bounded semantic receipt carrier", () => {
   it("preserves existing content and transport-vs-semantic acceptance", () => {
@@ -44,19 +44,19 @@ describe("bounded semantic receipt carrier", () => {
     expect(parseSemanticToolReceipt({ ...receipt, outcome: "accepted" })).toBeNull();
   });
   it("keeps raw and forwarded input identities separate and versions historical receipts honestly", () => {
-    const normalizedInputSha256 = semanticInputSha256({ ...call.arguments, schema: "paperclip.run_result.v1" });
+    const normalizedInputSha256 = semanticInputSha256({ ...call.arguments, schema: "clayon.run_result.v1" });
     const { receipt, result } = appendSemanticToolReceipt({ ...call, normalizedInputSha256 }, original);
-    expect(receipt).toMatchObject({ schema: "paperclip.semantic_tool_receipt.v2", normalizedInputSha256,
+    expect(receipt).toMatchObject({ schema: "clayon.semantic_tool_receipt.v2", normalizedInputSha256,
       inputSha256: semanticInputSha256(call.arguments) });
     expect(receipt.inputSha256).not.toBe(normalizedInputSha256);
     expect(readNativeSemanticReceipt({ contents: result.content })).toEqual(receipt);
     expect(appendSemanticToolReceipt(call, original).receipt).toHaveProperty("normalizedInputSha256", null);
     const { normalizedInputSha256: _, ...legacyFields } = receipt as typeof receipt & { normalizedInputSha256: unknown };
-    const legacy = { ...legacyFields, schema: "paperclip.semantic_tool_receipt.v1" };
+    const legacy = { ...legacyFields, schema: "clayon.semantic_tool_receipt.v1" };
     expect(parseSemanticToolReceipt(legacy)).toEqual(legacy);
     expect(parseSemanticToolReceipt({ ...legacy, normalizedInputSha256 })).toBeNull();
     expect(parseSemanticToolReceipt({ ...receipt, normalizedInputSha256: "null" })).toBeNull();
     expect(parseSemanticToolReceipt({ ...receipt, normalizedInputSha256: "a".repeat(65) })).toBeNull();
-    expect(parseSemanticToolReceipt({ ...legacyFields, schema: "paperclip.semantic_tool_receipt.v2" })).toBeNull();
+    expect(parseSemanticToolReceipt({ ...legacyFields, schema: "clayon.semantic_tool_receipt.v2" })).toBeNull();
   });
 });

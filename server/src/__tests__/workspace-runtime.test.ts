@@ -545,7 +545,7 @@ describe("resolveManagedClayonRuntimePublicOrigin", () => {
     expect(() => resolveManagedClayonRuntimePublicOrigin({
       ...baseInput,
       environment: {},
-      exposedUrl: "https://managed-worktree.paperclip.dev",
+      exposedUrl: "https://managed-worktree.clayon.dev",
       exposedUrlTemplate: "https://{{workspace.branchName}}.com",
     })).toThrow(/does not define a stable hostname boundary/);
   });

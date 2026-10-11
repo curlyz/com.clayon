@@ -36,7 +36,7 @@ docker build -t clayon-local \
 
 The Docker workflow publishes the standard `production` target for Linux AMD64
 and ARM64. Canonical master pushes also publish
-`ghcr.io/paperclipai/paperclip:sha-<FULL_SHA>` and a GitHub/Sigstore attestation
+`ghcr.io/clayon/clayon:sha-<FULL_SHA>` and a GitHub/Sigstore attestation
 for its immutable multi-platform digest. Downstream services can compose their
 own images from this public base without rebuilding Core.
 

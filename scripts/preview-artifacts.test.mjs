@@ -205,7 +205,7 @@ test("image publisher verifies source and platform before pushing exactly one im
     });
     if (revision === sha) {
       await operation;
-      assert.deepEqual(calls.filter((call) => call.args[0] === "push").map((call) => call.args), [["push", `ghcr.io/paperclipai/paperclip:sha-${sha}-cloud`]]);
+      assert.deepEqual(calls.filter((call) => call.args[0] === "push").map((call) => call.args), [["push", `ghcr.io/clayon/clayon:sha-${sha}-cloud`]]);
     } else { await assert.rejects(operation, /identity/); assert.ok(!calls.some((call) => call.args[0] === "push")); }
     assert.ok(!calls.some((call) => ["run", "build"].includes(call.args[0])));
   }
@@ -218,5 +218,5 @@ test("commits sharing a short prefix use separate full-SHA image addresses", asy
   const other = sha.slice(0, 7) + "b".repeat(33);
   await imageExists(sha, fetchImpl);
   await imageExists(other, fetchImpl);
-  assert.deepEqual(urls.filter((url) => url.includes("/manifests/")), [sha, other].map((commit) => `https://ghcr.io/v2/paperclipai/paperclip/manifests/sha-${commit}-cloud`));
+  assert.deepEqual(urls.filter((url) => url.includes("/manifests/")), [sha, other].map((commit) => `https://ghcr.io/v2/clayon/clayon/manifests/sha-${commit}-cloud`));
 });

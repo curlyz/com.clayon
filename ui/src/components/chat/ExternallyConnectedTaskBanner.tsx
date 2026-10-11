@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Paperclip, Radio } from "lucide-react";
+import { ExternalLink, FileUp, Radio } from "lucide-react";
 import type {
   ChatPublicationState,
   ChatFileTransferPhase,
@@ -72,7 +72,7 @@ const publicationFeedback: Record<ChatPublicationState, PublicationFeedback> = {
   },
   retry: {
     title: "Delivery retry scheduled",
-    body: "Paperclip will retry this publication. Your draft and retry identity are kept.",
+    body: "Clayon will retry this publication. Your draft and retry identity are kept.",
     tone: "warn",
   },
   delivery_unknown: {
@@ -578,7 +578,7 @@ function ConnectedTaskComposer({
               disabled={uploadDisabled}
               onClick={() => fileInput.current?.click()}
             >
-              <Paperclip />
+              <FileUp />
               {uploading ? "Uploading…" : "Attach file"}
             </Button>
             <p className="text-xs text-muted-foreground">
@@ -616,7 +616,7 @@ function ConnectedTaskComposer({
               </legend>
               <p className="text-xs text-muted-foreground">
                 {binding.provider === "github"
-                  ? "GitHub Apps cannot upload file bytes in comments. Checked files stay on the Paperclip task; GitHub receives an authenticated task link when this Board has a public URL, or a private-task notice otherwise."
+                  ? "GitHub Apps cannot upload file bytes in comments. Checked files stay on the Clayon task; GitHub receives an authenticated task link when this Board has a public URL, or a private-task notice otherwise."
                   : binding.provider === "microsoft-teams" &&
                       !showingRetainedFiles
                     ? "In personal Teams chats, recipients accept each file before upload. Channels and group chats receive supported images directly; other files stay on the task, with a task link or private-task notice."
@@ -646,7 +646,7 @@ function ConnectedTaskComposer({
                           publish.reset();
                         }}
                       />
-                      <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                      <FileUp className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="truncate">{label}</span>
                     </label>
                   );
@@ -781,7 +781,7 @@ function ConnectedTaskComposer({
               {publicationStatus.isError && (
                 <p role="alert" className="text-muted-foreground">
                   Delivery status could not be refreshed. Your draft is kept;
-                  Paperclip will check again without sending another update.
+                  Clayon will check again without sending another update.
                 </p>
               )}
               {currentPublication.redactedError && (
@@ -832,7 +832,7 @@ function ConnectedTaskComposer({
             <p className="text-xs text-muted-foreground">
               {binding.provider === "slack"
                 ? "Your message is posted to Slack with your name and starts the agent."
-                : "Ordinary board comments remain Paperclip-only."}
+                : "Ordinary board comments remain Clayon-only."}
             </p>
             <Button
               size="sm"

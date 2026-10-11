@@ -1017,7 +1017,7 @@ describe("agent permission routes", () => {
   it("blocks an agent from activating inherited host settings by switching onto a local adapter", async () => {
     mockAgentService.getById.mockResolvedValue({
       ...baseAgent,
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { env: { PATH: "/tmp" } },
     });
     const app = await createApp({ type: "agent", agentId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", companyId, source: "agent_key", runId: "run-1" });

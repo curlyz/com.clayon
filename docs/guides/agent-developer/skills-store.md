@@ -37,7 +37,7 @@ The catalog splits skills into two **kinds**:
 
 - **`bundled`** — first-party Clayon skills (e.g. `issue-triage`, `task-planning`,
   `qa-acceptance`, `wireframe`, `github-pr-workflow`, `doc-maintenance`). These carry the
-  reserved `paperclipai/paperclip/...` key namespace.
+  reserved `clayon/clayon/...` key namespace.
 - **`optional`** — additional curated skills you opt into (e.g. `agent-browser`,
   `design-critique`, `release-announcement`, `last30days`, `ramp`).
 

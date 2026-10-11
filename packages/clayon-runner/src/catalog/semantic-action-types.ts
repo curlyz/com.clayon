@@ -80,7 +80,7 @@ export interface ClayonJsonSchema {
  * or invocation authority; a run-scoped authorization layer must do that.
  */
 export interface ClayonSemanticActionDescriptor {
-  readonly schema: "paperclip.semantic-action.v1";
+  readonly schema: "clayon.semantic-action.v1";
   readonly operationId: ClayonSemanticActionId;
   readonly version: 1;
   readonly title: string;

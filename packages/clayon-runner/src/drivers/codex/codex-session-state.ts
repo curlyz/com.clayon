@@ -436,7 +436,7 @@ export class CodexSessionState {
   ): void {
     const sourceSeq = ++this.sourceSequence;
     this.eventQueue.push({
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `${this.runnerInstanceId}:${this.runId}:${sourceSeq}`,
       sourceSeq,
       sourceInstanceId: this.runnerInstanceId,
@@ -511,7 +511,7 @@ export class CodexSessionState {
   ): void {
     const sourceSeq = ++this.sourceSequence;
     this.eventQueue.push({
-      schema: "paperclip.prp.event.v2",
+      schema: "clayon.prp.event.v2",
       sourceEventId: `${this.runnerInstanceId}:${this.runId}:${sourceSeq}`,
       sourceSeq,
       sourceInstanceId: this.runnerInstanceId,

@@ -37,7 +37,7 @@
         "docs": "https://developers.asana.com/docs/integrating-with-asanas-mcp-server"
       },
       "warnings": [],
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "asana.mcp",
       "grantKinds": [
         "user",

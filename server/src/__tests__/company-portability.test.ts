@@ -201,7 +201,7 @@ function asTextFile(entry: CompanyPortabilityFileEntry | undefined) {
 }
 
 describe("company portability", () => {
-  const clayonKey = "paperclipai/paperclip/clayon";
+  const clayonKey = "clayon/clayon/clayon";
   const companyPlaybookKey = "company/company-1/company-playbook";
 
   beforeEach(() => {
@@ -403,7 +403,7 @@ describe("company portability", () => {
         description: "Clayon coordination skill",
         markdown: "---\nname: clayon\ndescription: Clayon coordination skill\n---\n\n# Clayon\n",
         sourceType: "github",
-        sourceLocator: "https://github.com/paperclipai/paperclip/tree/master/skills/clayon",
+        sourceLocator: "https://github.com/clayon/clayon/tree/master/skills/clayon",
         sourceRef: "0123456789abcdef0123456789abcdef01234567",
         trustLevel: "markdown_only",
         compatibility: "compatible",
@@ -532,7 +532,7 @@ describe("company portability", () => {
 
   it("parses canonical GitHub import URLs with explicit ref and package path", () => {
     expect(
-      parseGitHubSourceUrl("https://github.com/paperclipai/companies?ref=feature%2Fdemo&path=gstack"),
+      parseGitHubSourceUrl("https://github.com/clayon/companies?ref=feature%2Fdemo&path=gstack"),
     ).toEqual({
       hostname: "github.com",
       owner: "clayon",
@@ -546,7 +546,7 @@ describe("company portability", () => {
   it("parses canonical GitHub import URLs with explicit companyPath", () => {
     expect(
       parseGitHubSourceUrl(
-        "https://github.com/paperclipai/companies?ref=abc123&companyPath=gstack%2FCOMPANY.md",
+        "https://github.com/clayon/companies?ref=abc123&companyPath=gstack%2FCOMPANY.md",
       ),
     ).toEqual({
       hostname: "github.com",
@@ -577,9 +577,9 @@ describe("company portability", () => {
     expect(asTextFile(exported.files["agents/claudecoder/AGENTS.md"])).toContain("skills:");
     expect(asTextFile(exported.files["agents/claudecoder/AGENTS.md"])).toContain(`- "${clayonKey}"`);
     expect(asTextFile(exported.files["agents/cmo/AGENTS.md"])).not.toContain("skills:");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"])).toContain("metadata:");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"])).toContain('kind: "github-dir"');
-    expect(exported.files["skills/paperclipai/paperclip/clayon/references/api.md"]).toBeUndefined();
+    expect(asTextFile(exported.files["skills/clayon/clayon/clayon/SKILL.md"])).toContain("metadata:");
+    expect(asTextFile(exported.files["skills/clayon/clayon/clayon/SKILL.md"])).toContain('kind: "github-dir"');
+    expect(exported.files["skills/clayon/clayon/clayon/references/api.md"]).toBeUndefined();
     expect(asTextFile(exported.files["skills/company/PAP/company-playbook/SKILL.md"])).toContain("# Company Playbook");
     expect(asTextFile(exported.files["skills/company/PAP/company-playbook/references/checklist.md"])).toContain("# Checklist");
 
@@ -905,9 +905,9 @@ describe("company portability", () => {
       expandReferencedSkills: true,
     });
 
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"])).toContain("# Clayon");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"])).toContain("metadata:");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/clayon/references/api.md"])).toContain("# API");
+    expect(asTextFile(exported.files["skills/clayon/clayon/clayon/SKILL.md"])).toContain("# Clayon");
+    expect(asTextFile(exported.files["skills/clayon/clayon/clayon/SKILL.md"])).toContain("metadata:");
+    expect(asTextFile(exported.files["skills/clayon/clayon/clayon/references/api.md"])).toContain("# API");
   });
 
   it("exports catalog skill provenance in portable Clayon frontmatter", async () => {
@@ -1025,7 +1025,7 @@ describe("company portability", () => {
 
     expect(exported.files["skills/company/PAP/company-playbook/SKILL.md"]).toBeDefined();
     expect(asTextFile(exported.files["skills/company/PAP/company-playbook/SKILL.md"])).toContain("# Company Playbook");
-    expect(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"]).toBeUndefined();
+    expect(exported.files["skills/clayon/clayon/clayon/SKILL.md"]).toBeUndefined();
   });
 
   it("warns and exports all skills when skills filter matches nothing", async () => {
@@ -1043,7 +1043,7 @@ describe("company portability", () => {
 
     expect(exported.warnings).toContainEqual(expect.stringContaining("nonexistent-skill"));
     expect(exported.files["skills/company/PAP/company-playbook/SKILL.md"]).toBeDefined();
-    expect(exported.files["skills/paperclipai/paperclip/clayon/SKILL.md"]).toBeDefined();
+    expect(exported.files["skills/clayon/clayon/clayon/SKILL.md"]).toBeDefined();
   });
 
   it("exports the company logo into images/ and references it from .clayon.yaml", async () => {
@@ -1138,19 +1138,19 @@ describe("company portability", () => {
       {
         id: "skill-clayon",
         companyId: "company-1",
-        key: "paperclipai/paperclip/release-changelog",
+        key: "clayon/clayon/release-changelog",
         slug: "release-changelog",
         name: "release-changelog",
         description: "Bundled release changelog skill",
         markdown: "---\nname: release-changelog\n---\n\n# Bundled Release Changelog\n",
         sourceType: "github",
-        sourceLocator: "https://github.com/paperclipai/paperclip/tree/master/skills/release-changelog",
+        sourceLocator: "https://github.com/clayon/clayon/tree/master/skills/release-changelog",
         sourceRef: "0123456789abcdef0123456789abcdef01234567",
         trustLevel: "markdown_only",
         compatibility: "compatible",
         fileInventory: [{ path: "SKILL.md", kind: "skill" }],
         metadata: {
-          sourceKind: "paperclip_bundled",
+          sourceKind: "clayon_bundled",
           owner: "clayon",
           repo: "clayon",
           ref: "0123456789abcdef0123456789abcdef01234567",
@@ -1171,8 +1171,8 @@ describe("company portability", () => {
     });
 
     expect(asTextFile(exported.files["skills/local/release-changelog/SKILL.md"])).toContain("# Local Release Changelog");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/release-changelog/SKILL.md"])).toContain("metadata:");
-    expect(asTextFile(exported.files["skills/paperclipai/paperclip/release-changelog/SKILL.md"])).toContain("paperclipai/paperclip/release-changelog");
+    expect(asTextFile(exported.files["skills/clayon/clayon/release-changelog/SKILL.md"])).toContain("metadata:");
+    expect(asTextFile(exported.files["skills/clayon/clayon/release-changelog/SKILL.md"])).toContain("clayon/clayon/release-changelog");
   });
 
   it("builds export previews without tasks by default", async () => {
@@ -1324,7 +1324,7 @@ describe("company portability", () => {
             name: "Main Repo",
             sourceType: "git_repo",
             cwd: "/Users/dotta/clayon",
-            repoUrl: "https://github.com/paperclipai/paperclip.git",
+            repoUrl: "https://github.com/clayon/clayon.git",
             repoRef: "main",
             defaultRef: "main",
             visibility: "default",
@@ -1398,7 +1398,7 @@ describe("company portability", () => {
     expect(extension).toContain('icon: "rocket"');
     expect(extension).toContain("workspaces:");
     expect(extension).toContain("main-repo:");
-    expect(extension).toContain('repoUrl: "https://github.com/paperclipai/paperclip.git"');
+    expect(extension).toContain('repoUrl: "https://github.com/clayon/clayon.git"');
     expect(extension).toContain('defaultProjectWorkspaceKey: "main-repo"');
     expect(extension).toContain('projectWorkspaceKey: "main-repo"');
     expect(extension).not.toContain("/Users/dotta/clayon");
@@ -1471,7 +1471,7 @@ describe("company portability", () => {
     expect(projectSvc.createWorkspace).toHaveBeenCalledWith("project-imported", expect.objectContaining({
       name: "Main Repo",
       sourceType: "git_repo",
-      repoUrl: "https://github.com/paperclipai/paperclip.git",
+      repoUrl: "https://github.com/clayon/clayon.git",
       repoRef: "main",
       defaultRef: "main",
       visibility: "default",
@@ -1551,7 +1551,7 @@ describe("company portability", () => {
     const repoDir = await fs.mkdtemp(path.join(os.tmpdir(), "clayon-portability-git-"));
     execFileSync("git", ["init"], { cwd: repoDir, stdio: "ignore" });
     execFileSync("git", ["checkout", "-b", "main"], { cwd: repoDir, stdio: "ignore" });
-    execFileSync("git", ["remote", "add", "origin", "https://github.com/paperclipai/paperclip.git"], {
+    execFileSync("git", ["remote", "add", "origin", "https://github.com/clayon/clayon.git"], {
       cwd: repoDir,
       stdio: "ignore",
     });
@@ -1625,7 +1625,7 @@ describe("company portability", () => {
     });
 
     const extension = asTextFile(exported.files[".clayon.yaml"]);
-    expect(extension).toContain('repoUrl: "https://github.com/paperclipai/paperclip.git"');
+    expect(extension).toContain('repoUrl: "https://github.com/clayon/clayon.git"');
     expect(extension).toContain('projectWorkspaceKey: "clayon"');
     expect(exported.warnings).not.toContainEqual(expect.stringContaining("does not have a portable repoUrl"));
     expect(exported.warnings).not.toContainEqual(expect.stringContaining("reference workspace workspace-1"));
@@ -5621,7 +5621,7 @@ describe("company portability", () => {
             "    workspaces:",
             "      default:",
             "        name: App",
-            "        repoUrl: https://github.com/paperclipai/paperclip",
+            "        repoUrl: https://github.com/clayon/clayon",
             "        setupCommand: pnpm install",
             "",
           ].join("\n"),
@@ -6057,21 +6057,21 @@ describe("company portability", () => {
       include: { company: false, agents: true, projects: false, issues: false },
       target: { mode: "existing_company" as const, companyId: "company-1" },
       agents: "all" as const, collisionStrategy: "rename" as const,
-      adapterOverrides: { claudecoder: { adapterType: "paperclip_runner", adapterConfig: { provider: "openai_dot", allowUnmeteredProvider: true, lifecycleMode: "per_turn" } } },
+      adapterOverrides: { claudecoder: { adapterType: "clayon_runner", adapterConfig: { provider: "openai_dot", allowUnmeteredProvider: true, lifecycleMode: "per_turn" } } },
     };
     instanceSettingsSvc.getExperimental.mockResolvedValue({ enableNativeRunner: true, enableOpenAiDot: false });
-    await expect(portability.importBundle(input, "user-1")).rejects.toMatchObject({ status: 422, details: { code: "paperclip_runner_dot_disabled" } });
+    await expect(portability.importBundle(input, "user-1")).rejects.toMatchObject({ status: 422, details: { code: "clayon_runner_dot_disabled" } });
     expect(agentSvc.create).not.toHaveBeenCalled();
     instanceSettingsSvc.getExperimental.mockResolvedValue({ enableNativeRunner: false, enableOpenAiDot: true });
-    await expect(portability.importBundle({ ...input, adapterOverrides: { claudecoder: { adapterType: "paperclip_runner", adapterConfig: { provider: "codex" } } } }, "user-1"))
-      .rejects.toMatchObject({ status: 422, details: { code: "paperclip_runner_rollout_disabled" } });
+    await expect(portability.importBundle({ ...input, adapterOverrides: { claudecoder: { adapterType: "clayon_runner", adapterConfig: { provider: "codex" } } } }, "user-1"))
+      .rejects.toMatchObject({ status: 422, details: { code: "clayon_runner_rollout_disabled" } });
     expect(agentSvc.create).not.toHaveBeenCalled();
     await portability.importBundle(input, "user-1");
-    expect(agentSvc.create).toHaveBeenCalledWith("company-1", expect.objectContaining({ adapterType: "paperclip_runner", adapterConfig: expect.objectContaining({ provider: "openai_dot", allowUnmeteredProvider: true }) }), { createdByUserId: "user-1" });
+    expect(agentSvc.create).toHaveBeenCalledWith("company-1", expect.objectContaining({ adapterType: "clayon_runner", adapterConfig: expect.objectContaining({ provider: "openai_dot", allowUnmeteredProvider: true }) }), { createdByUserId: "user-1" });
     const createdConfig = agentSvc.create.mock.calls[0]![1].adapterConfig;
     expect(createdConfig.dotBindingId).toBeUndefined();
     const { resolveClayonRunnerProviderProfile } = await import("../services/native-runtime/provider-profile.js");
-    expect(() => resolveClayonRunnerProviderProfile(createdConfig)).toThrow(expect.objectContaining({ code: "paperclip_runner_dot_config_invalid" }));
+    expect(() => resolveClayonRunnerProviderProfile(createdConfig)).toThrow(expect.objectContaining({ code: "clayon_runner_dot_config_invalid" }));
   });
 
   it("rejects runner imports while disabled and accepts the same selection when enabled", async () => {
@@ -6096,7 +6096,7 @@ describe("company portability", () => {
       collisionStrategy: "rename" as const,
       adapterOverrides: {
         claudecoder: {
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: { provider: "codex" },
         },
       },
@@ -6104,7 +6104,7 @@ describe("company portability", () => {
 
     await expect(portability.importBundle(request, "user-1")).rejects.toMatchObject({
       status: 422,
-      details: { code: "paperclip_runner_rollout_disabled" },
+      details: { code: "clayon_runner_rollout_disabled" },
     });
     expect(agentSvc.create).not.toHaveBeenCalled();
 
@@ -6113,7 +6113,7 @@ describe("company portability", () => {
       ...request,
       adapterOverrides: {
         claudecoder: {
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: {
             provider: "opencode",
             model: "openrouter/deepseek/deepseek-v4-flash-0731",
@@ -6122,13 +6122,13 @@ describe("company portability", () => {
       },
     }, "user-1");
     expect(agentSvc.create).toHaveBeenCalledWith("company-1", expect.objectContaining({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: expect.objectContaining({ provider: "opencode" }),
     }), { createdByUserId: "user-1" });
 
     await portability.importBundle(request, "user-1");
     expect(agentSvc.create).toHaveBeenCalledWith("company-1", expect.objectContaining({
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: expect.objectContaining({ provider: "codex" }),
     }), { createdByUserId: "user-1" });
 
@@ -6136,7 +6136,7 @@ describe("company portability", () => {
       ...request,
       adapterOverrides: {
         claudecoder: {
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: {
             provider: "claude_managed",
             managedProfileId: "managed-primary",
@@ -6159,7 +6159,7 @@ describe("company portability", () => {
       ...request,
       adapterOverrides: {
         claudecoder: {
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
           adapterConfig: {
             provider: "claude_managed",
             managedProfileId: "managed-other-company",

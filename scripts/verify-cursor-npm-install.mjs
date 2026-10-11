@@ -18,7 +18,7 @@ for (const key of Object.keys(env)) if (/^(OPENAI|ANTHROPIC|OPENROUTER|DAYTONA|X
 const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, env, stdio: 'pipe', maxBuffer: 64 * 1024 * 1024 });
 const sourceRevision = run('git', ['rev-parse', 'HEAD'], repo).toString().trim();
 const releaseBinaries = JSON.parse(readFileSync(join(repo, 'server/dist/vendor/clayon-runner/bin/release-manifest.json'), 'utf8'));
-assert.equal(releaseBinaries.schema, 'paperclip.runner.release-binaries.v1');
+assert.equal(releaseBinaries.schema, 'clayon.runner.release-binaries.v1');
 assert.match(releaseBinaries.sourceRevision, /^[a-f0-9]{40}$/);
 run('git', ['merge-base', '--is-ancestor', releaseBinaries.sourceRevision, sourceRevision], repo);
 // Controller and TypeScript admission may follow a frozen daemon. Keep its
@@ -103,12 +103,12 @@ assert.equal(installation.agentServerPackageJsonPath,join(userInfo().homedir,'.c
 assert.equal(installation.agentRuntimePackageJsonPath,null);
 assert.equal(installation.commandDigest,profile.commandDigest);
 await (await installation.openCommand()).close();
-const readiness = await requireServerAdapter('paperclip_runner').testEnvironment({ companyId: 'installation-probe', adapterType: 'paperclip_runner', config: { provider: 'acpx', acpxAgent: 'cursor', model: profile.reportedModelId } });
+const readiness = await requireServerAdapter('clayon_runner').testEnvironment({ companyId: 'installation-probe', adapterType: 'clayon_runner', config: { provider: 'acpx', acpxAgent: 'cursor', model: profile.reportedModelId } });
 assert.equal(readiness.status, 'pass', JSON.stringify(readiness));
 assert.equal(readiness.checks[0]?.code, 'acpx_runtime_ready');
 const binaryRoot = '/consumer/node_modules/@clayon/server/dist/vendor/clayon-runner/bin';
 const manifest = JSON.parse(readFileSync(binaryRoot + '/release-manifest.json', 'utf8'));
-assert.equal(manifest.schema, 'paperclip.runner.release-binaries.v1');
+assert.equal(manifest.schema, 'clayon.runner.release-binaries.v1');
 assert.deepEqual(Object.keys(manifest.platforms).sort(), ['darwin-arm64', 'darwin-x64', 'linux-x64']);
 for (const [target, artifact] of Object.entries(manifest.platforms)) {
   assert.equal(artifact.path, target + '/clayon-runnerd');
@@ -132,5 +132,5 @@ writeFileSync(join(assets,'probe.mjs'),probe,{mode:0o644});
 console.log(isolated(['node','/packages/probe.mjs'],{readOnlyConsumer:true}).toString().trim());
 assert.equal(existsSync(join(installedRunner,'provider-assets/cursor')),false,'explicit setup must leave the read-only npm package unchanged');
 for (const name of needed) assert.equal(JSON.parse(readFileSync(join(consumer,'node_modules',name,'package.json'))).version,releaseVersion);
-const report = {schema:'paperclip.cursor.public-npm-install.v1',sourceRevision,releaseVersion,consumerImage:GROK_PUBLIC_INSTALL_IMAGE,packageCount:needed.size,sourceCliManifestPreserved:readFileSync(cliManifestPath).equals(original),lifecycleScriptsEnabled:true,lifecycleSentinelVerified:true,lifecycleNetwork:'bridge',consumerLockPreserved:true,npmProvisionedCursor:false,publicSetupCommand:true,readOnlyConsumer:true,accountCacheVerified:true,pinnedClosureVerified:true,packagedDaemonTargetsVerified:['darwin-arm64','darwin-x64','linux-x64'],releaseBinaries,ordinaryInstalledDaemonLaunched:true,providerCalls:0};
+const report = {schema:'clayon.cursor.public-npm-install.v1',sourceRevision,releaseVersion,consumerImage:GROK_PUBLIC_INSTALL_IMAGE,packageCount:needed.size,sourceCliManifestPreserved:readFileSync(cliManifestPath).equals(original),lifecycleScriptsEnabled:true,lifecycleSentinelVerified:true,lifecycleNetwork:'bridge',consumerLockPreserved:true,npmProvisionedCursor:false,publicSetupCommand:true,readOnlyConsumer:true,accountCacheVerified:true,pinnedClosureVerified:true,packagedDaemonTargetsVerified:['darwin-arm64','darwin-x64','linux-x64'],releaseBinaries,ordinaryInstalledDaemonLaunched:true,providerCalls:0};
 writeFileSync(join(root,'report.json'),JSON.stringify(report,null,2)+'\n'); console.log(JSON.stringify(report));

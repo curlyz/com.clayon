@@ -66,7 +66,7 @@
   "qualification": "pending: no credential, entitlement, model execution or Daytona",
   "executionBoundary": {
     "kind": "Linux image initialize-only build proof",
-    "image": "ghcr.io/paperclipai/paperclip-daytona-runner@sha256:5457769683fd310223d3b0d4f1ed9a6cf341bdb16514746b3aaeabca2e888fee",
+    "image": "ghcr.io/clayon/clayon-daytona-runner@sha256:5457769683fd310223d3b0d4f1ed9a6cf341bdb16514746b3aaeabca2e888fee",
     "network": "none",
     "rootFilesystem": "read-only",
     "writableState": "private tmpfs",

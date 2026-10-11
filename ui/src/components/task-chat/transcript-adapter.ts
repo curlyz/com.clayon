@@ -1026,8 +1026,8 @@ export function transcriptToTaskChatItems(
       }
       case "result": {
         if (
-          entry.subtype !== "paperclip_runner_usage" &&
-          entry.subtype !== "paperclip_runner_session_usage"
+          entry.subtype !== "clayon_runner_usage" &&
+          entry.subtype !== "clayon_runner_session_usage"
         )
           break;
         const inputTokens = entry.inputTokens || 0;
@@ -1035,7 +1035,7 @@ export function transcriptToTaskChatItems(
         items.push({
           id: `${runId}:usage:${i}`,
           kind: "usage",
-          ...(entry.subtype === "paperclip_runner_session_usage"
+          ...(entry.subtype === "clayon_runner_session_usage"
             ? {
                 label: "Provider session total",
                 detail:
@@ -1226,7 +1226,7 @@ export function clayonRunnerActivityItems(
           (normalizedName === "file_change" || normalizedName === "filechange")
         )
           return false;
-        return normalizedName !== "paperclip_finish";
+        return normalizedName !== "clayon_finish";
       }
       case "marker":
         return item.variant === "interrupted";
@@ -1236,7 +1236,7 @@ export function clayonRunnerActivityItems(
         if (
           item.surface === "provider_activity" &&
           item.family === "tool_execution" &&
-          providerItemDetail(item, "Name") === "paperclip_finish"
+          providerItemDetail(item, "Name") === "clayon_finish"
         ) return false;
         if (
           hasAggregateWorkspaceChange &&
@@ -1633,7 +1633,7 @@ function phaseSummary(
               ? "Searched available tools"
               : `Searched available tools ${count} times`;
           break;
-        case "paperclip_read":
+        case "clayon_read":
           text =
             count === 1
               ? "Read from Clayon"
@@ -1858,7 +1858,7 @@ export function buildTurnSummary(
       else if (entry.changeType === "remove") removed += 1;
     } else if (
       entry.kind === "result" &&
-      entry.subtype !== "paperclip_runner_session_usage"
+      entry.subtype !== "clayon_runner_session_usage"
     ) {
       // Session-cumulative measurements remain visible in the expanded
       // transcript, but they can include earlier runs. Only run-scoped usage

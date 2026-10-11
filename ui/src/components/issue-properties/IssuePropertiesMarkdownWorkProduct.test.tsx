@@ -445,9 +445,9 @@ describe("markdown work product review row", () => {
         type: "pull_request",
         provider: "github",
         title: "Artifact grouping PR",
-        url: "https://github.com/paperclipai/paperclip/pull/1",
+        url: "https://github.com/clayon/clayon/pull/1",
         createdByRunId: runOne,
-        metadata: { repo: "paperclipai/paperclip", number: 1, baseRef: "master", headRef: "artifacts" },
+        metadata: { repo: "clayon/clayon", number: 1, baseRef: "master", headRef: "artifacts" },
       }),
       makeMarkdownWorkProduct({
         id: "33333333-3333-4333-8333-333333333333",
@@ -479,7 +479,7 @@ describe("markdown work product review row", () => {
       expect(container.textContent).toContain("DesignCoder");
       expect(container.querySelectorAll("article")).toHaveLength(2);
       expect(container.querySelector(`img[src="${imagePath}"]`)).not.toBeNull();
-      expect(container.querySelector('a[href="https://github.com/paperclipai/paperclip/pull/1"]')?.textContent).toContain("Open pull request");
+      expect(container.querySelector('a[href="https://github.com/clayon/clayon/pull/1"]')?.textContent).toContain("Open pull request");
       expect(container.querySelector('button[aria-label="View image: Artifacts screenshot"]')).not.toBeNull();
     });
   });

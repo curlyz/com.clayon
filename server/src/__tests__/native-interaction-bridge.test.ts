@@ -387,7 +387,7 @@ describe("P6-19 native interaction bridge", () => {
         companyId,
         issueId: scenario.issueId,
         revision: 1,
-        schemaVersion: "paperclip.completion-contract.v1",
+        schemaVersion: "clayon.completion-contract.v1",
         policyVersion: "phase6-v1",
         risk: "standard",
         completionAuthority: "server_arbiter",
@@ -426,7 +426,7 @@ describe("P6-19 native interaction bridge", () => {
       });
       await port.completeRun({
         result: {
-          schema: "paperclip.run_result.v1",
+          schema: "clayon.run_result.v1",
           reportedWorkDisposition: scenario.disposition,
           summary: `Native attention ${scenario.key}`,
           completionClaim: {
@@ -448,7 +448,7 @@ describe("P6-19 native interaction bridge", () => {
           } : {}),
         },
         terminal: {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState: "completed",
           runTerminalState: "succeeded",
           reportedWorkDisposition: scenario.disposition,
@@ -542,7 +542,7 @@ describe("P6-19 native interaction bridge", () => {
         companyId,
         issueId: localIssueId,
         revision: 1,
-        schemaVersion: "paperclip.completion-contract.v1",
+        schemaVersion: "clayon.completion-contract.v1",
         policyVersion: "phase6-v1",
         risk: "standard",
         completionAuthority: "server_arbiter",
@@ -592,7 +592,7 @@ describe("P6-19 native interaction bridge", () => {
       });
       await port.completeRun({
         result: {
-          schema: "paperclip.run_result.v1",
+          schema: "clayon.run_result.v1",
           reportedWorkDisposition: "yielded",
           summary: `Audit-only native attention ${input.label}`,
           completionClaim: {
@@ -612,7 +612,7 @@ describe("P6-19 native interaction bridge", () => {
           },
         },
         terminal: {
-          schema: "paperclip.prp.terminal.v1",
+          schema: "clayon.prp.terminal.v1",
           turnTerminalState: "completed",
           runTerminalState: "succeeded",
           reportedWorkDisposition: "yielded",

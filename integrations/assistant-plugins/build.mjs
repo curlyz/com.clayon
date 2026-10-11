@@ -10,7 +10,7 @@ if (endpoint.username || endpoint.password || endpoint.search || endpoint.hash |
   throw new Error("Supply a deployed HTTPS /mcp/clayon URL, or HTTP loopback for development.");
 }
 const root = path.dirname(fileURLToPath(import.meta.url));
-const identity = { name: "clayon", version: "0.1.0", description: "Review your team, delegate work and retrieve durable results in Clayon.", author: { name: "Clayon", url: "https://clayon.ing" }, homepage: "https://clayon.ing", repository: "https://github.com/paperclipai/paperclip", license: "MIT" };
+const identity = { name: "clayon", version: "0.1.0", description: "Review your team, delegate work and retrieve durable results in Clayon.", author: { name: "Clayon", url: "https://clayon.ing" }, homepage: "https://clayon.ing", repository: "https://github.com/clayon/clayon", license: "MIT" };
 const presentation = { displayName: "Clayon", shortDescription: "Your persistent team behind your assistant.", longDescription: "Use your Clayon team as yourself. Review tasks, delegate work to agents, add feedback and retrieve documents. Delegation can start autonomous work using your team's configured execution capacity and budget.", developerName: "Clayon", category: "Productivity", capabilities: ["Read", "Write"], defaultPrompt: "Review my Clayon team and show what needs my attention." };
 const json = (file, data) => writeFile(file, JSON.stringify(data, null, 2) + "\n");
 for (const vendor of ["openai", "claude"]) {

@@ -39,7 +39,7 @@ export const listCasesAction = {
       "ok": true,
       "operationId": "list_cases",
       "result": {
-        "schema": "paperclip.capability.tool-result.v1",
+        "schema": "clayon.capability.tool-result.v1",
         "ok": true,
         "operationId": "example",
         "operationResultId": "example",
@@ -69,7 +69,7 @@ export const listCasesAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

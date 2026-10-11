@@ -98,6 +98,8 @@ import { AdapterManager } from "./pages/AdapterManager";
 import { PluginPage } from "./pages/PluginPage";
 import { NewAgent } from "./pages/NewAgent";
 import { AuthPage } from "./pages/Auth";
+import { PortalHome } from "@/pages/PortalHome";
+import { Portal } from "@/components/portal/Portal";
 import { BoardClaimPage } from "./pages/BoardClaim";
 import { AssistantConnection } from "./pages/apps/AssistantConnection";
 import { McpConnectPage, McpDevicePage, AssistantConnectionsPage } from "./pages/McpConnect";
@@ -480,7 +482,7 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
 }
 
 function AppsConnectEntryRoute({
-  credentialSource = "paperclip_vault",
+  credentialSource = "clayon_vault",
 }: {
   credentialSource?: ToolConnectionCredentialSource;
 } = {}) {
@@ -820,8 +822,15 @@ export function App() {
         <Route path="ux-lab/responsible-user-denial" element={<ResponsibleUserDenialUxLab />} />
         <Route path="ux-lab/cross-issue-collaboration" element={<CrossIssueCollaborationUxLab />} />
 
-        <Route element={streamlinedUiLoaded ? <CloudAccessGate /> : <ClayonLockup className="text-lg" />}>
-          <Route index element={<CompanyRootRedirect />} />
+        <Route element={streamlinedUiLoaded ? <CloudAccessGate /> : (
+          <Portal>
+            <div className="halo-portal-content" role="status">
+              <h1 className="halo-portal-title">Opening the portal.</h1>
+              <p className="halo-portal-description">Preparing your workspace…</p>
+            </div>
+          </Portal>
+        )}>
+          <Route index element={<PortalHome />} />
           <Route path="onboarding" element={<OnboardingRoutePage />} />
           <Route path="instance" element={<LegacySettingsRedirect />} />
           <Route path="instance/settings" element={<LegacySettingsRedirect />} />

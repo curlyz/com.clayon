@@ -79,7 +79,7 @@
       "source": {
         "sha": "0d7ecfa96d72fba79b7f0a25052b42c0686c0488",
         "ref": "refs/heads/codex/opencode-pre-routing-skill",
-        "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37069552374"
+        "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37069552374"
       },
       "status": "passed",
       "attempt": 1,
@@ -427,7 +427,7 @@
       "source": {
         "sha": "0d7ecfa96d72fba79b7f0a25052b42c0686c0488",
         "ref": "refs/heads/codex/opencode-pre-routing-skill",
-        "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37069552374"
+        "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37069552374"
       },
       "status": "passed",
       "attempt": 1,
@@ -756,7 +756,7 @@
       "source": {
         "sha": "fe9dc1e3c518825242ed889ab9c8352986f8c2ed",
         "ref": "refs/heads/codex/opencode-stock-routing-qualified",
-        "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37069547401"
+        "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37069547401"
       },
       "status": "passed",
       "attempt": 1,
@@ -1054,7 +1054,7 @@
       "source": {
         "sha": "fe9dc1e3c518825242ed889ab9c8352986f8c2ed",
         "ref": "refs/heads/codex/opencode-stock-routing-qualified",
-        "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37069547401"
+        "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37069547401"
       },
       "status": "passed",
       "attempt": 1,

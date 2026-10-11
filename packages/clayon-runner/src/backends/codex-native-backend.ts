@@ -126,7 +126,7 @@ function createTransportBackedNativeSessionBackend(
     input.provider.approvalPolicy !== "never"
   ) {
     throw new Error(
-      "paperclip_runner_codex_permission_mode_unqualified: set codexPermissionMode to never before starting or recovering this native run",
+      "clayon_runner_codex_permission_mode_unqualified: set codexPermissionMode to never before starting or recovering this native run",
     );
   }
 
@@ -208,7 +208,7 @@ function createTransportBackedNativeSessionBackend(
 export function describeRunnerdNativeSessionBackend(
   input: NativeExecutionInput,
 ): Promise<NativeSessionBackendDescriptor> {
-  if (input.schema === "paperclip.native-execution-input.v6") {
+  if (input.schema === "clayon.native-execution-input.v6") {
     // Dot uses its dedicated Rust bridge, rather than the JSON-RPC facade.
     const descriptor = describeRunnerdDotDriver();
     return Promise.resolve({

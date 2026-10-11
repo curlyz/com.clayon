@@ -416,7 +416,7 @@ describe("OpenCodeServerDriver", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: {
             "boundary-mode": { selectedOptionIds: ["lossless"] },
           },
@@ -490,7 +490,7 @@ describe("OpenCodeServerDriver", () => {
               method: profile.originMethod,
             },
             input: expect.objectContaining({
-              schema: "paperclip.question_set.v1",
+              schema: "clayon.question_set.v1",
               title: "Boundary mode",
               questions: [
                 expect.objectContaining({
@@ -812,19 +812,19 @@ describe("OpenCodeServerDriver", () => {
       events.find((event) => event.eventType === "workspace.change.updated")
         ?.payload,
     ).toMatchObject({
-      schema: "paperclip.workspace.diff.v1",
+      schema: "clayon.workspace.diff.v1",
       source: "harness_reported",
       totals: { files: 1 },
     });
     expect(
       events.find((event) => event.eventType === "workspace.diff.recorded")
         ?.payload,
-    ).toMatchObject({ schema: "paperclip.workspace.diff.v1", complete: true });
+    ).toMatchObject({ schema: "clayon.workspace.diff.v1", complete: true });
     expect(
       events.find((event) => event.eventType === "workspace.file.referenced")
         ?.payload,
     ).toMatchObject({
-      schema: "paperclip.workspace.file_reference.v1",
+      schema: "clayon.workspace.file_reference.v1",
       path: "guide.md",
     });
     expect(JSON.stringify(events)).not.toContain(
@@ -909,7 +909,7 @@ describe("OpenCodeServerDriver", () => {
     expect(environment.modelsFetchDisabled).toBe("true");
     expect(environment.defaultPluginsDisabled).toBe("true");
     expect(mcpEvidence.tools).toEqual(
-      expect.arrayContaining(["paperclip_finish", "paperclip_block"]),
+      expect.arrayContaining(["clayon_finish", "clayon_block"]),
     );
     expect(config).toContain("openrouter/deepseek/deepseek-v4-flash-0731");
     expect(config).toContain('"*": "allow"');
@@ -1636,11 +1636,11 @@ describe("OpenCodeServerDriver", () => {
     }
     expect(requestEvent?.payload).toMatchObject({
       request: {
-        schema: "paperclip.runtime_request.v2",
+        schema: "clayon.runtime_request.v2",
         requestKind: "runtime",
         type: "input",
         input: {
-          schema: "paperclip.question_set.v1",
+          schema: "clayon.question_set.v1",
           questions: [
             {
               id: "environment",
@@ -1661,7 +1661,7 @@ describe("OpenCodeServerDriver", () => {
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: {
             environment: { customText: "Canary" },
             regions: { selectedOptionIds: ["option-1", "option-2"] },
@@ -1693,7 +1693,7 @@ describe("OpenCodeServerDriver", () => {
     expect(terminalQuestionEvents[0]?.payload).toMatchObject({
       action: "submit",
       response: {
-        schema: "paperclip.question_response.v1",
+        schema: "clayon.question_response.v1",
         answers: {
           environment: { customText: "Canary" },
           regions: { selectedOptionIds: ["option-1", "option-2"] },
@@ -1778,7 +1778,7 @@ describe("OpenCodeServerDriver", () => {
         replayAllowed: false,
         requestType: "input",
         request: {
-          schema: "paperclip.runtime_request.v2",
+          schema: "clayon.runtime_request.v2",
           requestId: "question-native-1",
           type: "input",
         },
@@ -1989,7 +1989,7 @@ describe("OpenCodeServerDriver", () => {
         "deepseek/deepseek-v4-flash-0731",
       );
       expect(config.provider.openrouter.models["deepseek/deepseek-v4-flash-0731"].options).toBeUndefined();
-      expect(config.permission.paperclip_finish).toBeUndefined();
+      expect(config.permission.clayon_finish).toBeUndefined();
       expect(config.permission["clayon_*"]).toBe("allow");
       await session.close({ reason: "permission mode test complete" });
     },

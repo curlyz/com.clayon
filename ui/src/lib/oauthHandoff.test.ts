@@ -24,7 +24,7 @@ describe("Clayon Cloud OAuth handoff", () => {
 
     const target = await prepareOAuthNavigation({
       authorizationUrl: "https://my.example.test/connections/confirm?session=legacy",
-      handoff: { kind: "paperclip_cloud", session: SESSION },
+      handoff: { kind: "clayon_cloud", session: SESSION },
     }, { request: request as typeof fetch });
 
     expect(request).toHaveBeenCalledWith("/cloud/connections/handoff", expect.objectContaining({
@@ -43,7 +43,7 @@ describe("Clayon Cloud OAuth handoff", () => {
 
     await prepareOAuthNavigation({
       authorizationUrl: "https://my.example.test/connections/confirm",
-      handoff: { kind: "paperclip_cloud", session: SESSION },
+      handoff: { kind: "clayon_cloud", session: SESSION },
     }, { request });
 
     expect(request).toHaveBeenCalledTimes(2);
@@ -58,7 +58,7 @@ describe("Clayon Cloud OAuth handoff", () => {
 
     await expect(prepareOAuthNavigation({
       authorizationUrl: "https://my.example.test/connections/confirm",
-      handoff: { kind: "paperclip_cloud", session: SESSION },
+      handoff: { kind: "clayon_cloud", session: SESSION },
     }, { request: request as typeof fetch })).resolves.toMatchObject({ kind: "reauthentication" });
 
     request.mockResolvedValueOnce(Response.json({
@@ -67,7 +67,7 @@ describe("Clayon Cloud OAuth handoff", () => {
     }, { status: 401 }));
     await expect(prepareOAuthNavigation({
       authorizationUrl: "https://my.example.test/connections/confirm",
-      handoff: { kind: "paperclip_cloud", session: SESSION },
+      handoff: { kind: "clayon_cloud", session: SESSION },
     }, { request: request as typeof fetch })).rejects.toMatchObject({ code: "forbidden" });
   });
 
@@ -75,14 +75,14 @@ describe("Clayon Cloud OAuth handoff", () => {
     const request = vi.fn();
     await expect(prepareOAuthNavigation({
       authorizationUrl: "https://provider.example.test/authorize",
-      handoff: { kind: "paperclip_cloud", session: "bad session" },
+      handoff: { kind: "clayon_cloud", session: "bad session" },
     }, { request: request as typeof fetch })).rejects.toBeInstanceOf(OAuthHandoffError);
     expect(request).not.toHaveBeenCalled();
   });
 
   it("keeps the opaque handoff in per-tab storage for reauthentication resume", () => {
     savePendingCloudHandoff(SESSION);
-    expect(readPendingCloudHandoff()).toEqual({ kind: "paperclip_cloud", session: SESSION });
+    expect(readPendingCloudHandoff()).toEqual({ kind: "clayon_cloud", session: SESSION });
     clearPendingCloudHandoff();
     expect(readPendingCloudHandoff()).toBeNull();
   });

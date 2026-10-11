@@ -185,7 +185,7 @@ function splitSqlStatements(sql: string): string[] {
 
 function ignoreRules(statement: string): Set<string> {
   const rules = new Set<string>();
-  const pattern = /--\s*(?:paperclip|clayon):migration-safety-ignore\s+([a-z0-9-]+|all)\s*:\s*(\S.*)$/gim;
+  const pattern = /--\s*(?:clayon|clayon):migration-safety-ignore\s+([a-z0-9-]+|all)\s*:\s*(\S.*)$/gim;
   for (const match of statement.matchAll(pattern)) {
     const rule = match[1];
     const reason = match[2]?.trim();

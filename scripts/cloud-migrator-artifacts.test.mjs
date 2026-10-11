@@ -130,7 +130,7 @@ test("real npm ci installs the new pair from pinned archives with an empty cache
 
 test("AWS trust is master-only and publication policy cannot overwrite objects", () => {
   const read = (name) => JSON.parse(readFileSync(new URL(`../.github/cloud-migrator-deploy/${name}.json`, import.meta.url)));
-  assert.equal(read("trust-policy").Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"], "repo:paperclipai/paperclip:ref:refs/heads/master");
+  assert.equal(read("trust-policy").Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"], "repo:clayon/clayon:ref:refs/heads/master");
   const policy = read("upload-policy").Statement;
   assert.deepEqual(policy.map((s) => s.Action), ["s3:PutObject", "s3:ListBucket"]);
   assert.equal(policy[0].Condition.StringEquals["s3:if-none-match"], "*");

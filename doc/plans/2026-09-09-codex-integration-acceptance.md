@@ -14,7 +14,7 @@ current master before merge.
 ## Native browser acceptance
 
 A fresh test-drive instance started without tasks or prior runs. The test agent
-used paperclip_runner with Codex. Browser actions created a task in the fixture
+used clayon_runner with Codex. Browser actions created a task in the fixture
 project, requested the notes, and sent two follow-up messages. The test server
 was restarted between the first answer and the follow-ups.
 

@@ -1043,14 +1043,14 @@ function connectorEnrollmentPrincipal(req: Request): string {
       });
     } catch {
       throw unprocessable("Clayon Cloud enrollment could not be started", {
-        code: "paperclip_cloud_connector_enrollment_failed",
+        code: "clayon_cloud_connector_enrollment_failed",
       });
     }
     await logActivity(db, {
       companyId,
       actorType: "user",
       actorId: req.actor.userId ?? "board",
-      action: "paperclip_cloud_connector.enrollment_started",
+      action: "clayon_cloud_connector.enrollment_started",
       entityType: "connector_instance",
       entityId: status.instanceId ?? "pending",
       details: { environment: status.environment, status: status.status },
@@ -1091,7 +1091,7 @@ function connectorEnrollmentPrincipal(req: Request): string {
         companyId: pending.companyId,
         actorType: "user",
         actorId: req.actor.userId ?? "board",
-        action: "paperclip_cloud_connector.enrollment_completed",
+        action: "clayon_cloud_connector.enrollment_completed",
         entityType: "connector_instance",
         entityId: status.instanceId ?? enrollmentId,
         details: { environment: status.environment, status: status.status },

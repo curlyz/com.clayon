@@ -1,14 +1,14 @@
 {
   "commandDigest": "sha256:b1440d559ebc4eef5c7a582f1c81fc153270cfbafa1731a8ee76d83713bdf61b",
   "declaration": {
-    "schema": "paperclip.acpx_profile_declaration.v1",
+    "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "cursor",
     "agentProfileVersion": 4,
     "acpxVersion": "0.13.1",
     "agentServerVersion": "2026.09.26-dd393fe",
     "patchVersion": "clayon-cursor-instructions-v2",
     "distribution": {
-      "schema": "paperclip.cursor_distribution.v1",
+      "schema": "clayon.cursor_distribution.v1",
       "version": "2026.09.26-dd393fe",
       "platforms": {
         "darwin-arm64": {

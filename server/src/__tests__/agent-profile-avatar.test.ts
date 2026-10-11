@@ -39,7 +39,7 @@ beforeAll(async () => {
 afterAll(async () => { await temporary?.cleanup(); if (root) await rm(root, { recursive: true, force: true }); });
 async function fixture() {
   const [company] = await db.insert(companies).values({ name: "Avatar test", issuePrefix: randomUUID().slice(0, 8) }).returning();
-  const [agent] = await db.insert(agents).values({ companyId: company!.id, name: "Dot", status: "active", adapterType: "paperclip_runner", appearance: appearanceForPalette("deep-tide") }).returning();
+  const [agent] = await db.insert(agents).values({ companyId: company!.id, name: "Dot", status: "active", adapterType: "clayon_runner", appearance: appearanceForPalette("deep-tide") }).returning();
   const actor = { actorType: "agent" as const, actorId: agent!.id, agentId: agent!.id };
   return { company: company!, agent: agent!, actor };
 }
@@ -140,14 +140,14 @@ it("lets a paired Dot upload without an assignment, with feature and current gra
   await db.insert(dotAgentBindings).values({ companyId: f.company.id, agentId: f.agent.id, operatorId: userId, grantId: grant!.id, status: "connected" });
   const principal: McpPrincipal = { grant: grant!, company: f.company, actor: { type: "agent", companyId: f.company.id, agentId: f.agent.id } };
   const tools = createDotRunnerMcpTools(db);
-  expect((await tools.listTools(principal)).find(tool => tool.name === "paperclip_dot_set_avatar")?.annotations).toMatchObject({ readOnlyHint: false });
-  expect(await tools.callTool(principal, "paperclip_dot_set_avatar", { imageBase64 })).toMatchObject({ outcome: "completed", result: { agentId: f.agent.id } });
-  await expect(tools.callTool(principal, "paperclip_dot_set_avatar", { imageBase64, agentId: randomUUID() })).rejects.toThrow();
+  expect((await tools.listTools(principal)).find(tool => tool.name === "clayon_dot_set_avatar")?.annotations).toMatchObject({ readOnlyHint: false });
+  expect(await tools.callTool(principal, "clayon_dot_set_avatar", { imageBase64 })).toMatchObject({ outcome: "completed", result: { agentId: f.agent.id } });
+  await expect(tools.callTool(principal, "clayon_dot_set_avatar", { imageBase64, agentId: randomUUID() })).rejects.toThrow();
   await instanceSettingsService(db).updateExperimental({ enableOpenAiDot: false });
-  try { await expect(tools.callTool(principal, "paperclip_dot_set_avatar", { imageBase64 })).rejects.toThrow("disabled"); }
+  try { await expect(tools.callTool(principal, "clayon_dot_set_avatar", { imageBase64 })).rejects.toThrow("disabled"); }
   finally { await instanceSettingsService(db).updateExperimental({ enableOpenAiDot: true }); }
   await db.update(mcpOauthGrants).set({ revokedAt: new Date() }).where(eq(mcpOauthGrants.id, grant!.id));
-  await expect(tools.callTool(principal, "paperclip_dot_set_avatar", { imageBase64 })).rejects.toThrow("authority");
+  await expect(tools.callTool(principal, "clayon_dot_set_avatar", { imageBase64 })).rejects.toThrow("authority");
 });
 
 it("redacts HTTP diagnostics containing image bytes", () => {

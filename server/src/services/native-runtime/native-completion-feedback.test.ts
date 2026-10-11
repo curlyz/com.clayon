@@ -9,7 +9,7 @@ import { nativeCompletionFeedback } from "./native-completion-feedback.js";
 import { ClayonRunnerToolAuthority } from "./clayon-runner-tool-authority.js";
 
 const done: PrpStructuredRunResult = {
-  schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", summary: "Document saved.",
+  schema: "clayon.run_result.v1", reportedWorkDisposition: "done", summary: "Document saved.",
   completionClaim: { contractRevision: "test", objectiveSatisfied: true, criteria: [], remainingWork: [] },
   evidence: [], verification: [], attentionRequests: [], artifacts: [],
 };
@@ -22,7 +22,7 @@ describe("native final-response feedback", () => {
   async function fixture() {
     const companyId = randomUUID(), agentId = randomUUID(), issueId = randomUUID(), runId = randomUUID();
     await db.insert(companies).values({ id: companyId, name: "Feedback", issuePrefix: `FB${companyId.slice(0, 8).toUpperCase()}` });
-    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "paperclip_runner", status: "active" });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "clayon_runner", status: "active" });
     await db.insert(issues).values({ id: issueId, companyId, identifier: `FB${companyId.slice(0, 8).toUpperCase()}-1`, title: "Save the task document", status: "in_progress", assigneeAgentId: agentId });
     await db.insert(heartbeatRuns).values({ id: runId, companyId, agentId, nativeIssueId: issueId, status: "running", runtimeMode: "native", contextSnapshot: { issueId } });
     await db.update(issues).set({ executionRunId: runId }).where(eq(issues.id, issueId));

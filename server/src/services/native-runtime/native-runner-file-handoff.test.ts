@@ -82,7 +82,7 @@ describe("native runner file handoff", () => {
       id: agentId,
       companyId,
       name: "Native file agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       status: "active",
@@ -189,7 +189,7 @@ describe("native runner file handoff", () => {
 
   function doneReport(refs: string[]): PrpStructuredRunResult {
     return {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "done",
       summary: "Created the requested checklist.",
       completionClaim: { contractRevision: "test", objectiveSatisfied: true, criteria: [], remainingWork: [] },
@@ -276,7 +276,7 @@ describe("native runner file handoff", () => {
     const root = await mkdtemp(path.join(temporaryRoot, "empty-wake-unauthorized-"));
     try {
       await expect(stageEmptyWake(root, "00000000-0000-4000-8000-000000009199"))
-        .rejects.toThrow("paperclip_runner_attachment_staging_not_authorized");
+        .rejects.toThrow("clayon_runner_attachment_staging_not_authorized");
       await expect(readdir(root)).resolves.toEqual([]);
     } finally {
       await rm(root, { recursive: true, force: true });
@@ -500,7 +500,7 @@ describe("native runner file handoff", () => {
         createdByRunId: runId,
         body: "Prepared Requested answer for this response.",
         metadata: expect.objectContaining({
-          authorizationReason: "paperclip_runner_protocol",
+          authorizationReason: "clayon_runner_protocol",
         }),
       }),
     ]);
@@ -515,7 +515,7 @@ describe("native runner file handoff", () => {
           attachmentId: first.entityRefs[0],
           workProductId: first.entityRefs[1],
           commentId: first.entityRefs[2],
-          source: "paperclip_runner_protocol",
+          source: "clayon_runner_protocol",
         }),
       }),
     ]);
@@ -549,10 +549,10 @@ describe("native runner file handoff", () => {
       authority({ executionTargetKind: "remote" }).execute(
         callFor("checked.txt", body, "remote-denied"),
       ),
-    ).rejects.toThrow("paperclip_runner_file_handoff_remote_unsupported");
+    ).rejects.toThrow("clayon_runner_file_handoff_remote_unsupported");
     await expect(
       authority().execute(callFor("linked.txt", body, "symlink-denied")),
-    ).rejects.toThrow("paperclip_runner_file_handoff_symlink_denied");
+    ).rejects.toThrow("clayon_runner_file_handoff_symlink_denied");
     await expect(
       authority().execute(
         callFor(
@@ -561,13 +561,13 @@ describe("native runner file handoff", () => {
           "intermediate-symlink-denied",
         ),
       ),
-    ).rejects.toThrow("paperclip_runner_file_handoff_symlink_denied");
+    ).rejects.toThrow("clayon_runner_file_handoff_symlink_denied");
     await expect(
       authority().execute(callFor("hardlinked.txt", body, "hardlink-denied")),
-    ).rejects.toThrow("paperclip_runner_file_handoff_file_changed");
+    ).rejects.toThrow("clayon_runner_file_handoff_file_changed");
     await expect(
       authority().execute(callFor("../checked.txt", body, "traversal-denied")),
-    ).rejects.toThrow("paperclip_runner_file_handoff_path_denied");
+    ).rejects.toThrow("clayon_runner_file_handoff_path_denied");
     await expect(
       authority().execute({
         ...callFor("checked.txt", body, "hash-denied"),
@@ -576,12 +576,12 @@ describe("native runner file handoff", () => {
           sha256: "0".repeat(64),
         },
       }),
-    ).rejects.toThrow("paperclip_runner_file_handoff_hash_mismatch");
+    ).rejects.toThrow("clayon_runner_file_handoff_hash_mismatch");
     await expect(
       authority({ companyId: "00000000-0000-4000-8000-000000009999" }).execute(
         callFor("checked.txt", body, "foreign-denied"),
       ),
-    ).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+    ).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
   });
 
   it("registers a verified remote output without reading a controller path", async () => {
@@ -803,7 +803,7 @@ describe("native runner file handoff", () => {
         },
         storage,
       }),
-    ).rejects.toThrow("paperclip_runner_attachment_staging_residue_denied");
+    ).rejects.toThrow("clayon_runner_attachment_staging_residue_denied");
     await expect(readFile(outsideResidue, "utf8")).resolves.toBe(
       "outside bytes must remain intact",
     );
@@ -839,7 +839,7 @@ describe("native runner file handoff", () => {
         },
         storage,
       }),
-    ).rejects.toThrow("paperclip_runner_attachment_staging_not_authorized");
+    ).rejects.toThrow("clayon_runner_attachment_staging_not_authorized");
 
     const remoteStage = await stageNativeRunnerWakeAttachments({
       db,
@@ -1063,7 +1063,7 @@ describe("native runner file handoff", () => {
       authority().execute(
         callFor("out/answer.txt", originalBody, "reminted-work-product"),
       ),
-    ).rejects.toThrow("paperclip_runner_file_handoff_work_product_missing");
+    ).rejects.toThrow("clayon_runner_file_handoff_work_product_missing");
 
     const failureBody = Buffer.from("storage mismatch cleanup\n", "utf8");
     await writeFile(path.join(workspaceRoot, "mismatch.txt"), failureBody);
@@ -1095,7 +1095,7 @@ describe("native runner file handoff", () => {
       mismatchingAuthority.execute(
         callFor("mismatch.txt", failureBody, "storage-mismatch"),
       ),
-    ).rejects.toThrow("paperclip_runner_file_handoff_storage_mismatch");
+    ).rejects.toThrow("clayon_runner_file_handoff_storage_mismatch");
     expect(deletedObjectKey).toEqual(expect.any(String));
     await expect(
       realStorage.headObject(companyId, deletedObjectKey!),
@@ -1122,7 +1122,7 @@ describe("native runner file handoff", () => {
       },
     };
     await db.execute(sql`
-      CREATE OR REPLACE FUNCTION paperclip_test_fail_native_receipt()
+      CREATE OR REPLACE FUNCTION clayon_test_fail_native_receipt()
       RETURNS trigger LANGUAGE plpgsql AS $$
       BEGIN
         IF NEW.result_json IS DISTINCT FROM OLD.result_json THEN
@@ -1133,9 +1133,9 @@ describe("native runner file handoff", () => {
       $$
     `);
     await db.execute(sql`
-      CREATE TRIGGER paperclip_test_fail_native_receipt
+      CREATE TRIGGER clayon_test_fail_native_receipt
       BEFORE UPDATE ON heartbeat_runs
-      FOR EACH ROW EXECUTE FUNCTION paperclip_test_fail_native_receipt()
+      FOR EACH ROW EXECUTE FUNCTION clayon_test_fail_native_receipt()
     `);
     try {
       const receiptFailureAuthority = new ClayonRunnerToolAuthority(db, {
@@ -1169,10 +1169,10 @@ describe("native runner file handoff", () => {
       });
     } finally {
       await db.execute(
-        sql`DROP TRIGGER IF EXISTS paperclip_test_fail_native_receipt ON heartbeat_runs`,
+        sql`DROP TRIGGER IF EXISTS clayon_test_fail_native_receipt ON heartbeat_runs`,
       );
       await db.execute(
-        sql`DROP FUNCTION IF EXISTS paperclip_test_fail_native_receipt()`,
+        sql`DROP FUNCTION IF EXISTS clayon_test_fail_native_receipt()`,
       );
     }
     expect(receiptFailureObjectKey).toEqual(expect.any(String));
@@ -1203,12 +1203,12 @@ describe("native runner file handoff", () => {
       {
         wake: wakeFor("github"),
         provider: "github",
-        mode: "paperclip_task_only",
+        mode: "clayon_task_only",
       },
       {
         wake: wakeFor("microsoft-teams"),
         provider: "microsoft-teams",
-        mode: "paperclip_task_only",
+        mode: "clayon_task_only",
       },
       ...["slack", "discord", "telegram"].map((provider) => ({
         wake: wakeFor(provider),

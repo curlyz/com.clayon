@@ -1114,7 +1114,7 @@ async function freshChatSourceAfterPublishedControl(
   } catch (error) {
     if (
       error instanceof Error &&
-      /^paperclip_runner_chat_attachment_(binding|destination|principal)_denied$/.test(
+      /^clayon_runner_chat_attachment_(binding|destination|principal)_denied$/.test(
         error.message,
       )
     )
@@ -1624,7 +1624,7 @@ export function isExplicitExternalAgentComment(
   metadata: IssueCommentMetadata | null | undefined,
 ): boolean {
   const reason = metadata?.authorizationReason?.trim() ?? "";
-  return reason === "paperclip_runner_protocol" || reason.startsWith("allow_");
+  return reason === "clayon_runner_protocol" || reason.startsWith("allow_");
 }
 
 type SelectedChatPresentationAttachment = {
@@ -1670,7 +1670,7 @@ async function listSelectedChatPresentationAttachments(
         eq(issueComments.authorAgentId, input.agentId),
         isNull(issueComments.deletedAt),
         sql<boolean>`(
-          coalesce(${issueComments.metadata}->>'authorizationReason', '') = 'paperclip_runner_protocol'
+          coalesce(${issueComments.metadata}->>'authorizationReason', '') = 'clayon_runner_protocol'
           or left(coalesce(${issueComments.metadata}->>'authorizationReason', ''), 6) = 'allow_'
         )`,
       ),

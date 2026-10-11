@@ -68,7 +68,7 @@
       "initdbSha256": "5a6ad92c2ce915b1a13aa2f8f2b2199996daf0cbe6b9f1d0044a387303b368ec",
       "arguments": [
         "--pgdata=<private disposable directory>",
-        "--username=paperclip_fixture",
+        "--username=clayon_fixture",
         "--auth=trust",
         "--encoding=UTF8",
         "--locale=C",

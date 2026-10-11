@@ -41,7 +41,7 @@ export const readSecretValueAction = {
       "ok": true,
       "operationId": "read_secret_value",
       "result": {
-        "schema": "paperclip.capability.tool-result.v1",
+        "schema": "clayon.capability.tool-result.v1",
         "ok": true,
         "operationId": "example",
         "operationResultId": "example",
@@ -78,7 +78,7 @@ export const readSecretValueAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

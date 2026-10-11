@@ -33,7 +33,7 @@ fn canonical_request_branch(request_kind: &str, request_type: &str) -> Value {
         .unwrap()
         .iter()
         .find(|branch| {
-            branch["properties"]["schema"]["const"] == "paperclip.runtime_request.v2"
+            branch["properties"]["schema"]["const"] == "clayon.runtime_request.v2"
                 && branch["properties"]["requestKind"]["const"] == request_kind
                 && branch["properties"]["type"]["const"] == request_type
         })
@@ -100,7 +100,7 @@ fn projects_authorized_tools_with_exact_durable_correlation() {
 fn projects_reserved_completion_tool_input_for_server_feedback_roundtrip() {
     let events = project(AcpxProviderStateEvent::ToolCall {
         call_id: "finish-1".to_owned(),
-        operation_id: "paperclip_finish".to_owned(),
+        operation_id: "clayon_finish".to_owned(),
         input: json!({"reportedWorkDisposition":"needs_review"}),
     });
 
@@ -108,7 +108,7 @@ fn projects_reserved_completion_tool_input_for_server_feedback_roundtrip() {
     assert_eq!(events[0].event_type, "semantic_tool.input");
     assert_eq!(
         events[0].payload["semantic_tool"]["operationId"],
-        "paperclip_finish"
+        "clayon_finish"
     );
     assert_eq!(events[0].payload["semantic_tool"]["callId"], "finish-1");
 }
@@ -138,7 +138,7 @@ fn keeps_durable_correlation_separate_from_the_active_provider_turn() {
             tool_call_id: None,
             request_id: "request-1".to_owned(),
             question_set: json!({
-                "schema":"paperclip.question_set.v1",
+                "schema":"clayon.question_set.v1",
                 "questions":[],
             }),
             origin: None,
@@ -211,7 +211,7 @@ fn projects_terminal_tool_cancellations_as_correlated_results() {
 #[test]
 fn projects_structured_input_and_semantic_results_without_provider_envelopes() {
     let question_set = json!({
-        "schema":"paperclip.question_set.v1",
+        "schema":"clayon.question_set.v1",
         "title":"Choose a target",
         "questions":[],
     });
@@ -232,13 +232,13 @@ fn projects_structured_input_and_semantic_results_without_provider_envelopes() {
     );
 
     let result = json!({
-        "schema":"paperclip.run_result.v1",
+        "schema":"clayon.run_result.v1",
         "reportedWorkDisposition":"done",
         "summary":"Finished",
     });
     let projected = project(reduced_semantic_result(
         "finish-1",
-        "paperclip_finish",
+        "clayon_finish",
         true,
         result.clone(),
     ));
@@ -276,7 +276,7 @@ fn projects_runtime_request_prompt_and_origin_into_the_strict_schema() {
         tool_call_id: None,
         request_id: "request-1".to_owned(),
         question_set: json!({
-            "schema":"paperclip.question_set.v1",
+            "schema":"clayon.question_set.v1",
             "title":"",
             "questions":[{
                 "id":"target",
@@ -305,7 +305,7 @@ fn projects_runtime_request_prompt_and_origin_into_the_strict_schema() {
             tool_call_id: None,
             request_id: "request-1".to_owned(),
             question_set: json!({
-                "schema":"paperclip.question_set.v1",
+                "schema":"clayon.question_set.v1",
                 "questions":[],
             }),
             origin: Some(origin),
@@ -457,7 +457,7 @@ fn rejects_invalid_durable_projection_identity() {
             tool_call_id: None,
             request_id,
             question_set: json!({
-                "schema":"paperclip.question_set.v1",
+                "schema":"clayon.question_set.v1",
                 "questions":[],
             }),
             origin: None,
@@ -513,7 +513,7 @@ fn rejects_semantic_events_that_cannot_form_stable_receipts() {
 #[test]
 fn deterministically_projects_bounded_upstream_request_ids() {
     let question_set = json!({
-        "schema":"paperclip.question_set.v1",
+        "schema":"clayon.question_set.v1",
         "questions":[],
     });
     for upstream_id in [
@@ -566,7 +566,7 @@ fn runtime_request_projection_preserves_durable_identity_boundaries() {
         tool_call_id: None,
         request_id: "request-1".to_owned(),
         question_set: json!({
-            "schema":"paperclip.question_set.v1",
+            "schema":"clayon.question_set.v1",
             "questions":[],
         }),
         origin: None,
@@ -657,7 +657,7 @@ fn cursor_plan_request_item_matches_tool_projection_and_survives_terminal_recons
         let input = AcpxProviderStateEvent::InputRequest {
             tool_call_id: Some(id.clone()),
             request_id: "input-1".to_owned(),
-            question_set: json!({"schema":"paperclip.question_set.v1","questions":[]}),
+            question_set: json!({"schema":"clayon.question_set.v1","questions":[]}),
             origin: Some(
                 json!({"adapter":"acpx-runtime-sidecar","provider":"cursor","method":"cursor/create_plan"}),
             ),
@@ -680,7 +680,7 @@ fn cursor_plan_request_item_matches_tool_projection_and_survives_terminal_recons
         ] {
             let ended = project_acpx_state_event(&context(), &AcpxProviderStateEvent::RuntimeRequestEnded {
                 tool_call_id: Some(id.clone()), request_id: "input-1".to_owned(),
-                question_set: Some(json!({"schema":"paperclip.question_set.v1","questions":[]})),
+                question_set: Some(json!({"schema":"clayon.question_set.v1","questions":[]})),
                 origin: Some(json!({"adapter":"acpx-runtime-sidecar","provider":"cursor","method":"cursor/create_plan"})), status,
             }).unwrap();
             assert_eq!(ended[0].payload["itemId"], request["itemId"]);

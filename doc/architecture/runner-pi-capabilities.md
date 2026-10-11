@@ -404,7 +404,7 @@ boundaries explicit.
 | Text and reasoning | Native start/end provenance and occurrence IDs separate pre-tool narration from the last completed assistant message; empty or tool-use terminal messages cannot promote stale text. Loaded history is display-only. The common runner's private reasoning policy still applies. |
 | Native tools | `read`, `grep`, `find`, `ls`, `write`, `edit`, and `bash` pass the immutable extension gate before execution. File roots and read-only mode are checked before and after a permission wait. The host sandbox remains authoritative for shell commands and races. |
 | Permissions | Native tool approval uses ACP `session/request_permission`, with allow once, allow for the session, and deny. Only offered options are accepted. Session grants cover an identical operation and still revalidate paths. Questions never become approvals. |
-| Questions | The owned `paperclip_native_question` tool exposes Pi `select`, `confirm`, `input`, and `editor` through ACP form elicitation. Select is single-choice with stable option IDs. Pi returns `false` for both No and dismissal of confirm, so the tool reports `negative_or_cancelled`; it never invents a confirmed answer. Other methods return explicit cancellation. Permissions and semantic Plan approval remain separate. |
+| Questions | The owned `clayon_native_question` tool exposes Pi `select`, `confirm`, `input`, and `editor` through ACP form elicitation. Select is single-choice with stable option IDs. Pi returns `false` for both No and dismissal of confirm, so the tool reports `negative_or_cancelled`; it never invents a confirmed answer. Other methods return explicit cancellation. Permissions and semantic Plan approval remain separate. |
 | Agent files | Only the authenticated execution's registered `agent_files` working copy can become `AGENT_HOME`. The Pi wrapper takes `CLAYON_PI_AGENT_HOME` from the runner's bound launch, ignores ambient `AGENT_HOME`, and admits that canonical directory alongside the task workspace. Protected overlap, directory replacement and symlink escape fail closed. Read-only policy still forbids writes. `PI_CODING_AGENT_DIR` remains private provider state. |
 | Semantic tools | Runner-bound HTTP MCP catalogs (numeric loopback HTTP or assigned HTTPS gateways) register under exact `mcp__<server>__<tool>` names. Calls use an occurrence-scoped delivery ID and preserve the bounded native ID as private ACP-wire provenance, together with the cancellation signal. Common normalized events currently drop that metadata. Authenticated PRP tool handling owns semantic authorization and durable interactions. Only the exact session-assigned gateway URL and credential are used, with redirects disabled. Ambient and unassigned MCP servers are not admitted. |
 | Plans and artifacts | Pi has no native structured plan or artifact channel. Clayon plan and artifact semantic tools remain available through the MCP bridge; native file edits retain bounded, workspace-confined ACP diff projection. Tool text/image results are preserved, and resource blocks are recorded without following URLs. |
@@ -560,7 +560,7 @@ missing sentinel kills the subprocess before the first model prompt.
 
 `pi-verified-runtime.ts` inventories and checks the complete graph, including
 Node, wrapper helper, extension, package metadata, native libraries, WASM and
-resources. The manifest schema is `paperclip.pi-runtime-files.v1`, with relative
+resources. The manifest schema is `clayon.pi-runtime-files.v1`, with relative
 `node`, `piEntrypoint`, `extension`, `wrapperEntrypoint` fields and a complete
 `files` array of SHA-256-bound regular files or contained relative symlinks.
 Hardlinked files, escaping links, changed files, and undeclared files fail
@@ -850,11 +850,11 @@ every field in Pi's native event stream. These are explicit follow-ups:
   retry success/failure/unknown and compaction usage; adapter tests cover bounded
   metadata and redaction. Extend field-by-field wrapper/canonical/browser parity
   without giving notices terminal authority or treating deterministic tests as
-  paid qualification. See the [wrapper patch](https://github.com/paperclipai/paperclip/blob/41503eb38f03c436b1569f9f0204625bb4d58782/patches/pi-acp%400.0.33.patch#L381),
-  [notice adapter](https://github.com/paperclipai/paperclip/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/src/drivers/acpx/pi-extension-adapter.ts#L22),
-  [package regressions](https://github.com/paperclipai/paperclip/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/test/pi-acp-package-contract.test.mjs#L225),
-  [adapter regressions](https://github.com/paperclipai/paperclip/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/src/drivers/acpx/pi-extension-adapter.test.ts#L5),
-  and [UI details](https://github.com/paperclipai/paperclip/blob/41503eb38f03c436b1569f9f0204625bb4d58782/ui/src/components/task-chat/TaskChatProtocolActivityRow.tsx#L283).
+  paid qualification. See the [wrapper patch](https://github.com/clayon/clayon/blob/41503eb38f03c436b1569f9f0204625bb4d58782/patches/pi-acp%400.0.33.patch#L381),
+  [notice adapter](https://github.com/clayon/clayon/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/src/drivers/acpx/pi-extension-adapter.ts#L22),
+  [package regressions](https://github.com/clayon/clayon/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/test/pi-acp-package-contract.test.mjs#L225),
+  [adapter regressions](https://github.com/clayon/clayon/blob/41503eb38f03c436b1569f9f0204625bb4d58782/packages/clayon-runner/src/drivers/acpx/pi-extension-adapter.test.ts#L5),
+  and [UI details](https://github.com/clayon/clayon/blob/41503eb38f03c436b1569f9f0204625bb4d58782/ui/src/components/task-chat/TaskChatProtocolActivityRow.tsx#L283).
 - **P1 — native queue state.** `queue_update` contains steering and follow-up queues. Extension calls
   acknowledge RPC acceptance, but the wrapper does not project that event into
   durable queued/delivered state. Do not treat `{accepted: true}` as proof that
@@ -980,7 +980,7 @@ passed and the measured key billing delta remained zero. It produced no terminal
 usage receipt or matcher success.
 
 The canonical live-eval completion contract had a separate defect: fresh sessions
-omitted native `paperclip_finish`/`paperclip_block` schemas, their callback rejected
+omitted native `clayon_finish`/`clayon_block` schemas, their callback rejected
 otherwise valid native reports, and ACP model instructions lacked the literal
 contract revision. Shared commits `dc58afb28` and `aa4b88b16` expose and validate
 those advisory reports and send the exact contract on fresh/resumed sessions.
@@ -1024,7 +1024,7 @@ without changing the provider timeout, canonical oracle or evidence scanner.
 The explicit [hello06 Product proof](../../packages/clayon-runner/test-fixtures/pi-acp/product-hello-proof.darwin-arm64.json)
 passes all six canonical matchers, including the exact response once, task `done`,
 run `succeeded`, native runtime and local environment. Pi executes
-`mcp__paperclip__paperclip_finish`, then reports a completed turn and succeeded run.
+`mcp__clayon__clayon_finish`, then reports a completed turn and succeeded run.
 The case took 32.668 seconds; cleanup and evidence inspection passed. Its receipt
 contains 26,867 input tokens, 283 output tokens and zero cached input tokens.
 The catalog notice estimates $0.00384062; measured key billing is $0.000654767.
@@ -1063,7 +1063,7 @@ spend receipt checks pass.
 ## Version 3: retain failed tool validation and Bash results
 
 The version 2 file-edit Product attempt exposed an owned bridge defect: five
-`paperclip_finish` calls returned failed MCP results, but the extension replaced
+`clayon_finish` calls returned failed MCP results, but the extension replaced
 all authenticated validation text with a generic rejection. Version 3 keeps
 valid text and structured error details within an 8 KiB UTF-8 bound, redacts
 bound credentials and labelled secrets, and still raises a failed tool result.
@@ -1121,7 +1121,7 @@ The [plan failure](../../packages/clayon-runner/test-fixtures/pi-acp/product-pla
 retains a complete two-step Plan at revision 1 and an unanswered confirmation
 bound to that exact revision. The provider run succeeds and the task remains in
 review. The real browser trace shows `task-chat-plan-preview-fallback` inside a
-settled turn. Rust had retained `mcp__paperclip__write_document` as a builtin tool
+settled turn. Rust had retained `mcp__clayon__write_document` as a builtin tool
 with no namespace, so the UI could not embed the Plan at its `write_document`
 boundary. The meaningful canonical matcher remains unchanged. No approval was
 submitted, terminal usage is unavailable, and the measured key delta is

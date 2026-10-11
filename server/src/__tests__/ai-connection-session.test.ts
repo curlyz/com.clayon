@@ -6,7 +6,7 @@ const binding = { mode: "shared" as const, provider: "openai" as const, method: 
 const pool = { mode: "router", connectionId: "pool" };
 const sessionIdentity = "grant:alice:0", credentialIdentity = "grant:alice:token";
 const config = { provider: "codex", model: "gpt-5.6-sol", env: { OPENAI_API_KEY: "fixture-token" }, managedAiConnection: { ...binding, identity: credentialIdentity, sessionIdentity } };
-const base = { adapterType: "paperclip_runner", effectiveAdapterConfig: config, agentRuntimeConfig: { aiConnection: pool }, agentConfigRevision: null as unknown, issueOverrides: null as unknown, workspaceConfig: {}, environment: {}, environmentEnv: null, projectEnv: null, routineEnv: null, runtimeSkills: [] };
+const base = { adapterType: "clayon_runner", effectiveAdapterConfig: config, agentRuntimeConfig: { aiConnection: pool }, agentConfigRevision: null as unknown, issueOverrides: null as unknown, workspaceConfig: {}, environment: {}, environmentEnv: null, projectEnv: null, routineEnv: null, runtimeSkills: [] };
 type MetadataInput = Parameters<typeof buildEffectiveRunSessionConfigMetadata>[0];
 type CompatibilityInput = Parameters<typeof aiConnectionSessionCompatibilityInputs>[0];
 const revision = (id: string, beforeBinding: unknown, afterBinding: unknown, extra = {}) => ({

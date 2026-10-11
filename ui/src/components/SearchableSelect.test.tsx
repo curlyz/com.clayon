@@ -449,7 +449,7 @@ describe("SearchableSelect", () => {
       workspace({
         id: "workspace-clayon",
         name: "Clayon app",
-        cwd: "/srv/clayon/home/paperclipai/paperclip/.clayon/worktrees/PAP-11722-new-existing-workspace-selector",
+        cwd: "/srv/clayon/home/clayon/clayon/.clayon/worktrees/PAP-11722-new-existing-workspace-selector",
         branchName: "feature/reusable-workspaces",
         status: "running",
         lastUsedAt: "2026-06-24T10:00:00.000Z",

@@ -83,7 +83,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       status: "active",
       isDefault: false,
       providerTenant: {
-        oauth: { strategy: "paperclip_cloud_connector", accessTokenExpiresAt: null },
+        oauth: { strategy: "clayon_cloud_connector", accessTokenExpiresAt: null },
         github: {
           userId: "42",
           login: "octocat",
@@ -103,7 +103,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       companyId,
       providerKey: "github",
       objectType: "pull_request",
-      externalId: "paperclipai/paperclip#pull/123",
+      externalId: "clayon/clayon#pull/123",
       statusCategory: "open",
       statusTone: "info",
       data: { provider: "github", marker: "preserved" },
@@ -119,13 +119,13 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       createdAt: "2026-09-04T12:00:00.000Z",
       bindingIds: [`${grantId}_101`],
       payload: {
-        repository: "paperclipai/paperclip",
+        repository: "clayon/clayon",
         number: 123,
         state: "closed",
         merged: true,
         mergedAt: "2026-09-04T11:59:00.000Z",
         updatedAt: "2026-09-04T11:59:01.000Z",
-        url: "https://github.com/paperclipai/paperclip/pull/123",
+        url: "https://github.com/clayon/clayon/pull/123",
         headRef: "feature",
         headSha: "a".repeat(40),
         baseRef: "master",
@@ -172,13 +172,13 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       attempts: 1,
       provider: "github",
       normalizedPayload: {
-        repository: "paperclipai/paperclip",
+        repository: "clayon/clayon",
         number: 123,
         state: "closed",
         merged: true,
         mergedAt: "2026-09-04T11:59:00.000Z",
         updatedAt: "2026-09-04T11:59:01.000Z",
-        url: "https://github.com/paperclipai/paperclip/pull/123",
+        url: "https://github.com/clayon/clayon/pull/123",
         headRef: "feature",
         headSha: "a".repeat(40),
         baseRef: "master",
@@ -244,7 +244,7 @@ describeEmbeddedPostgres("GitHub connection event delivery", () => {
       status: "active",
       isDefault: false,
       providerTenant: {
-        oauth: { strategy: "paperclip_cloud_connector", accessTokenExpiresAt: null },
+        oauth: { strategy: "clayon_cloud_connector", accessTokenExpiresAt: null },
         github: {
           userId: "42",
           login: "octocat",

@@ -84,11 +84,11 @@ export async function planArtifacts(sha, { migrator = false, image = true, fetch
 
 export async function imageExists(sha, fetchImpl = fetch) {
   versionFor(sha);
-  const tokenRes = await fetchImpl("https://ghcr.io/token?service=ghcr.io&scope=repository:paperclipai/paperclip:pull", { signal: AbortSignal.timeout(30_000) });
+  const tokenRes = await fetchImpl("https://ghcr.io/token?service=ghcr.io&scope=repository:clayon/clayon:pull", { signal: AbortSignal.timeout(30_000) });
   if (!tokenRes.ok) throw new Error(`GHCR lookup failed: HTTP ${tokenRes.status}`);
   const { token } = await tokenRes.json();
   if (typeof token !== "string") throw new Error("GHCR did not return a pull token.");
-  const base = "https://ghcr.io/v2/paperclipai/paperclip";
+  const base = "https://ghcr.io/v2/clayon/clayon";
   const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" };
   const get = (url) => fetchImpl(url, { headers, redirect: "error", signal: AbortSignal.timeout(30_000) });
   let res = await get(`${base}/manifests/sha-${sha}-cloud`);
@@ -123,7 +123,7 @@ export async function imageExists(sha, fetchImpl = fetch) {
 /** Publication loads image data, but never runs a container or source scripts. */
 export async function publishImage(file, sha, { exec = execFileSync, fetchImpl = fetch } = {}) {
   versionFor(sha);
-  const image = `ghcr.io/paperclipai/paperclip:sha-${sha}-cloud`;
+  const image = `ghcr.io/clayon/clayon:sha-${sha}-cloud`;
   if (await imageExists(sha, fetchImpl)) { console.log("Reusing the verified SHA cloud image."); return; }
   exec("docker", ["load", "--input", path.resolve(file)], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
   const [metadata] = JSON.parse(exec("docker", ["image", "inspect", image], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 }));

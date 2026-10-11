@@ -49,7 +49,7 @@ function makeSecret(id: string, name: string): CompanySecret {
     name,
     provider: "local_encrypted",
     status: "active",
-    managedMode: "paperclip_managed",
+    managedMode: "clayon_managed",
     externalRef: null,
     providerConfigId: null,
     providerMetadata: null,

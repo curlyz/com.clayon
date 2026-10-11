@@ -613,7 +613,7 @@ describe("issue thread interaction routes", () => {
   }, 10_000);
 
   it("normalizes a canonical-only mixed question form at the HTTP boundary", async () => {
-    const questionSet = { schema: "paperclip.question_set.v1", questions: [
+    const questionSet = { schema: "clayon.question_set.v1", questions: [
       { id: "repo", prompt: "Repository URL?", required: true, answerMode: "text" },
       { id: "scope", prompt: "Review scope?", required: true, answerMode: "single_select", options: [{ id: "all", label: "All changes" }, { id: "selected", label: "Selected changes" }] },
     ] };
@@ -623,7 +623,7 @@ describe("issue thread interaction routes", () => {
     expect(res.status).toBe(201);
     expect(mockInteractionService.create).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       payload: expect.objectContaining({ questionSet, questions: [
-        expect.objectContaining({ id: "repo", options: [{ id: "paperclip_text_answer", label: "Type an answer", freeText: true }] }),
+        expect.objectContaining({ id: "repo", options: [{ id: "clayon_text_answer", label: "Type an answer", freeText: true }] }),
         expect.objectContaining({ id: "scope", options: questionSet.questions[1].options }),
       ] }),
     }), expect.anything());

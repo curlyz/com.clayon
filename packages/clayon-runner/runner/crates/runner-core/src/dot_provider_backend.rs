@@ -19,7 +19,7 @@ use crate::provider_bridge::{
 };
 
 pub const DOT_PROVIDER_STATE_FILE: &str = "dot-provider-state.json";
-const SCHEMA: &str = "paperclip.runner.dot-provider-state.v1";
+const SCHEMA: &str = "clayon.runner.dot-provider-state.v1";
 const MAX_STATE_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_OPERATIONS: usize = 4096;
 const MAX_EVENTS: usize = 8192;
@@ -403,7 +403,7 @@ impl DotCommandExecutor {
                     .begin_call(id.clone(), tool.to_owned(), args.clone())
                     .map_err(|e| invalid(e.to_string()))?;
                 state.push("semantic_tool.input", json!({"semantic_tool":{
-                    "schema":"paperclip.prp.semantic_tool.v1","schemaVersion":1,"phase":"input",
+                    "schema":"clayon.prp.semantic_tool.v1","schemaVersion":1,"phase":"input",
                     "operationId":tool,"callId":id,"idempotencyKey":id,
                     "correlation":{"runId":state.run_id,"normalizedSessionId":state.session_id,"turnId":state.turn_id,"itemId":self.config.item_id},
                     "content":{"digest":semantic_value_digest(&args),"redactionDisposition":"digest_only","references":[]},"input":args}}))?;
@@ -443,7 +443,7 @@ impl DotCommandExecutor {
                 if state.completion.as_ref() != Some(submitted)
                     && state.completion_input.as_ref() != Some(submitted)
                 {
-                    return Err(invalid("Dot must successfully invoke paperclip_finish or paperclip_block with this result first"));
+                    return Err(invalid("Dot must successfully invoke clayon_finish or clayon_block with this result first"));
                 }
                 let result = state
                     .completion
@@ -457,7 +457,7 @@ impl DotCommandExecutor {
                 state.push("run.result.proposed", result.clone())?;
                 state.push("item.completed", json!({"provider":"openai_dot","item":{"id":id,"type":"agentMessage","text":result["summary"],"phase":"final_answer"}}))?;
                 state.push("turn.completed", json!({"provider":"openai_dot","providerTurnId":state.turn_id,"status":"completed"}))?;
-                state.push("run.terminal", json!({"schema":"paperclip.prp.terminal.v1","turnTerminalState":"completed","runTerminalState":"succeeded","reportedWorkDisposition":result["reportedWorkDisposition"]}))?;
+                state.push("run.terminal", json!({"schema":"clayon.prp.terminal.v1","turnTerminalState":"completed","runTerminalState":"succeeded","reportedWorkDisposition":result["reportedWorkDisposition"]}))?;
                 json!({"status":"completed"})
             }
             _ => return Err(invalid("Dot action is unsupported")),
@@ -488,7 +488,7 @@ impl DotCommandExecutor {
         }
         if matches!(
             result.operation_id.as_str(),
-            "paperclip_finish" | "paperclip_block"
+            "clayon_finish" | "clayon_block"
         ) && !result.is_error
             && result
                 .result
@@ -505,7 +505,7 @@ impl DotCommandExecutor {
                 .get("completionReport")
                 .cloned()
                 .unwrap_or_else(|| accepted_input.clone());
-            completion["schema"] = json!("paperclip.run_result.v1");
+            completion["schema"] = json!("clayon.run_result.v1");
             let schema: Value = serde_json::from_str(include_str!(
                 "../../../../protocol/schemas/result.schema.json"
             ))
@@ -621,7 +621,7 @@ impl DotCommandExecutor {
                         .map_err(|e| invalid(e.to_string()))?;
                     s.push("external_provider.dispatch_requested", json!({"binding":s.binding(),"kind":"authority_revoked","externalStopConfirmed":false}))?;
                     s.push("turn.cancelled", json!({"provider":"openai_dot","providerTurnId":s.turn_id,"externalStopConfirmed":false}))?;
-                    s.push("run.terminal", json!({"schema":"paperclip.prp.terminal.v1","turnTerminalState":"cancelled","runTerminalState":"cancelled","reportedWorkDisposition":"needs_review"}))?;
+                    s.push("run.terminal", json!({"schema":"clayon.prp.terminal.v1","turnTerminalState":"cancelled","runTerminalState":"cancelled","reportedWorkDisposition":"needs_review"}))?;
                 }
                 Ok(
                     json!({"status":"authority_revoked","externalStopConfirmed":false,"unsettledTools":s.tools.pending_calls().count()}),
@@ -681,7 +681,7 @@ impl CommandExecutor for DotCommandExecutor {
                 s.tools.settle_turn("authority_expired").map_err(|e| invalid(e.to_string()))?;
                 s.push("external_provider.dispatch_requested", json!({"binding":s.binding(),"kind":"authority_revoked","reason":"authority_expired","externalStopConfirmed":false}))?;
                 s.push("turn.failed", json!({"provider":"openai_dot","providerTurnId":s.turn_id,"error":{"code":"dot_assignment_expired","message":"Dot assignment acceptance or execution authority expired."}}))?;
-                s.push("run.terminal", json!({"schema":"paperclip.prp.terminal.v1","turnTerminalState":"failed","runTerminalState":"failed","reportedWorkDisposition":"needs_review"}))?;
+                s.push("run.terminal", json!({"schema":"clayon.prp.terminal.v1","turnTerminalState":"failed","runTerminalState":"failed","reportedWorkDisposition":"needs_review"}))?;
                 Ok(())
             })().and_then(|_| self.save());
             if let Err(error) = expiry {
@@ -771,7 +771,7 @@ mod tests {
     }
     fn command(kind: &str, payload: Value) -> Command {
         Command {
-            schema: "paperclip.prp.command.v3".into(),
+            schema: "clayon.prp.command.v3".into(),
             command_id: "test-command".into(),
             controller_seq: 1,
             command_type: kind.into(),
@@ -796,7 +796,7 @@ mod tests {
             fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
         }
         let now = crate::durable::current_unix_ms().unwrap();
-        let tools = ["save_report", "paperclip_finish"]
+        let tools = ["save_report", "clayon_finish"]
             .into_iter()
             .map(|name| AuthorizedTool {
                 operation_id: name.into(),
@@ -807,7 +807,7 @@ mod tests {
             })
             .collect::<Vec<_>>();
         let catalog = AuthorizedToolSet {
-            schema: "paperclip.runner.authorized-tools.v1".into(),
+            schema: "clayon.runner.authorized-tools.v1".into(),
             schema_version: 1,
             catalog_digest: authorized_tool_catalog_digest(&tools).unwrap(),
             operations: tools,
@@ -970,7 +970,7 @@ mod tests {
         let dir = TestDirectory::new();
         let mut e = prepared(dir.path());
         accept(&mut e);
-        let result = json!({"schema":"paperclip.run_result.v1","reportedWorkDisposition":"done","summary":"Saved report",
+        let result = json!({"schema":"clayon.run_result.v1","reportedWorkDisposition":"done","summary":"Saved report",
             "completionClaim":{"contractRevision":"contract-1","objectiveSatisfied":true,"criteria":[{"criterionId":"criterion-1","status":"satisfied","evidenceRefs":[]}],"remainingWork":[]},
             "evidence":[],"verification":[],"attentionRequests":[],"artifacts":[]});
         assert!(e
@@ -985,7 +985,7 @@ mod tests {
             operation(
                 "completion-1",
                 "tool",
-                json!({"name":"paperclip_finish","arguments":result}),
+                json!({"name":"clayon_finish","arguments":result}),
             ),
         );
         assert!(e
@@ -997,7 +997,7 @@ mod tests {
         call(
             &mut e,
             "semantic_tool.result",
-            json!({"callId":"completion-1","operationId":"paperclip_finish","result":{"accepted":true},"isError":false}),
+            json!({"callId":"completion-1","operationId":"clayon_finish","result":{"accepted":true},"isError":false}),
         );
         call(
             &mut e,
@@ -1022,7 +1022,7 @@ mod tests {
             "completionClaim":{"contractRevision":"contract-1","objectiveSatisfied":true,"criteria":[{"criterionId":"criterion-1","status":"passed","evidenceRefs":[]}],"remainingWork":[]},
             "evidence":[],"verification":[]});
         let mut canonical = input.clone();
-        canonical["schema"] = json!("paperclip.run_result.v1");
+        canonical["schema"] = json!("clayon.run_result.v1");
         canonical["reportedWorkDisposition"] = json!("done");
         canonical["completionClaim"]["criteria"][0]["status"] = json!("satisfied");
         canonical["attentionRequests"] = json!([]);
@@ -1033,13 +1033,13 @@ mod tests {
             operation(
                 "completion-1",
                 "tool",
-                json!({"name":"paperclip_finish","arguments":input}),
+                json!({"name":"clayon_finish","arguments":input}),
             ),
         );
         call(
             &mut e,
             "semantic_tool.result",
-            json!({"callId":"completion-1","operationId":"paperclip_finish","result":{"accepted":true,"completionReport":canonical},"isError":false}),
+            json!({"callId":"completion-1","operationId":"clayon_finish","result":{"accepted":true,"completionReport":canonical},"isError":false}),
         );
         drop(e);
         let mut e = DotCommandExecutor::with_runner_config(dir.path(), &config(dir.path()));

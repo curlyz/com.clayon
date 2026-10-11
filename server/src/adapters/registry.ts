@@ -361,17 +361,17 @@ const codexLocalAdapter: ServerAdapterModule = {
 };
 
 const clayonRunnerAdapter: ServerAdapterModule = {
-  type: "paperclip_runner",
+  type: "clayon_runner",
   runtimeToolDelivery: "environment",
   async execute(ctx) {
-    const message = "paperclip_runner requires the native runner coordinator";
+    const message = "clayon_runner requires the native runner coordinator";
     await ctx.onLog("stderr", `${message}\n`);
     return {
       exitCode: 1,
       signal: null,
       timedOut: false,
       errorMessage: message,
-      errorCode: "paperclip_runner_coordinator_required",
+      errorCode: "clayon_runner_coordinator_required",
       provider: ctx.config.provider === "opencode"
         ? "opencode"
         : ctx.config.provider === "claude_managed"
@@ -392,11 +392,11 @@ const clayonRunnerAdapter: ServerAdapterModule = {
       const profileError = error instanceof ClayonRunnerProviderProfileError
         ? error
         : new ClayonRunnerProviderProfileError(
-            "paperclip_runner_provider_unsupported",
+            "clayon_runner_provider_unsupported",
             "Clayon Runner provider configuration is invalid.",
           );
       return {
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         status: "fail" as const,
         testedAt: new Date().toISOString(),
         checks: [{
@@ -407,7 +407,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
       };
     }
     if (profile.provider === "openai_dot") {
-      return { adapterType: "paperclip_runner", status: "warn" as const, testedAt: new Date().toISOString(),
+      return { adapterType: "clayon_runner", status: "warn" as const, testedAt: new Date().toISOString(),
         checks: [{ code: "dot_event_test_required", level: "warn" as const, message: "Dot manages its model and billing. Validate the dedicated agent binding and event round trip in Clayon; this read-only check does not wake the Dot." }] };
     }
     if (profile.provider === "acpx") {
@@ -415,7 +415,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
         // The profile resolver already validated the isolated host's exact
         // qualification pair. Do not report a production readiness pass.
         return {
-          adapterType: "paperclip_runner", status: "warn" as const, testedAt: new Date().toISOString(),
+          adapterType: "clayon_runner", status: "warn" as const, testedAt: new Date().toISOString(),
           checks: [{ code: "acpx_candidate_qualification_only", level: "warn" as const,
             message: "This exact candidate and model are admitted for operator-controlled qualification only. Verified runtime installation, bound credentials, and model access are checked before execution; production support remains pending." }],
         };
@@ -434,7 +434,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
             throw new Error(`ACPX ${profile.acpxAgent} requires a qualified Linux x64 or macOS architecture.`);
           }
           return {
-            adapterType: "paperclip_runner", status: "warn" as const, testedAt: new Date().toISOString(),
+            adapterType: "clayon_runner", status: "warn" as const, testedAt: new Date().toISOString(),
             checks: [{ code: "acpx_remote_runtime_unverified", level: "warn" as const,
               message: "The remote platform is supported. Runtime package integrity and readiness must still be verified by the remote runner before launch." }],
           };
@@ -442,19 +442,19 @@ const clayonRunnerAdapter: ServerAdapterModule = {
         const { probeAcpxClaudeInstallation, probeAcpxGrokInstallation, probeAcpxCursorInstallation, probeAcpxPiInstallation } = await import("../vendor/clayon-runner/live/index.js");
         await (profile.acpxAgent === "pi" ? probeAcpxPiInstallation : profile.acpxAgent === "grok" ? probeAcpxGrokInstallation : profile.acpxAgent === "cursor" ? probeAcpxCursorInstallation : probeAcpxClaudeInstallation)(profile.model);
         return {
-          adapterType: "paperclip_runner", status: "pass" as const, testedAt: new Date().toISOString(),
+          adapterType: "clayon_runner", status: "pass" as const, testedAt: new Date().toISOString(),
           checks: [{ code: "acpx_runtime_ready", level: "info" as const, message: `ACPX ${profile.acpxAgent} runtime is installed and verified. Model access is checked when it runs.` }],
         };
       } catch (error) {
         return {
-          adapterType: "paperclip_runner", status: "fail" as const, testedAt: new Date().toISOString(),
+          adapterType: "clayon_runner", status: "fail" as const, testedAt: new Date().toISOString(),
           checks: [{ code: "acpx_runtime_unavailable", level: "error" as const, message: error instanceof Error ? error.message : "ACPX Claude runtime could not be verified." }],
         };
       }
     }
     if (profile.provider === "claude_managed") {
       return {
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         status: "warn" as const,
         testedAt: new Date().toISOString(),
         checks: [{
@@ -470,7 +470,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
     }
     if (profile.provider === "aws_agentcore") {
       return {
-        adapterType: "paperclip_runner",
+        adapterType: "clayon_runner",
         status: "warn" as const,
         testedAt: new Date().toISOString(),
         checks: [{
@@ -487,7 +487,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
     const result = profile.provider === "opencode"
       ? await openCodeTestEnvironment(context)
       : await codexTestEnvironment(context);
-    return { ...result, adapterType: "paperclip_runner" };
+    return { ...result, adapterType: "clayon_runner" };
   },
   listSkills: listCodexSkills,
   syncSkills: syncCodexSkills,
@@ -526,7 +526,7 @@ const clayonRunnerAdapter: ServerAdapterModule = {
         )
       : buildNpmRuntimeCommandSpec(config, "codex", "@openai/codex@0.160.0"),
   agentConfigurationDoc:
-    "# Clayon Runner\n\nAdapter: paperclip_runner\n\nRuns Codex, OpenCode, Claude Managed, AWS AgentCore, or ACPX Claude/Grok Build/Cursor/Pi through the Rust Clayon runner and authenticated PRP transport. Pi accepts an explicit provider/model ID and uses the company credentials bound to the agent environment. GitHub Copilot awaits local and Daytona qualification. Managed providers use company-scoped qualified profiles, explicit retention acknowledgement, and spend limits.\n",
+    "# Clayon Runner\n\nAdapter: clayon_runner\n\nRuns Codex, OpenCode, Claude Managed, AWS AgentCore, or ACPX Claude/Grok Build/Cursor/Pi through the Rust Clayon runner and authenticated PRP transport. Pi accepts an explicit provider/model ID and uses the company credentials bound to the agent environment. GitHub Copilot awaits local and Daytona qualification. Managed providers use company-scoped qualified profiles, explicit retention acknowledgement, and spend limits.\n",
   getConfigSchema: () => ({
     fields: [
       {

@@ -48,11 +48,11 @@ if(clayonCursorInstructionSnapshot)return clayonCursorInstructionSnapshot;
 const raw=process.env.CLAYON_CURSOR_INSTRUCTIONS;
 if(typeof raw!=="string"||Buffer.byteLength(raw)>200000)throw new Error("Cursor instruction binding missing or oversized");
 let value;try{value=JSON.parse(raw)}catch{throw new Error("Cursor instruction binding invalid")}
-if(!value||typeof value!=="object"||Array.isArray(value)||Object.keys(value).sort().join(",")!=="content,digest,schema"||value.schema!=="paperclip.cursor.instructions.v1"||typeof value.content!=="string"||value.content.includes("\\0")||Buffer.byteLength(value.content)>32768||typeof value.digest!=="string"||!/^sha256:[a-f0-9]{64}$/.test(value.digest))throw new Error("Cursor instruction binding invalid");
+if(!value||typeof value!=="object"||Array.isArray(value)||Object.keys(value).sort().join(",")!=="content,digest,schema"||value.schema!=="clayon.cursor.instructions.v1"||typeof value.content!=="string"||value.content.includes("\\0")||Buffer.byteLength(value.content)>32768||typeof value.digest!=="string"||!/^sha256:[a-f0-9]{64}$/.test(value.digest))throw new Error("Cursor instruction binding invalid");
 const digest="sha256:"+clayonCursorInstructionCrypto.createHash("sha256").update(value.content,"utf8").digest("hex");
 if(value.digest!==digest)throw new Error("Cursor instruction binding digest mismatch");
 const rules=value.content.length===0?[]:[new clayonCursorInstructionRules.DX({fullPath:"clayon://runtime/instructions",content:value.content,type:new clayonCursorInstructionRules.f5({type:{case:"global",value:new clayonCursorInstructionRules.i9}})})];
-return clayonCursorInstructionSnapshot=Object.freeze({rules,ack:Object.freeze({schema:"paperclip.cursor.instructions.v1",digest,byteLength:Buffer.byteLength(value.content)})});
+return clayonCursorInstructionSnapshot=Object.freeze({rules,ack:Object.freeze({schema:"clayon.cursor.instructions.v1",digest,byteLength:Buffer.byteLength(value.content)})});
 }`);
   replace("cursorRulesService:n.cursorRulesService,", "cursorRulesService:n.cursorRulesService,additionalRules:clayonCursorInstructionState().rules,");
   replace("S={sessionId:o,modes:this.buildModesState(a),models:I,configOptions:w}", "S={sessionId:o,modes:this.buildModesState(a),models:I,configOptions:w,_meta:{clayonCursorInstructions:y.clayonInstructionState().ack}}");
@@ -67,10 +67,10 @@ return clayonCursorInstructionSnapshot=Object.freeze({rules,ack:Object.freeze({s
   const sessionClass = platform === "darwin-arm64" ? "B" : "z";
   replace(`n.d(t,{m:()=>${sessionClass}});var s=n("node:fs/promises")`, `n.d(t,{m:()=>${sessionClass}});const ${errorType}=n(${JSON.stringify(sdk[0])}).GI;var s=n("node:fs/promises")`);
   const oldAction = 'if(e instanceof r.ao){const t=null!==(u={login:"Please sign in to continue",upgrade:"Upgrade your plan to continue",payment:"Add a payment method to continue",config:"Check your settings to continue"}[e.action])&&void 0!==u?u:e.message;return void(yield this.sendAgentMessageChunk(`\\n\\n${t}`))}';
-  const newAction = `if(e instanceof r.ao){const action=["login","upgrade","payment","config"].includes(e.action)?e.action:"unknown";throw new (${errorType})(action==="login"?-32000:-32603,"Cursor provider action required: "+action,{schema:"paperclip.cursor.provider-error.v1",kind:"action_required",action})}`;
+  const newAction = `if(e instanceof r.ao){const action=["login","upgrade","payment","config"].includes(e.action)?e.action:"unknown";throw new (${errorType})(action==="login"?-32000:-32603,"Cursor provider action required: "+action,{schema:"clayon.cursor.provider-error.v1",kind:"action_required",action})}`;
   replace(oldAction, newAction);
   replace('if(e instanceof g.T&&e.code===m.C.Unauthenticated)return void(yield this.sendAgentMessageChunk("\\n\\nError: [unauthenticated] Backend rejected authentication. Verify this is a User API Key for the same endpoint/environment, then rerun with --debug for request-level auth logs."));'.replace('m.C.Unauthenticated', `${platform === "darwin-x64" ? "f" : "m"}.C.Unauthenticated`),
-    `if(e instanceof g.T&&e.code===${platform === "darwin-x64" ? "f" : "m"}.C.Unauthenticated)throw new (${errorType})(-32000,"Cursor provider authentication rejected",{schema:"paperclip.cursor.provider-error.v1",kind:"authentication_required"});`);
+    `if(e instanceof g.T&&e.code===${platform === "darwin-x64" ? "f" : "m"}.C.Unauthenticated)throw new (${errorType})(-32000,"Cursor provider authentication rejected",{schema:"clayon.cursor.provider-error.v1",kind:"authentication_required"});`);
   // This diagnostic envelope never emits standard ACP usage or cost. Keep the
   // collector local to handlePrompt, including overlapping cancelled prompts.
   replace(`const ${errorType}=`, `const clayonCreateCursorUsage=${cursorNativeUsageSource};const ${errorType}=`);

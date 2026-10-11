@@ -137,7 +137,7 @@ describe("runner E2E Daytona image contract", () => {
       ),
     );
     expect(workflow).toContain(
-      "IMAGE_CACHE: ghcr.io/paperclipai/paperclip-daytona-runner:e2e-buildcache-amd64",
+      "IMAGE_CACHE: ghcr.io/clayon/clayon-daytona-runner:e2e-buildcache-amd64",
     );
     expect(workflow).toContain(
       '--cache-from "type=registry,ref=${IMAGE_CACHE}"',

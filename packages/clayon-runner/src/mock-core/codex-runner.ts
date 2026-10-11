@@ -46,7 +46,7 @@ function prpCapabilities(
   descriptor: Awaited<ReturnType<HarnessDriver["descriptor"]>>,
 ): PrpCapabilities {
   return {
-    schema: "paperclip.prp.capabilities.v1",
+    schema: "clayon.prp.capabilities.v1",
     sessionReusePolicy: "reuse_per_issue",
     driver: { kind: descriptor.kind, version: descriptor.version },
     steer: descriptor.capabilities.steering,
@@ -337,10 +337,10 @@ export async function runCodexCodexTracer(input: CodexCodexTracerInput): Promise
   const descriptor = await input.driver.descriptor();
   const capabilities = prpCapabilities(descriptor);
   const metadata: CodexRunMetadata = {
-    schema: "paperclip.runner.codex.metadata.v1",
+    schema: "clayon.runner.codex.metadata.v1",
     fixtureName: "codex-safe-codex-task",
     identity: {
-      schema: "paperclip.prp.identity.v1",
+      schema: "clayon.prp.identity.v1",
       companyId: input.companyId ?? "mock-company",
       issueId: input.issueId ?? "mock-issue",
       runId,
@@ -438,7 +438,7 @@ export async function runCodexCodexTracer(input: CodexCodexTracerInput): Promise
       payload: Record<string, unknown>,
       refs: { turnId?: string; itemId?: string } = {},
     ): PrpEvent => ({
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `${controlPlaneInstanceId}:${runId}:${++controlSequence}`,
       sourceSeq: controlSequence,
       sourceInstanceId: controlPlaneInstanceId,
@@ -499,7 +499,7 @@ export async function runCodexCodexTracer(input: CodexCodexTracerInput): Promise
       ? providerRuntime
       : { ...providerRuntime, runTerminalState: "failed" as const };
     controlEvents.push(controlEvent("run.terminal", {
-      schema: "paperclip.prp.terminal.v1",
+      schema: "clayon.prp.terminal.v1",
       ...runtime,
       reportedWorkDisposition:
         resultDecision.status === "accepted" && runtime.runTerminalState === "succeeded"
@@ -529,7 +529,7 @@ export async function runCodexCodexTracer(input: CodexCodexTracerInput): Promise
     const itemEvents = events.filter((event) => event.eventType.startsWith("item."));
     const providerSessionId = ids.providerSessionId ?? null;
     return {
-      schema: "paperclip.runner.codex.trace.v1",
+      schema: "clayon.runner.codex.trace.v1",
       metadata,
       context,
       events,
@@ -574,7 +574,7 @@ export async function runCodexCodexTracer(input: CodexCodexTracerInput): Promise
           context.modelInputKinds.length === 1 &&
           context.modelInputKinds[0] === "text",
         credentialsAbsent:
-          !serialized.includes("paperclip_api_key") &&
+          !serialized.includes("clayon_api_key") &&
           !serialized.includes("authorization: bearer") &&
           !serialized.includes("/api/issues/"),
       },

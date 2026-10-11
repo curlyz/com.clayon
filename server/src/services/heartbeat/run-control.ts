@@ -548,7 +548,7 @@ export function createHeartbeatRunControl(db: Db, dependencies: HeartbeatRunCont
     }
     if (!actorId) return;
     const agent = await getAgent(wake.agentId);
-    if (!agent || agent.companyId !== companyId || (agent.adapterType === "paperclip_runner" && !response?.source.requiresFreshSession)) return;
+    if (!agent || agent.companyId !== companyId || (agent.adapterType === "clayon_runner" && !response?.source.requiresFreshSession)) return;
     const [active] = await db.select({ id: heartbeatRuns.id }).from(heartbeatRuns).where(and(
       eq(heartbeatRuns.companyId, companyId),
       eq(heartbeatRuns.agentId, wake.agentId),
@@ -945,7 +945,7 @@ export function createHeartbeatRunControl(db: Db, dependencies: HeartbeatRunCont
               'beforeNativeSelection', ${heartbeatRuns.runtimeMode} = 'legacy'
                 and ${heartbeatRuns.runtimeModeResolvedAt} is null
                 and ${heartbeatRuns.executionStage} = 'preparing'
-                and coalesce(${heartbeatRuns.runnerProfileJson}->'adapterDispatch'->>'adapterType' = 'paperclip_runner', false)
+                and coalesce(${heartbeatRuns.runnerProfileJson}->'adapterDispatch'->>'adapterType' = 'clayon_runner', false)
             ))`,
         }).where(and(eq(heartbeatRuns.id, runId), inArray(heartbeatRuns.status,
           pendingNativeRetry ? [...CANCELLABLE_HEARTBEAT_RUN_STATUSES, "failed"] : [...CANCELLABLE_HEARTBEAT_RUN_STATUSES],

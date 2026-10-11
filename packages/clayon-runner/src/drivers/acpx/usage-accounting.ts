@@ -50,7 +50,7 @@ export function persistedAcpxTurnUsage(
   );
   if (added.length !== 1) return null;
   const usage = record(receipts[added[0]!]);
-  const piReceipt = agent === "pi" ? record(usage.paperclip_pi) : {};
+  const piReceipt = agent === "pi" ? record(usage.clayon_pi) : {};
   const piReceiptVerified = piReceipt.provenance === "assistant_message_receipts"
     || piReceipt.provenance === "assistant_message_and_compaction_receipts";
   const estimate = piReceiptVerified && typeof piReceipt.cost_usd === "number"
@@ -84,7 +84,7 @@ export function acpxUsageEstimateNotice(usage: Record<string, unknown>, itemId: 
   return {
     eventType: "provider.notice.recorded", itemId,
     payload: {
-      schema: "paperclip.provider.notice.v1", noticeId: itemId,
+      schema: "clayon.provider.notice.v1", noticeId: itemId,
       severity: "info", category: "pi_usage_pricing_estimate", scope: "turn",
       recoverable: true, userActionable: false,
       summary: `Pi estimates this turn at $${usage.pricingEstimateUsd.toFixed(6)} from its model prices. Billing cost is unverified.`,
@@ -99,7 +99,7 @@ export function acpxUsageEstimateNotice(usage: Record<string, unknown>, itemId: 
 type CursorPromptUsage = {
   request_id: string; prompt_message_id: string;
   receipt: {
-    schema: "paperclip.cursor.native-usage.v1"; source: "native_turn_ended"; promptId: string;
+    schema: "clayon.cursor.native-usage.v1"; source: "native_turn_ended"; promptId: string;
     completeness: "partial"; reasons: string[]; truncated: boolean;
     limits: { maxObservations: 64; maxInvocations: 64; maxBytes: 16384 };
     observations: Array<{ invocationId: string; role: "parent" | "child"; nativeRun: number; sequence: number; counters: Record<string, number> }>;
@@ -117,7 +117,7 @@ export function parseCursorPromptUsage(raw: unknown): CursorPromptUsage | null {
     if (!object(v) || !exact(v, ["request_id", "prompt_message_id", "receipt"]) || !id(v.request_id) || !id(v.prompt_message_id)) return null;
     const r = v.receipt;
     if (!object(r) || !exact(r, ["schema", "source", "promptId", "completeness", "reasons", "observations", "limits", "truncated"])) return null;
-    if (r.schema !== "paperclip.cursor.native-usage.v1" || r.source !== "native_turn_ended" || r.completeness !== "partial" || typeof r.promptId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(r.promptId) || typeof r.truncated !== "boolean") return null;
+    if (r.schema !== "clayon.cursor.native-usage.v1" || r.source !== "native_turn_ended" || r.completeness !== "partial" || typeof r.promptId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(r.promptId) || typeof r.truncated !== "boolean") return null;
     const reasons = ["native_counter_semantics_unverified", "native_counters_missing", "invalid_native_counter", "multiple_terminal_observations", "native_terminal_not_observed", "observation_limit_reached", "child_run_attribution_unverified"];
     if (!Array.isArray(r.reasons) || r.reasons.length > reasons.length || !r.reasons.includes(reasons[0]!) || new Set(r.reasons).size !== r.reasons.length || !r.reasons.every(x => reasons.includes(x))) return null;
     if (!object(r.limits) || !exact(r.limits, ["maxObservations", "maxInvocations", "maxBytes"]) || r.limits.maxObservations !== 64 || r.limits.maxInvocations !== 64 || r.limits.maxBytes !== 16384 || !Array.isArray(r.observations) || r.observations.length > 64) return null;
@@ -158,7 +158,7 @@ export function persistedCursorUsageNotice(before: unknown, after: unknown, requ
   // Eight closed observations fit within each 4,000-byte detail, without dropping any counters.
   return {
     eventType: "provider.notice.recorded", itemId,
-    payload: { schema: "paperclip.provider.notice.v1", noticeId: itemId, severity: "info", category: "cursor_native_usage_observed", scope: "turn", recoverable: true, userActionable: false,
+    payload: { schema: "clayon.provider.notice.v1", noticeId: itemId, severity: "info", category: "cursor_native_usage_observed", scope: "turn", recoverable: true, userActionable: false,
       summary: "Cursor reported partial native counters. These observations are not authoritative token usage or billing cost.", details },
   };
 }

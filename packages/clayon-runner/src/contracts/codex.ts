@@ -14,7 +14,7 @@ import {
   PRP_SEMANTIC_TOOL_NAMES,
 } from "./completion-result.js";
 
-export const CODEX_TASK_ENVELOPE_SCHEMA = "paperclip.skillless_task.v1" as const;
+export const CODEX_TASK_ENVELOPE_SCHEMA = "clayon.skillless_task.v1" as const;
 export const CODEX_CODEX_PROTOCOL_VERSION = "v2" as const;
 /** @deprecated Use the provider-neutral PRP completion contract exports. */
 export const CODEX_COMPLETION_TOOL_NAME = PRP_COMPLETION_TOOL_NAME;
@@ -23,7 +23,7 @@ export const CODEX_BLOCK_TOOL_NAME = PRP_BLOCK_TOOL_NAME;
 /** @deprecated Use the provider-neutral PRP completion contract exports. */
 export const CODEX_SEMANTIC_TOOL_NAMES = PRP_SEMANTIC_TOOL_NAMES;
 export const CODEX_SKILLLESS_BASE_INSTRUCTIONS =
-  "Complete only the supplied task envelope. Do not discover or invoke skills. Do not call a control-plane API. Return exactly one semantic completion result; use paperclip_finish when the work is done, needs review, or is explicitly yielding for the next response, and paperclip_block only when work cannot continue." as const;
+  "Complete only the supplied task envelope. Do not discover or invoke skills. Do not call a control-plane API. Return exactly one semantic completion result; use clayon_finish when the work is done, needs review, or is explicitly yielding for the next response, and clayon_block only when work cannot continue." as const;
 
 export interface CodexTaskEnvelope {
   schema: typeof CODEX_TASK_ENVELOPE_SCHEMA;
@@ -33,7 +33,7 @@ export interface CodexTaskEnvelope {
     criteria: Array<{ id: string; requirement: string }>;
   };
   constraints: string[];
-  expectedResultSchema: "paperclip.run_result.v1";
+  expectedResultSchema: "clayon.run_result.v1";
 }
 
 export interface CodexModelContextSnapshot {
@@ -72,10 +72,10 @@ export interface CodexModelContextSnapshot {
 }
 
 export interface CodexRunMetadata {
-  schema: "paperclip.runner.codex.metadata.v1";
+  schema: "clayon.runner.codex.metadata.v1";
   fixtureName: string;
   identity: {
-    schema: "paperclip.prp.identity.v1";
+    schema: "clayon.prp.identity.v1";
     companyId: string;
     issueId: string;
     runId: string;
@@ -89,7 +89,7 @@ export interface CodexRunMetadata {
 }
 
 export interface CodexRunTrace {
-  schema: "paperclip.runner.codex.trace.v1";
+  schema: "clayon.runner.codex.trace.v1";
   metadata: CodexRunMetadata;
   context: CodexModelContextSnapshot;
   events: PrpEvent[];
@@ -147,7 +147,7 @@ export function createCodexTaskEnvelope(input: {
       "Do not call a control-plane API.",
       "Return one semantic completion result.",
     ],
-    expectedResultSchema: "paperclip.run_result.v1",
+    expectedResultSchema: "clayon.run_result.v1",
   };
 }
 
@@ -175,7 +175,7 @@ export function isSkilllessCodexContext(
     ) &&
     context.instructionPolicy.skillInstructions === false &&
     context.instructionPolicy.appInstructions === false &&
-    !serialized.includes("paperclip_api_key") &&
+    !serialized.includes("clayon_api_key") &&
     !serialized.includes("authorization: bearer") &&
     !serialized.includes("/api/issues/") &&
     !serialized.includes('"type":"skill"')

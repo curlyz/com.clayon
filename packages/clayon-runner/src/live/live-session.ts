@@ -60,7 +60,7 @@ import {
   type ClayonWorkspaceFileReference,
 } from "./workspace-file-reference.js";
 
-const LIVE_SESSION_SCHEMA = "paperclip.capability.live-session.v1" as const;
+const LIVE_SESSION_SCHEMA = "clayon.capability.live-session.v1" as const;
 const LIVE_COMPLETION_CONTRACT = Object.freeze({
   revision: "clayon-capability-live-v1",
   criterionIds: ["objective"],
@@ -2240,7 +2240,7 @@ export class CapabilityLiveSession {
     });
     await this.#persist();
     return this.sendMessage(JSON.stringify({
-      schema: "paperclip.semantic-interaction-result.v1",
+      schema: "clayon.semantic-interaction-result.v1",
       interactionId: input.interactionId,
       kind: interaction.kind,
       outcome: input.outcome,
@@ -2368,7 +2368,7 @@ export class CapabilityLiveSession {
       this.#transportOptions.baseInstructions ?? LIVE_BASE_INSTRUCTIONS,
       "",
       "Native completion report contract: " + JSON.stringify(LIVE_COMPLETION_CONTRACT),
-      "For paperclip_finish or paperclip_block, use that exact contract revision and criterion IDs. These tools report the current provider run result; they do not change mock task state. Mock task mutations still require separately authorized semantic tools and an explicit user request.",
+      "For clayon_finish or clayon_block, use that exact contract revision and criterion IDs. These tools report the current provider run result; they do not change mock task state. Mock task mutations still require separately authorized semantic tools and an explicit user request.",
     ].join("\n");
     const authorizedTools = this.#dispatcher.listTools(this.#authority.runId);
     const tools = (this.#config.toolExposure ?? "eager") === "lazy"

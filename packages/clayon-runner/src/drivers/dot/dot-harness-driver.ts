@@ -188,7 +188,7 @@ class DotSession implements HarnessSession {
       this.#emit("run.result.proposed", this.#result);
       this.#emit("turn.completed", {});
       this.#emit("run.terminal", {
-        schema: "paperclip.prp.terminal.v1", turnTerminalState: "completed", runTerminalState: "succeeded",
+        schema: "clayon.prp.terminal.v1", turnTerminalState: "completed", runTerminalState: "succeeded",
         reportedWorkDisposition: this.#result.reportedWorkDisposition,
       });
       return { accepted: true, disposition: this.#result.reportedWorkDisposition };
@@ -201,7 +201,7 @@ class DotSession implements HarnessSession {
   #emit(eventType: PrpEvent["eventType"], payload: Record<string, unknown>, itemId?: string) {
     const sequence = this.#events.length + 1;
     this.#events.push({
-      schema: "paperclip.prp.event.v1", sourceEventId: `${this.options.identity.runId}:${sequence}`,
+      schema: "clayon.prp.event.v1", sourceEventId: `${this.options.identity.runId}:${sequence}`,
       sourceSeq: sequence, sourceInstanceId: `dot:${this.options.identity.sessionId}`, sourceKind: "runner",
       runId: this.options.identity.runId, normalizedSessionId: this.options.identity.sessionId,
       ...(this.#turnId ? { turnId: this.#turnId } : {}), ...(itemId ? { itemId } : {}),

@@ -52,7 +52,7 @@ function capabilityForAgent(agent: AgentBinding): RunnerGoalCapability {
   const config = asRecord(agent.adapterConfig) ?? {};
   const engine = typeof config.engine === "string" ? config.engine : null;
   const sessionMode = typeof config.mode === "string" ? config.mode : "persistent";
-  if (agent.adapterType === "paperclip_runner") {
+  if (agent.adapterType === "clayon_runner") {
     const provider = typeof config.provider === "string" ? config.provider : "codex";
     const acpxAgent = typeof config.acpxAgent === "string" ? config.acpxAgent : "pi";
     if (provider === "codex" || (provider === "acpx" && acpxAgent === "codex")) {

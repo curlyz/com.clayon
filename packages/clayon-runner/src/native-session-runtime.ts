@@ -313,7 +313,7 @@ function terminalFromEvent(
               runTerminalState: "cancelled" as const,
             };
   return {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     ...states,
     reportedWorkDisposition: disposition,
   };
@@ -1101,7 +1101,7 @@ async function consumeTurn(
       if (
         receipt.disposition === "committed" &&
         event.eventType === "runtime_request.created" &&
-        request?.schema === "paperclip.runtime_request.v2" &&
+        request?.schema === "clayon.runtime_request.v2" &&
         request.type === "input" &&
         typeof request.requestId === "string" &&
         typeof request.turnId === "string"
@@ -1510,7 +1510,7 @@ function sessionGoalResult(
       ? "blocked"
       : "yielded";
   const result: PrpStructuredRunResult = {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: disposition,
     summary: status === "complete"
       ? `Session goal completed: ${objective}`
@@ -1861,7 +1861,7 @@ function checkpointedResultlessDispositionFallback(input: {
     throw new Error("native_disposition_recovery_checkpoint_conflict");
   }
   return {
-    schema: "paperclip.prp.event.v1",
+    schema: "clayon.prp.event.v1",
     sourceEventId: `${input.controlPlaneInstanceId}:${input.persisted.identity.runId}:checkpointed-disposition-terminal`,
     sourceSeq: 1,
     sourceInstanceId: input.controlPlaneInstanceId,
@@ -2282,7 +2282,7 @@ export async function executeNativeSession(
     const recoveredSnapshot = await session.snapshot();
     const restartContinuation = () => ({
       message: { role: "user" as const, text: JSON.stringify({
-        schema: "paperclip.native-continuation.v1",
+        schema: "clayon.native-continuation.v1",
         events: [
           "Clayon restarted and restored this same conversation. The previous turn was interrupted.",
           "Continue the current user request from the recorded progress and preserved workspace.",
@@ -2552,7 +2552,7 @@ export async function executeNativeSession(
               "Clayon semantic-result recovery for a prior completed provider turn.",
               "The prior turn already performed the work and its user-facing final answer is recorded.",
               "Do not repeat implementation, tests, research, or the final answer.",
-              "Use the existing session context to invoke exactly one paperclip_finish or paperclip_block with the accurate current disposition, then stop without additional user-facing prose.",
+              "Use the existing session context to invoke exactly one clayon_finish or clayon_block with the accurate current disposition, then stop without additional user-facing prose.",
             ].join("\n");
           }
           if (!(dispositionOnlyRecovery && !effectFreeInitialAcpxTurn) && "requestedSkills" in modelEnvelope && options.backend.preparedTaskConstraints) {
@@ -2560,7 +2560,7 @@ export async function executeNativeSession(
           }
           await session.startTurn({
             message: { role: "user", text: JSON.stringify(modelEnvelope) },
-            ...(recovered && modelEnvelope.schema === "paperclip.native-continuation.v1"
+            ...(recovered && modelEnvelope.schema === "clayon.native-continuation.v1"
               ? { continuation: true as const } : {}),
             requestedCollaborationMode:
               "executionMode" in input ? input.executionMode : "default",
@@ -2610,7 +2610,7 @@ export async function executeNativeSession(
                         consumed.governedResult.reportedWorkDisposition,
                       )
                     : {
-                        schema: "paperclip.prp.terminal.v1",
+                        schema: "clayon.prp.terminal.v1",
                         turnTerminalState: "completed",
                         runTerminalState: "succeeded",
                         reportedWorkDisposition: consumed.governedResult.reportedWorkDisposition,
@@ -2705,7 +2705,7 @@ export async function executeNativeSession(
           eventType: PrpEvent["eventType"],
           payload: Record<string, unknown>,
         ): PrpEvent => ({
-          schema: "paperclip.prp.event.v1",
+          schema: "clayon.prp.event.v1",
           sourceEventId: `${options.controlPlaneInstanceId}:${input.binding.runId}:${sourceSeq}`,
           sourceSeq,
           sourceInstanceId: options.controlPlaneInstanceId,

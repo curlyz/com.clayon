@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.native-procedure-public-comparison.v1",
+  "schema": "clayon.native-procedure-public-comparison.v1",
   "disposition": "hold_draft_no_regression_gate_failed",
   "originalGradesPreserved": true,
   "sources": {
@@ -88,7 +88,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -243,7 +243,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -454,7 +454,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -609,7 +609,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -820,7 +820,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -979,7 +979,7 @@
         "source": {
           "sha": "64cd2194a1d058356679b653c181f16404aefc80",
           "ref": "refs/heads/codex/native-procedure-baseline",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325870695"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325870695"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1005,7 +1005,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1040,7 +1040,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1075,7 +1075,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1114,7 +1114,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1325,7 +1325,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1480,7 +1480,7 @@
         "source": {
           "sha": "eb01d073c35134bf0d373947b55a79f9e443f8ee",
           "ref": "refs/heads/codex/native-procedure-guidance",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37325777217"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37325777217"
         },
         "suiteDefinitionHash": "c0b25d634e19cb18f647058f357a83cb5a14845b6fada1764cf21258d00abf54",
         "attempt": 1,
@@ -1555,7 +1555,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -1710,7 +1710,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -1921,7 +1921,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -2076,7 +2076,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -2287,7 +2287,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -2446,7 +2446,7 @@
         "source": {
           "sha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
           "ref": "refs/heads/codex/native-procedure-baseline-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331642168"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331642168"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -2657,7 +2657,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2-recovery",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37334061104"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37334061104"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -2812,7 +2812,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331580879"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331580879"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -3023,7 +3023,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2-recovery",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37334061104"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37334061104"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -3062,7 +3062,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331580879"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331580879"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -3273,7 +3273,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331580879"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331580879"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -3432,7 +3432,7 @@
         "source": {
           "sha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
           "ref": "refs/heads/codex/native-procedure-candidate-v2",
-          "workflowRunUrl": "https://github.com/paperclipai/paperclip/actions/runs/37331580879"
+          "workflowRunUrl": "https://github.com/clayon/clayon/actions/runs/37331580879"
         },
         "suiteDefinitionHash": "acd17b4acbd7051070531f7d7587131139900f54245b992eb7a62faacda8e334",
         "attempt": 1,
@@ -3587,7 +3587,7 @@
   },
   "measurement": {
     "corrected-baseline": {
-      "schema": "paperclip.native-procedure-measurement.v2",
+      "schema": "clayon.native-procedure-measurement.v2",
       "sourceSha": "aecfa3b6a5cab110a9b926e93705311bbcf4db47",
       "sourceDirty": false,
       "measuredInputsDirty": false,
@@ -4039,7 +4039,7 @@
       "originalReceiptSha256": "2158cc185b2d7c5dd6082737836a7d1c5d3e20bf4539a897e41ed4e99080aadd"
     },
     "corrected-candidate": {
-      "schema": "paperclip.native-procedure-measurement.v2",
+      "schema": "clayon.native-procedure-measurement.v2",
       "sourceSha": "ffe847fabaebbf24bc93924a4b6c8922d46a1fb6",
       "sourceDirty": true,
       "measuredInputsDirty": false,
@@ -4491,7 +4491,7 @@
       "originalReceiptSha256": "8486d4c2897ceca5124500899e83eb9754230e80b992c971e586354253ec547e"
     },
     "integrated-baseline": {
-      "schema": "paperclip.native-procedure-measurement.v2",
+      "schema": "clayon.native-procedure-measurement.v2",
       "sourceSha": "ce31f5efd0d416205c3994c55dd02b645f8b8423",
       "sourceDirty": false,
       "measuredInputsDirty": false,
@@ -4943,7 +4943,7 @@
       "originalReceiptSha256": "356693e0c75a86b7e53b397822399b0f4a09652b3d88be280b7a4569fd40efb6"
     },
     "integrated-candidate": {
-      "schema": "paperclip.native-procedure-measurement.v2",
+      "schema": "clayon.native-procedure-measurement.v2",
       "sourceSha": "ee096aa23fc88a001e7666215bcd338b5863f377",
       "sourceDirty": true,
       "measuredInputsDirty": false,

@@ -59,7 +59,7 @@ describe("native workspace finalization recovery", () => {
       companyId,
       issueId,
       revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       policyVersion: "native-workspace-finalizer-test-v1",
       risk: "standard",
       completionAuthority: "server_arbiter",
@@ -130,7 +130,7 @@ describe("native workspace finalization recovery", () => {
       id: agentId,
       companyId,
       name: "Native workspace agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       status: "running",
     });
     await db.insert(projects).values([

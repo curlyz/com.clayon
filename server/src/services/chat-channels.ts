@@ -434,7 +434,7 @@ const fileTransferProjectionColumns = {
   responseActivityId: chatTeamsFileTransfers.responseActivityId,
   fileInfoMessageId: chatTeamsFileTransfers.fileInfoMessageId,
   operatorConfirmed: sql<boolean>`
-    coalesce(${chatTeamsFileTransfers.privateState}#>>'{resolution,schema}', '') = 'paperclip.teams.file-resolution.v1'
+    coalesce(${chatTeamsFileTransfers.privateState}#>>'{resolution,schema}', '') = 'clayon.teams.file-resolution.v1'
     and coalesce(${chatTeamsFileTransfers.privateState}#>>'{resolution,action}', '') = 'mark_delivered'
     and coalesce(${chatTeamsFileTransfers.privateState}#>>'{resolution,fromPhase}', '') = 'file_info_unknown'
   `,
@@ -6601,7 +6601,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
             name: `chat.${endpoint.provider}.${endpoint.id.slice(0, 8)}.${key}.${suffix.slice(0, 8)}`,
             key: `CHAT_${endpoint.provider.replaceAll("-", "_")}_${endpoint.id.replaceAll("-", "_")}_${key}_${suffix}`.toUpperCase(),
             provider: "local_encrypted",
-            managedMode: "paperclip_managed",
+            managedMode: "clayon_managed",
             value,
             description: `${PROVIDER_LABELS[endpoint.provider]} channel credential for endpoint ${endpoint.id}`,
           },
@@ -12477,12 +12477,12 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
             accepted.canonicalSha256) ||
         (input.committedResponse.decisionId !== undefined &&
           input.committedResponse.decisionId !== coordinator.decisionId) ||
-        result?.schema !== "paperclip.run_result.v1" ||
+        result?.schema !== "clayon.run_result.v1" ||
         result.reportedWorkDisposition !== "yielded" ||
         !Array.isArray(result.attentionRequests) ||
         result.attentionRequests.length !== 0 ||
         continuation?.kind !== "response_wake" ||
-        terminal?.schema !== "paperclip.prp.terminal.v1" ||
+        terminal?.schema !== "clayon.prp.terminal.v1" ||
         terminal.turnTerminalState !== "completed" ||
         terminal.runTerminalState !== "succeeded" ||
         terminal.reportedWorkDisposition !== "yielded"
@@ -13670,7 +13670,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
           return false;
         const marker = committed as Record<string, unknown>;
         if (
-          marker.schema !== "paperclip.native_committed_chat_response.v1" ||
+          marker.schema !== "clayon.native_committed_chat_response.v1" ||
           typeof marker.resultId !== "string" ||
           !isUuidLike(marker.resultId) ||
           typeof marker.canonicalSha256 !== "string" ||
@@ -31853,7 +31853,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
     userId: string,
   ) {
     return {
-      schema: "paperclip.teams.board-file-intent.v1",
+      schema: "clayon.teams.board-file-intent.v1",
       publicationId: scope.publication.id,
       issueId: scope.conversation.issueId,
       commentId: scope.comment.id,
@@ -32051,7 +32051,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
       if (
         !run ||
         !marker ||
-        marker.schema !== "paperclip.native_committed_chat_response.v1" ||
+        marker.schema !== "clayon.native_committed_chat_response.v1" ||
         typeof marker.resultId !== "string" ||
         !isUuidLike(marker.resultId) ||
         typeof marker.decisionId !== "string" ||
@@ -32168,7 +32168,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
     // No mutable stage, attempt, receipt, route URL or provider token enters
     // this digest. The next authorization derives these facts afresh.
     const sourceDigest = teamsFileProofHash({
-      schema: "paperclip.teams.file-source.v1",
+      schema: "clayon.teams.file-source.v1",
       companyId: scope.endpoint.companyId,
       endpointId: scope.endpoint.id,
       conversationId: scope.conversation.id,

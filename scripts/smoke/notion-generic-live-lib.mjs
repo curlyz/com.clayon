@@ -123,7 +123,7 @@ export function preflightNotionGenericLive(environment = process.env) {
   const api = explicitHttpsOrigin(requiredValue(environment, "CLAYON_API_URL"), "unsafe_api_url");
 
   const email = requiredValue(environment, "CLAYON_E2E_EMAIL");
-  if (!email.includes("@")) throw new NotionGenericLivePreflightError("invalid_paperclip_email");
+  if (!email.includes("@")) throw new NotionGenericLivePreflightError("invalid_clayon_email");
 
   return {
     baseUrl: base.origin,

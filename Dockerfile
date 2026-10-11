@@ -179,9 +179,7 @@ RUN echo "cli-tools-epoch: ${CLI_TOOLS_CACHE_EPOCH}" \
   && apt-get install -y --no-install-recommends openssh-client jq \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /clayon \
-  && chown node:node /clayon \
-  && ln -s /clayon /paperclip
-# /paperclip: the pre-rename home. Existing volumes store absolute paths under it.
+  && chown node:node /clayon
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

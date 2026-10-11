@@ -44,7 +44,7 @@ export async function testAgentSetup(input: {
       adapterConfig: {
         ...input.adapterConfig,
         engine: "cli",
-        ...(input.adapterType === "paperclip_runner" && input.providerAdapter === "grok_local"
+        ...(input.adapterType === "clayon_runner" && input.providerAdapter === "grok_local"
           ? { command: "/opt/clayon/providers/grok/1.0.13/grok" }
           : {}),
       },

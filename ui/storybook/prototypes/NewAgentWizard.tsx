@@ -45,7 +45,7 @@ const modelLists = {
 // importing this from Storybook never creates an agent or contacts a provider.
 export const NEW_AGENT_ADAPTERS = [
   "claude_local", "codex_local", "cursor", "cursor_cloud", "gemini_local",
-  "grok_local", "kimi_local", "opencode_local", "pi_local", "hermes_local", "paperclip_runner",
+  "grok_local", "kimi_local", "opencode_local", "pi_local", "hermes_local", "clayon_runner",
 ] as const;
 export type NewAgentAdapter = typeof NEW_AGENT_ADAPTERS[number];
 export type NewAgentScreen = "name" | "adapter" | "connect" | "runtime" | "saved";
@@ -120,7 +120,7 @@ export function NewAgentWizard({ initialScreen = "name", initialAdapter = null, 
   const [runnerProvider, setRunnerProvider] = useState<RunnerProvider>(initialRunnerProvider);
   const [connections, setConnections] = useState<Record<string, ConnectionMethod | undefined>>(() => {
     if (initialScreen !== "runtime" && initialScreen !== "saved") return {};
-    const key = initialAdapter === "paperclip_runner" ? `${initialAdapter}/${initialRunnerProvider}` : initialAdapter ?? "claude_local";
+    const key = initialAdapter === "clayon_runner" ? `${initialAdapter}/${initialRunnerProvider}` : initialAdapter ?? "claude_local";
     return { [key]: initialConnectionMethod };
   });
   const [modelOpen, setModelOpen] = useState(false);
@@ -131,7 +131,7 @@ export function NewAgentWizard({ initialScreen = "name", initialAdapter = null, 
   const selected = adapter ?? "claude_local";
   const display = getAdapterDisplay(selected);
   const environment = environments[selected] ?? "Organization default";
-  const isRunner = selected === "paperclip_runner";
+  const isRunner = selected === "clayon_runner";
   const isAcpx = isRunner && runnerProvider === "Claude (ACPX)";
   const usesOpenCode = selected === "opencode_local" || (isRunner && runnerProvider === "OpenCode");
   // Preserve model choices independently for each runner provider.
@@ -258,7 +258,7 @@ export function NewAgentWizard({ initialScreen = "name", initialAdapter = null, 
                           </label>;
                         })}
                       </div>
-                      {adapter === "paperclip_runner" && <SelectField label="Runner" value={runnerProvider}
+                      {adapter === "clayon_runner" && <SelectField label="Runner" value={runnerProvider}
                         options={["Codex (app server)", "Claude (ACPX)", "OpenCode"]} onChange={value => setRunnerProvider(value as RunnerProvider)} />}
                     </fieldset>}
                   </div>

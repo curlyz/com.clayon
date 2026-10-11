@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.cursor.patch-initialize-proof.v1",
+  "schema": "clayon.cursor.patch-initialize-proof.v1",
   "observedAt": "2026-09-29",
   "patchVersion": "clayon-cursor-isolation-v1",
   "hostPlatform": "darwin-arm64",

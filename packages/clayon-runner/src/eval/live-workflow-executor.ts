@@ -94,7 +94,7 @@ function workflowResult(
   idempotencyKey: string,
 ): PrpStructuredRunResult {
   return {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: disposition,
     summary,
     completionClaim: {
@@ -145,7 +145,7 @@ async function completeWorkflowRun(
   },
 ): Promise<void> {
   const terminal: PrpTerminalState = {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     turnTerminalState: "completed",
     runTerminalState: "succeeded",
     reportedWorkDisposition: input.disposition,
@@ -161,7 +161,7 @@ async function completeWorkflowRun(
     )
   ) {
     await adapter.appendEvent({
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `${input.source}:terminal:1`,
       sourceSeq: 1,
       sourceInstanceId: input.source,

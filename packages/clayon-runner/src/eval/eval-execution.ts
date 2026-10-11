@@ -618,7 +618,7 @@ function evalWireEvents(input: {
   ): void => {
     const sourceSeq = events.length + 1;
     events.push({
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `eval-wire:${input.caseId}:${sourceSeq}`,
       sourceSeq,
       sourceInstanceId: "eval-wire",
@@ -676,7 +676,7 @@ function evalWireEvents(input: {
     }, itemId);
   });
   append("run.terminal", {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     turnTerminalState: "completed",
     runTerminalState: "succeeded",
     reportedWorkDisposition: "done",

@@ -38,7 +38,7 @@ const support = await getEmbeddedPostgresTestSupport();
     const companyId = randomUUID(), endpointId = randomUUID(), agentId = randomUUID(), applicationId = randomUUID(), connectionId = randomUUID(), issueId = randomUUID(), conversationId = randomUUID(), callerId = randomUUID();
     await db.insert(companies).values({ id: companyId, name: "Voice test", issuePrefix: `V${companyId.slice(0, 7).toUpperCase()}` });
     await db.insert(companyMemberships).values({ companyId, principalType: "user", principalId: callerId, status: "active", membershipRole: "member" });
-    await db.insert(agents).values({ id: agentId, companyId, name: "Existing agent", role: "operator", status: "idle", adapterType: "paperclip_runner" });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Existing agent", role: "operator", status: "idle", adapterType: "clayon_runner" });
     await db.insert(issues).values({ id: issueId, companyId, title: "Existing task", assigneeAgentId: agentId, status: "in_progress" });
     await db.insert(toolApplications).values({ id: applicationId, companyId, applicationKey: `chat:speko:${endpointId}`, name: "Speko", type: "chat", status: "active" });
     await db.insert(toolConnections).values({ id: connectionId, companyId, applicationId, name: "Speko", uid: endpointId, connectionPurpose: "channel", transport: "voice", config: { provider: "speko" }, status: "active", enabled: true });
@@ -727,7 +727,7 @@ const support = await getEmbeddedPostgresTestSupport();
     const event = {type: "call.pre_call", session_id: providerSessionId, call_id: providerSessionId, organization_id: `org_${f.companyId}`, direction: "inbound", phone_number_id: line.providerNumberId, dialed_number: line.phoneNumber, from: "+12015551234"};
     const signed = sign(event);
     const response = await f.service.inbound.lifecycle(endpoint.publicId, signed.body, signed.headers);
-    const capability = (response as {toolSecrets: {paperclip_session_token: string}}).toolSecrets.paperclip_session_token;
+    const capability = (response as {toolSecrets: {clayon_session_token: string}}).toolSecrets.clayon_session_token;
     const [call] = await db.select().from(chatVoiceInboundCalls).where(eq(chatVoiceInboundCalls.providerSessionId, providerSessionId));
     const tool = async (name: "submit_request" | "get_updates", args: unknown, toolId = randomUUID()) => {
       const signed = sign({session_id: providerSessionId, tool_call_id: toolId, idempotency_key: `${providerSessionId}:${toolId}`, tool: name, args});
@@ -1233,7 +1233,7 @@ const support = await getEmbeddedPostgresTestSupport();
     const binding = { companyId: f.companyId, agentId: f.agentId };
     const assigned = async () => (await resolveConnectorAssignments(db, binding)).filter(item => item.key === "speko");
     const assignments = await assigned();
-    expect(assignments).toMatchObject([{ skillKey: "paperclipai/paperclip/speko", resources: [{ id: f.endpointId, connectionId: f.connectionId }], tools: [] }]);
+    expect(assignments).toMatchObject([{ skillKey: "clayon/clayon/speko", resources: [{ id: f.endpointId, connectionId: f.connectionId }], tools: [] }]);
     const config = await applyConnectorSkills({}, [], assignments);
     const skill = config.clayonRuntimeSkills[0];
     const markdown = await readFile(join(skill.source, "SKILL.md"), "utf8");
@@ -1241,11 +1241,11 @@ const support = await getEmbeddedPostgresTestSupport();
     expect(markdown).toContain("durable Clayon continuation");
     expect(markdown).toContain("never blindly redial");
     expect(markdown).not.toContain("+12015551234");
-    for (const adapter of ["paperclip_runner", "claude_local", "codex_local"]) {
+    for (const adapter of ["clayon_runner", "claude_local", "codex_local"]) {
       expect((await prepareConnectorSkillDelivery({ ...config, engine: "cli" }, adapter)).config.clayonRuntimeSkills).toEqual([skill]);
     }
     expect((await prepareConnectorSkillDelivery(config, "cursor_local")).instructions).toContain("name: speko");
-    expect((await prepareConnectorSkillDelivery(config, "paperclip_runner")).instructions).toContain("name: speko");
+    expect((await prepareConnectorSkillDelivery(config, "clayon_runner")).instructions).toContain("name: speko");
     expect((await resolveConnectorAssignments(db, { ...binding, agentId: randomUUID() })).filter(item => item.key === "speko")).toEqual([]);
     expect((await resolveConnectorAssignments(db, { ...binding, companyId: randomUUID() })).filter(item => item.key === "speko")).toEqual([]);
     // Browser voice guidance remains available when phone callbacks are disabled.
@@ -1272,7 +1272,7 @@ const support = await getEmbeddedPostgresTestSupport();
   it("makes call_my_phone discoverable through the governed gateway and reuses a durable attempt", async () => {
     const f = await phoneToolFixture();
     const tools = await f.gateway.listToolsForSession(f.gatewaySession.token);
-    const tool = tools.find(tool => tool.providerType === "paperclip_speko_voice");
+    const tool = tools.find(tool => tool.providerType === "clayon_speko_voice");
     expect(tool).toMatchObject({ upstreamToolName: "call_my_phone", connectionId: f.connectionId });
     const call = { sessionToken: f.gatewaySession.token, tool: tool!.name, parameters: {}, idempotencyKey: randomUUID() };
     const result = await f.gateway.executeTool(call);
@@ -1290,7 +1290,7 @@ const support = await getEmbeddedPostgresTestSupport();
     const f = await phoneToolFixture();
     await db.delete(toolProfileBindings).where(eq(toolProfileBindings.targetId, f.agentId));
     await f.service.saveCallbackPreference(f.companyId, f.endpointId, f.request.caller, { phoneNumber: "+12015551234", enabled: true });
-    expect((await f.gateway.listToolsForSession(f.gatewaySession.token)).some(t => t.providerType === "paperclip_speko_voice")).toBe(false);
+    expect((await f.gateway.listToolsForSession(f.gatewaySession.token)).some(t => t.providerType === "clayon_speko_voice")).toBe(false);
   });
   it("requires the current task requester, company, active endpoint, opt-in and agent assignment", async () => {
     const f = await phoneToolFixture();

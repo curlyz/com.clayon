@@ -34,7 +34,7 @@ import { useToastActions } from "../context/ToastContext";
 import { assigneeValueFromSelection, currentUserAssigneeOption, parseAssigneeValue } from "../lib/assignees";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Paperclip, FileText, Flag, PauseCircle, ListTree, X, ShieldAlert, Folder, ChevronDown, Lock } from "lucide-react";
+import { FileUp, FileText, Flag, PauseCircle, ListTree, X, ShieldAlert, Folder, ChevronDown, Lock } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { MentionOption } from "./MarkdownEditor";
 import { TaskChatComposer } from "./task-chat/TaskChatComposer";
@@ -1301,7 +1301,7 @@ export function NewIssueDialog() {
                                 >
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                      <FileUp className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                       <span className="truncate text-sm">{file.file.name}</span>
                                     </div>
                                     <div className="mt-1 text-(length:--text-micro) text-muted-foreground">

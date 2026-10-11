@@ -68,7 +68,7 @@ export const commentOnApprovalAction = {
   "live": {
     "order": 25,
     "descriptor": {
-      "schema": "paperclip.semantic-tool.v1",
+      "schema": "clayon.semantic-tool.v1",
       "operationId": "comment_on_approval",
       "version": 1,
       "title": "Comment on approval",
@@ -194,7 +194,7 @@ export const commentOnApprovalAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

@@ -79,7 +79,7 @@ export function createSpekoProvider(apiKey: string, transport: typeof fetch = fe
         systemPrompt: input.systemPrompt,
         firstMessage: "Hi, what would you like me to work on?",
         metadata: { clayonVoiceBindingId: input.bindingId },
-        toolSecrets: { paperclip_session_token: input.toolToken },
+        toolSecrets: { clayon_session_token: input.toolToken },
       });
       const parsed = sessionSchema.safeParse(result);
       if (!parsed.success) throw new SpekoProviderError("invalid_response", true);
@@ -96,7 +96,7 @@ export function createSpekoProvider(apiKey: string, transport: typeof fetch = fe
         agentId, to, maxDurationSeconds,
         systemPrompt: input.systemPrompt, firstMessage: "Hi, this is your Clayon agent calling as requested. Is now a good time?",
         metadata: { clayonVoiceBindingId: input.bindingId },
-        toolSecrets: { paperclip_session_token: input.toolToken },
+        toolSecrets: { clayon_session_token: input.toolToken },
         telephony: { amd: { mode: "disabled" } },
         turnHandling: { profile: "conversational", onMachine: "hangup" },
       });

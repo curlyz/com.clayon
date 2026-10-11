@@ -271,12 +271,12 @@ export type ToolGatewayProviderType =
   | "provider_rest"
   | "mcp_remote_http"
   | "mcp_local_stdio"
-  | "paperclip_self"
-  | "paperclip_plugin"
-  | "paperclip_virtual"
-  | "paperclip_github_chat"
-  | "paperclip_slack_chat"
-  | "paperclip_speko_voice";
+  | "clayon_self"
+  | "clayon_plugin"
+  | "clayon_virtual"
+  | "clayon_github_chat"
+  | "clayon_slack_chat"
+  | "clayon_speko_voice";
 
 export interface ConnectedMcpGatewayMetadata {
   applicationId: string;
@@ -1007,7 +1007,7 @@ const BUILTIN_TOOLS: ToolGatewayDescriptor[] = [
       additionalProperties: false,
     },
     pluginId: "clayon-self",
-    providerType: "paperclip_self",
+    providerType: "clayon_self",
     risk: "read",
   },
   {
@@ -1021,7 +1021,7 @@ const BUILTIN_TOOLS: ToolGatewayDescriptor[] = [
       additionalProperties: false,
     },
     pluginId: "clayon-self",
-    providerType: "paperclip_self",
+    providerType: "clayon_self",
     risk: "read",
   },
   {
@@ -1068,7 +1068,7 @@ const VIRTUAL_SEARCH_TOOLS: ToolGatewayDescriptor = {
     additionalProperties: false,
   },
   pluginId: "clayon-gateway",
-  providerType: "paperclip_virtual",
+  providerType: "clayon_virtual",
   risk: "read",
 };
 
@@ -1087,7 +1087,7 @@ const VIRTUAL_RUN_TOOL: ToolGatewayDescriptor = {
     additionalProperties: false,
   },
   pluginId: "clayon-gateway",
-  providerType: "paperclip_virtual",
+  providerType: "clayon_virtual",
   risk: "write",
 };
 
@@ -1272,7 +1272,7 @@ export function createToolGatewayService(
   function pluginTools(): ToolGatewayDescriptor[] {
     return (pluginToolDispatcher?.listToolsForAgent() ?? []).map((tool) => ({
       ...tool,
-      providerType: "paperclip_plugin" as const,
+      providerType: "clayon_plugin" as const,
       risk: inferToolRisk(tool.name),
     }));
   }
@@ -2797,8 +2797,8 @@ export function createToolGatewayService(
       .filter(
         (candidate) =>
           session.agentId ||
-          (candidate.providerType !== "paperclip_self" &&
-            candidate.providerType !== "paperclip_plugin"),
+          (candidate.providerType !== "clayon_self" &&
+            candidate.providerType !== "clayon_plugin"),
       )
       .find((candidate) => candidate.name === toolName);
     if (!tool) {
@@ -2810,7 +2810,7 @@ export function createToolGatewayService(
       );
     }
     const guestBotConnection = await githubGuestBotConnectionForSession(db, session);
-    if (guestBotConnection && tool.connectionId && (tool.connectionId !== guestBotConnection || tool.providerType !== "paperclip_github_chat"))
+    if (guestBotConnection && tool.connectionId && (tool.connectionId !== guestBotConnection || tool.providerType !== "clayon_github_chat"))
       throw new ToolGatewayHttpError(403, "Sponsored GitHub runs can only use their bot's governed connection; sponsorship does not grant personal credentials", "guest_connection_denied");
     if (session.identityContextId && session.agentId && tool.connectionId) {
       const [connection] = await db
@@ -3012,7 +3012,7 @@ export function createToolGatewayService(
   async function connectionToolsForContext(session: ToolGatewaySession): Promise<ToolGatewayDescriptor[]> {
     const guestBotConnection = await githubGuestBotConnectionForSession(db, session);
     const connectedTools = (await connectedMcpToolsForCompany(session.companyId))
-      .filter(tool => !guestBotConnection || !tool.connectionId || (tool.connectionId === guestBotConnection && tool.providerType === "paperclip_github_chat"));
+      .filter(tool => !guestBotConnection || !tool.connectionId || (tool.connectionId === guestBotConnection && tool.providerType === "clayon_github_chat"));
     return [
       ...await githubBotToolsForSession(db, session),
       ...await slackToolsForSession(db, session),
@@ -3037,8 +3037,8 @@ export function createToolGatewayService(
     ].filter(
       (tool) =>
         session.agentId ||
-        (tool.providerType !== "paperclip_self" &&
-          tool.providerType !== "paperclip_plugin"),
+        (tool.providerType !== "clayon_self" &&
+          tool.providerType !== "clayon_plugin"),
     );
     const decisionCache = createToolAccessDecisionCache();
     const decisions = await decideToolsForListing(
@@ -3092,7 +3092,7 @@ export function createToolGatewayService(
   ) {
     const params = asRecord(parameters) ?? {};
 
-    if (tool.providerType === "paperclip_speko_voice") {
+    if (tool.providerType === "clayon_speko_voice") {
       try {
         const data = await executeSpekoVoiceTool(db, session, String(asRecord(tool.providerMetadata)?.endpointId ?? ""), parameters, invocationId);
         return { content: JSON.stringify(data), data };
@@ -3101,7 +3101,7 @@ export function createToolGatewayService(
         throw error;
       }
     }
-    if (tool.providerType === "paperclip_slack_chat") {
+    if (tool.providerType === "clayon_slack_chat") {
       if (!session.agentId || !session.runId || !session.issueId) throw new ToolGatewayHttpError(403, "Slack task binding required", "slack_task_required");
       try {
       const data = await executeSlackTool(db, { companyId: session.companyId, agentId: session.agentId, runId: session.runId, issueId: session.issueId, endpointId: String(asRecord(tool.providerMetadata)?.endpointId ?? ""), identityContextId: session.identityContextId, approvedInvocationId: session.approvedSlackInvocationId }, tool.upstreamToolName ?? "", parameters, fetch, invocationId);
@@ -3114,7 +3114,7 @@ export function createToolGatewayService(
         throw error;
       }
     }
-    if (tool.providerType === "paperclip_github_chat") {
+    if (tool.providerType === "clayon_github_chat") {
       const data = await githubChatReviewService(db).execute(session, tool.upstreamToolName ?? "", parameters, invocationId);
       return { content: JSON.stringify(data), data };
     }
@@ -3776,7 +3776,7 @@ export function createToolGatewayService(
       !rotationDue
     )
       return grant;
-    if (oauth.strategy === "paperclip_id_connector") {
+    if (oauth.strategy === "clayon_id_connector") {
       // Clayon ID used different endpoints, signing metadata, envelope
       // purposes, and a different Google client. Its refresh token cannot be
       // exchanged through Clayon Cloud. Let an unexpired access token finish
@@ -3870,7 +3870,7 @@ export function createToolGatewayService(
           ...(grant.providerTenant ?? {}),
           oauth: {
             ...(grant.providerTenant?.oauth ?? {}),
-            strategy: "paperclip_cloud_connector",
+            strategy: "clayon_cloud_connector",
             accessTokenExpiresAt: credentials.accessTokenExpiresAt,
             scopes: credentials.scopes,
             tokenType: credentials.tokenType,
@@ -4140,7 +4140,7 @@ export function createToolGatewayService(
     }
     if (
       connection.authKind === "oauth" &&
-      connection.credentialSource === "paperclip_vault" &&
+      connection.credentialSource === "clayon_vault" &&
       options.oauthGrantRefresher
     ) {
       try {
@@ -5574,7 +5574,7 @@ export function createToolGatewayService(
     tool: ToolGatewayDescriptor,
     options: { requireResolvedCredentials?: boolean } = {},
   ): Promise<Record<string, unknown> | null> {
-    if (tool.providerType === "paperclip_slack_chat") {
+    if (tool.providerType === "clayon_slack_chat") {
       if (!session.agentId || !session.runId || !session.issueId) throw new ToolGatewayHttpError(403, "Slack task binding required", "slack_task_required");
       const authority = await resolveSlackTaskAuthority(db, { companyId: session.companyId, agentId: session.agentId, runId: session.runId, issueId: session.issueId, endpointId: String(asRecord(tool.providerMetadata)?.endpointId ?? ""), identityContextId: session.identityContextId, approvedInvocationId: session.approvedSlackInvocationId });
       return { endpointId: authority.endpoint.id, userId: authority.userId, revision: authority.revision, identityContextId: authority.identityContextId };
@@ -6102,7 +6102,7 @@ export function createToolGatewayService(
       if (
         response.status === 401 &&
         connection.authKind === "oauth" &&
-        connection.credentialSource === "paperclip_vault" &&
+        connection.credentialSource === "clayon_vault" &&
         isClayonCloudConnectorStrategy(oauth?.strategy)
       ) {
         credentialHeaders = {
@@ -6124,7 +6124,7 @@ export function createToolGatewayService(
       if (
         response.status === 401 &&
         connection.authKind === "oauth" &&
-        connection.credentialSource === "paperclip_vault" &&
+        connection.credentialSource === "clayon_vault" &&
         !isClayonCloudConnectorStrategy(oauth?.strategy) &&
         options.oauthGrantRefresher
       ) {
@@ -7055,7 +7055,7 @@ export function createToolGatewayService(
     // The immutable native profile also identifies legacy assignments when an
     // update has cleared the gateway metadata. Missing metadata must fail closed.
     const nativeAssignment = Object.hasOwn(nativeMetadata ?? {}, "nativeRuntimeAssignmentDigest") ||
-      profile?.profileKey.startsWith("native:") || profile?.source === "paperclip_runner";
+      profile?.profileKey.startsWith("native:") || profile?.source === "clayon_runner";
     const nativeOwner = nativeMetadata?.agentId;
     if (nativeAssignment && (
       typeof nativeOwner !== "string" || !uuidPattern.test(nativeOwner) ||
@@ -7070,7 +7070,7 @@ export function createToolGatewayService(
       });
     }
     if (nativeAssignment) {
-      if (profile?.status !== "active" || profile.source !== "paperclip_runner" ||
+      if (profile?.status !== "active" || profile.source !== "clayon_runner" ||
           profile.agentId !== nativeOwner ||
           profile.assignmentDigest !== nativeMetadata!.nativeRuntimeAssignmentDigest) {
         return recordNamedGatewayAuthFailure({
@@ -8137,7 +8137,7 @@ export function createToolGatewayService(
                   executionTimeoutMs,
                 )
               ).result
-            : tool.providerType !== "paperclip_plugin"
+            : tool.providerType !== "clayon_plugin"
               ? await runWithTimeout(
                   executeBuiltinTool(session, tool, parameters, invocation.id),
                   executionTimeoutMs,
@@ -9967,7 +9967,7 @@ export function createToolGatewayService(
         }
       }
       let tool = await findToolForSession(session, input.tool);
-      if (tool.providerType === "paperclip_slack_chat") {
+      if (tool.providerType === "clayon_slack_chat") {
         const definition = SLACK_TOOLS.find(t => t.name === tool.upstreamToolName);
         const args = definition?.schema.parse(input.parameters ?? {}) as Record<string, unknown> | undefined;
         if (!args) throw new ToolGatewayHttpError(403, "Unknown Slack operation", "slack_task_required");
@@ -9984,7 +9984,7 @@ export function createToolGatewayService(
 
       if (
         tool.name === "search_tools" &&
-        tool.providerType === "paperclip_virtual"
+        tool.providerType === "clayon_virtual"
       ) {
         const argumentValidation = validateToolContent({
           value: requestedParameters,
@@ -10016,7 +10016,7 @@ export function createToolGatewayService(
             agentId: session.agentId,
             issueId: session.issueId,
             runId: session.runId,
-            providerType: "paperclip_virtual",
+            providerType: "clayon_virtual",
             upstreamToolName: "search_tools",
             riskLevel: "read",
             toolName: "search_tools",
@@ -10075,7 +10075,7 @@ export function createToolGatewayService(
 
       if (
         tool.name === "run_tool" &&
-        tool.providerType === "paperclip_virtual"
+        tool.providerType === "clayon_virtual"
       ) {
         const { targetToolName, targetParameters } =
           virtualRunToolInput(requestedParameters);
@@ -10502,7 +10502,7 @@ export function createToolGatewayService(
           consumeRateLimit: true,
         });
         let accessDecision = await policyService.decide(decisionInput);
-        if (accessDecision.allowed && tool.providerType === "paperclip_slack_chat" && SLACK_TOOLS.some(t => t.name === tool.upstreamToolName && t.risk === "approval")) {
+        if (accessDecision.allowed && tool.providerType === "clayon_slack_chat" && SLACK_TOOLS.some(t => t.name === tool.upstreamToolName && t.risk === "approval")) {
           accessDecision = { ...accessDecision, allowed: false, decision: "require_approval", reasonCode: "requires_approval_policy", explanation: "Slack destructive actions, channel creation and invitations require approval." };
         }
         const recorded = await policyService.recordInvocation(
@@ -10511,7 +10511,7 @@ export function createToolGatewayService(
         );
         await policyService.writeAudit(decisionInput, accessDecision);
         invocationId = recorded.invocation.id;
-        const retryingSlackRateLimit = recorded.replayed && accessDecision.allowed && tool.providerType === "paperclip_slack_chat" && session.agentId && session.runId && session.issueId
+        const retryingSlackRateLimit = recorded.replayed && accessDecision.allowed && tool.providerType === "clayon_slack_chat" && session.agentId && session.runId && session.issueId
           ? await claimSlackRateLimitRetry(db, { companyId: session.companyId, agentId: session.agentId, runId: session.runId, issueId: session.issueId, endpointId: String(asRecord(tool.providerMetadata)?.endpointId ?? ""), identityContextId: session.identityContextId }, invocationId)
           : false;
         if (recorded.replayed && !retryingSlackRateLimit) {
@@ -10620,7 +10620,7 @@ export function createToolGatewayService(
       try {
         const executionTimeoutMs = timeoutMs(input.timeoutMs);
         if (
-          tool.providerType === "paperclip_plugin" &&
+          tool.providerType === "clayon_plugin" &&
           (!session.agentId || !session.runId)
         ) {
           throw new ToolGatewayHttpError(
@@ -10651,7 +10651,7 @@ export function createToolGatewayService(
               : null;
         const result = connectedMcpExecution
           ? connectedMcpExecution.result
-          : tool.providerType === "paperclip_plugin"
+          : tool.providerType === "clayon_plugin"
             ? await runWithTimeout(
                 pluginToolDispatcher!.executeTool(
                   tool.name,
@@ -10964,7 +10964,7 @@ export function createToolGatewayService(
 
       const tool = findStaticTool(input.tool);
 
-      if (tool.providerType !== "paperclip_plugin") {
+      if (tool.providerType !== "clayon_plugin") {
         throw new ToolGatewayHttpError(
           404,
           `Tool "${input.tool}" is not a plugin tool`,

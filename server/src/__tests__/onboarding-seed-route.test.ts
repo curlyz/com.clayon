@@ -91,11 +91,11 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
     expect(companyAgents[0]?.adapterConfig).toMatchObject({
       clayonSkillSync: {
         desiredSkills: expect.arrayContaining([
-          "paperclipai/paperclip/clayon",
-          "paperclipai/paperclip/clayon-board",
-          "paperclipai/paperclip/clayon-converting-plans-to-tasks",
-          "paperclipai/paperclip/clayon-create-agent",
-          "paperclipai/paperclip/para-memory-files",
+          "clayon/clayon/clayon",
+          "clayon/clayon/clayon-board",
+          "clayon/clayon/clayon-converting-plans-to-tasks",
+          "clayon/clayon/clayon-create-agent",
+          "clayon/clayon/para-memory-files",
         ]),
       },
     });
@@ -124,7 +124,7 @@ describeEmbeddedPostgres("POST /api/companies/:companyId/onboarding-seed", () =>
 
   it("keeps server-seeded onboarding on a legacy adapter when native runner is requested", async () => {
     const previous = process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE;
-    process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE = "paperclip_runner";
+    process.env.CLAYON_ONBOARDING_SEED_ADAPTER_TYPE = "clayon_runner";
     try {
       const { companyId, app } = await seedCompany();
 

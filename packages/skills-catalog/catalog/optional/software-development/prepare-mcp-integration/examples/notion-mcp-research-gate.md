@@ -23,7 +23,7 @@
 ## Gate Output
 
 ```text
-Research PR: https://github.com/paperclipai/paperclip-content/pull/123
+Research PR: https://github.com/clayon/clayon-content/pull/123
 Research head: 0123456789abcdef0123456789abcdef01234567
 Content source: 89abcdef0123456789abcdef0123456789abcdef
 App source: fedcba9876543210fedcba9876543210fedcba98

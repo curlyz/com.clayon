@@ -1,5 +1,5 @@
 /** Production monitor tool; timers and wake delivery belong to Clayon. */
-const description = "Schedule, replace, or clear a one-shot task monitor. Omit taskId for your current task; other tasks must also be assigned to you and in progress or review. Supply a future nextCheckAt and notes describing the next check, or monitor: null to clear. A successful receipt reports the persisted monitor; a replay reports its current state without re-arming it. After scheduling your current task, end the turn with paperclip_finish: yielded and continuation.kind monitor. Clayon will wake you with issue_monitor_due; do not sleep, poll, mark done, or use call_api for this wait.";
+const description = "Schedule, replace, or clear a one-shot task monitor. Omit taskId for your current task; other tasks must also be assigned to you and in progress or review. Supply a future nextCheckAt and notes describing the next check, or monitor: null to clear. A successful receipt reports the persisted monitor; a replay reports its current state without re-arming it. After scheduling your current task, end the turn with clayon_finish: yielded and continuation.kind monitor. Clayon will wake you with issue_monitor_due; do not sleep, poll, mark done, or use call_api for this wait.";
 
 export const setTaskMonitorInputSchema = {
   type: "object",
@@ -45,7 +45,7 @@ export const setTaskMonitorAction = {
   live: {
     order: 51,
     descriptor: {
-      schema: "paperclip.semantic-tool.v1", operationId: "set_task_monitor", version: 1,
+      schema: "clayon.semantic-tool.v1", operationId: "set_task_monitor", version: 1,
       title: "Set task monitor", description, exposure: "optional", requiredClaims: [],
       allowedModes: ["standard"], inputSchema: setTaskMonitorInputSchema,
       outputSchema: { type: "object", additionalProperties: true },

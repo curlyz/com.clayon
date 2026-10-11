@@ -1603,8 +1603,8 @@ process.exit(1);
         engine: "cli", command, cwd: workspace,
         env: { CODEX_HOME: sourceHome, CLAYON_TEST_CAPTURE_PATH: capture },
         clayonConnectorSkillDigest: digest,
-        clayonSkillSync: { desiredSkills: digest ? ["paperclipai/paperclip/agentmail"] : [] },
-        clayonRuntimeSkills: digest ? [{ key: "paperclipai/paperclip/agentmail", runtimeName: "agentmail", source }] : [],
+        clayonSkillSync: { desiredSkills: digest ? ["clayon/clayon/agentmail"] : [] },
+        clayonRuntimeSkills: digest ? [{ key: "clayon/clayon/agentmail", runtimeName: "agentmail", source }] : [],
       };
       const result = await execute({ runId: `run-${agentId}-${digest?.slice(0, 1) ?? "none"}`,
         agent: { id: agentId, companyId: "company-1", name: "Email agent", adapterType: "codex_local", adapterConfig: config },

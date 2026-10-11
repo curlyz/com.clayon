@@ -3,7 +3,7 @@ import { resolveAuthorizationTarget } from "./authorizationUrl";
 
 const CLOUD_HANDOFF_PATH = "/cloud/connections/handoff";
 const CLOUD_REAUTH_PATH = "/cloud/connections/reauth";
-const PENDING_HANDOFF_KEY = "paperclip.cloud-oauth-handoff.v1";
+const PENDING_HANDOFF_KEY = "clayon.cloud-oauth-handoff.v1";
 
 export type PreparedOAuthNavigation = {
   kind: "authorization" | "reauthentication";
@@ -31,14 +31,14 @@ export class OAuthHandoffError extends Error {
   }
 }
 
-function parseHandoff(value: unknown): { kind: "paperclip_cloud"; session: string } | null {
+function parseHandoff(value: unknown): { kind: "clayon_cloud"; session: string } | null {
   if (value === undefined) return null;
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new OAuthHandoffError("Clayon Cloud returned an invalid sign-in handoff.", "invalid_handoff");
   }
   const handoff = value as Record<string, unknown>;
   if (
-    handoff.kind !== "paperclip_cloud"
+    handoff.kind !== "clayon_cloud"
     || typeof handoff.session !== "string"
     || handoff.session.length < 16
     || handoff.session.length > 512
@@ -46,7 +46,7 @@ function parseHandoff(value: unknown): { kind: "paperclip_cloud"; session: strin
   ) {
     throw new OAuthHandoffError("Clayon Cloud returned an invalid sign-in handoff.", "invalid_handoff");
   }
-  return { kind: "paperclip_cloud", session: handoff.session };
+  return { kind: "clayon_cloud", session: handoff.session };
 }
 
 function handoffFailure(status: number, code: unknown): OAuthHandoffError {
@@ -148,7 +148,7 @@ export function savePendingCloudHandoff(
   session: string,
   storage: Pick<Storage, "setItem"> = window.sessionStorage,
 ): void {
-  const handoff = parseHandoff({ kind: "paperclip_cloud", session });
+  const handoff = parseHandoff({ kind: "clayon_cloud", session });
   if (!handoff) throw new OAuthHandoffError("Clayon Cloud returned an invalid sign-in handoff.", "invalid_handoff");
   const pending: PendingCloudHandoff = { version: 1, session: handoff.session, savedAt: Date.now() };
   storage.setItem(PENDING_HANDOFF_KEY, JSON.stringify(pending));
@@ -156,7 +156,7 @@ export function savePendingCloudHandoff(
 
 export function readPendingCloudHandoff(
   storage: Pick<Storage, "getItem" | "removeItem"> = window.sessionStorage,
-): { kind: "paperclip_cloud"; session: string } | null {
+): { kind: "clayon_cloud"; session: string } | null {
   const raw = storage.getItem(PENDING_HANDOFF_KEY);
   if (!raw) return null;
   try {
@@ -166,7 +166,7 @@ export function readPendingCloudHandoff(
       || typeof pending.savedAt !== "number"
       || Date.now() - pending.savedAt > 15 * 60_000
     ) throw new Error("expired");
-    return parseHandoff({ kind: "paperclip_cloud", session: pending.session });
+    return parseHandoff({ kind: "clayon_cloud", session: pending.session });
   } catch {
     storage.removeItem(PENDING_HANDOFF_KEY);
     return null;

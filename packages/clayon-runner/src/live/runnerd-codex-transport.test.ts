@@ -1167,11 +1167,11 @@ it.each(["before", "after"] as const)(
       itemId: "item-external-next",
     };
     const controlPlaneState = {
-      schema: "paperclip.runner.durable.control-plane-state.v1",
+      schema: "clayon.runner.durable.control-plane-state.v1",
       identity: priorIdentity,
     };
     let activeRunnerState: Record<string, unknown> | null = {
-      schema: "paperclip.runner.durable.state.v1",
+      schema: "clayon.runner.durable.state.v1",
       ...priorIdentity,
       lifecycle: "suspended",
     };
@@ -1490,15 +1490,15 @@ it("includes ACPX terminal tools in the authenticated bridge catalog", () => {
   expect(authorizedToolSetForProvider("acpx", tools)).toMatchObject({
     operations: [
       { operationId: "get_task_context" },
-      { operationId: "paperclip_block" },
-      { operationId: "paperclip_finish" },
+      { operationId: "clayon_block" },
+      { operationId: "clayon_finish" },
     ],
   });
   expect(authorizedToolSetForProvider("codex", tools)).toMatchObject({
     operations: [
       { operationId: "get_task_context" },
-      { operationId: "paperclip_block" },
-      { operationId: "paperclip_finish" },
+      { operationId: "clayon_block" },
+      { operationId: "clayon_finish" },
     ],
   });
 });
@@ -1509,10 +1509,10 @@ it.each(["codex", "opencode", "claude_managed", "aws_agentcore", "acpx"] as cons
   );
   const finish = catalog.operations.find(
     (operation: { operationId: string }) =>
-      operation.operationId === "paperclip_finish",
+      operation.operationId === "clayon_finish",
   );
   const block = catalog.operations.find(
-    (operation: { operationId: string }) => operation.operationId === "paperclip_block",
+    (operation: { operationId: string }) => operation.operationId === "clayon_block",
   );
   expect(finish.description).toBe(PRP_COMPLETION_TOOL_DESCRIPTION);
   expect(block.description).toBe(PRP_BLOCK_TOOL_DESCRIPTION);
@@ -2029,7 +2029,7 @@ it.each([
     for (const key of denied) expect(environment[key]).toBeUndefined();
     if (["cursor", "copilot", "pi"].includes(agent)) {
       expect(JSON.parse(environment[ACPX_CREDENTIAL_BINDING_ENV]!)).toEqual({
-        schema: "paperclip.acpx_credential_binding.v1", agent, sessionId: "session-1", names: allowed,
+        schema: "clayon.acpx_credential_binding.v1", agent, sessionId: "session-1", names: allowed,
       });
       const sidecar = createAcpxSidecarHostEnvironment(environment, agent, "session-1");
       for (const key of allowed) expect(sidecar[key]).toBe(credentialEnvironment[key]);
@@ -2195,7 +2195,7 @@ it.each(["missing", "changed"] as const)("reuses the recorded Codex command when
   core.persistRunAttachTemplate({ provider: { kind: "codex", command, args: [], model: "gpt-6.1-sol" }, workspace: { cwd: root } });
   await core.stop();
   await mkdir(join(root, "runner"), { mode: 0o700 });
-  await writeFile(join(root, "runner", "runner-state.json"), JSON.stringify({ schema: "paperclip.runner.durable.state.v1", ...priorIdentity, lifecycle: "suspended" }), { mode: 0o600 });
+  await writeFile(join(root, "runner", "runner-state.json"), JSON.stringify({ schema: "clayon.runner.durable.state.v1", ...priorIdentity, lifecycle: "suspended" }), { mode: 0o600 });
   const resolver = vi.spyOn(codexCommandRuntime, "resolveCodexCommand").mockImplementation(() => {
     if (discovery === "missing") throw new Error("The current dependency is missing");
     return replacement;
@@ -2286,7 +2286,7 @@ it("rehydrates durable cumulative usage for a cold thread read", () => {
 it("binds a durable semantic result to the active provider turn", () => {
   expect(
     rehydrateRunnerdResultNotification(
-      { schema: "paperclip.run_result.v1", reportedWorkDisposition: "done" },
+      { schema: "clayon.run_result.v1", reportedWorkDisposition: "done" },
       "opened-thread-1",
       "provider-turn-1",
       "finish-1",
@@ -2296,7 +2296,7 @@ it("binds a durable semantic result to the active provider turn", () => {
     turnId: "provider-turn-1",
     itemId: "finish-1",
     result: {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "done",
     },
   });
@@ -2500,7 +2500,7 @@ it("rehydrates normalized plans into the Codex notification contract", () => {
 
 it("rehydrates canonical workspace changes without reconstructing the diff", () => {
   const workspaceChange = {
-    schema: "paperclip.workspace.diff.v1",
+    schema: "clayon.workspace.diff.v1",
     changeSetId: "turn-1:workspace",
     revision: 1,
     source: "harness_reported",
@@ -3058,14 +3058,14 @@ it.each([false, true])("binds goal turns through the full Codex harness (autonom
   });
   const driver = new CodexAppServerDriver({
     taskEnvelope: {
-      schema: "paperclip.skillless_task.v1",
+      schema: "clayon.skillless_task.v1",
       objective: "Finish the durable goal harness test.",
       completionContract: {
         revision: "goal-harness-v1",
         criteria: [{ id: "goal", requirement: "The goal turn starts." }],
       },
       constraints: [],
-      expectedResultSchema: "paperclip.run_result.v1",
+      expectedResultSchema: "clayon.run_result.v1",
     },
     approvalPolicy: "never",
     includeCollaborationModeInstructions: false,
@@ -3491,7 +3491,7 @@ it.each([
           activeProviderTurnId: null,
           completedTurnAuthoritative: false,
           startupAttempt: {
-            schema: "paperclip.provider_startup.v1",
+            schema: "clayon.provider_startup.v1",
             phase: "initialization_failed",
             failedStage: "admission",
             requestedThreadId: (opened.thread as Record<string, unknown>).id,
@@ -3829,7 +3829,7 @@ it("does not retry a real memoized transport close whose suspension proof is una
   };
 
   const result: PrpStructuredRunResult = {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: "done",
     summary: "Recovered native work completed.",
     completionClaim: {
@@ -3847,14 +3847,14 @@ it("does not retry a real memoized transport close whose suspension proof is una
   };
 
   const terminal: PrpTerminalState = {
-    schema: "paperclip.prp.terminal.v1",
+    schema: "clayon.prp.terminal.v1",
     turnTerminalState: "completed",
     runTerminalState: "succeeded",
     reportedWorkDisposition: "done",
   };
 
   const input: NativeExecutionInputV1 = {
-    schema: "paperclip.native-execution-input.v1",
+    schema: "clayon.native-execution-input.v1",
     binding: {
       companyId: identity.companyId,
       runId: identity.runId,
@@ -3884,7 +3884,7 @@ it("does not retry a real memoized transport close whose suspension proof is una
     completionContract: {
       id: "contract-recovery",
       sha256: "contract-recovery-sha",
-      schemaVersion: "paperclip.completion-contract.v1",
+      schemaVersion: "clayon.completion-contract.v1",
       contract: {
         revision: "1",
         objective: "Recover native work",
@@ -3901,7 +3901,7 @@ it("does not retry a real memoized transport close whose suspension proof is una
     payload: Record<string, unknown> = {},
   ): PrpEvent {
     return {
-      schema: "paperclip.prp.event.v1",
+      schema: "clayon.prp.event.v1",
       sourceEventId: `runner-recovery:${identity.runId}:${sourceSeq}`,
       sourceSeq,
       sourceInstanceId: "runner-recovery",
@@ -3920,7 +3920,7 @@ it("does not retry a real memoized transport close whose suspension proof is una
     join(tmpdir(), "native-close-quarantine-"),
   );
   const readRunnerState = vi.fn(async () => ({
-    schema: "paperclip.runner.durable.state.v1",
+    schema: "clayon.runner.durable.state.v1",
     runnerInstanceId: "runner-close-quarantine",
     environmentLeaseId: "lease-close-quarantine",
     runId: identity.runId,
@@ -4082,7 +4082,7 @@ it.each(["not_suspended", "wrong_identity"] as const)(
       lifecyclePolicy: { mode: "per_turn", idleTimeoutMs: null },
       prpIdentity: identity,
       readRunnerState: async () => ({
-        schema: "paperclip.runner.durable.state.v1",
+        schema: "clayon.runner.durable.state.v1",
         ...identity,
         ...(mode === "wrong_identity" ? { runId: "some-other-run" } : {}),
         lifecycle: mode === "not_suspended" ? "ready" : "suspended",
@@ -4318,7 +4318,7 @@ it("bridges a runnerd-native question into the server request handler and resolv
       resolution: {
         action: "submit",
         response: {
-          schema: "paperclip.question_response.v1",
+          schema: "clayon.question_response.v1",
           answers: {
             environment: { selectedOptionIds: ["option-1"] },
             regions: { selectedOptionIds: ["option-1"] },
@@ -5862,7 +5862,7 @@ it.each([
           join(retained, "transition-fixture-metadata.json"),
           JSON.stringify(
             {
-              schema: "paperclip.test.warm-transition-fixture.v1",
+              schema: "clayon.test.warm-transition-fixture.v1",
               oldIdentity,
               newIdentity: desired,
               lossPoint,
@@ -7350,8 +7350,8 @@ it("cold-restores a suspended provider session under its durable run binding", a
     ) as { toolBridge?: { authorized?: Record<string, unknown> } };
     expect(Object.keys(providerState.toolBridge?.authorized ?? {})).toEqual([
       "get_task_context",
-      "paperclip_block",
-      "paperclip_finish",
+      "clayon_block",
+      "clayon_finish",
     ]);
     await restored.transport.request("turn/start", {
       input: [{ type: "text", text: "restored process" }],
@@ -8021,7 +8021,7 @@ it.each([
   });
   let session: Awaited<ReturnType<typeof driver.openSession>> | undefined;
   const prepared = JSON.stringify({
-    schema: "paperclip.native-model-envelope.v3",
+    schema: "clayon.native-model-envelope.v3",
     task: { prompt: "Keep this completion-feedback request unchanged." },
     completionContract: { revision: "prepared-v1", criteria: task.completionContract.criteria },
   });

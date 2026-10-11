@@ -709,7 +709,7 @@ describeEmbeddedPostgres("tool gateway acceptance", () => {
       const app = createGatewayRouteApp(db, gateway);
       const publicEndpoint = created.endpointPath;
       const queryOnly = await request(app)
-        .post(`${publicEndpoint}?paperclip_capability=${encodeURIComponent(token.token)}`)
+        .post(`${publicEndpoint}?clayon_capability=${encodeURIComponent(token.token)}`)
         .send({ jsonrpc: "2.0", id: "query-only", method: "tools/list" })
         .expect(401);
       expect(queryOnly.body.error).toBe("Bearer token is required");
@@ -987,7 +987,7 @@ describeEmbeddedPostgres("tool gateway acceptance", () => {
       const wrapper = await request(app)
         .post(`/api/tool-gateway/gateways/${created.id}/mcp`)
         .set("authorization", `Bearer ${token.token}`)
-        .send({ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "paperclip_get_prompt", arguments: { name: promptName } } })
+        .send({ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "clayon_get_prompt", arguments: { name: promptName } } })
         .expect(200);
       expect(wrapper.body.result.structuredContent).toMatchObject({ description: "Summary prompt" });
       expect(remote.requests.filter((entry) => entry.body?.method === "resources/read")[0]?.body?.params).toEqual({ uri: "notes://one" });
@@ -1948,7 +1948,7 @@ rl.on("line", (line) => {
       key: definitionKey,
       name: `Personal Test token ${randomUUID()}`,
       provider: "local_encrypted",
-      managedMode: "paperclip_managed",
+      managedMode: "clayon_managed",
     }).returning();
     const personalSecret = await secretService(db).createCurrentUserSecretValue(company.id, userId, {
       definitionId: definition.id,

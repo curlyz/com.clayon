@@ -169,7 +169,7 @@ beforeEach(() => {
     "codex_local",
     "opencode_local",
     "pi_local",
-    "paperclip_runner", "cursor_cloud", "cursor", "gemini_local", "kimi_local", "grok_local", "hermes_local", "hermes_gateway",
+    "clayon_runner", "cursor_cloud", "cursor", "gemini_local", "kimi_local", "grok_local", "hermes_local", "hermes_gateway",
   ].map((type) => ({ type, loaded: true, disabled: false }));
   api.adapterModels.mockResolvedValue([]);
   api.list.mockResolvedValue([{ id: "ceo", role: "ceo", status: "idle" }]);
@@ -202,7 +202,7 @@ afterEach(async () => {
 describe("New agent setup", () => {
   it("creates Dot through its independent choice without CLI or model setup, then routes to pairing", async () => {
     settings.getExperimental.mockResolvedValue({ enableNativeRunner: false, enableOpenAiDot: true, enablePublicMcp: true });
-    await render("paperclip_runner", "openai_dot");
+    await render("clayon_runner", "openai_dot");
     expect(container.textContent).toContain("OpenAI Dot");
     expect(container.querySelector('[aria-label="Model"]')).toBeNull();
     expect(container.textContent).not.toContain("Connect a model");
@@ -213,7 +213,7 @@ describe("New agent setup", () => {
     expect(container.textContent).toContain("Acknowledge external provider billing");
     await act(async () => container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
     await click("Finish setup");
-    expect(api.hire).toHaveBeenCalledWith("company-1", expect.objectContaining({ adapterType: "paperclip_runner", adapterConfig: {
+    expect(api.hire).toHaveBeenCalledWith("company-1", expect.objectContaining({ adapterType: "clayon_runner", adapterConfig: {
       provider: "openai_dot", lifecycleMode: "per_turn", allowUnmeteredProvider: true, dotWorkspaceAccess: false, dotAttachmentAccess: false,
     } }));
     expect(container.textContent).toContain("Your Dot agent has been created");
@@ -274,7 +274,7 @@ describe("New agent setup", () => {
       definition: { id: "grok-key", companyId: "company-1", key: "XAI_API_KEY", name: "Grok key", status: "active" },
       secret: { companyId: "company-1", status: "active" },
     }]);
-    await render("paperclip_runner", "grok");
+    await render("clayon_runner", "grok");
     expect(container.querySelector('select[aria-label="Environment"]')).toBeNull();
     await click("GrokAPI key");
     await click("Use saved API key");
@@ -290,14 +290,14 @@ describe("New agent setup", () => {
       await click("GrokAPI key");
       await click("Use saved API key");
     }
-    expect(api.testEnvironment).toHaveBeenCalledWith("company-1", "paperclip_runner", expect.objectContaining({ environmentId: "grok-sandbox" }));
+    expect(api.testEnvironment).toHaveBeenCalledWith("company-1", "clayon_runner", expect.objectContaining({ environmentId: "grok-sandbox" }));
     await click("Finish setup");
     expect(api.hire.mock.calls[0][1].defaultEnvironmentId).toBe("grok-sandbox");
   });
   it.each([false, true])("blocks direct runner setup links when the experiment is disabled (cloud=%s)", async (cloud) => {
     cache.setQueryData(queryKeys.health, { status: "ok", cloud: { managed: cloud } });
     settings.getExperimental.mockResolvedValue({ enableNativeRunner: false });
-    await render("paperclip_runner");
+    await render("clayon_runner");
     expect(container.textContent).toContain("This adapter is unavailable");
     expect(api.hire).not.toHaveBeenCalled();
   });
@@ -312,7 +312,7 @@ describe("New agent setup", () => {
   });
   it.each([
     ["grok_local", "subscription"], ["grok_local", "api_key"],
-    ["paperclip_runner", "subscription"], ["paperclip_runner", "api_key"],
+    ["clayon_runner", "subscription"], ["clayon_runner", "api_key"],
   ])("configures %s Grok on Cloud with an xAI %s connection", async (adapterType, method) => {
     cache.setQueryData(queryKeys.health, {
       status: "ok",
@@ -342,13 +342,13 @@ describe("New agent setup", () => {
         provider: "xai", method: "api_key", apiKey: "example-test-secret",
       }));
     }
-    const model = adapterType === "paperclip_runner" ? "grok-4.7" : "grok-code-fast-1";
+    const model = adapterType === "clayon_runner" ? "grok-4.7" : "grok-code-fast-1";
     await fill("Model", model);
     await click("Run test");
     const binding = { provider: "xai", method, mode: "responsible_user" };
     expect(api.testEnvironment).toHaveBeenLastCalledWith("company-1", adapterType, expect.objectContaining({
       environmentId: "sandbox-1",
-      adapterConfig: expect.objectContaining({ model, ...(adapterType === "paperclip_runner" ? { provider: "acpx", acpxAgent: "grok", acpxPermissionMode: "approve-all" } : {}) }),
+      adapterConfig: expect.objectContaining({ model, ...(adapterType === "clayon_runner" ? { provider: "acpx", acpxAgent: "grok", acpxPermissionMode: "approve-all" } : {}) }),
       aiConnection: binding,
       testCredentials: {},
     }));
@@ -357,7 +357,7 @@ describe("New agent setup", () => {
     expect(api.hire.mock.calls[0][1]).toMatchObject({
       adapterType,
       defaultEnvironmentId: "sandbox-1",
-      adapterConfig: { model, ...(adapterType === "paperclip_runner" ? { provider: "acpx", acpxAgent: "grok", acpxPermissionMode: "approve-all" } : {}) },
+      adapterConfig: { model, ...(adapterType === "clayon_runner" ? { provider: "acpx", acpxAgent: "grok", acpxPermissionMode: "approve-all" } : {}) },
       runtimeConfig: { aiConnection: binding, heartbeat: { enabled: false } },
     });
     expect(JSON.stringify(api.testEnvironment.mock.calls)).not.toContain("example-test-secret");
@@ -368,18 +368,18 @@ describe("New agent setup", () => {
     await render("cursor_cloud");
     expect(container.querySelector('[aria-label="Model"]')).toBeNull();
     expect(container.querySelector('[aria-label="Thinking effort"]')).toBeNull();
-    await fill("GitHub repository", "https://github.com/paperclipai/paperclip");
+    await fill("GitHub repository", "https://github.com/clayon/clayon");
     await fill("Branch", "master");
     await fill("CURSOR_API_KEY", "cursor-test-key");
     await click("Run test");
     expect(api.testEnvironment.mock.calls[0][2]).toMatchObject({
-      adapterConfig: { repoUrl: "https://github.com/paperclipai/paperclip", repoStartingRef: "master" },
+      adapterConfig: { repoUrl: "https://github.com/clayon/clayon", repoStartingRef: "master" },
       testCredentials: { CURSOR_API_KEY: "cursor-test-key" },
     });
     expect(secrets.create).not.toHaveBeenCalled();
     await click("Finish setup");
     const config = api.hire.mock.calls[0][1].adapterConfig;
-    expect(config).toMatchObject({ repoUrl: "https://github.com/paperclipai/paperclip", repoStartingRef: "master", env: {
+    expect(config).toMatchObject({ repoUrl: "https://github.com/clayon/clayon", repoStartingRef: "master", env: {
       CURSOR_API_KEY: { type: "secret_ref", secretId: "org-secret-1", version: "latest" },
     } });
     expect(config).not.toHaveProperty("repository");
@@ -529,8 +529,8 @@ describe("New agent setup", () => {
   it.each([
     ["claude_local", "claude", "Claude", "ANTHROPIC_API_KEY"],
     ["codex_local", "codex", "OpenAI", "OPENAI_API_KEY"],
-    ["paperclip_runner", "claude", "Claude", "ANTHROPIC_API_KEY"],
-    ["paperclip_runner", "codex", "OpenAI", "OPENAI_API_KEY"],
+    ["clayon_runner", "claude", "Claude", "ANTHROPIC_API_KEY"],
+    ["clayon_runner", "codex", "OpenAI", "OPENAI_API_KEY"],
   ])("stores %s %s as a reusable connection before hiring", async (adapter, runner, provider, key) => {
     await render(adapter, runner);
     await click(provider + "API key");
@@ -551,8 +551,8 @@ describe("New agent setup", () => {
   it.each([
     ["claude_local", "claude", "Claude", "ANTHROPIC_API_KEY"],
     ["codex_local", "codex", "OpenAI", "OPENAI_API_KEY"],
-    ["paperclip_runner", "claude", "Claude", "ANTHROPIC_API_KEY"],
-    ["paperclip_runner", "codex", "OpenAI", "OPENAI_API_KEY"],
+    ["clayon_runner", "claude", "Claude", "ANTHROPIC_API_KEY"],
+    ["clayon_runner", "codex", "OpenAI", "OPENAI_API_KEY"],
   ])("defaults %s %s to a saved key and preserves its reference through hire", async (adapter, runner, provider, key) => {
     secrets.listMyUserSecrets.mockResolvedValue([{
       definition: { id: "existing-key", companyId: "company-1", key, name: "Existing key", status: "active" },
@@ -571,7 +571,7 @@ describe("New agent setup", () => {
     expect(secrets.createMyUserSecret).not.toHaveBeenCalled();
     expect(secrets.rotateMyUserSecret).not.toHaveBeenCalled();
   });
-  it.each(["codex_local", "paperclip_runner"])("keeps a saved connection chosen in Connect when hiring %s", async (adapter) => {
+  it.each(["codex_local", "clayon_runner"])("keeps a saved connection chosen in Connect when hiring %s", async (adapter) => {
     await render(adapter, "codex");
     managedApi.list.mockResolvedValue({
       currentUserId: "user-1",
@@ -719,7 +719,7 @@ describe("New agent setup", () => {
   it.each(["codex", "claude", "opencode"])(
     "uses the correct native %s runner",
     async (runner) => {
-      await render("paperclip_runner", runner);
+      await render("clayon_runner", runner);
       if (runner !== "opencode")
         await connect(runner === "claude" ? "Claude" : "OpenAI");
       else await fill("Model", "openrouter/anthropic/claude-sonnet-4.6");
@@ -793,9 +793,9 @@ describe("New agent setup", () => {
   });
   it("blocks a disabled runner even when opened through a URL", async () => {
     state.adapters = [
-      { type: "paperclip_runner", loaded: true, disabled: true },
+      { type: "clayon_runner", loaded: true, disabled: true },
     ];
-    await render("paperclip_runner");
+    await render("clayon_runner");
     expect(container.textContent).toContain("This adapter is unavailable");
     expect(api.testEnvironment).not.toHaveBeenCalled();
     expect(api.hire).not.toHaveBeenCalled();

@@ -1,7 +1,7 @@
 {
   "commandDigest": "sha256:f35145437eeb355ed37bc5a4fa93d7ede561d9c45daf311979b46890b808ddd4",
   "declaration": {
-    "schema": "paperclip.acpx_profile_declaration.v1",
+    "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "pi",
     "agentProfileVersion": 14,
     "acpxVersion": "0.13.1",
@@ -25,7 +25,7 @@
     "nativeNotices": "session-extension-v2-bounded-runtime-failure",
     "messageProjectionSha256": "17d1e91b948dfa6a56e1905645add52b502041ad843c8d50a13b07956f22aadd",
     "noticeProjectionSha256": "014485adc690998e395d334ea3ae67f72be6060a2fc78a1185df7b8d1da28fbf",
-    "sharedRuntimeContract": "paperclip.acpx-runtime-contract.v1",
+    "sharedRuntimeContract": "clayon.acpx-runtime-contract.v1",
     "nativeInputDisposition": "queued-only-v1",
     "cacheWarming": "disabled-owned-decision-v1",
     "thinkingLevel": {

@@ -172,7 +172,7 @@ async function callFirstClayonTool() {
   mcpEvidence.tools = (listed.result?.tools ?? []).map((entry) => entry.name);
   const tool = listed.result?.tools?.find(
     (entry) =>
-      !["paperclip_finish", "paperclip_block"].includes(entry.name) &&
+      !["clayon_finish", "clayon_block"].includes(entry.name) &&
       (entry.inputSchema?.required?.length ?? 0) === 0,
   );
   if (tool)
@@ -192,7 +192,7 @@ async function callTerminalTool(promptBody) {
   const prompt = parsedPromptText(promptBody);
   const blocked = String(prompt.message ?? "").includes("block-result");
   const result = {
-    schema: "paperclip.run_result.v1",
+    schema: "clayon.run_result.v1",
     reportedWorkDisposition: blocked ? "blocked" : "done",
     summary: blocked
       ? "Fake provider is blocked."
@@ -239,11 +239,11 @@ async function callTerminalTool(promptBody) {
     bad.completionClaim.criteria = String(prompt.message).includes("repair-criteria-missing") ? []
       : String(prompt.message).includes("repair-criteria-duplicate") ? [...result.completionClaim.criteria, ...result.completionClaim.criteria]
       : [{ criterionId: "invented", status: "satisfied", evidenceRefs: [] }];
-    const rejected = await mcpRequest("tools/call", { name: "paperclip_finish", arguments: bad });
+    const rejected = await mcpRequest("tools/call", { name: "clayon_finish", arguments: bad });
     await writeFile(join(process.env.XDG_DATA_HOME, "fake-criteria-repair.json"), JSON.stringify(rejected));
   }
   const call = () => mcpRequest("tools/call", {
-    name: blocked ? "paperclip_block" : "paperclip_finish",
+    name: blocked ? "clayon_block" : "clayon_finish",
     arguments: result,
   });
   const first = await call();
@@ -746,7 +746,7 @@ const server = createServer(async (request, response) => {
                 id: "part-tool",
                 messageID: "message-assistant",
                 type: "tool",
-                tool: "paperclip_paperclip_finish",
+                tool: "clayon_clayon_finish",
                 state: { status: "completed", output: "accepted" },
               },
             },
@@ -814,7 +814,7 @@ const server = createServer(async (request, response) => {
                 id: "part-finish",
                 messageID: "message-final",
                 type: "tool",
-                tool: "paperclip_paperclip_finish",
+                tool: "clayon_clayon_finish",
                 state: { status: "completed", output: "accepted" },
               },
             },
@@ -843,7 +843,7 @@ const server = createServer(async (request, response) => {
                 messageID: "message-final",
                 type: "tool",
                 tool: "unknown",
-                callID: "functions.paperclip_paperclip_finish:24",
+                callID: "functions.clayon_clayon_finish:24",
                 state: {
                   status: "error",
                   error: "Tool execution aborted",

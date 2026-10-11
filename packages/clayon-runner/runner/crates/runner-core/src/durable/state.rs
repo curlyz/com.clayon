@@ -16,9 +16,9 @@ use crate::provider_bridge::{semantic_value_digest, MAX_COMPLETION_SUMMARY_CHARS
 
 use super::{DurableRunnerConfig, DurableRunnerError, PROTOCOL, PROTOCOL_VERSION};
 
-const STATE_SCHEMA: &str = "paperclip.runner.durable.state.v1";
+const STATE_SCHEMA: &str = "clayon.runner.durable.state.v1";
 pub(crate) const TRANSITION_STATE_SCHEMA: &str =
-    "paperclip.runner.durable.state.warm-transition.v1";
+    "clayon.runner.durable.state.warm-transition.v1";
 const STATE_FILE: &str = "runner-state.json";
 const MAX_RECENT_COMMANDS: usize = 128;
 const MAX_DIAGNOSTICS: usize = 32;
@@ -76,9 +76,9 @@ pub struct Command {
 impl Command {
     pub fn validate(&self) -> Result<(), DurableRunnerError> {
         let schema_version = match self.schema.as_str() {
-            "paperclip.prp.command.v1" => 1,
-            "paperclip.prp.command.v2" => 2,
-            "paperclip.prp.command.v3" => 3,
+            "clayon.prp.command.v1" => 1,
+            "clayon.prp.command.v2" => 2,
+            "clayon.prp.command.v3" => 3,
             _ => {
                 return Err(DurableRunnerError::invalid(
                     "command requires a supported clayon.prp.command schema",
@@ -92,7 +92,7 @@ impl Command {
         }
         if schema_version == 1 && self.command_type.starts_with("session.goal.") {
             return Err(DurableRunnerError::invalid(
-                "session goal commands require the paperclip.prp.command.v2 schema",
+                "session goal commands require the clayon.prp.command.v2 schema",
             ));
         }
         if self.command_id.is_empty()
@@ -260,7 +260,7 @@ impl WarmRunTransition {
         lease_revocation_epoch: u64,
     ) -> Result<Self, DurableRunnerError> {
         let mut receipt = Self {
-            schema: "paperclip.runner.warm-transition.v1".to_owned(),
+            schema: "clayon.runner.warm-transition.v1".to_owned(),
             transition_id: String::new(),
             old_identity: WarmRunIdentity::from_config(config),
             new_identity: WarmRunIdentity::from_config(next),
@@ -434,7 +434,7 @@ impl DurableState {
             ));
         }
         let mut hasher = Sha256::new();
-        hasher.update(b"paperclip.executor-event.v1\0");
+        hasher.update(b"clayon.executor-event.v1\0");
         hasher.update(self.runner_instance_id.as_bytes());
         hasher.update(b"\0");
         hasher.update(executor_event_id.as_bytes());
@@ -1926,7 +1926,7 @@ fn preserve_bounded_display_content(
         "runtime_request.created" | "runtime_request.expired" | "runtime_request.cancelled"
     ) {
         if let Some(input) = original.pointer("/request/input") {
-            if input.get("schema").and_then(Value::as_str) == Some("paperclip.question_set.v1") {
+            if input.get("schema").and_then(Value::as_str) == Some("clayon.question_set.v1") {
                 validate_question_set(input)
                     .map_err(|error| DurableRunnerError::invalid(error.to_string()))?;
                 let mut preserved = sanitize_bounded_display_value(input);
@@ -1969,7 +1969,7 @@ pub(crate) fn validate_semantic_tool_input(
             "semantic tool input exceeds the 480 KiB encrypted transport limit",
         ));
     }
-    if matches!(operation_id, "paperclip_finish" | "paperclip_block")
+    if matches!(operation_id, "clayon_finish" | "clayon_block")
         && input
             .get("summary")
             .and_then(Value::as_str)
@@ -1993,7 +1993,7 @@ fn finalize_semantic_tool_input_payload(
     let Some(original_tool) = original.get("semantic_tool") else {
         return Ok(sanitized);
     };
-    if original_tool.get("schema").and_then(Value::as_str) != Some("paperclip.prp.semantic_tool.v1")
+    if original_tool.get("schema").and_then(Value::as_str) != Some("clayon.prp.semantic_tool.v1")
         || original_tool.get("schemaVersion").and_then(Value::as_u64) != Some(1)
         || original_tool.get("phase").and_then(Value::as_str) != Some("input")
     {
@@ -2036,7 +2036,7 @@ fn validate_semantic_tool_input_digest(
     let Some(semantic_tool) = payload.get("semantic_tool") else {
         return Ok(());
     };
-    if semantic_tool.get("schema").and_then(Value::as_str) != Some("paperclip.prp.semantic_tool.v1")
+    if semantic_tool.get("schema").and_then(Value::as_str) != Some("clayon.prp.semantic_tool.v1")
         || semantic_tool.get("schemaVersion").and_then(Value::as_u64) != Some(1)
         || semantic_tool.get("phase").and_then(Value::as_str) != Some("input")
     {
@@ -2711,7 +2711,7 @@ mod tests {
 
     fn command(id: &str, sequence: u64) -> Command {
         Command {
-            schema: "paperclip.prp.command.v1".to_owned(),
+            schema: "clayon.prp.command.v1".to_owned(),
             command_id: id.to_owned(),
             controller_seq: sequence,
             command_type: "session.open".to_owned(),
@@ -2751,7 +2751,7 @@ mod tests {
         let mut goal = command("goal-command", 1);
         goal.command_type = "session.goal.set".to_owned();
         assert!(goal.validate().is_err());
-        goal.schema = "paperclip.prp.command.v2".to_owned();
+        goal.schema = "clayon.prp.command.v2".to_owned();
         assert!(goal.validate().is_ok());
     }
 
@@ -2891,7 +2891,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             state.outbox[0].envelope.pointer("/payload/schema"),
-            Some(&json!("paperclip.prp.event.v2")),
+            Some(&json!("clayon.prp.event.v2")),
         );
         assert_eq!(
             state.outbox[0].envelope.pointer("/payload/schemaVersion"),
@@ -3253,13 +3253,13 @@ mod tests {
         );
         let input = json!({"summary": summary});
         let once_sanitized_input =
-            validate_semantic_tool_input("paperclip_finish", &input).unwrap();
+            validate_semantic_tool_input("clayon_finish", &input).unwrap();
         let payload = json!({
             "semantic_tool": {
-                "schema": "paperclip.prp.semantic_tool.v1",
+                "schema": "clayon.prp.semantic_tool.v1",
                 "schemaVersion": 1,
                 "phase": "input",
-                "operationId": "paperclip_finish",
+                "operationId": "clayon_finish",
                 "callId": "call-1",
                 "correlation": {
                     "runId": "run_1",
@@ -3344,13 +3344,13 @@ mod tests {
         small_frame.max_frame_bytes = 8_000;
         let mut state = DurableState::new(&small_frame);
         let long_input = json!({"summary": "C".repeat(12_000)});
-        let safe_input = validate_semantic_tool_input("paperclip_finish", &long_input).unwrap();
+        let safe_input = validate_semantic_tool_input("clayon_finish", &long_input).unwrap();
         let exact_payload = json!({
             "semantic_tool": {
-                "schema": "paperclip.prp.semantic_tool.v1",
+                "schema": "clayon.prp.semantic_tool.v1",
                 "schemaVersion": 1,
                 "phase": "input",
-                "operationId": "paperclip_finish",
+                "operationId": "clayon_finish",
                 "content": {
                     "digest": semantic_value_digest(&safe_input),
                 },
@@ -3368,7 +3368,7 @@ mod tests {
             .to_string()
             .contains("transport frame limit"));
         assert!(validate_semantic_tool_input(
-            "paperclip_finish",
+            "clayon_finish",
             &json!({"summary": "C".repeat(MAX_COMPLETION_SUMMARY_CHARS + 1)}),
         )
         .unwrap_err()
@@ -3383,7 +3383,7 @@ mod tests {
             "semantic_tool": {
                 "schema": "clayon.prp.semantic_tool.tampered",
                 "phase": "input",
-                "operationId": "paperclip_finish",
+                "operationId": "clayon_finish",
                 "content": {"digest": original_digest.clone()},
                 "input": once_sanitized,
             },
@@ -3417,7 +3417,7 @@ mod tests {
         }));
         let generic_payload = json!({
             "semantic_tool": {
-                "schema": "paperclip.prp.semantic_tool.v1",
+                "schema": "clayon.prp.semantic_tool.v1",
                 "schemaVersion": 1,
                 "phase": "input",
                 "operationId": "search_context",
@@ -3457,8 +3457,8 @@ mod tests {
         let mut state = DurableState::new(&config);
         let text = "  Editable draft 漢字\n".repeat(1_000);
         state.enqueue_event(&config, "runtime_request.created", EventPriority::P0, json!({
-            "request": {"schema":"paperclip.runtime_request.v2", "requestKind":"runtime", "requestId":"edit-1",
-                "type":"input", "status":"pending", "input":{"schema":"paperclip.question_set.v1", "questions":[{
+            "request": {"schema":"clayon.runtime_request.v2", "requestKind":"runtime", "requestId":"edit-1",
+                "type":"input", "status":"pending", "input":{"schema":"clayon.question_set.v1", "questions":[{
                     "id":"draft", "prompt":"Edit", "answerMode":"text", "required":true, "initialText":text
                 }]}}
         })).unwrap();
@@ -3484,14 +3484,14 @@ mod tests {
                 EventPriority::P0,
                 json!({
                     "request": {
-                        "schema": "paperclip.runtime_request.v2",
+                        "schema": "clayon.runtime_request.v2",
                         "requestKind": "runtime",
                         "requestId": "request-1",
                         "type": "input",
                         "status": "pending",
                         "prompt": "Choose one.",
                         "input": {
-                            "schema": "paperclip.question_set.v1",
+                            "schema": "clayon.question_set.v1",
                             "title": "token=question-set-secret",
                             "questions": [{
                                 "id": "stable-question-id",
@@ -3557,12 +3557,12 @@ mod tests {
         let mut state = DurableState::new(&config);
         let text = "Review 漢字\n".repeat(2_000);
         let input = json!({
-            "schema":"paperclip.question_set.v1",
+            "schema":"clayon.question_set.v1",
             "description":text,
             "questions":[{"id":"revision-123","prompt":"Approve?","required":true,"answerMode":"single_select","options":[{"id":"accept","label":"Accept"},{"id":"reject","label":"Reject"}]}]
         });
         state.enqueue_event(&config, "runtime_request.created", EventPriority::P0, json!({
-            "request":{"schema":"paperclip.runtime_request.v2","requestId":"request-1","type":"input","status":"pending","input":input},
+            "request":{"schema":"clayon.runtime_request.v2","requestId":"request-1","type":"input","status":"pending","input":input},
             "diagnostic":text
         })).unwrap();
         let stored = state.outbox[0]
@@ -3579,7 +3579,7 @@ mod tests {
             .ends_with("…[truncated]"));
 
         state.enqueue_event(&config, "tool.execution.completed", EventPriority::P1, json!({
-            "schema":"paperclip.tool.execution.v1","executionId":"tool-1","transport":"builtin","operation":"read","status":"completed",
+            "schema":"clayon.tool.execution.v1","executionId":"tool-1","transport":"builtin","operation":"read","status":"completed",
             "output":text,"outputBytes":text.len(),"outputTruncated":false,"outputDigest":null
         })).unwrap();
         let stored = state.outbox[1]
@@ -3592,7 +3592,7 @@ mod tests {
         for event_type in ["runtime_request.expired", "runtime_request.cancelled"] {
             state.enqueue_event(&config, event_type, EventPriority::P0, json!({
                 "requestId":"request-1", "replayAllowed":false,
-                "request":{"schema":"paperclip.runtime_request.v2","requestId":"request-1","type":"input","status":"pending","input":input}
+                "request":{"schema":"clayon.runtime_request.v2","requestId":"request-1","type":"input","status":"pending","input":input}
             })).unwrap();
             assert_eq!(
                 state
@@ -3632,14 +3632,14 @@ mod tests {
                 EventPriority::P0,
                 json!({
                     "request": {
-                        "schema": "paperclip.runtime_request.v2",
+                        "schema": "clayon.runtime_request.v2",
                         "requestKind": "runtime",
                         "requestId": "request-1",
                         "type": "input",
                         "status": "pending",
                         "prompt": "Choose one.",
                         "input": {
-                            "schema": "paperclip.question_set.v1",
+                            "schema": "clayon.question_set.v1",
                             "questions": [{
                                 "id": "token=question-secret",
                                 "prompt": "Choose one.",
@@ -3731,7 +3731,7 @@ mod tests {
                 "semantic_tool.input".to_owned(),
                 EventPriority::P0,
                 json!({"semantic_tool": {
-                    "schema": "paperclip.prp.semantic_tool.v1",
+                    "schema": "clayon.prp.semantic_tool.v1",
                     "schemaVersion": 1,
                     "phase": "input",
                     "operationId": "create_task",
@@ -3797,7 +3797,7 @@ mod tests {
         let config = config(PathBuf::from("unused"));
         let mut state = DurableState::new(&config);
         state.enqueue_executor_event(&config, "instruction-write".to_owned(), "semantic_tool.input".to_owned(), EventPriority::P0,
-            json!({"semantic_tool": {"schema":"paperclip.prp.semantic_tool.v1", "schemaVersion":1, "phase":"input", "operationId":"update_agent_instructions", "content":{"digest":semantic_value_digest(&input)}, "input": input}})).unwrap();
+            json!({"semantic_tool": {"schema":"clayon.prp.semantic_tool.v1", "schemaVersion":1, "phase":"input", "operationId":"update_agent_instructions", "content":{"digest":semantic_value_digest(&input)}, "input": input}})).unwrap();
         let encoded = serde_json::to_vec(&state).unwrap();
         let recovered: DurableState = serde_json::from_slice(&encoded).unwrap();
         let actual = recovered.outbox[0]
@@ -3860,7 +3860,7 @@ mod tests {
         let command = command("command_token_prose", 1);
         state.begin_command(&command).unwrap();
         let result = json!({
-            "result": {"schema": "paperclip.prp.run_result.v1", "summary": observed_prose},
+            "result": {"schema": "clayon.prp.run_result.v1", "summary": observed_prose},
             "nested": {"token": "system", "diagnostic": "token=system"},
         });
         state.complete_command(&command, result).unwrap();
@@ -3886,7 +3886,7 @@ mod tests {
             "token arbitrary",
             "one-token rule",
             "executor.customTools.integrations.list",
-            "paperclip.question_set.v1",
+            "clayon.question_set.v1",
             "aaaaaaaa.bbbbbbbb.cccccccc",
             "plan.security.credentials.md",
         ] {
@@ -3969,7 +3969,7 @@ mod tests {
         state.begin_command(&command).unwrap();
         state.complete_command(&command, json!({
             "result": {
-                "schema": "paperclip.prp.run_result.v1",
+                "schema": "clayon.prp.run_result.v1",
                 "summary": "Use a transparent token system. Remove token=fixture-secret. Next.",
             },
             "nested": {"token": "fixture-secret."},

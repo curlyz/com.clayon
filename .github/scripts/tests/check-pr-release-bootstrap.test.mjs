@@ -25,7 +25,7 @@ test('does nothing (and fetches nothing) when the manifest is untouched', async 
   const result = await checkReleaseBootstrap(
     [{ filename: 'server/src/index.ts', status: 'modified' }],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -41,7 +41,7 @@ test('notices a new publishFromCi:true package that is missing from npm', async 
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -66,7 +66,7 @@ test('stays quiet when the new package already exists on npm', async () => {
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -85,7 +85,7 @@ test('notices a publishFromCi flip from false to true on a missing package', asy
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -114,7 +114,7 @@ test('notices a publishFromCi:false package that published packages newly depend
   const result = await checkReleaseBootstrap(
     files,
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -145,7 +145,7 @@ test('notices a newly added dependency on an existing unpublished package even w
   const result = await checkReleaseBootstrap(
     files,
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -163,7 +163,7 @@ test('stays quiet for a publishFromCi:false package nothing depends on', async (
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -183,7 +183,7 @@ test('never looks up names outside the @clayon scope', async () => {
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -210,7 +210,7 @@ test('stays quiet when the registry lookup fails', async () => {
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {
@@ -229,7 +229,7 @@ test('treats a missing base manifest as empty (every head entry is new)', async 
   const result = await checkReleaseBootstrap(
     [manifestChangedFile],
     'token',
-    'paperclipai/paperclip',
+    'clayon/clayon',
     9967,
     'master',
     {

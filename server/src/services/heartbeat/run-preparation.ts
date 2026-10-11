@@ -1085,7 +1085,7 @@ export async function buildClayonRuntimeMcpServers(input: {
         status: "active",
         defaultAction: "deny",
         metadata: {
-          source: "paperclip_runner",
+          source: "clayon_runner",
           agentId: input.agent.id,
           assignmentDigest,
         },
@@ -1111,7 +1111,7 @@ export async function buildClayonRuntimeMcpServers(input: {
     }
   }
 
-  if (profile!.metadata?.source !== "paperclip_runner" || profile!.metadata?.agentId !== input.agent.id ||
+  if (profile!.metadata?.source !== "clayon_runner" || profile!.metadata?.agentId !== input.agent.id ||
       profile!.metadata?.assignmentDigest !== assignmentDigest) {
     throw new Error("Invalid native runtime profile provenance");
   }
@@ -1417,7 +1417,7 @@ export async function createManagedMcpRunConfig(input: {
           where ${toolProfiles.id} = ${toolMcpGateways.profileId}
             and ${toolProfiles.companyId} = ${toolMcpGateways.companyId}
             and (${toolProfiles.profileKey} like 'native:%'
-              or ${toolProfiles.metadata}->>'source' = 'paperclip_runner')
+              or ${toolProfiles.metadata}->>'source' = 'clayon_runner')
         )`,
       ),
     )
@@ -2136,7 +2136,7 @@ export async function attestReviewedExternalChatRun(input: {
         } catch (error) {
           if (
             error instanceof Error &&
-            error.message === "paperclip_runner_chat_attachment_binding_denied"
+            error.message === "clayon_runner_chat_attachment_binding_denied"
           ) {
             // Inbound processing commits the message/link before dispatching its
             // wake, but completes subscription and marks delivery processed after
@@ -2182,9 +2182,9 @@ export async function attestReviewedExternalChatRun(input: {
           if (
             error instanceof Error &&
             [
-              "paperclip_runner_chat_attachment_binding_denied",
-              "paperclip_runner_chat_attachment_destination_denied",
-              "paperclip_runner_chat_attachment_principal_denied",
+              "clayon_runner_chat_attachment_binding_denied",
+              "clayon_runner_chat_attachment_destination_denied",
+              "clayon_runner_chat_attachment_principal_denied",
             ].includes(error.message)
           )
             return false;

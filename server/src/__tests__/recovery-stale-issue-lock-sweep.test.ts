@@ -471,7 +471,7 @@ describeEmbeddedPostgres("recovery sweepStaleIssueLocks", () => {
     });
     await db.insert(completionContracts).values({
       id: contractId, companyId, issueId, revision: 1,
-      schemaVersion: "paperclip.completion-contract.v1", policyVersion: "fixture",
+      schemaVersion: "clayon.completion-contract.v1", policyVersion: "fixture",
       risk: "standard", completionAuthority: "server_arbiter",
       incompleteCriteriaPolicy: "preserve_non_terminal", contractJson: {},
       canonicalSha256: "fixture-contract", createdByActorType: "system", createdByActorId: "test",

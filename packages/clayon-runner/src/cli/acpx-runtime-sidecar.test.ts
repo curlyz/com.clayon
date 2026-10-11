@@ -102,7 +102,7 @@ describe("qualified ACPX runtime sidecar", () => {
     const before = { promptMessageIds: [], requestTokenUsage: {} };
     const after = { lastRequestId: "request-1", promptMessageIds: ["prompt-1"], requestTokenUsage: {}, cursorPromptUsage: {
       request_id: "request-1", prompt_message_id: "prompt-1", receipt: {
-        schema: "paperclip.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
+        schema: "clayon.cursor.native-usage.v1", source: "native_turn_ended", promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
         reasons: ["native_counter_semantics_unverified"], observations: [], limits: { maxObservations: 64, maxInvocations: 64, maxBytes: 16384 }, truncated: false,
       },
     } };
@@ -152,7 +152,7 @@ describe("qualified ACPX runtime sidecar", () => {
         expect(stable(raw, kind)).toBe(raw);
       }
       for (const raw of ["native\u0000tool", "native\u007ftool", "x".repeat(241)]) {
-        const expected = `acpx-${kind}-${createHash("sha256").update("paperclip.acpx.provider-identity.v1\0").update(kind).update("\0").update(raw).digest("hex")}`;
+        const expected = `acpx-${kind}-${createHash("sha256").update("clayon.acpx.provider-identity.v1\0").update(kind).update("\0").update(raw).digest("hex")}`;
         expect(stable(raw, kind)).toBe(expected);
       }
     }
@@ -225,7 +225,7 @@ describe("qualified ACPX runtime sidecar", () => {
       return waitForExtensionInput;
     `)(acpxProfileActivity, (context: any) => context.responseDelivery, (...args: any[]) => emitted.push(args), inputs);
     const abort = new AbortController();
-    const pending = invoke("turn", { method: "cursor/create_plan", details: { toolCallId: "tool with spaces" }, questionSet: { schema: "paperclip.question_set.v1", questions: [] }, cancel: () => ({ cancelled: true }) }, { requestId: 0, signal: abort.signal, responseDelivery: Promise.resolve() });
+    const pending = invoke("turn", { method: "cursor/create_plan", details: { toolCallId: "tool with spaces" }, questionSet: { schema: "clayon.question_set.v1", questions: [] }, cancel: () => ({ cancelled: true }) }, { requestId: 0, signal: abort.signal, responseDelivery: Promise.resolve() });
     expect(emitted).toEqual([["runtime.input_requested", expect.objectContaining({ toolCallId: "tool with spaces", origin: { adapter: "acpx-runtime-sidecar", provider: "cursor", method: "cursor/create_plan" } }), "turn"]]);
     abort.abort(); await expect(pending).resolves.toEqual({ cancelled: true });
     expect(inputs.size).toBe(0);
@@ -270,7 +270,7 @@ describe("qualified ACPX runtime sidecar", () => {
     const receipt = appendSemanticToolReceipt({ tool: "get_task_context", callId: "1", arguments: {} }, { content: [{ type: "text", text: "{}" }] }).receipt;
     captured(receipt);
     expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ payload: { category: "paperclip_semantic_tool_receipt_v2", provenance: { sessionId: "session-a", turnId: "turn-a" } } });
+    expect(events[0]).toMatchObject({ payload: { category: "clayon_semantic_tool_receipt_v2", provenance: { sessionId: "session-a", turnId: "turn-a" } } });
     active = false; captured(receipt); expect(events).toHaveLength(1);
     for (const agent of ["cursor", "codex", "pi"]) expect(create({ agent, tools: [] }, evidence, () => undefined).captureSemanticReceipt).toBeUndefined();
   });
@@ -289,16 +289,16 @@ describe("qualified ACPX runtime sidecar", () => {
     try {
       projector.tool({ type: "tool_call", tag: "tool_call", toolCallId: "native-call", kind: "other", status: "pending", rawInput: raw });
       const response = fetch(bridge.url, { method: "POST", headers: { Authorization: `Bearer ${bridge.secret}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "paperclip_finish", arguments: raw } }) });
+        body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "clayon_finish", arguments: raw } }) });
       if (mode === "forwarded") {
         await vi.waitFor(() => expect(tools.has("3")).toBe(true));
-        expect(emitted).toEqual([{ callId: "3", operationId: "paperclip_finish", input: validated.result }]);
+        expect(emitted).toEqual([{ callId: "3", operationId: "clayon_finish", input: validated.result }]);
         // The receipt hashes the actual emitted input, not a second normalization.
         await loadActualToolCommands(tools).resolve({ callId: "3", turnId: "test-turn", result: { accepted: true }, error: null });
       }
       const body = await (await response).json();
       const receipt = readNativeSemanticReceipt({ contents: body.result.content });
-      expect(receipt).toMatchObject({ schema: "paperclip.semantic_tool_receipt.v2", inputSha256: semanticInputSha256(raw),
+      expect(receipt).toMatchObject({ schema: "clayon.semantic_tool_receipt.v2", inputSha256: semanticInputSha256(raw),
         normalizedInputSha256: mode === "forwarded" ? semanticInputSha256(emitted[0].input) : null,
         outcome: mode === "forwarded" ? "returned" : "error" });
       expect(semanticInputSha256(raw)).not.toBe(semanticInputSha256(validated.result));
@@ -307,7 +307,7 @@ describe("qualified ACPX runtime sidecar", () => {
       const details = Object.fromEntries(notices.at(-1).payload.details.map((d: any) => [d.name, d.value]));
       expect(details).toMatchObject({ semanticInputSha256: semanticInputSha256(raw),
         semanticNormalizedInputSha256: mode === "forwarded" ? semanticInputSha256(emitted[0].input) : "null" });
-      expect(notices.find(event => event.payload.category === "paperclip_semantic_tool_receipt_v2").payload.details).toHaveLength(8);
+      expect(notices.find(event => event.payload.category === "clayon_semantic_tool_receipt_v2").payload.details).toHaveLength(8);
     } finally {
       for (const pending of tools.values()) pending.cleanup();
       await bridge.close();
@@ -317,7 +317,7 @@ describe("qualified ACPX runtime sidecar", () => {
   it("does not capture normalized authority when actual sidecar validation fails", async () => {
     const emitted: unknown[] = [], capture = vi.fn(() => vi.fn());
     const wait = loadWaitForTool({ tools: new Map(), emitted, validate: validatePrpStructuredRunResult });
-    await expect(wait({ tool: "paperclip_finish", callId: "bad", arguments: {}, signal: new AbortController().signal,
+    await expect(wait({ tool: "clayon_finish", callId: "bad", arguments: {}, signal: new AbortController().signal,
       captureNormalizedInput: capture })).rejects.toThrow("ACPX semantic result failed PRP schema validation");
     expect(capture).not.toHaveBeenCalled();
     expect(emitted).toEqual([]);
@@ -326,7 +326,7 @@ describe("qualified ACPX runtime sidecar", () => {
   it("rejects normalized/envelope expansion at the actual frame writer before committing a receipt", async () => {
     const raw = { reportedWorkDisposition: "done", summary: "Complete", evidence: [{ ref: "" }], verification: [],
       completionClaim: { contractRevision: "1", objectiveSatisfied: true, criteria: [], remainingWork: [] } };
-    const request = { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "paperclip_finish", arguments: raw } };
+    const request = { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "clayon_finish", arguments: raw } };
     raw.evidence[0]!.ref = "x".repeat(ACPX_SIDECAR_MAX_FRAME_BYTES - 1 - Buffer.byteLength(JSON.stringify(request)));
     expect(Buffer.byteLength(JSON.stringify(request))).toBe(ACPX_SIDECAR_MAX_FRAME_BYTES - 1);
     const validation = validatePrpStructuredRunResult(raw);
@@ -358,7 +358,7 @@ describe("qualified ACPX runtime sidecar", () => {
     const raw = { reportedWorkDisposition: "done", summary: "Complete", evidence: [], verification: [],
       completionClaim: { contractRevision: "1", objectiveSatisfied: true, criteria: [], remainingWork: [] } };
     const handler = loadWaitForTool({ tools, emitted, validate: validatePrpStructuredRunResult, emit: wire.emit });
-    const pending = handler({ tool: "paperclip_finish", callId: "3", arguments: raw, signal: new AbortController().signal, captureNormalizedInput: capture });
+    const pending = handler({ tool: "clayon_finish", callId: "3", arguments: raw, signal: new AbortController().signal, captureNormalizedInput: capture });
     if (mode === "throws") {
       await expect(pending).rejects.toThrow("fixture write failed");
       expect(commit).not.toHaveBeenCalled(); expect(tools.size).toBe(0); expect(wire.sequence()).toBe(0);
@@ -387,7 +387,7 @@ describe("qualified ACPX runtime sidecar", () => {
       const params = { callId: "3", turnId: "test-turn", result: { accepted: mode !== "accepted-false" }, error: null };
       try {
         const response = fetch(bridge.url, { method: "POST", headers,
-          body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "paperclip_finish", arguments: raw } }) });
+          body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "clayon_finish", arguments: raw } }) });
         await vi.waitFor(() => expect(tools.has("3")).toBe(true), { interval: 5, timeout: 400 });
         expect(wire.writes).toHaveLength(1);
         expect(JSON.parse(wire.writes[0]!).payload.input).toEqual(validation.result);
@@ -435,7 +435,7 @@ describe("qualified ACPX runtime sidecar", () => {
     expect(validatePrpStructuredRunResult(raw).ok).toBe(true);
     const wire = loadActualSidecarWriter(), tools = new Map<string, unknown>(), emitted: unknown[] = [], capture = vi.fn(() => vi.fn());
     const handler = loadWaitForTool({ tools, emitted, validate: validatePrpStructuredRunResult, emit: wire.emit });
-    await expect(handler({ tool: "paperclip_finish", callId: "3", arguments: raw, signal: new AbortController().signal,
+    await expect(handler({ tool: "clayon_finish", callId: "3", arguments: raw, signal: new AbortController().signal,
       captureNormalizedInput: capture })).rejects.toThrow("cannot be encoded without changing its identity");
     expect(capture).not.toHaveBeenCalled(); expect(tools.size).toBe(0); expect(emitted).toEqual([]);
     expect(wire.writes).toEqual([]); expect(wire.sequence()).toBe(0);
@@ -600,7 +600,7 @@ describe("qualified ACPX runtime sidecar", () => {
     expect(source).toContain("? boundedTool.inputUpdated");
   });
 
-  it.each(["paperclip_finish", "paperclip_block"])(
+  it.each(["clayon_finish", "clayon_block"])(
     "bounds pending %s calls before reserved handling and resumes admission",
     async (operationId) => {
       const tools = new Map<string, unknown>();
@@ -610,7 +610,7 @@ describe("qualified ACPX runtime sidecar", () => {
       const signal = new AbortController();
       await expect(waitForTool({
         callId: `${operationId}-at-capacity`, tool: operationId,
-        arguments: operationId === "paperclip_block" ? { reportedWorkDisposition: "blocked" } : { reportedWorkDisposition: "done" },
+        arguments: operationId === "clayon_block" ? { reportedWorkDisposition: "blocked" } : { reportedWorkDisposition: "done" },
         signal: signal.signal,
       })).rejects.toThrow("ACPX pending tool limit reached");
       expect(emitted).toEqual([]);
@@ -619,7 +619,7 @@ describe("qualified ACPX runtime sidecar", () => {
       tools.delete("pending-0");
       const admitted = waitForTool({
         callId: `${operationId}-after-release`, tool: operationId,
-        arguments: operationId === "paperclip_block" ? { reportedWorkDisposition: "blocked" } : { reportedWorkDisposition: "done" },
+        arguments: operationId === "clayon_block" ? { reportedWorkDisposition: "blocked" } : { reportedWorkDisposition: "done" },
         signal: signal.signal,
       });
       await Promise.resolve();
@@ -1028,7 +1028,7 @@ describe("qualified ACPX runtime sidecar", () => {
         capabilities: {
           persistentSessions: true,
           exactModelVerification: true,
-          structuredInput: "paperclip.question_set.v1",
+          structuredInput: "clayon.question_set.v1",
         },
       },
     });
@@ -1290,8 +1290,8 @@ function loadWaitForTool(input: {
     input.tools,
     "test-turn",
     (eventType: string, payload: unknown) => { const accepted = input.emit?.(eventType, payload) ?? true; if (accepted) input.emitted.push(payload); return accepted; },
-    "paperclip_finish",
-    "paperclip_block",
+    "clayon_finish",
+    "clayon_block",
     input.validate ?? ((argumentsValue: unknown) => ({
       ok: true,
       result: argumentsValue,

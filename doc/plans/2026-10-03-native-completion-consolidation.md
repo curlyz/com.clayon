@@ -4,7 +4,7 @@ Date: 2026-10-03. Roadmap item: 2.3. Status: implementation and provider-free ca
 
 ## Change and comparison axis
 
-The first slice replaces the repeated final-response procedure in native task constraints with a short requirement to obtain an accepted `paperclip_finish` or `paperclip_block` result and follow that tool's reporting instructions. It removes the extra completion sentence in the Codex/runnerd and direct OpenCode backends. The existing finish/block tool descriptions still own rejection, retry, approval, link/action, explicit wait, and final-response behavior.
+The first slice replaces the repeated final-response procedure in native task constraints with a short requirement to obtain an accepted `clayon_finish` or `clayon_block` result and follow that tool's reporting instructions. It removes the extra completion sentence in the Codex/runnerd and direct OpenCode backends. The existing finish/block tool descriptions still own rejection, retry, approval, link/action, explicit wait, and final-response behavior.
 
 The production comparison axis is exactly these three files:
 

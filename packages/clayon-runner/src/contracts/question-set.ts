@@ -1,6 +1,6 @@
-export const CLAYON_QUESTION_SET_SCHEMA = "paperclip.question_set.v1" as const;
-export const CLAYON_QUESTION_RESPONSE_SCHEMA = "paperclip.question_response.v1" as const;
-export const CLAYON_RUNTIME_REQUEST_SCHEMA_V2 = "paperclip.runtime_request.v2" as const;
+export const CLAYON_QUESTION_SET_SCHEMA = "clayon.question_set.v1" as const;
+export const CLAYON_QUESTION_RESPONSE_SCHEMA = "clayon.question_response.v1" as const;
+export const CLAYON_RUNTIME_REQUEST_SCHEMA_V2 = "clayon.runtime_request.v2" as const;
 
 export type ClayonQuestionAnswerMode = "single_select" | "multi_select" | "text";
 

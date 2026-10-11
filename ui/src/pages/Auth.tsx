@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fingerprint } from "lucide-react";
+import { ArrowUpRight, Fingerprint } from "lucide-react";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { authApi } from "../api/auth";
-import { authClient } from "../api/authClient";
-import { healthApi } from "../api/health";
+import { authApi } from "@/api/auth";
+import { authClient } from "@/api/authClient";
+import { healthApi } from "@/api/health";
 import { CloudSignIn } from "@/components/CloudSignIn";
 import { clearCloudSignInAttempt } from "@/lib/cloud-sign-in";
 import { tenantSignInReturnPath } from "@/lib/cloudLinks";
-import { queryKeys } from "../lib/queryKeys";
-import { getRememberedInvitePath } from "../lib/invite-memory";
-import { Button } from "@/components/ui/button";
-import { GoogleMark } from "@/components/GoogleMark";
-import { AsciiArtAnimation } from "@/components/AsciiArtAnimation";
-import { ClayonLockup } from "@/components/ClayonLockup";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { queryKeys } from "@/lib/queryKeys";
+import { getRememberedInvitePath } from "@/lib/invite-memory";
+import { Portal } from "@/components/portal/Portal";
 
 type AuthMode = "sign_in" | "sign_up";
 
@@ -23,6 +19,10 @@ export function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>("sign_in");
+  const [showSignIn, setShowSignIn] = useState(false);
+  const entryAction = useRef<HTMLButtonElement>(null);
+  const emailField = useRef<HTMLInputElement>(null);
+  const nameField = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -75,7 +75,7 @@ export function AuthPage() {
       navigate(nextPath, { replace: true });
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      setError(String(err).replace(/^Error:\s*/, "") || "Authentication failed");
     },
   });
 
@@ -107,7 +107,7 @@ export function AuthPage() {
     },
     onError: (err) => {
       // WebAuthn aborts (user cancelled / timed out) are expected, not errors.
-      const message = err instanceof Error ? err.message : String(err);
+      const message = String(err).replace(/^Error:\s*/, "");
       setPasskeyError(
         message.includes("NotAllowedError") || message.includes("abort")
           ? null
@@ -121,46 +121,79 @@ export function AuthPage() {
     password.trim().length > 0 &&
     (mode === "sign_in" || (name.trim().length > 0 && password.trim().length >= 8));
 
+  useEffect(() => {
+    if (!showSignIn) return;
+    if (mode === "sign_up") nameField.current?.focus();
+    else emailField.current?.focus();
+  }, [showSignIn, mode]);
+
   if (healthQuery.isLoading || isSessionLoading || session) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <ClayonLockup className="text-lg" />
-      </div>
+      <Portal>
+        <div className="halo-portal-content" role="status">
+          <h1 className="halo-portal-title">Opening the portal.</h1>
+          <p className="halo-portal-description">Checking your session…</p>
+        </div>
+      </Portal>
     );
   }
 
   // A health/session failure must not be mistaken for a self-hosted instance.
   if (healthQuery.error || sessionError) {
-    return <p role="alert" className="p-6 text-sm text-destructive">Unable to check sign-in. Refresh and try again.</p>;
+    return (
+      <Portal>
+        <div className="halo-portal-content">
+          <h1 className="halo-portal-title">The portal is out of reach.</h1>
+          <p role="alert" className="halo-portal-error">Unable to check sign-in. Try again to reconnect.</p>
+          <button type="button" className="halo-portal-action" onClick={() => {
+            void queryClient.invalidateQueries({ queryKey: queryKeys.health });
+            void queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+          }}>Try again <ArrowUpRight className="halo-portal-action-icon" aria-hidden="true" /></button>
+        </div>
+      </Portal>
+    );
   }
 
   if (healthQuery.data?.cloud) {
     return <CloudSignIn cloud={healthQuery.data.cloud} returnTo={nextPath} />;
   }
 
-  return (
-    <div className="fixed inset-0 flex bg-background">
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-      {/* Left half — form */}
-      <div className="w-full md:w-1/2 flex flex-col overflow-y-auto">
-        <div className="w-full max-w-md mx-auto my-auto px-8 py-12">
-          <div className="mb-8">
-            <ClayonLockup className="text-lg" />
+  if (!showSignIn) {
+    return (
+      <Portal>
+        <div className="halo-portal-content">
+          <p className="halo-portal-eyebrow">The lab / Portal 01</p>
+          <h1 className="halo-portal-title">
+            <span>Your mission.</span>
+            <span className="halo-portal-title-accent">A new world.</span>
+          </h1>
+          <p className="halo-portal-description">Build an AI company. Give it a mission. Let your agents get to work.</p>
+          <div className="halo-portal-actions">
+            <button ref={entryAction} type="button" className="halo-portal-action" onClick={() => setShowSignIn(true)}>
+              Enter Clayon <ArrowUpRight className="halo-portal-action-icon" aria-hidden="true" />
+            </button>
+            <p className="halo-portal-note">Meet the crew. Build what comes next.</p>
           </div>
+        </div>
+      </Portal>
+    );
+  }
 
-          <h1 className="text-xl font-semibold">
+  return (
+    <Portal>
+        <div className="halo-portal-form">
+          <p className="halo-portal-eyebrow">Step inside</p>
+          <h1 className="halo-portal-title">
             {mode === "sign_in" ? "Sign in to Clayon" : "Create your Clayon account"}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="halo-portal-description">
             {mode === "sign_in"
               ? "Use your email and password to access this instance."
-              : "Create an account for this instance. Email confirmation is not required in v1."}
+              : "Create an account to start building your AI company."}
           </p>
 
           <form
-            className="mt-6 space-y-4"
+            className="halo-portal-field"
             method="post"
             action={mode === "sign_up" ? "/api/auth/sign-up/email" : "/api/auth/sign-in/email"}
             onSubmit={(event) => {
@@ -174,12 +207,13 @@ export function AuthPage() {
             }}
           >
             {mode === "sign_up" && (
-              <div>
-                <label htmlFor="name" className="text-xs text-muted-foreground mb-1 block">Name</label>
+              <div className="halo-portal-field">
+                <label htmlFor="name">Name</label>
                 <input
+                  ref={nameField}
                   id="name"
                   name="name"
-                  className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                  className="halo-portal-input"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   autoComplete="name"
@@ -187,16 +221,16 @@ export function AuthPage() {
                   aria-required="true"
                   aria-invalid={error ? true : undefined}
                   aria-describedby={error ? errorId : undefined}
-                  autoFocus
                 />
               </div>
             )}
-            <div>
-              <label htmlFor="email" className="text-xs text-muted-foreground mb-1 block">Email</label>
+            <div className="halo-portal-field">
+              <label htmlFor="email">Email</label>
               <input
+                ref={emailField}
                 id="email"
                 name="email"
-                className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                className="halo-portal-input"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -205,19 +239,19 @@ export function AuthPage() {
                 aria-required="true"
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? errorId : undefined}
-                autoFocus={mode === "sign_in"}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="text-xs text-muted-foreground mb-1 block">Password</label>
+            <div className="halo-portal-field">
+              <label htmlFor="password">Password</label>
               <input
                 id="password"
                 name="password"
-                className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                className="halo-portal-input"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete={mode === "sign_in" ? "current-password" : "new-password"}
+                minLength={mode === "sign_up" ? 8 : undefined}
                 required
                 aria-required="true"
                 aria-invalid={error ? true : undefined}
@@ -225,85 +259,80 @@ export function AuthPage() {
               />
             </div>
             {error && (
-              <p id={errorId} role="alert" className="text-xs text-destructive">
+              <p id={errorId} role="alert" className="halo-portal-error">
                 {error}
               </p>
             )}
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              aria-disabled={!canSubmit || mutation.isPending}
-              className={`w-full ${!canSubmit && !mutation.isPending ? "opacity-50" : ""}`}
-            >
-              {mutation.isPending
-                ? "Working…"
-                : mode === "sign_in"
-                  ? "Sign In"
-                  : "Create Account"}
-            </Button>
+            <div className="halo-portal-form-footer">
+              <button type="button" className="halo-portal-text-action" disabled={mutation.isPending} onClick={() => {
+                setShowSignIn(false);
+                requestAnimationFrame(() => entryAction.current?.focus());
+              }}>Back</button>
+              <button
+                type="submit"
+                disabled={mutation.isPending}
+                className="halo-portal-action"
+              >
+                {mutation.isPending
+                  ? "Working…"
+                  : mode === "sign_in"
+                    ? "Sign In"
+                    : "Create Account"}
+              </button>
+            </div>
           </form>
 
           {googleEnabled || passkeyEnabled ? (
-            <div className="mt-6 space-y-2 border-t border-border pt-6">
+            <div className="halo-portal-field">
               {googleEnabled ? (
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  className="w-full"
+                  className="halo-portal-secondary"
                   disabled={socialMutation.isPending}
                   aria-describedby={socialError ? socialErrorId : undefined}
                   onClick={() => socialMutation.mutate()}
                 >
-                  <GoogleMark className="mr-2" />
+                  <ArrowUpRight aria-hidden="true" />
                   {socialMutation.isPending ? "Redirecting…" : "Continue with Google"}
-                </Button>
+                </button>
               ) : null}
               {passkeyEnabled ? (
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  className="w-full"
+                  className="halo-portal-secondary"
                   disabled={passkeyMutation.isPending}
                   aria-describedby={passkeyError ? passkeyErrorId : undefined}
                   onClick={() => passkeyMutation.mutate()}
                 >
-                  <Fingerprint className="mr-2 size-4" />
+                  <Fingerprint aria-hidden="true" />
                   {passkeyMutation.isPending ? "Waiting for your device…" : "Sign in with a passkey"}
-                </Button>
+                </button>
               ) : null}
               {socialError ? (
-                <p id={socialErrorId} role="alert" className="mt-2 text-xs text-destructive">
+                <p id={socialErrorId} role="alert" className="halo-portal-error">
                   {socialError}
                 </p>
               ) : null}
               {passkeyError ? (
-                <p id={passkeyErrorId} role="alert" className="mt-2 text-xs text-destructive">
+                <p id={passkeyErrorId} role="alert" className="halo-portal-error">
                   {passkeyError}
                 </p>
               ) : null}
             </div>
           ) : null}
 
-          <div className="mt-5 text-sm text-muted-foreground">
-            {mode === "sign_in" ? "Need an account?" : "Already have an account?"}{" "}
-            <button
-              type="button"
-              className="font-medium text-foreground underline underline-offset-2"
-              onClick={() => {
-                setError(null);
-                setMode(mode === "sign_in" ? "sign_up" : "sign_in");
-              }}
-            >
-              {mode === "sign_in" ? "Create one" : "Sign in"}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="halo-portal-text-action"
+            disabled={mutation.isPending}
+            onClick={() => {
+              setError(null);
+              setMode(mode === "sign_in" ? "sign_up" : "sign_in");
+            }}
+          >
+            {mode === "sign_in" ? "Create an account" : "Sign in"}
+          </button>
         </div>
-      </div>
-
-      {/* Right half — ASCII art animation (hidden on mobile) */}
-      <div className="hidden md:block w-1/2 overflow-hidden">
-        <AsciiArtAnimation />
-      </div>
-    </div>
+    </Portal>
   );
 }

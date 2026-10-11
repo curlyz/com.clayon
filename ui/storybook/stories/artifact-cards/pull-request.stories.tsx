@@ -53,7 +53,7 @@ export const PullRequest: Story = {
     author: "Codie",
     updatedAt: "Sep 26, 2026",
     number: 14141,
-    repository: "paperclipai/paperclip",
+    repository: "clayon/clayon",
     sourceBranch: "fix/personal-keyboard-shortcut-preference",
     targetBranch: "master",
     state: "merged",
@@ -63,6 +63,6 @@ export const PullRequest: Story = {
     additions: 1159,
     deletions: 68,
     filesChanged: 30,
-    url: "https://github.com/paperclipai/paperclip/pull/14141",
+    url: "https://github.com/clayon/clayon/pull/14141",
   },
 };

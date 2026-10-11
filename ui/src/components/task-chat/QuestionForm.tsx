@@ -409,7 +409,7 @@ function QuestionFormForRequest({
     setError(null);
     try {
       await onSubmit({
-        schema: "paperclip.question_response.v1",
+        schema: "clayon.question_response.v1",
         answers: structuredClone(responseAnswers),
       });
       if (draftKey) clearDraft(draftKey);

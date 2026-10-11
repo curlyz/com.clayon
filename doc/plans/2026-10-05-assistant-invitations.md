@@ -57,7 +57,7 @@ no access. Keep the existing experimental setting and simplified consent UI.
   progress; a large-file Git streaming test timed out outside this change.
 - Mini passed all five invitation cases. Haiku and Sonnet qualification remains
   in progress; retain failed infrastructure attempts and paid billing evidence.
-- Cloud routing PR: https://github.com/paperclipai/paperclip-cloud/pull/672.
+- Cloud routing PR: https://github.com/clayon/clayon-cloud/pull/672.
   Cloud typecheck, 2,242 tests and fake-provider smoke passed; rebased focused
   gateway checks passed 218 tests. Staging routing deployment has been requested.
 - Remaining: real client qualification, final paid results, PR checks/review,

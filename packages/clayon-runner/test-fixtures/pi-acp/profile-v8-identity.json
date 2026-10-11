@@ -1,7 +1,7 @@
 {
   "commandDigest": "sha256:843d30e419914529755c9827d9151a306da1b50b643be7eab1abe797641a37ce",
   "declaration": {
-    "schema": "paperclip.acpx_profile_declaration.v1",
+    "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "pi",
     "agentProfileVersion": 8,
     "acpxVersion": "0.13.1",

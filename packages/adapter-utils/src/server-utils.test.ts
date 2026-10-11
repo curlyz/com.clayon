@@ -44,7 +44,7 @@ import {
 } from "./server-utils.js";
 
 it("reserves identity credentials even for mixed-case inherited or configured keys", () => {
-  const keys = ["CLAYON_AGENT_KEY_ID", "Clayon_Agent_Public_Key", "paperclip_agent_private_key"];
+  const keys = ["CLAYON_AGENT_KEY_ID", "Clayon_Agent_Public_Key", "clayon_agent_private_key"];
   const inherited = Object.fromEntries(keys.map(key => [key, "host-override"]));
   expect(sanitizeInheritedClayonEnv({ ...inherited, PATH: "/usr/bin" })).toEqual({ PATH: "/usr/bin" });
   for (const key of keys) expect(isForbiddenConfigEnvKey(key)).toBe(true);
@@ -379,7 +379,7 @@ describe("materializeClayonSkillCopy", () => {
 
 describe("adapter skill snapshots", () => {
   const requiredEntry = {
-    key: "paperclipai/paperclip/clayon",
+    key: "clayon/clayon/clayon",
     runtimeName: "clayon",
     source: "/runtime/clayon",
   };
@@ -1576,7 +1576,7 @@ describe("renderClayonWakePrompt", () => {
   );
 
   const externalQuestionMarker = {
-    schema: "paperclip.external_chat_question_response.v1",
+    schema: "clayon.external_chat_question_response.v1",
     interactionId: "10000000-0000-4000-8000-000000000001",
     responseDeliveryId: "20000000-0000-4000-8000-000000000002",
     sourceRunId: "30000000-0000-4000-8000-000000000003",
@@ -3397,7 +3397,7 @@ describe("applyClayonWorkspaceEnv", () => {
         workspaceSource: "project_primary",
         workspaceStrategy: "git_worktree",
         workspaceId: "workspace-1",
-        workspaceRepoUrl: "https://github.com/paperclipai/paperclip.git",
+        workspaceRepoUrl: "https://github.com/clayon/clayon.git",
         workspaceRepoRef: "main",
         workspaceBranch: "feature/test",
         workspaceWorktreePath: "/tmp/worktree",
@@ -3411,7 +3411,7 @@ describe("applyClayonWorkspaceEnv", () => {
       CLAYON_WORKSPACE_STRATEGY: "git_worktree",
       CLAYON_WORKSPACE_ID: "workspace-1",
       CLAYON_WORKSPACE_REPO_URL:
-        "https://github.com/paperclipai/paperclip.git",
+        "https://github.com/clayon/clayon.git",
       CLAYON_WORKSPACE_REPO_REF: "main",
       CLAYON_WORKSPACE_BRANCH: "feature/test",
       CLAYON_WORKSPACE_WORKTREE_PATH: "/tmp/worktree",
@@ -3449,16 +3449,16 @@ describe("shapeClayonWorkspaceEnvForExecution", () => {
         {
           workspaceId: "workspace-1",
           cwd: "/tmp/workspace",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
         {
           workspaceId: "workspace-2",
           cwd: "/tmp/other-workspace",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
         {
           workspaceId: "workspace-3",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
       ],
       executionTargetIsRemote: true,
@@ -3472,15 +3472,15 @@ describe("shapeClayonWorkspaceEnvForExecution", () => {
         {
           workspaceId: "workspace-1",
           cwd: "/remote/workspace",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
         {
           workspaceId: "workspace-2",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
         {
           workspaceId: "workspace-3",
-          repoUrl: "https://github.com/paperclipai/paperclip.git",
+          repoUrl: "https://github.com/clayon/clayon.git",
         },
       ],
     });

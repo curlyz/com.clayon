@@ -497,7 +497,7 @@ describeEmbeddedPostgres("plugin database namespaces", () => {
       .where(and(eq(pluginMigrations.pluginId, pluginId), eq(pluginMigrations.status, "applied")));
     expect(migrations.map((migration) => migration.migrationKey)).toEqual([
       "001_llm_wiki.sql",
-      "002_paperclip_distillation.sql",
+      "002_clayon_distillation.sql",
       "003_spaces.sql",
     ]);
 
@@ -528,13 +528,13 @@ describeEmbeddedPostgres("plugin database namespaces", () => {
       ]),
     );
     expect(constraints).not.toContain("wiki_pages_company_id_wiki_id_path_key");
-    expect(constraints).not.toContain("paperclip_distillation_cursor_company_id_wiki_id_source_sco_key");
-    expect(constraints).not.toContain("paperclip_distillation_work_i_company_id_wiki_id_idempotenc_key");
-    expect(constraints).not.toContain("paperclip_page_bindings_company_id_wiki_id_page_path_key");
+    expect(constraints).not.toContain("clayon_distillation_cursor_company_id_wiki_id_source_sco_key");
+    expect(constraints).not.toContain("clayon_distillation_work_i_company_id_wiki_id_idempotenc_key");
+    expect(constraints).not.toContain("clayon_page_bindings_company_id_wiki_id_page_path_key");
     expect(uniqueColumnSets).not.toContain("wiki_pages:company_id,wiki_id,path");
-    expect(uniqueColumnSets).not.toContain("paperclip_distillation_cursors:company_id,wiki_id,source_scope,scope_key,source_kind");
-    expect(uniqueColumnSets).not.toContain("paperclip_distillation_work_items:company_id,wiki_id,idempotency_key");
-    expect(uniqueColumnSets).not.toContain("paperclip_page_bindings:company_id,wiki_id,page_path");
+    expect(uniqueColumnSets).not.toContain("clayon_distillation_cursors:company_id,wiki_id,source_scope,scope_key,source_kind");
+    expect(uniqueColumnSets).not.toContain("clayon_distillation_work_items:company_id,wiki_id,idempotency_key");
+    expect(uniqueColumnSets).not.toContain("clayon_page_bindings:company_id,wiki_id,page_path");
   });
 
   it("applies migrations once and allows whitelisted core joins at runtime", async () => {

@@ -43,7 +43,7 @@ gh api users/LOGIN --jq '{login,id}'
 
 The paid workflows reject manual dispatches when the workflow definition does
 not come from the default branch. A trusted dispatcher may name any branch in
-`paperclipai/paperclip` as the code under test. The authorization job resolves
+`clayon/clayon` as the code under test. The authorization job resolves
 that branch through the GitHub API and passes only its immutable commit SHA to a
 credential-free target-lock job. That job checks out the commit, regenerates
 `pnpm-lock.yaml` once with lifecycle scripts disabled and lockfile-only mode,
@@ -153,7 +153,7 @@ Daytona image builds depend on successful campaign authorization and keep the
 existing GHCR publication and signing permissions. They receive no provider
 credentials and do not enter the `runner-e2e-paid` environment.
 
-Keep both runner targets restricted to `paperclipai/paperclip` and workflows
+Keep both runner targets restricted to `clayon/clayon` and workflows
 that independently authorize trusted source revisions. Never let a fork or
 untrusted pull-request workflow target them. The RunsOn fleet must launch a
 fresh ephemeral instance for every job, prohibit persistent runner reuse, and
@@ -195,7 +195,7 @@ publishing environment subject:
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:paperclipai/paperclip:environment:runner-e2e-history"
+          "token.actions.githubusercontent.com:sub": "repo:clayon/clayon:environment:runner-e2e-history"
         }
       }
     }

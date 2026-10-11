@@ -108,8 +108,8 @@ Every `needs_gardening` PR here was opened by this instance (Stage A guarantees 
 Suggested body:
 
 ```markdown
-<!-- pr-gardening:paperclipai/paperclip#1234 -->
-Gardening: dispatched `/prepare-clayon-pr` for https://github.com/paperclipai/paperclip/pull/1234 via PAP-XXXX.
+<!-- pr-gardening:clayon/clayon#1234 -->
+Gardening: dispatched `/prepare-clayon-pr` for https://github.com/clayon/clayon/pull/1234 via PAP-XXXX.
 
 Current-head verification at `abc123` found:
 - failing check: test
@@ -131,8 +131,8 @@ Do not archive PRs that are merely `ready`, closed without merging, draft, pendi
 After a successful archive, leave a standard gardening marker comment on the originating issue that names the archived issue and merged PR:
 
 ```markdown
-<!-- pr-gardening:paperclipai/paperclip#1234 -->
-Inbox tidy-up: archived [PAP-310](/PAP/issues/PAP-310) from the responsible user's inbox after confirming https://github.com/paperclipai/paperclip/pull/1234 merged at current head `abc123`.
+<!-- pr-gardening:clayon/clayon#1234 -->
+Inbox tidy-up: archived [PAP-310](/PAP/issues/PAP-310) from the responsible user's inbox after confirming https://github.com/clayon/clayon/pull/1234 merged at current head `abc123`.
 
 This archive is audited and reversible; later issue activity may resurface the item.
 ```

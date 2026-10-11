@@ -598,7 +598,7 @@ import { computeTaskDrain, applyTaskDrain, startTaskDrain, stopTaskDrain, readTa
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 
 const ACCEPTED_PLAN_CONVERSION_SKILL_KEY =
-  "paperclipai/paperclip/clayon-converting-plans-to-tasks";
+  "clayon/clayon/clayon-converting-plans-to-tasks";
 
 const execFile = promisify(execFileCallback);
 const UNSUCCESSFUL_HEARTBEAT_RUN_TERMINAL_STATUSES = [
@@ -2872,7 +2872,7 @@ export function heartbeatService(
         slackCommand: issueContext?.chatAssignedAgentId === agent.id
           ? issueContext.chatSlackCommand
           : null,
-        nativeRunner: agent.adapterType === "paperclip_runner",
+        nativeRunner: agent.adapterType === "clayon_runner",
         interaction: {
           kind: readNonEmptyString(context.interactionKind),
           status: readNonEmptyString(context.interactionStatus),
@@ -3045,7 +3045,7 @@ export function heartbeatService(
             )
           : null;
       const isDotRun = persistedNativeExecutionInput?.provider.kind === "openai_dot"
-        || (!persistedNativeExecutionInput && agent.adapterType === "paperclip_runner" && parseObject(agent.adapterConfig).provider === "openai_dot");
+        || (!persistedNativeExecutionInput && agent.adapterType === "clayon_runner" && parseObject(agent.adapterConfig).provider === "openai_dot");
       const persistedNativeExecutionWorkspaceId =
         persistedNativeExecutionInput?.binding.executionWorkspaceId ?? null;
       const requestedExecutionWorkspaceId =
@@ -3207,7 +3207,7 @@ export function heartbeatService(
       if (
         nativeChatWorkspaceScope &&
         persistedNativeExecutionInput &&
-        persistedNativeExecutionInput.schema !== "paperclip.native-execution-input.v6" &&
+        persistedNativeExecutionInput.schema !== "clayon.native-execution-input.v6" &&
         !nativeChatWorkspaceMatches({
           scope: nativeChatWorkspaceScope,
           expectedCwd: nativeChatExpectedCwd,
@@ -3478,7 +3478,7 @@ export function heartbeatService(
             ),
           });
         } catch (error) {
-          if (agent.adapterType === "paperclip_runner") {
+          if (agent.adapterType === "clayon_runner") {
             await recordFailedSkillPreparation({
               runId: run.id,
               startedAtMs: skillsPrepareStartedAtMs,
@@ -3505,7 +3505,7 @@ export function heartbeatService(
       context.clayonWake = { ...parseObject(context.clayonWake), connectorSkillInstructions: connectorDelivery.instructions };
       let runtimeConfig = await prepareConnectionInstructionDelivery({
         resolve: () => resolveAssignedConnectionInstructionsForRun(db, { companyId: agent.companyId, agentId: agent.id, runId: run.id }),
-        context, config: connectorDelivery.config, native: agent.adapterType === "paperclip_runner",
+        context, config: connectorDelivery.config, native: agent.adapterType === "clayon_runner",
       });
       const agentIdentity = supportsManagedAgentIdentity(agent.adapterType, agent.adapterConfig, run.runtimeMode === "native" ? run.driverKind : undefined)
         ? await agentIdentityService(db).ensureAgentIdentity(agent.companyId, agent.id)
@@ -3607,7 +3607,7 @@ export function heartbeatService(
       }
       const configuredModel =
         readConfiguredModelFromAdapterConfig(runtimeConfig);
-      if (context.refreshTools === true && agent.adapterType !== "paperclip_runner") {
+      if (context.refreshTools === true && agent.adapterType !== "clayon_runner") {
         const capability = getServerAdapter(agent.adapterType).supportsToolRefreshOnResume;
         const canRefresh = typeof capability === "function" ? capability(runtimeConfig) : capability === true;
         if (!canRefresh) context.forceFreshSession = true;
@@ -3651,7 +3651,7 @@ export function heartbeatService(
         );
       // Legacy plugins can consume the existing context field on a known-fresh
       // dispatch. Built-ins also load lazily if their resume attempt fails.
-      if (agent.adapterType !== "paperclip_runner" && !previousSessionParams && getFreshSessionHandoff) {
+      if (agent.adapterType !== "clayon_runner" && !previousSessionParams && getFreshSessionHandoff) {
         const handoff = await getFreshSessionHandoff();
         if (handoff) context.clayonFreshSessionHandoffMarkdown = handoff;
       }
@@ -3945,7 +3945,7 @@ export function heartbeatService(
       context.githubAuthenticationMode = useHostGitHub ? "host" : "managed";
       if (!useHostGitHub) {
         const githubLaunchers = await prepareHeartbeatGitHubLaunchers({
-          native: agent.adapterType === "paperclip_runner",
+          native: agent.adapterType === "clayon_runner",
           githubConfigured: githubSelection.configured,
           agentId: agent.id,
           runId: run.id,
@@ -4576,7 +4576,7 @@ export function heartbeatService(
           context.resumeSessionGoalHeartbeat === true;
         // Goals must use the selected durable runner, never silently convert a
         // direct adapter or let an old goal-control wake become a normal prompt.
-        if (durableGoalControlRun && agent.adapterType !== "paperclip_runner") {
+        if (durableGoalControlRun && agent.adapterType !== "clayon_runner") {
           const requestId = readNonEmptyString(context.goalControlRequestId);
           if (issueRef && requestId) {
             await failRunnerGoalAction(

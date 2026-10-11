@@ -157,7 +157,7 @@ the primary is their fallback when no eligible recent choice or draft exists.
 
 ## Pull request verification
 
-- PR: https://github.com/paperclipai/paperclip/pull/15470. The user authorized
+- PR: https://github.com/clayon/clayon/pull/15470. The user authorized
   passing PR checks and merging into master.
 - The rebased branch passes repository typecheck and build, token gates, and
   114 focused tests. Migration replay now runs twice without replacing choices.

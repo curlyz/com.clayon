@@ -78,7 +78,7 @@ export async function retryNativeWorkspaceExport(input: {
         // The operator resumes and repairs the exact retained sandbox through its
         // provider console. Never acquire a replacement or seed over saved work.
         const target = await resolveEnvironmentExecutionTarget({ db: input.db, companyId: input.companyId,
-          adapterType: "paperclip_runner", environment: initial.environment, leaseId: initial.lease.id,
+          adapterType: "clayon_runner", environment: initial.environment, leaseId: initial.lease.id,
           leaseMetadata: initial.lease.metadata, lease: initial.lease as EnvironmentLease, environmentRuntime: input.environmentRuntime });
         if (target?.kind !== "remote" || target.transport !== "sandbox" || !target.runner
           || target.remoteCwd !== initial.reference.remoteCwd) throw changed();
@@ -95,7 +95,7 @@ export async function retryNativeWorkspaceExport(input: {
           const [lease] = await tx.update(environmentLeases).set({ status: "pending_cleanup", cleanupStatus: "failed",
             releasedAt: now, failureReason: "workspace_export_resume_pending", updatedAt: now,
             metadata: { ...current.lease.metadata, remoteExecutionTermination: undefined,
-            [NATIVE_WORKSPACE_EXPORT_RESUME_KEY]: { schema: "paperclip.workspace-export-resume.v2", requestId,
+            [NATIVE_WORKSPACE_EXPORT_RESUME_KEY]: { schema: "clayon.workspace-export-resume.v2", requestId,
               companyId: input.companyId, runId: input.runId, leaseId: current.lease.id,
               pluginId: current.lease.metadata?.pluginId,
                 provider: current.lease.provider, providerLeaseId: current.lease.providerLeaseId, resultId: current.result.id },

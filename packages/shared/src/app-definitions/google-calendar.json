@@ -33,7 +33,7 @@
       "label": "Connect with Clayon",
       "transport": "mcp_remote",
       "auth": "oauth",
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "calendar.read",
       "capabilityProfile": {
         "key": "read",
@@ -110,7 +110,7 @@
       "label": "Connect with Clayon",
       "transport": "mcp_remote",
       "auth": "oauth",
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "calendar.write",
       "capabilityProfile": {
         "key": "write",

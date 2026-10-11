@@ -44,7 +44,7 @@ HIRING_AI_LIVE=1 HIRING_AI_RUNNER=native HIRING_AI_TEST_URL=http://127.0.0.1:310
 ```
 
 This uses native Codex and native ACPX/Claude. It verifies native run persistence,
-managed API hiring, native `create_task` delegation, and `paperclip_finish`
+managed API hiring, native `create_task` delegation, and `clayon_finish`
 completion. Set `HIRING_AI_ENVIRONMENT=daytona` to exercise the same native path
 remotely. The default remains legacy CLI adapters; it also asserts that successful
 runs stayed on the legacy path. A single native parent scenario exercises both
@@ -59,7 +59,7 @@ image digest. See `tests/runner-e2e/README.md` for the image publication workflo
 pnpm -C packages/plugins/sandbox-providers/daytona build
 HIRING_AI_LIVE=1 HIRING_AI_ENVIRONMENT=daytona \
   HIRING_AI_TEST_URL=http://127.0.0.1:3100 \
-  HIRING_AI_DAYTONA_IMAGE=ghcr.io/paperclipai/paperclip-daytona-runner@sha256:YOUR_DIGEST \
+  HIRING_AI_DAYTONA_IMAGE=ghcr.io/clayon/clayon-daytona-runner@sha256:YOUR_DIGEST \
   pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'daytona:'
 ```
 

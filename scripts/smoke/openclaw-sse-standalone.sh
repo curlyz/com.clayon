@@ -87,7 +87,7 @@ PAYLOAD="$(jq -nc \
       CLAYON_APPROVAL_ID: $approvalId,
       CLAYON_APPROVAL_STATUS: $approvalStatus,
       CLAYON_LINKED_ISSUE_IDS: $linkedIssueIds,
-      paperclip_session_key: ("clayon:run:" + $runId)
+      clayon_session_key: ("clayon:run:" + $runId)
     }
   }')"
 

@@ -360,10 +360,10 @@ const actor = { actorType: "user" as const, actorId: "browser-reviewer" };
       const skills = await listClayonSkillEntries(fileURLToPath(new URL("../", import.meta.url)), [fileURLToPath(new URL("../../../skills", import.meta.url))]);
       expect(skills.some(skill => skill.runtimeName === "clayon")).toBe(true);
       expect(skills.some(skill => ["browser-use", "browser-use-cloud"].includes(skill.runtimeName))).toBe(false);
-      const base = { clayonSkillSync: { desiredSkills: ["paperclipai/paperclip/browser-use", "paperclipai/paperclip/browser-use-cloud"] } };
+      const base = { clayonSkillSync: { desiredSkills: ["clayon/clayon/browser-use", "clayon/clayon/browser-use-cloud"] } };
       const unassigned = await applyConnectorSkills(base, [
-        { key: "paperclipai/paperclip/browser-use", runtimeName: "browser-use", source: "/retired-browser-skill" },
-        { key: "paperclipai/paperclip/browser-use-cloud", runtimeName: "browser-use-cloud", source: "/unassigned-cloud-skill" },
+        { key: "clayon/clayon/browser-use", runtimeName: "browser-use", source: "/retired-browser-skill" },
+        { key: "clayon/clayon/browser-use-cloud", runtimeName: "browser-use-cloud", source: "/unassigned-cloud-skill" },
         { key: "custom/browser-use", runtimeName: "browser-use", source: "/another-browser-skill" },
       ], []);
       expect(unassigned.clayonRuntimeSkills).toEqual([{ key: "custom/browser-use", runtimeName: "browser-use", source: "/another-browser-skill" }]);
@@ -383,7 +383,7 @@ const actor = { actorType: "user" as const, actorId: "browser-reviewer" };
       expect(await resolveConnectorAssignments(db, { ...f.binding, agentId: unassignedAgent.id })).toEqual([]);
       expect(await resolveConnectorAssignments(db, { ...f.binding, companyId: randomUUID() })).toEqual([]);
       const assignments = await resolveConnectorAssignments(db, f.binding);
-      expect(assignments).toMatchObject([{ key: "browser-use-cloud", skillKey: "paperclipai/paperclip/browser-use-cloud", resources: [{ connectionId: f.connection.connectionId }] }]);
+      expect(assignments).toMatchObject([{ key: "browser-use-cloud", skillKey: "clayon/clayon/browser-use-cloud", resources: [{ connectionId: f.connection.connectionId }] }]);
       const config = await applyConnectorSkills({}, [], assignments);
       const skill = config.clayonRuntimeSkills[0];
       expect(skill.runtimeName).toBe("browser-use-cloud");
@@ -392,7 +392,7 @@ const actor = { actorType: "user" as const, actorId: "browser-reviewer" };
       expect(markdown).toContain("browser_start");
       expect(markdown).toContain(f.connection.connectionId);
       expect(markdown).not.toContain("bu_fixture_secret");
-      for (const adapterType of ["paperclip_runner", "codex_local", "claude_local", "kimi_local"]) {
+      for (const adapterType of ["clayon_runner", "codex_local", "claude_local", "kimi_local"]) {
         const delivery = await prepareConnectorSkillDelivery({ ...config, engine: "cli" }, adapterType);
         expect(delivery.config.clayonRuntimeSkills).toEqual([skill]);
       }

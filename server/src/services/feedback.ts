@@ -53,7 +53,7 @@ import { getOperatorSettingDefaults } from "./setting-defaults.js";
 const FEEDBACK_SCHEMA_VERSION = "clayon-feedback-envelope-v2";
 const FEEDBACK_BUNDLE_VERSION = "clayon-feedback-bundle-v2";
 const FEEDBACK_PAYLOAD_VERSION = "clayon-feedback-v1";
-const FEEDBACK_DESTINATION = "paperclip_labs_feedback_v1";
+const FEEDBACK_DESTINATION = "clayon_labs_feedback_v1";
 const FEEDBACK_CONTEXT_WINDOW = 3;
 const MAX_EXCERPT_CHARS = 200;
 const MAX_PRIMARY_CONTENT_CHARS = 8_000;
@@ -373,9 +373,9 @@ function captureStatusFromFiles(files: FeedbackTraceBundleFile[]): FeedbackTrace
   }
 
   const hasAdapterFiles = files.some((file) =>
-    file.source !== "paperclip_run" &&
-    file.source !== "paperclip_run_events" &&
-    file.source !== "paperclip_run_log",
+    file.source !== "clayon_run" &&
+    file.source !== "clayon_run_events" &&
+    file.source !== "clayon_run_log",
   );
   if (hasAdapterFiles) return "partial";
   return files.length > 0 ? "partial" : "unavailable";
@@ -1570,7 +1570,7 @@ async function buildFeedbackTraceBundleFromRow(
       files.push(makeBundleFile({
         path: "clayon/run.json",
         contentType: "application/json",
-        source: "paperclip_run",
+        source: "clayon_run",
         contents: `${JSON.stringify(clayonRun, null, 2)}\n`,
       }));
 
@@ -1583,7 +1583,7 @@ async function buildFeedbackTraceBundleFromRow(
       files.push(makeBundleFile({
         path: "clayon/run-events.json",
         contentType: "application/json",
-        source: "paperclip_run_events",
+        source: "clayon_run_events",
         contents: `${JSON.stringify(sanitizedEvents, null, 2)}\n`,
       }));
 
@@ -1591,7 +1591,7 @@ async function buildFeedbackTraceBundleFromRow(
         files.push(makeBundleFile({
           path: "clayon/run-log.ndjson",
           contentType: "application/x-ndjson",
-          source: "paperclip_run_log",
+          source: "clayon_run_log",
           contents: `${sanitizeFeedbackText(logText, state, "bundle.clayonRun.log", MAX_TRACE_FILE_CHARS)}\n`,
         }));
       } else {

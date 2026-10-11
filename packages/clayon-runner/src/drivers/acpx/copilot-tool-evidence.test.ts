@@ -124,15 +124,15 @@ describe("Copilot active-turn tool evidence", () => {
 
 describe("Copilot authoritative semantic receipt correlation", () => {
   const args = { summary: "PRIVATE", completionClaim: { objectiveSatisfied: true } };
-  const make = (operation = "paperclip_finish", isError = false) => appendSemanticToolReceipt(
+  const make = (operation = "clayon_finish", isError = false) => appendSemanticToolReceipt(
     { tool: operation, callId: "3", arguments: args }, { content: [{ type: "text", text: '{"accepted":false}' }], ...(isError ? { isError } : {}) });
   const terminal = (id: string, content: unknown, status = "completed") => ({ type: "tool_call", tag: "tool_call_update", toolCallId: id, status, rawOutput: { contents: content } });
-  it.each(["paperclip_finish", "report_progress", "get_task_context"])("correlates %s with trusted callback, not native display name", operation => {
+  it.each(["clayon_finish", "report_progress", "get_task_context"])("correlates %s with trusted callback, not native display name", operation => {
     const h = harness(); const bound = make(operation);
     h.projector.tool({ ...tool("native", args, "other"), title: "unrelated display" });
     h.projector.captureSemanticReceipt()!(bound.receipt);
     h.projector.tool(terminal("native", bound.result.content));
-    const authoritative = h.events.find(e => e.payload.category === "paperclip_semantic_tool_receipt_v2")!;
+    const authoritative = h.events.find(e => e.payload.category === "clayon_semantic_tool_receipt_v2")!;
     expect(details(authoritative)).toMatchObject({ operationId: operation, callIdentitySha256: bound.receipt.callIdentitySha256, outcome: "returned" });
     expect(authoritative.payload.provenance).toMatchObject({ method: "clayon/semantic_tool_result", sessionId: "session", turnId: "turn" });
     expect(details(h.events.at(-1)!)).toMatchObject({ semanticOperationId: operation, semanticOutcome: "returned", semanticResultSha256: bound.receipt.resultSha256 });
@@ -140,7 +140,7 @@ describe("Copilot authoritative semantic receipt correlation", () => {
   });
   it.each(["untrusted", "different-input", "different-normalized-input", "different-result", "foreign-session", "foreign-turn", "duplicate-native", "duplicate-authority", "early-terminal", "wrong-status"])("rejects %s authority", scenario => {
     const h = harness(), other = harness(scenario === "foreign-turn" ? "session" : "foreign", scenario === "foreign-turn" ? "other-turn" : "turn"); const bound = make();
-    h.projector.tool({ ...tool("native", scenario === "different-input" ? {} : args, "other"), title: "paperclip_finish" });
+    h.projector.tool({ ...tool("native", scenario === "different-input" ? {} : args, "other"), title: "clayon_finish" });
     if (scenario === "early-terminal") h.projector.tool(terminal("native", bound.result.content));
     if (scenario === "foreign-session" || scenario === "foreign-turn") other.projector.captureSemanticReceipt()!(bound.receipt);
     else if (scenario !== "untrusted") h.projector.captureSemanticReceipt()!(bound.receipt);

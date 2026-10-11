@@ -180,7 +180,7 @@ retained profile as evidence, but cannot replace this pre-launch check.
 
 The direct eval CLI also materializes a minimal immutable native runtime
 context in each isolated attempt workspace. This keeps the direct layer on the
-same `paperclip.native-execution-input.v3` contract as production, including
+same `clayon.native-execution-input.v3` contract as production, including
 the AgentCore HarnessSkill upload path, without borrowing any browser E2E
 setup.
 
@@ -200,7 +200,7 @@ delivery short during parallel fleet startup. Other providers retain their
 existing admission timeout.
 
 The runtime instructions distinguish the fixture's `finish_task`/`block_task`
-state changes from native `paperclip_finish`/`paperclip_block` run-result
+state changes from native `clayon_finish`/`clayon_block` run-result
 reporting. This layer has no production server to apply a reported run result
 to a task. Its completion cases still require the actual semantic operation
 and durable mock-state change; reporting success alone does not pass them.
@@ -260,7 +260,7 @@ qualified context-aware harness revision is
 writes the GitHub OIDC token to a mode-`0600` file and never forwards long-lived
 AWS access keys.
 Provision the AgentCore stack with `--github-oidc-provider-arn` so that scoped
-role admits only the `paperclipai/paperclip` repository's protected
+role admits only the `clayon/clayon` repository's protected
 `runner-e2e-paid` environment as its web-identity subject.
 Scheduled runs additionally require `RUNNER_PROTOCOL_EVAL_NIGHTLY_ENABLED=true`
 and the pinned `RUNNER_PROTOCOL_EVALS_SHA` repository variable.

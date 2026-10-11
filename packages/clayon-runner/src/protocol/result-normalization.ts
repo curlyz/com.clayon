@@ -132,9 +132,9 @@ export function normalizeLegacyPrpStructuredRunResult(value: unknown): unknown {
   const reportedSchema = text(normalized.schema);
   if (
     reportedSchema === null
-    || ["paperclip_finish", "paperclip_paperclip_finish", "paperclip_finish.v1"].includes(reportedSchema)
+    || ["clayon_finish", "clayon_clayon_finish", "clayon_finish.v1"].includes(reportedSchema)
   ) {
-    normalized.schema = "paperclip.run_result.v1";
+    normalized.schema = "clayon.run_result.v1";
   }
   const signals = normalizePrpResultSignals(source);
   if (["complete", "completed"].includes(String(normalized.reportedWorkDisposition))) {

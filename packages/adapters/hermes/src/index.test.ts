@@ -79,7 +79,7 @@ test("Hermes keeps the operational Clayon skill linked after an empty replacemen
       config: {
         env: { HOME: home },
         clayonRuntimeSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           runtimeName: "clayon",
           source,
         }],
@@ -87,7 +87,7 @@ test("Hermes keeps the operational Clayon skill linked after an empty replacemen
       },
     }, []);
 
-    expect(snapshot?.desiredSkills).toContain("paperclipai/paperclip/clayon");
+    expect(snapshot?.desiredSkills).toContain("clayon/clayon/clayon");
     expect((await fs.lstat(path.join(home, ".hermes", "skills", "clayon"))).isSymbolicLink()).toBe(true);
   } finally {
     await fs.rm(home, { recursive: true, force: true });
@@ -112,7 +112,7 @@ test("Hermes rejects a conflicting operational skill target", async () => {
       config: {
         env: { HOME: home },
         clayonRuntimeSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           runtimeName: "clayon",
           source,
         }],
@@ -144,7 +144,7 @@ test("Hermes rejects a live symlink owned by another operational skill", async (
       config: {
         env: { HOME: home },
         clayonRuntimeSkills: [{
-          key: "paperclipai/paperclip/clayon",
+          key: "clayon/clayon/clayon",
           runtimeName: "clayon",
           source,
         }],

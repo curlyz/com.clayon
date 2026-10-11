@@ -24,7 +24,7 @@ describe("runner-verified workspace diffs", () => {
     const after = await captureClayonWorkspace(root);
     const diff = diffClayonWorkspace(before, after, "turn-1:workspace");
 
-    expect(diff?.schema).toBe("paperclip.workspace.diff.v1");
+    expect(diff?.schema).toBe("clayon.workspace.diff.v1");
     expect(diff?.source).toBe("runner_verified");
     expect(diff?.files.map((file) => [file.path, file.operation])).toEqual([
       ["create.txt", "create"],

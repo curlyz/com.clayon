@@ -30,8 +30,8 @@ describe("durable native provider capacity retry", () => {
     db = createDb(temporary.connectionString);
     await db.insert(companies).values({ id: companyId, name: "Capacity regression", issuePrefix: "CAP" });
     await db.insert(agents).values([
-      { id: agentId, companyId, name: "Capacity worker", status: "active", adapterType: "paperclip_runner", adapterConfig: { provider: "codex", model: "test-model" } },
-      { id: otherAgentId, companyId, name: "New owner", status: "active", adapterType: "paperclip_runner" },
+      { id: agentId, companyId, name: "Capacity worker", status: "active", adapterType: "clayon_runner", adapterConfig: { provider: "codex", model: "test-model" } },
+      { id: otherAgentId, companyId, name: "New owner", status: "active", adapterType: "clayon_runner" },
     ]);
   });
   afterAll(async () => { await temporary?.cleanup(); });
@@ -45,21 +45,21 @@ describe("durable native provider capacity retry", () => {
     const contractInput = buildNativeCompletionContract(issue, { revision: contract.revision });
     await db.insert(nativeRunFinalizations).values({ runId, companyId, issueId, phase: "observed" });
     const execution: NativeExecutionInputV1 = {
-      schema: "paperclip.native-execution-input.v1", binding: { companyId, runId, issueId, agentId, executionWorkspaceId: runId },
+      schema: "clayon.native-execution-input.v1", binding: { companyId, runId, issueId, agentId, executionWorkspaceId: runId },
       provider: { kind: "codex", model: "test-model" },
       task: { identifier: issueId, title: issue.title, description: null, prompt: "Continue the task using its history.", workMode: "standard" },
       workspace: { cwd: "/tmp", repoUrl: null, repoRef: null, branchName: null },
       session: { normalizedSessionId: native.normalizedSessionId, driverKind: "codex_app_server", protocolVersion: 1, lifecyclePolicy: { mode: "per_turn", idleTimeoutMs: null } },
-      completionContract: { id: contract.id, sha256: contract.canonicalSha256, schemaVersion: "paperclip.completion-contract.v1", contract: contractInput },
+      completionContract: { id: contract.id, sha256: contract.canonicalSha256, schemaVersion: "clayon.completion-contract.v1", contract: contractInput },
       interactionResponses: [], credentialBindings: [],
     };
     await db.update(heartbeatRuns).set({ runnerProfileJson: { nativeExecutionInput: execution } }).where(eq(heartbeatRuns.id, runId));
     const event: PrpEvent = {
-      schema: "paperclip.prp.event.v1", runId, normalizedSessionId: native.normalizedSessionId, turnId: native.turnId,
+      schema: "clayon.prp.event.v1", runId, normalizedSessionId: native.normalizedSessionId, turnId: native.turnId,
       sourceInstanceId: native.runnerInstanceId, sourceEventId: "overload", sourceSeq: 1, sourceKind: "runner", eventType: "turn.failed", schemaVersion: 1, priority: 0, emittedAt: new Date().toISOString(),
       payload: { status: "failed", error: { codexErrorInfo: "serverOverloaded", message: NATIVE_PROVIDER_OVERLOADED_MESSAGE } },
     };
-    const terminal: PrpTerminalState = { schema: "paperclip.prp.terminal.v1", turnTerminalState: "failed", runTerminalState: "failed", reportedWorkDisposition: "needs_review" };
+    const terminal: PrpTerminalState = { schema: "clayon.prp.terminal.v1", turnTerminalState: "failed", runTerminalState: "failed", reportedWorkDisposition: "needs_review" };
     const result = { ...CONTROL_PLANE_CONFORMANCE_RESULT, reportedWorkDisposition: "needs_review" as const,
       summary: "I started investigating the task.", completionClaim: { ...CONTROL_PLANE_CONFORMANCE_RESULT.completionClaim, contractRevision: contractInput.revision } };
     provider.execute.mockReset().mockImplementation(async (options: { controlPlane: ControlPlanePort }) => {

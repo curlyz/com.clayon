@@ -234,7 +234,7 @@ describe("Clayon Cloud connector", () => {
     })).resolves.toMatchObject({
       authorizationUrl: expect.stringContaining("/connections/confirm"),
       handoff: {
-        kind: "paperclip_cloud",
+        kind: "clayon_cloud",
         session: "broker_state_abcdefghijklmnop",
       },
     });

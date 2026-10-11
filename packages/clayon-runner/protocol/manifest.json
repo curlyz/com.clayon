@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.prp.contract_manifest.v1",
+  "schema": "clayon.prp.contract_manifest.v1",
   "protocolVersion": 3,
   "fixtureVersion": 1,
   "generatedFrom": [
@@ -9,142 +9,142 @@
   "schemas": [
     {
       "path": "schemas/capabilities-v2.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v2/capabilities.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v2/capabilities.schema.json",
       "sha256": "9c4771e778f20a0deab6702d0c0f2f5fbab29a60c56a5a78d9ce5290df1728cd"
     },
     {
       "path": "schemas/capabilities-v3.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v3/capabilities.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v3/capabilities.schema.json",
       "sha256": "d640c0c4f8484050f8afd9cc12d040d76be0d7085f6cef18db10182e83acbf42"
     },
     {
       "path": "schemas/capabilities.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/capabilities.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/capabilities.schema.json",
       "sha256": "e62a80328e5edde136b35463033280922ac2220575a83046b07fe034d233db88"
     },
     {
       "path": "schemas/command-v2.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v2/command.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v2/command.schema.json",
       "sha256": "06bb3b3b0b420119007494c64e64a736fd5d58cb68d04ced843ada00c54668be"
     },
     {
       "path": "schemas/command-v3.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v3/command.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v3/command.schema.json",
       "sha256": "0aedad6ae238c532f31411a4551c54819e3a3698e70c6f5d653ae395811c60b2"
     },
     {
       "path": "schemas/command.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/command.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/command.schema.json",
       "sha256": "fc813e6b4d5b7e6890b496bd69848ada25dba58adbf7cf04163ca9e9bf2bcb79"
     },
     {
       "path": "schemas/conformance-fixture.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/conformance-fixture.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/conformance-fixture.schema.json",
       "sha256": "5a6a118ab5b10fa2340552a683a9739eea55970b91bbf167a8b0fead139a1fa9"
     },
     {
       "path": "schemas/conformance-output.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/conformance-output.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/conformance-output.schema.json",
       "sha256": "d85689f189c6bb4fbb790129f3ac63f4ee8b9722c333874f029e73c41f874ccc"
     },
     {
       "path": "schemas/event-v2.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v2/event.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v2/event.schema.json",
       "sha256": "9dcf149bdb8e10041ca2212037231e7ceff11be08a0b8ee5dbd0f21974daa294"
     },
     {
       "path": "schemas/event-v3.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v3/event.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v3/event.schema.json",
       "sha256": "d308f826097b5b923e6ab2a4893bc125aa9e3cc14a306eef152400093db7b5f3"
     },
     {
       "path": "schemas/event.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/event.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/event.schema.json",
       "sha256": "d48916630976ff7e850b6e2d7d94131761fda322f5d8a05212651ec46b0db19d"
     },
     {
       "path": "schemas/fixture.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/fixture.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/fixture.schema.json",
       "sha256": "65f331a3a3e3ac77189c91e30053bb036fa50fdeb9584e2afac582bc9daf5178"
     },
     {
       "path": "schemas/identity.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/identity.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/identity.schema.json",
       "sha256": "8a8a1943f14c739284daa241c5189f3b8026c050472c4f9909897456da506f48"
     },
     {
       "path": "schemas/native-execution.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/native-execution.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/native-execution.schema.json",
       "sha256": "3f0a26830747803adb873fcf5a213472e6f21d5c007edac86ef33ef833301fd8"
     },
     {
       "path": "schemas/provider-descriptor.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/provider-descriptor.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/provider-descriptor.schema.json",
       "sha256": "bf691bda4a58490dba680b74559bfe1c9254b19e3265a603d9cbf3e169094519"
     },
     {
       "path": "schemas/provider-event.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/provider-event.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/provider-event.schema.json",
       "sha256": "e3d2002c543c5e6378c149db4e2a8c80c1cff61a5806dc5647f9f338a051300a"
     },
     {
       "path": "schemas/question-adapter-fixture.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/question-adapter-fixture.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/question-adapter-fixture.schema.json",
       "sha256": "002062abb4df9a98c92003eb4af43afbe8bdedd15d08b8697ad221fcc28ad9c7"
     },
     {
       "path": "schemas/question-response.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/question-response.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/question-response.schema.json",
       "sha256": "a061611fa5ca9203d72b9b4bdb1b232b7ed0d12b2a3136e3c034df91126086d9"
     },
     {
       "path": "schemas/question-set.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/question-set.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/question-set.schema.json",
       "sha256": "1a5f86b91afa8494d568e2595b7c45004ca55add93526760b052b62834a0e4d6"
     },
     {
       "path": "schemas/request.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/request.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/request.schema.json",
       "sha256": "985a3b0a6ae36ae5ad4cf7d708dc401db7c108f683a81cd44a03093fc4ca7862"
     },
     {
       "path": "schemas/result.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/result.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/result.schema.json",
       "sha256": "86d3b3c4d0f79de34a3e2e37beb183ea08d3bc9f70437a9f6f2b98bdf8faf828"
     },
     {
       "path": "schemas/semantic-tool.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/semantic-tool.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/semantic-tool.schema.json",
       "sha256": "72dba6b17be1358160633e2ac430002b8be1ab311a236289a942cb05b21385da"
     },
     {
       "path": "schemas/session-goal.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v2/session-goal.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v2/session-goal.schema.json",
       "sha256": "26b36add3657b42e6c3d40895a75a7b5093c70261072fa761f53f6784175320c"
     },
     {
       "path": "schemas/stop-reason.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/stop-reason.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/stop-reason.schema.json",
       "sha256": "ed0c0807904ff1198273458057e1a565e828dba499372c0c80e2c69a1d600a13"
     },
     {
       "path": "schemas/terminal.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/terminal.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/terminal.schema.json",
       "sha256": "e9093399ac6422e77b060269910ffaba9a3d574ed578832821e310a0582edffd"
     },
     {
       "path": "schemas/usage.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/usage.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/usage.schema.json",
       "sha256": "34b1478d2054f898d64b54b62a9bb738670087893bb1e5967da541539d2daf36"
     },
     {
       "path": "schemas/workspace-diff.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/workspace-diff.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/workspace-diff.schema.json",
       "sha256": "7328d5c60acda14e0c328cfb4f362d06dbaf4eda721cc614f4a3dbce9a351079"
     },
     {
       "path": "schemas/workspace-file-reference.schema.json",
-      "id": "https://paperclip.dev/schemas/prp/v1/workspace-file-reference.schema.json",
+      "id": "https://clayon.dev/schemas/prp/v1/workspace-file-reference.schema.json",
       "sha256": "e7018d14f5e5e0ab1f528e2dbc8c11c87b7ea091c8ed56491eb44bcbf7989517"
     }
   ],

@@ -315,7 +315,7 @@ export function githubChatWizardService(
           endpointId: id,
           registrationId: created!.id,
           ownerType: input.ownerType,
-          transport: "paperclip_cloud",
+          transport: "clayon_cloud",
         },
       });
       return created!;

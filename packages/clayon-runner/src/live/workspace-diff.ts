@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 
-export const CLAYON_WORKSPACE_DIFF_SCHEMA = "paperclip.workspace.diff.v1" as const;
+export const CLAYON_WORKSPACE_DIFF_SCHEMA = "clayon.workspace.diff.v1" as const;
 
 export type ClayonWorkspaceChangeSource = "harness_reported" | "runner_verified";
 export type ClayonWorkspaceFileOperation =

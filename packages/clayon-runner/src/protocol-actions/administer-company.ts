@@ -53,7 +53,7 @@ export const administerCompanyAction = {
       "ok": true,
       "operationId": "administer_company",
       "result": {
-        "schema": "paperclip.capability.tool-result.v1",
+        "schema": "clayon.capability.tool-result.v1",
         "ok": true,
         "operationId": "example",
         "operationResultId": "example",
@@ -91,7 +91,7 @@ export const administerCompanyAction = {
           "schema": {
             "type": "string",
             "enum": [
-              "paperclip.capability.tool-result.v1"
+              "clayon.capability.tool-result.v1"
             ]
           },
           "ok": {

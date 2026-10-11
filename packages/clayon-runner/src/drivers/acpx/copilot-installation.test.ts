@@ -90,9 +90,9 @@ describe("Copilot build-owned installation", () => {
   it("admits the current v17 declaration and binds its source policy, receipts and patch hashes", () => {
     const identity = JSON.parse(readFileSync(new URL("../../../test/fixtures/copilot-profile-v17-identity.json", import.meta.url), "utf8"));
     expect(identity.declaration.systemInstructionDelivery).toBe(COPILOT_SYSTEM_INSTRUCTION_DELIVERY);
-    expect(identity.declaration.sharedRuntimeContract).toBe("paperclip.acpx-runtime-contract.v1");
+    expect(identity.declaration.sharedRuntimeContract).toBe("clayon.acpx-runtime-contract.v1");
     expect(identity.declaration.permissionContextContract).toBe(COPILOT_PERMISSION_CONTEXT_CONTRACT);
-    expect(identity.declaration.semanticToolReceiptContract).toBe("paperclip.semantic_tool_receipt.v2");
+    expect(identity.declaration.semanticToolReceiptContract).toBe("clayon.semantic_tool_receipt.v2");
     expect(identity.declaration.semanticNormalizedInputContract).toBe("validated-forwarded-input-commit-v1");
     expect(identity.declaration.semanticSidecarReceiptCommitContract).toBe("correlated-tool-resolve-v1");
     expect(identity.declaration.messageIdentityContract).toBe("copilot-native-message-id-v1");

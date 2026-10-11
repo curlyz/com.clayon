@@ -74,7 +74,7 @@ export type ToolConnectionAuthKind = "oauth" | "api_key" | "none";
 export type ToolConnectionOwnership =
   "platform_shared" | "platform_provisioned" | "customer" | "dcr";
 export type ToolConnectionCredentialSource =
-  "paperclip_vault" | "vercel_connect";
+  "clayon_vault" | "vercel_connect";
 export type ToolConnectionStatus = "draft" | "active" | "disabled" | "archived";
 export type ToolConnectionInstallTargetType = "company" | "agent";
 export type ConnectionGrantKind = "organization" | "user" | "agent";
@@ -1174,7 +1174,7 @@ export type ToolOAuthClientRegistrationSource =
 
 /** Opaque managed-Cloud exchange; clients never treat the session as a URL. */
 export interface ToolOAuthHandoff {
-  kind: "paperclip_cloud";
+  kind: "clayon_cloud";
   session: string;
 }
 

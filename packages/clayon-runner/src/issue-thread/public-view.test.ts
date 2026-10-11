@@ -178,7 +178,7 @@ describe("Capability public issue-thread DTO", () => {
       title: "Run",
       summary: "Tests passed",
       payload: {
-        schema: "paperclip.tool.execution.v1",
+        schema: "clayon.tool.execution.v1",
         executionId: "exec-1",
         transport: "process",
         operation: "execute",
@@ -288,7 +288,7 @@ describe("Capability evidence redaction", () => {
       params: {
         item: {
           type: "dynamicToolCall",
-          tool: "paperclip_finish",
+          tool: "clayon_finish",
           namespace: "clayon",
           status: "completed",
           arguments: { summary: "Done", apiKey: CANARY },
@@ -299,7 +299,7 @@ describe("Capability evidence redaction", () => {
 
     expect(redacted).toMatchObject({
       event: "tool_completed",
-      tool: "paperclip_finish",
+      tool: "clayon_finish",
       namespace: "clayon",
       status: "completed",
       arguments: { summary: "Done", apiKey: "[redacted]" },
@@ -404,7 +404,7 @@ describe("Capability evidence redaction", () => {
     const redacted = redactCapabilityToolResult({
       ok: false,
       denial: {
-        schema: "paperclip.semantic-denial.v1",
+        schema: "clayon.semantic-denial.v1",
         code: "required_claim_missing",
         message: "decide_approval requires the ap:decide claim.",
         retryable: false,

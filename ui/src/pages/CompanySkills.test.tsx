@@ -838,7 +838,7 @@ describe("SkillDetailPage settings", () => {
 
   it("renders long source paths in full so they can wrap inside the sidebar", async () => {
     const v1 = makeVersion(1, "# Demo Skill");
-    const longSourcePath = "/srv/clayon/home/paperclipai/paperclip/.agents/skills/prepare-pr/SKILL.md";
+    const longSourcePath = "/srv/clayon/home/clayon/clayon/.agents/skills/prepare-pr/SKILL.md";
     const node = await renderSkillDetail([v1], {
       activeTab: "agents",
       detail: makeDetail(v1, {

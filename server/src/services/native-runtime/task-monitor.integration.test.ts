@@ -27,7 +27,7 @@ describeEmbeddedPostgres("native task monitors", () => {
   async function fixture() {
     const companyId = randomUUID(), agentId = randomUUID(), issueId = randomUUID(), runId = randomUUID();
     await db.insert(companies).values({ id: companyId, name: "Monitors", issuePrefix: `M${companyId.slice(0, 7)}` });
-    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "paperclip_runner", status: "active" });
+    await db.insert(agents).values({ id: agentId, companyId, name: "Worker", adapterType: "clayon_runner", status: "active" });
     await db.insert(issues).values({ id: issueId, companyId, title: "Deferred check", status: "in_progress", assigneeAgentId: agentId });
     await db.insert(heartbeatRuns).values({ id: runId, companyId, agentId, nativeIssueId: issueId, runtimeMode: "native", status: "running", contextSnapshot: { issueId } });
     await db.update(issues).set({ executionRunId: runId }).where(eq(issues.id, issueId));
@@ -141,7 +141,7 @@ describeEmbeddedPostgres("native task monitors", () => {
     expect(await value.call({ taskId: targetId, idempotencyKey: "other", monitor: value.monitor })).toMatchObject({ taskId: targetId });
     await expect(value.call({ taskId: other.issueId, idempotencyKey: "foreign", monitor: value.monitor })).rejects.toThrow("Task not found");
     const otherAgent = randomUUID();
-    await db.insert(agents).values({ id: otherAgent, companyId: value.companyId, name: "Other", adapterType: "paperclip_runner" });
+    await db.insert(agents).values({ id: otherAgent, companyId: value.companyId, name: "Other", adapterType: "clayon_runner" });
     await db.update(issues).set({ assigneeAgentId: otherAgent }).where(eq(issues.id, targetId));
     await expect(value.call({ taskId: targetId, idempotencyKey: "other", monitor: value.monitor })).rejects.toThrow();
   });
@@ -167,7 +167,7 @@ describeEmbeddedPostgres("native task monitors", () => {
   it("accepts unfinished monitor waits only after scheduling the current task", async () => {
     const value = await fixture();
     const result: PrpStructuredRunResult = {
-      schema: "paperclip.run_result.v1", reportedWorkDisposition: "yielded", summary: "I will compare the next run.",
+      schema: "clayon.run_result.v1", reportedWorkDisposition: "yielded", summary: "I will compare the next run.",
       completionClaim: { contractRevision: "test", objectiveSatisfied: false, criteria: [], remainingWork: [{ description: "Compare next run", blocksCompletion: true }] },
       continuation: { kind: "monitor", summary: "Wait for the scheduled check", idempotencyKey: "wait" },
       evidence: [], verification: [], attentionRequests: [], artifacts: [],

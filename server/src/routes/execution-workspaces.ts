@@ -654,7 +654,7 @@ export function executionWorkspaceRoutes(db: Db, opts: { pluginWorkerManager?: P
               | "seed_manifest_malformed"
               | "seed_manifest_instance_mismatch"
               | "source_instance_unavailable"
-              | "paperclip_cli_unavailable",
+              | "clayon_cli_unavailable",
             message: string,
           ) => {
             const details = {

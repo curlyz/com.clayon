@@ -234,7 +234,7 @@ class FakeCleanRoomTransport implements CodexAppServerTransport {
         interactionKind: "questions",
         title: "Which way should I take this?",
         prompt: "Pick a direction for the clean-room issue.",
-        payload: { version: 1, questionSet: { schema: "paperclip.question_set.v1", questions: [{ id: "path", prompt: "Which path?", required: true, answerMode: "single_select", options: [{ id: "a", label: "Path A" }, { id: "b", label: "Path B" }] }] } },
+        payload: { version: 1, questionSet: { schema: "clayon.question_set.v1", questions: [{ id: "path", prompt: "Which path?", required: true, answerMode: "single_select", options: [{ id: "a", label: "Path A" }, { id: "b", label: "Path B" }] }] } },
         continuationPolicy: "wake_assignee",
       });
     }
@@ -735,7 +735,7 @@ describe("Capability clean-room chat server", () => {
       record.id.startsWith("network-guard-"),
     );
 
-    expect(guard?.outcome).toBe("no_real_paperclip_request");
+    expect(guard?.outcome).toBe("no_real_clayon_request");
     expect(guard?.reason).toContain("Real Clayon API requests: 0");
     expect(guard?.reason).toContain("Child CLAYON_* environment keys: none");
     // Every request this test made went to its own loopback server.
@@ -842,7 +842,7 @@ describe("Capability clean-room chat server", () => {
       schema: string;
       revisions: Array<{ revision: number; operationId: string; state: Record<string, unknown> }>;
     };
-    expect(inspected.schema).toBe("paperclip.capability.devtools.v1");
+    expect(inspected.schema).toBe("clayon.capability.devtools.v1");
     expect(inspected.revisions[0]?.operationId).toBe("fixture.seed");
     expect(inspected.revisions.at(-1)?.state).toEqual(expect.objectContaining({
       company: expect.any(Object),
@@ -1143,7 +1143,7 @@ describe("Capability clean-room chat server", () => {
       process.stderr.write = stderr;
     }
 
-    const capability = jar.value("paperclip_capability_chat");
+    const capability = jar.value("clayon_capability_chat");
     expect(capability).toMatch(/^[A-Za-z0-9_-]{40,}$/);
     // The turn really did run: without a settled reply the sweep below would
     // pass on an empty transcript.
@@ -1211,7 +1211,7 @@ describe("Capability clean-room chat server", () => {
     const aliceIssue = await call("/api/capability/ui/session?scenario=hb-baseline", undefined, undefined, alice);
 
     expect(aliceRoom.sessionId).not.toBe(malloryRoom.sessionId);
-    expect(alice.value("paperclip_capability_chat")).not.toBe(mallory.value("paperclip_capability_chat"));
+    expect(alice.value("clayon_capability_chat")).not.toBe(mallory.value("clayon_capability_chat"));
 
     // Reciprocal read denial: neither browser can name the other's session.
     for (const [reader, target] of [
@@ -1250,26 +1250,26 @@ describe("Capability clean-room chat server", () => {
   it("keeps the capability stable when reset and new chat archive resumable sessions", async () => {
     const alice = new Jar();
     const opened = await call("/api/capability/ui/cleanroom/session", undefined, undefined, alice);
-    const first = alice.value("paperclip_capability_chat");
+    const first = alice.value("clayon_capability_chat");
 
     const stale = new Jar();
     stale.capture(new Response(null, {
-      headers: { "set-cookie": `paperclip_capability_chat=${first}` },
+      headers: { "set-cookie": `clayon_capability_chat=${first}` },
     }));
 
     const afterReset = await call("/api/capability/ui/reset", { sessionId: opened.sessionId }, undefined, alice);
-    const second = alice.value("paperclip_capability_chat");
+    const second = alice.value("clayon_capability_chat");
     expect(second).toBe(first);
     expect(afterReset.sessionId).not.toBe(opened.sessionId);
     expect(await status(`/api/capability/ui/cleanroom/session?sessionId=${opened.sessionId}`, undefined, stale)).toBe(200);
     expect(await status(`/api/capability/ui/cleanroom/session?sessionId=${afterReset.sessionId}`, undefined, stale)).toBe(200);
 
     const afterNewChat = await call("/api/capability/ui/cleanroom/session", { sessionId: afterReset.sessionId }, undefined, alice);
-    const third = alice.value("paperclip_capability_chat");
+    const third = alice.value("clayon_capability_chat");
     expect(third).toBe(second);
     const previous = new Jar();
     previous.capture(new Response(null, {
-      headers: { "set-cookie": `paperclip_capability_chat=${second}` },
+      headers: { "set-cookie": `clayon_capability_chat=${second}` },
     }));
     expect(await status(`/api/capability/ui/cleanroom/session?sessionId=${afterNewChat.sessionId}`, undefined, previous)).toBe(200);
     expect(await status(`/api/capability/ui/cleanroom/session?sessionId=${afterNewChat.sessionId}`, undefined, alice)).toBe(200);
@@ -1280,11 +1280,11 @@ describe("Capability clean-room chat server", () => {
     // rotate the capability, or two tabs would revoke each other on every load.
     const browser = new Jar();
     const tabA = await call("/api/capability/ui/cleanroom/session", undefined, undefined, browser);
-    const capability = browser.value("paperclip_capability_chat");
+    const capability = browser.value("clayon_capability_chat");
     const tabB = await call("/api/capability/ui/cleanroom/session", undefined, undefined, browser);
 
     expect(tabB.sessionId).not.toBe(tabA.sessionId);
-    expect(browser.value("paperclip_capability_chat")).toBe(capability);
+    expect(browser.value("clayon_capability_chat")).toBe(capability);
     for (const sessionId of [tabA.sessionId, tabB.sessionId]) {
       expect(
         await status(`/api/capability/ui/cleanroom/session?sessionId=${sessionId}`, undefined, browser),
@@ -1302,14 +1302,14 @@ describe("Capability clean-room chat server", () => {
   it("keeps the issue-surface capability stable so reset archives remain resumable", async () => {
     const alice = new Jar();
     const opened = await call("/api/capability/ui/session?scenario=hb-baseline", undefined, undefined, alice);
-    const first = alice.value("paperclip_capability_issue");
+    const first = alice.value("clayon_capability_issue");
     const stale = new Jar();
     stale.capture(new Response(null, {
-      headers: { "set-cookie": `paperclip_capability_issue=${first}` },
+      headers: { "set-cookie": `clayon_capability_issue=${first}` },
     }));
 
     const reset = await call("/api/capability/ui/reset", { sessionId: opened.sessionId }, undefined, alice);
-    expect(alice.value("paperclip_capability_issue")).toBe(first);
+    expect(alice.value("clayon_capability_issue")).toBe(first);
     expect(await status(`/api/capability/ui/session?sessionId=${opened.sessionId}`, undefined, stale)).toBe(200);
     expect(await status(`/api/capability/ui/session?sessionId=${reset.sessionId}`, undefined, stale)).toBe(200);
     expect(await status(`/api/capability/ui/session?sessionId=${reset.sessionId}`, undefined, alice)).toBe(200);

@@ -123,7 +123,7 @@
         "surface": "Clayon browser action Test dialog",
         "actor_label": "Connector Tester",
         "query": "Official Clayon public project repository",
-        "expected_url": "https://github.com/paperclipai/paperclip",
+        "expected_url": "https://github.com/clayon/clayon",
         "reload": "persisted",
         "actions_refresh": "passed",
         "latency_seconds": 2.0,
@@ -226,7 +226,7 @@
         "read_failures": 2,
         "http_status": 400,
         "tool": "Search",
-        "result": "Query-only public web search returned five rows in 1.7s, including official paperclipai/paperclip GitHub result after proactive MCP initialization.",
+        "result": "Query-only public web search returned five rows in 1.7s, including official clayon/clayon GitHub result after proactive MCP initialization.",
         "human_audience": "Just me",
         "agent_installation_audience": "Any agent company installation; UI did not allow narrowing. No actual agent ran.",
         "session_initialization": "Curated true default; refreshed actions before one new call.",
@@ -250,7 +250,7 @@
         "surface": "Clayon browser action Test dialog",
         "actor_label": "Connector Tester",
         "query": "Official Clayon public project repository",
-        "expected_url": "https://github.com/paperclipai/paperclip",
+        "expected_url": "https://github.com/clayon/clayon",
         "reload": "persisted",
         "actions_refresh": "passed",
         "latency_seconds": 0.8,
@@ -369,5 +369,5 @@
     "GSC Wizard underlying Google data scopes and identity-flow completion provenance were not independently verified; no purchase was performed.",
     "Tests ran against isolated qualification state; credentials, codes, provider response data, and private account identifiers are omitted."
   ],
-  "repository_checks": "Full repository typecheck and build passed locally. Focused catalog, generator, OAuth/session/callback, and UI checks were run; latest CI results and any local-suite limitations are recorded in https://github.com/paperclipai/paperclip/pull/15621."
+  "repository_checks": "Full repository typecheck and build passed locally. Focused catalog, generator, OAuth/session/callback, and UI checks were run; latest CI results and any local-suite limitations are recorded in https://github.com/clayon/clayon/pull/15621."
 }

@@ -51,9 +51,9 @@ GitHub Actions owns `pnpm-lock.yaml`.
 
 ## Trusted PR Workflow
 
-The PR caller uses `paperclipai/paperclip/.github/workflows/pr-trusted.yml@master`.
+The PR caller uses `clayon/clayon/.github/workflows/pr-trusted.yml@master`.
 The AWS runner group `clayon-public-pr` must allow
-`paperclipai/paperclip/.github/workflows/pr-trusted.yml@refs/heads/master`.
+`clayon/clayon/.github/workflows/pr-trusted.yml@refs/heads/master`.
 New workflow versions merged into master then receive runner access without a
 separate SHA allowlist update. Dependabot leaves this first-party reference on
 master.
@@ -1679,14 +1679,14 @@ paths at request time. Root `skills/` remains reserved for Clayon runtime
 skills and is not part of the catalog.
 
 Skill-capable legacy local adapters always select the bundled
-`paperclipai/paperclip/clayon` operational skill when it is present in the
+`clayon/clayon/clayon` operational skill when it is present in the
 runtime inventory. This applies to existing agents without a stored skill
 preference and to explicit empty optional-skill selections. The operational
 skill supplies the control-plane workflow that those adapters need for
 heartbeats. The `complain` and `suggestion-box` runtime skills are also selected
 automatically alongside it; see [Agent commentary](agent-commentary.md).
 Other runtime skills remain controlled by
-`clayonSkillSync.desiredSkills`. The native `paperclip_runner` does not use
+`clayonSkillSync.desiredSkills`. The native `clayon_runner` does not use
 this legacy default because its protocol supplies the control-plane contract.
 
 Validate the catalog without writing the manifest:
@@ -2097,7 +2097,7 @@ cleanup validation still inspect Git afresh. A display result never authorizes
 worktree removal.
 
 The connection-health sweep selects only due IDs in SQL before applying its
-limit. Legacy `paperclip_plugin` placeholder connections are excluded: their
+limit. Legacy `clayon_plugin` placeholder connections are excluded: their
 tools run in plugin workers and do not have remote MCP endpoints. These rows
 remain available; the sweep does not disable or delete plugin connections.
 

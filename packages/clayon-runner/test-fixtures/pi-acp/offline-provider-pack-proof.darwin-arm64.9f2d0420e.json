@@ -1,5 +1,5 @@
 {
-  "schema": "paperclip.pi-provider-pack-offline-proof.v1",
+  "schema": "clayon.pi-provider-pack-offline-proof.v1",
   "recordedAt": "2026-09-28T20:02:30.796Z",
   "classification": "offline_candidate_admission",
   "source": {

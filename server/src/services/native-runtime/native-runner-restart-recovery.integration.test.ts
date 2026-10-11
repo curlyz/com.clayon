@@ -57,7 +57,7 @@ import {
 // Exact v5 wire prompt from before the task-monitor upgrade (#15446).
 const historicalPrompt = {
   revision: "clayon-execution.v5",
-  text: "You are running as a Clayon agent. Complete the assigned task in the provided execution environment. Follow the attached agent instructions and use assigned skills and tools when relevant. Use Clayon tools for coordination. To hire or reuse a persistent teammate, use list_agents, then search_api for agent-hires and call_api if a hire is needed. Provider helper threads do not create Clayon agents. When the user assigns work or a revision to a teammate, use create_task with that agent's ID; review their result rather than doing their assigned work yourself. When remaining work depends on a child task, use set_dependencies to add its ID while preserving existing blocker IDs. Complete independent work, then call paperclip_block with the child agent as owner and child completion as the unblock action. End the turn so the child can use the workspace. Do not sleep or poll for child results while holding the workspace. Clayon resumes the parent when the dependency completes. When the user asks to connect a service, call connections_search before any service tool, even when that tool is already installed. Follow the returned instruction and wait for any required user choice before executing. For other tasks needing a service, use installed tools if available; otherwise use connections_search and follow its instruction. The request appears as a card in the task. Finish independent work before yielding for access; do not poll or request the same connection repeatedly. Clayon will continue automatically with updated tools after resolution. After a decline, pursue alternatives unless the user explicitly asks to retry. Finish exactly once with `paperclip_finish` or `paperclip_block`.",
+  text: "You are running as a Clayon agent. Complete the assigned task in the provided execution environment. Follow the attached agent instructions and use assigned skills and tools when relevant. Use Clayon tools for coordination. To hire or reuse a persistent teammate, use list_agents, then search_api for agent-hires and call_api if a hire is needed. Provider helper threads do not create Clayon agents. When the user assigns work or a revision to a teammate, use create_task with that agent's ID; review their result rather than doing their assigned work yourself. When remaining work depends on a child task, use set_dependencies to add its ID while preserving existing blocker IDs. Complete independent work, then call clayon_block with the child agent as owner and child completion as the unblock action. End the turn so the child can use the workspace. Do not sleep or poll for child results while holding the workspace. Clayon resumes the parent when the dependency completes. When the user asks to connect a service, call connections_search before any service tool, even when that tool is already installed. Follow the returned instruction and wait for any required user choice before executing. For other tasks needing a service, use installed tools if available; otherwise use connections_search and follow its instruction. The request appears as a card in the task. Finish independent work before yielding for access; do not poll or request the same connection repeatedly. Clayon will continue automatically with updated tools after resolution. After a decline, pursue alternatives unless the user explicitly asks to retry. Finish exactly once with `clayon_finish` or `clayon_block`.",
   digest: "bec3e633d8d828103ce50b3a8b8dc9991c8ef65e07538bdab1a7663957c2ef9b",
 } as const;
 
@@ -182,7 +182,7 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
       name: "Native restart runner",
       role: "engineer",
       status: "active",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       permissions: {},
@@ -602,7 +602,7 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
       workspace: { id: fixture.runId, cwd: tmpdir(), repoUrl: null, repoRef: null, branchName: null },
       normalizedSessionId: fixture.native.normalizedSessionId,
       provider: "codex",
-      completionContract: { id: randomUUID(), sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "paperclip.run-result.v1", contract: { revision: "1", objective: "Recover the same turn", criteria: [{ id: "objective", requirement: "Resume without a duplicate turn" }] } },
+      completionContract: { id: randomUUID(), sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "clayon.run-result.v1", contract: { revision: "1", objective: "Recover the same turn", criteria: [{ id: "objective", requirement: "Resume without a duplicate turn" }] } },
       runtimeContext: context,
     }), runtimeContext };
     const stateDirectory = resolve(runtimeRoot, fixture.runId);
@@ -850,7 +850,7 @@ describeEmbeddedPostgres("native runner restart recovery with real processes", (
       serverFingerprint: "result-before-restart",
       schemaStatus: "accepted",
       resultJson: {
-        schema: "paperclip.run_result.v1",
+        schema: "clayon.run_result.v1",
         reportedWorkDisposition: "done",
         summary: "Durable result proposed before restart.",
       },

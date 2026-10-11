@@ -116,7 +116,7 @@ describe("gemini execute", () => {
           cwd: workspace,
           env: { HOME: configuredHome },
           clayonRuntimeSkills: [{
-            key: "paperclipai/paperclip/clayon",
+            key: "clayon/clayon/clayon",
             runtimeName: "clayon",
             source: skillSource,
           }],

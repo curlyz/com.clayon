@@ -76,7 +76,7 @@ When adding or upgrading a harness:
    diagnostics without including credentials or unredacted provider input.
 7. Keep standalone local adapters unchanged unless their own contract is
    deliberately revised. Clayon Runner defaults apply only to
-   `paperclip_runner` executions.
+   `clayon_runner` executions.
 
 ## Compatibility rules
 

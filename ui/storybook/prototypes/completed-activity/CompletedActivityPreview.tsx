@@ -167,7 +167,7 @@ const scenarios: Array<{
       tool(
         "mcp",
         "mcp__github__get_pull_request",
-        "paperclipai/paperclip #13255",
+        "clayon/clayon #13255",
       ),
     ],
   },

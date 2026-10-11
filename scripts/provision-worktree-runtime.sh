@@ -4,12 +4,12 @@ set -euo pipefail
 
 base_cwd="${CLAYON_WORKSPACE_BASE_CWD:?CLAYON_WORKSPACE_BASE_CWD is required}"
 worktree_cwd="${CLAYON_WORKSPACE_CWD:?CLAYON_WORKSPACE_CWD is required}"
-paperclip_home="${CLAYON_HOME:-$HOME/.clayon}"
-paperclip_instance_id="${CLAYON_INSTANCE_ID:-default}"
-paperclip_dir="$worktree_cwd/.clayon"
-worktree_config_path="$paperclip_dir/config.json"
-seed_manifest_path="$paperclip_dir/seed-manifest.json"
-seed_empty_path="$paperclip_dir/seed-empty"
+clayon_home="${CLAYON_HOME:-$HOME/.clayon}"
+clayon_instance_id="${CLAYON_INSTANCE_ID:-default}"
+clayon_dir="$worktree_cwd/.clayon"
+worktree_config_path="$clayon_dir/config.json"
+seed_manifest_path="$clayon_dir/seed-manifest.json"
+seed_empty_path="$clayon_dir/seed-empty"
 
 if [[ ! -d "$base_cwd" ]]; then
   echo "Base workspace does not exist: $base_cwd" >&2
@@ -86,7 +86,7 @@ if [[ -L "$base_cwd/.clayon" && ! -d "$base_cwd/.clayon" ]]; then
 fi
 source_config_args=()
 if [[ ! -e "$base_cwd/.clayon/config.json" && ! -L "$base_cwd/.clayon/config.json" ]]; then
-  source_config_path="${CLAYON_CONFIG:-$paperclip_home/instances/$paperclip_instance_id/config.json}"
+  source_config_path="${CLAYON_CONFIG:-$clayon_home/instances/$clayon_instance_id/config.json}"
   # A human may invoke this after sourcing `worktree env`, which points
   # CLAYON_CONFIG at the target. Naming the target as its own source is never
   # right, so leave the source to the CLI in that case.

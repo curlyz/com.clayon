@@ -574,7 +574,7 @@ function evaluatePolicyConditions(
     if (boolCondition(boundary.remoteHttpOnly) === true && ctx.providerType !== "mcp_remote_http") {
       return conditionGroupFail("trustBoundary", "Policy condition requires a remote HTTP MCP tool.");
     }
-    if (boolCondition(boundary.clayonSelfOnly) === true && ctx.providerType !== "paperclip_self") {
+    if (boolCondition(boundary.clayonSelfOnly) === true && ctx.providerType !== "clayon_self") {
       return conditionGroupFail("trustBoundary", "Policy condition requires a Clayon self tool.");
     }
     matchedGroups.push("trustBoundary");

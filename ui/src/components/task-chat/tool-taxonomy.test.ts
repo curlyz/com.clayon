@@ -101,7 +101,7 @@ describe("tool activity vocabulary", () => {
     const clayon = [
       "get_task_context", "get_task_history", "list_documents", "read_document", "list_document_revisions",
       "report_progress", "answer_status_question", "write_document", "request_human_input",
-      "register_deliverable", "finish_task", "paperclip_finish", "block_task", "paperclip_block",
+      "register_deliverable", "finish_task", "clayon_finish", "block_task", "clayon_block",
       "request_review", "list_agents", "get_agent", "search_tasks", "list_approvals", "get_approval",
       "get_approval_context", "get_workspace_runtime", "control_workspace_service", "set_dependencies",
       "create_task", "request_approval", "decide_approval", "comment_on_approval", "schedule_wake",
@@ -114,7 +114,7 @@ describe("tool activity vocabulary", () => {
       expect(presentation.completedLabel, name).not.toMatch(/ran a tool|tool call/i);
     }
     expect(toolActivityPresentation({ name: "report_progress", namespace: "clayon" }).runningLabel).toBe("Reporting progress");
-    expect(toolActivityPresentation({ name: "paperclip_block", namespace: "clayon" }).completedLabel).toBe("Reported a blocker");
+    expect(toolActivityPresentation({ name: "clayon_block", namespace: "clayon" }).completedLabel).toBe("Reported a blocker");
     expect(toolActivityPresentation({ name: "schedule_wake", namespace: "clayon" }).runningLabel).toBe("Scheduling a wake-up");
   });
 

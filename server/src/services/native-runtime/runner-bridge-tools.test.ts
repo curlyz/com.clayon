@@ -55,8 +55,8 @@ describe("Runner workspace bridge", () => {
     const directory = await root();
     await mkdir(join(directory, ".clayon"));
     await writeFile(join(directory, ".clayon", ".env"), "SYNTHETIC_INSTANCE_SECRET");
-    await mkdir(join(directory, "nested", ".PaPeRcLiP"), { recursive: true });
-    for (const path of [".clayon/.env", "nested/.PaPeRcLiP/config.json"]) {
+    await mkdir(join(directory, "nested", ".ClAyOn"), { recursive: true });
+    for (const path of [".clayon/.env", "nested/.ClAyOn/config.json"]) {
       await expect(executeWorkspaceTool(directory, "workspace_read", { path }, authorize)).rejects.toThrow("instance_state_denied");
       await expect(executeWorkspaceTool(directory, "workspace_write", { path, text: "overwrite", expectedSha256: null }, authorize)).rejects.toThrow("instance_state_denied");
       await expect(readWorkspaceUploadFile(directory, path)).rejects.toThrow("instance_state_denied");
@@ -70,8 +70,8 @@ describe("Runner workspace bridge", () => {
     const directory = join(await root(), "project.[safe]");
     await mkdir(directory);
     await mkdir(join(directory, ".clayon"));
-    await mkdir(join(directory, "nested", ".PaPeRcLiP"), { recursive: true });
-    const keys = [".clayon/.env", "nested/.PaPeRcLiP/config.json"];
+    await mkdir(join(directory, "nested", ".ClAyOn"), { recursive: true });
+    const keys = [".clayon/.env", "nested/.ClAyOn/config.json"];
     for (const key of keys) await writeFile(join(directory, key), "SYNTHETIC_INSTANCE_SECRET");
     for (const key of keys) {
       const read = await executeWorkspaceTool(directory, "workspace_run", { program: "/bin/cat", args: [key] }, authorize) as any;

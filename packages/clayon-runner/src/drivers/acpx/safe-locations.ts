@@ -4,10 +4,10 @@ import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { classifyGeneratedAcpxToolOperation } from "./generated-sidecar-contract.js";
 
 export const ACPX_WORKSPACE_RELATIVE_DISPLAY_BOUNDARY =
-  "paperclip.workspace_relative_display.v2";
-export const ACPX_WORKSPACE_ENTRY_ATTESTATION = "paperclip.workspace_entry.v1";
+  "clayon.workspace_relative_display.v2";
+export const ACPX_WORKSPACE_ENTRY_ATTESTATION = "clayon.workspace_entry.v1";
 export const ACPX_WORKSPACE_CREATE_TARGET_ATTESTATION =
-  "paperclip.workspace_create_target.v1";
+  "clayon.workspace_create_target.v1";
 const RFC_URI_SCHEME_PREFIX = /^[A-Za-z][A-Za-z0-9+.-]*:/u;
 const WINDOWS_DRIVE_PREFIX = /^[A-Za-z]:/u;
 

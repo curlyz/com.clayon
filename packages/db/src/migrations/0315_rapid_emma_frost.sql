@@ -40,5 +40,5 @@ SELECT c.company_id, c.user_id,
 FROM first_creations c
 LEFT JOIN agents a ON a.id::text = c.agent_id AND a.company_id = c.company_id
 LEFT JOIN agent_memberships m ON m.company_id = c.company_id AND m.user_id = c.user_id AND m.agent_id = a.id
-WHERE a.metadata->'paperclipBuiltInAgent' IS NULL
+WHERE a.metadata->'clayonBuiltInAgent' IS NULL
 ON CONFLICT (company_id, user_id) DO NOTHING;

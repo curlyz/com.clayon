@@ -460,14 +460,14 @@ fn send_opencode_proxy_runtime_question(state: &FakeState) -> io::Result<()> {
         "method": "clayon/runtimeRequest",
         "params": {
             "request": {
-                "schema": "paperclip.runtime_request.v2",
+                "schema": "clayon.runtime_request.v2",
                 "requestKind": "runtime",
                 "requestId": "opencode-question-1",
                 "type": "input",
                 "status": "pending",
                 "prompt": "OpenCode requests user input.",
                 "input": {
-                    "schema": "paperclip.question_set.v1",
+                    "schema": "clayon.question_set.v1",
                     "questions": [{
                         "id": "environment",
                         "prompt": "Where should we deploy?",
@@ -902,7 +902,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         {
             if message.pointer("/result/resolution/action") != Some(&json!("submit"))
                 || message.pointer("/result/resolution/response/schema")
-                    != Some(&json!("paperclip.question_response.v1"))
+                    != Some(&json!("clayon.question_response.v1"))
             {
                 return Err("OpenCode proxy runtime response changed shape".into());
             }
@@ -1499,7 +1499,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                                 "senderThreadId":state.thread_id, "receiverThreadIds":["helper-thread"]}
                         }}))?;
                     }
-                    for (index, tool) in ["get_task_context", "paperclip_finish"].iter().enumerate()
+                    for (index, tool) in ["get_task_context", "clayon_finish"].iter().enumerate()
                     {
                         send(
                             json!({"id":format!("helper-request-{index}"), "method":"item/tool/call", "params":{

@@ -1,7 +1,7 @@
 {
   "commandDigest": "sha256:5e1a4357fc108fa79a66111413f85f6353b3dd3ab802ddfb80fc66719bc12571",
   "declaration": {
-    "schema": "paperclip.acpx_profile_declaration.v1",
+    "schema": "clayon.acpx_profile_declaration.v1",
     "agent": "pi",
     "agentProfileVersion": 10,
     "acpxVersion": "0.13.1",
@@ -25,6 +25,6 @@
     "nativeNotices": "session-extension-v1",
     "messageProjectionSha256": "17d1e91b948dfa6a56e1905645add52b502041ad843c8d50a13b07956f22aadd",
     "noticeProjectionSha256": "c619080ec72a577889c382d44ea9024b10efdb9d83e933c03bfdd8da79ede591",
-    "sharedRuntimeContract": "paperclip.acpx-runtime-contract.v1"
+    "sharedRuntimeContract": "clayon.acpx-runtime-contract.v1"
   }
 }

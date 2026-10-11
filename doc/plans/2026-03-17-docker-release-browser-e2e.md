@@ -214,7 +214,7 @@ Recommended triggers:
 
 Recommended inputs:
 
-- `paperclip_version`
+- `clayon_version`
   - `canary` or `latest`
 - `host_port`
   - optional, default runner-safe port
@@ -254,7 +254,7 @@ First ship the workflow as manual-only so the harness and test can be stabilized
 
 After `publish_canary` succeeds in `.github/workflows/release.yml`, call the reusable release-smoke workflow with:
 
-- `paperclip_version=canary`
+- `clayon_version=canary`
 
 This proves the just-published public canary really boots and onboards.
 
@@ -262,7 +262,7 @@ This proves the just-published public canary really boots and onboards.
 
 After `publish_stable` succeeds, call the same workflow with:
 
-- `paperclip_version=latest`
+- `clayon_version=latest`
 
 This gives us post-publish confirmation that the stable dist-tag is healthy.
 

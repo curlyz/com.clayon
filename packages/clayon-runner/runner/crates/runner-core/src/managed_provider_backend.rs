@@ -37,7 +37,7 @@ use crate::provider_events::{
 };
 
 pub const MANAGED_PROVIDER_STATE_FILE: &str = "managed-provider-state.json";
-const MANAGED_PROVIDER_STATE_SCHEMA: &str = "paperclip.runner.managed-provider-state.v1";
+const MANAGED_PROVIDER_STATE_SCHEMA: &str = "clayon.runner.managed-provider-state.v1";
 const MAX_PROVIDER_STATE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_PENDING_EVENTS: usize = 8_320;
 const MAX_EVENTS_PER_POLL: usize = 128;
@@ -474,7 +474,7 @@ fn valid_agentcore_usage_snapshot(value: &Value) -> bool {
         && conservative_floor
             .zip(estimated_cost)
             .is_none_or(|(floor, estimated)| estimated >= floor)
-        && object.get("costSource").and_then(Value::as_str) == Some("paperclip_estimate")
+        && object.get("costSource").and_then(Value::as_str) == Some("clayon_estimate")
 }
 
 fn valid_claude_managed_skill_ref(value: &ClaudeManagedSkillRef) -> bool {
@@ -1622,7 +1622,7 @@ impl ManagedProviderCommandExecutor {
                         event_type: "provider.notice.recorded".to_owned(),
                         priority: EventPriority::P0,
                         payload: json!({
-                            "schema": "paperclip.provider.notice.v1",
+                            "schema": "clayon.provider.notice.v1",
                             "noticeId": format!("{}-budget-limit", state.descriptor.provider_label()),
                             "severity": "error",
                             "category": "provider_limit",
@@ -1659,7 +1659,7 @@ impl ManagedProviderCommandExecutor {
                         event_type: "provider.notice.recorded".to_owned(),
                         priority: EventPriority::P1,
                         payload: json!({
-                            "schema": "paperclip.provider.notice.v1",
+                            "schema": "clayon.provider.notice.v1",
                             "noticeId": format!("{}-reconnecting", state.descriptor.provider_label()),
                             "severity": "warning",
                             "category": "reconnecting",
@@ -1715,7 +1715,7 @@ impl ManagedProviderCommandExecutor {
                     priority: EventPriority::P0,
                     payload: json!({
                         "request": {
-                            "schema": "paperclip.runtime_request.v2",
+                            "schema": "clayon.runtime_request.v2",
                             "requestKind": request_kind,
                             "requestId": request_id,
                             "turnId": self.config.turn_id,
@@ -1929,7 +1929,7 @@ fn semantic_input_event(
         priority: EventPriority::P0,
         payload: json!({
             "semantic_tool": {
-                "schema": "paperclip.prp.semantic_tool.v1",
+                "schema": "clayon.prp.semantic_tool.v1",
                 "schemaVersion": 1,
                 "phase": "input",
                 "operationId": operation_id,
@@ -1983,7 +1983,7 @@ fn terminal_events(state: &ManagedDurableState, event_type: &str) -> Vec<Normali
         })
         .collect::<Vec<_>>();
     let result = json!({
-        "schema": "paperclip.run_result.v1",
+        "schema": "clayon.run_result.v1",
         "reportedWorkDisposition": disposition,
         "summary": summary,
         "completionClaim": {
@@ -2023,7 +2023,7 @@ fn terminal_events(state: &ManagedDurableState, event_type: &str) -> Vec<Normali
             event_type: "run.terminal".to_owned(),
             priority: EventPriority::P0,
             payload: json!({
-                "schema": "paperclip.prp.terminal.v1",
+                "schema": "clayon.prp.terminal.v1",
                 "provider": provider,
                 "turnTerminalState": turn_terminal_state,
                 "runTerminalState": if succeeded { "succeeded" } else if cancelled { "cancelled" } else { "failed" },
@@ -2196,7 +2196,7 @@ fn managed_usage_event(
             "cumulative": measurement,
             "runDeltaAvailable": false,
             "runDelta": Value::Null,
-            "costSource": if descriptor.kind() == ManagedProviderKind::AwsAgentcore { "paperclip_estimate" } else { "provider_reported" },
+            "costSource": if descriptor.kind() == ManagedProviderKind::AwsAgentcore { "clayon_estimate" } else { "provider_reported" },
         }),
     }
 }
@@ -2621,7 +2621,7 @@ mod tests {
 
     fn test_command(sequence: u64, command_type: &str, payload: Value) -> Command {
         Command {
-            schema: "paperclip.prp.command.v1".to_owned(),
+            schema: "clayon.prp.command.v1".to_owned(),
             command_id: format!("command-{sequence}"),
             controller_seq: sequence,
             command_type: command_type.to_owned(),
@@ -2878,7 +2878,7 @@ mod tests {
             "cacheWriteInputTokens": 0,
             "requestCount": 1,
             "estimatedCostUsd": 0.0,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
         }));
         state.pending_events.clear();
         if recovery {
@@ -3218,7 +3218,7 @@ mod tests {
             "cacheWriteInputTokens": 5,
             "requestCount": 2,
             "estimatedCostUsd": 0.75,
-            "costSource": "paperclip_estimate"
+            "costSource": "clayon_estimate"
         });
         assert!(valid_agentcore_usage_snapshot(&usage));
 
@@ -3283,7 +3283,7 @@ mod tests {
             "cacheWriteInputTokens": 5,
             "requestCount": 2,
             "estimatedCostUsd": 0.75,
-            "costSource": "paperclip_estimate",
+            "costSource": "clayon_estimate",
             "usageReconciliation": AGENTCORE_USAGE_RECONCILIATION_PENDING,
             "pendingInvocationId": "invocation-before-restart",
             "pendingEstimatedCeilingUsd": 1.0

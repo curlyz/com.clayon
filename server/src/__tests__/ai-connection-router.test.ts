@@ -49,7 +49,7 @@ const proposal = vi.fn(async (_id: string, _method: string, request: AiConnectio
 const worker = { isRunning: () => true, call: proposal } as unknown as PluginWorkerManager;
 const defaultProposal = proposal.getMockImplementation()!;
 const service = () => aiConnectionRouterService(db, worker);
-const resolve = (poolId: string, taskKey: string, extra = {}) => service().resolve({ companyId, poolId, agentId, userId: "alice", adapterType: "paperclip_runner", taskKey, ...extra });
+const resolve = (poolId: string, taskKey: string, extra = {}) => service().resolve({ companyId, poolId, agentId, userId: "alice", adapterType: "clayon_runner", taskKey, ...extra });
 const makePool = async (config = {}) => service().save(pluginKey, { companyId, config: { name: randomUUID(), enabled: true, mode: "round_robin", thresholdPercent: 90, members, ...config } }, "alice");
 beforeAll(async () => {
   home = await mkdtemp(path.join(os.tmpdir(), "clayon-router-tests-"));
@@ -57,7 +57,7 @@ beforeAll(async () => {
   if (externalTestDatabaseUrl) db = createDb(externalTestDatabaseUrl);
   else { database = await startEmbeddedPostgresTestDatabase("clayon-router-db-"); db = createDb(database.connectionString); }
   await db.insert(companies).values([{ id: companyId, name: "Router fixture", issuePrefix: "RTF" }, { id: otherCompanyId, name: "Other", issuePrefix: "RTO" }]);
-  await db.insert(agents).values([agentId, secondAgentId].map(id => ({ id, companyId, name: "Router agent", adapterType: "paperclip_runner" })));
+  await db.insert(agents).values([agentId, secondAgentId].map(id => ({ id, companyId, name: "Router agent", adapterType: "clayon_runner" })));
   await db.insert(companyMemberships).values(["alice", "bob"].map(principalId => ({ companyId, principalId, principalType: "user", status: "active", membershipRole: "member" })));
   await db.insert(plugins).values({ id: pluginId, pluginKey, packageName: pluginKey, version: "0.1.0", manifestJson: manifest, status: "ready" });
   const accounts = aiConnectionService(db);
@@ -163,7 +163,7 @@ describe("durable, authorized connection routing", () => {
     expect((await resolve(pool.id, "one")).memberId).toBe(members[0]!.id);
     expect((await resolve(pool.id, "two")).memberId).toBe(members[1]!.id);
     expect((await resolve(pool.id, "one", { overrides: { model: "claude-sonnet-5", modelReasoningEffort: "high" } })).memberId).toBe(members[0]!.id);
-    expect((await aiConnectionRouterService(db, worker).resolve({ companyId, poolId: pool.id, agentId, userId: "alice", adapterType: "paperclip_runner", taskKey: "one" })).memberId).toBe(members[0]!.id);
+    expect((await aiConnectionRouterService(db, worker).resolve({ companyId, poolId: pool.id, agentId, userId: "alice", adapterType: "clayon_runner", taskKey: "one" })).memberId).toBe(members[0]!.id);
     const [cursor] = await db.select().from(aiConnectionRouterCursors).where(eq(aiConnectionRouterCursors.poolId, pool.id)); expect(cursor?.version).toBe(2);
   });
   it("commits one allocation for duplicate starts and serializes concurrent tasks", async () => {
@@ -196,7 +196,7 @@ describe("durable, authorized connection routing", () => {
     const first = await resolve(pool.id, "composer");
     const changed = await resolve(pool.id, "composer", { overrides: { model: "claude-sonnet-5", modelReasoningEffort: "high" } });
     expect(changed.binding).toEqual(first.binding); expect(changed.runtimeConfig).toMatchObject({ provider: "codex", model: "gpt-5.6-sol", modelReasoningEffort: "high" }); expect(changed.notes).toHaveLength(1);
-    const claude = poolMemberRuntimeConfig(members[1]!, "paperclip_runner", { model: "gpt-5.6-sol", modelReasoningEffort: "ultra" });
+    const claude = poolMemberRuntimeConfig(members[1]!, "clayon_runner", { model: "gpt-5.6-sol", modelReasoningEffort: "ultra" });
     expect(claude.config).toMatchObject({ provider: "acpx", acpxAgent: "claude", model: "claude-sonnet-5" }); expect(claude.notes).toHaveLength(2);
     const overrides = applyAiConnectionRouterTaskSettings({ model: "claude-sonnet-5", effort: "invalid", cwd: "/fixture" }, changed);
     const native = resolveClayonRunnerNativeProviderInput({ backend: "codex_app_server", adapterConfig: projectClayonRunnerTaskConfig("codex_app_server", changed.runtimeConfig, overrides) });
@@ -379,10 +379,10 @@ describe("durable, authorized connection routing", () => {
   }, 30_000);
   it("repairs the failed pool account without replacing the pool or adopting the configured provider", async () => {
     const pool = await makePool({ members: [members[1]!] });
-    const [agent] = await db.insert(agents).values({ companyId, name: "Pool repair", adapterType: "paperclip_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol" }, runtimeConfig: { aiConnection: { mode: "router", connectionId: pool.id } } }).returning();
+    const [agent] = await db.insert(agents).values({ companyId, name: "Pool repair", adapterType: "clayon_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol" }, runtimeConfig: { aiConnection: { mode: "router", connectionId: pool.id } } }).returning();
     const [issue] = await db.insert(issues).values({ companyId, title: "Pool repair", status: "in_progress", assigneeAgentId: agent!.id, responsibleUserId: "alice", createdByUserId: "alice" }).returning();
     const selection = await resolve(pool.id, issue!.id, { agentId: agent!.id });
-    const runtime = await prepareManagedAiRuntime(db, { companyId, agentId: agent!.id, responsibleUserId: "alice", adapterType: "paperclip_runner", config: selection.runtimeConfig, binding: selection.binding });
+    const runtime = await prepareManagedAiRuntime(db, { companyId, agentId: agent!.id, responsibleUserId: "alice", adapterType: "clayon_runner", config: selection.runtimeConfig, binding: selection.binding });
     const [run] = await db.insert(heartbeatRuns).values({ companyId, agentId: agent!.id, status: "failed", errorCode: "acpx_auth_required", responsibleUserId: "alice", startedAt: new Date(), contextSnapshot: { issueId: issue!.id, aiRouterTaskKey: issue!.id, aiRouterSelection: selection, aiConnection: { ...runtime!.attribution, identity: runtime!.identity } } }).returning();
     try {
       const intents = connectionIntentService(db);
@@ -418,14 +418,14 @@ describe("durable, authorized connection routing", () => {
     const pool = await makePool({ members: [members[0]!] });
     const selected = await resolve(pool.id, "managed-mode-adoption", { requireExisting: true, existingGrantId: members[0]!.binding.grantId });
     const directBinding = { mode: "responsible_user" as const, provider: "openai" as const, method: "api_key" as const };
-    const prepare = { companyId, agentId, responsibleUserId: "alice", adapterType: "paperclip_runner", config: selected.runtimeConfig };
+    const prepare = { companyId, agentId, responsibleUserId: "alice", adapterType: "clayon_runner", config: selected.runtimeConfig };
     const before = await prepareManagedAiRuntime(db, { ...prepare, binding: directBinding });
     const after = await prepareManagedAiRuntime(db, { ...prepare, binding: selected.binding });
     try {
       expect(before.config.managedAiConnection.mode).toBe("responsible_user");
       expect(after.config.managedAiConnection.mode).toBe("delegated");
       expect(after.sessionIdentity).toBe(before.sessionIdentity);
-      const common = { adapterType: "paperclip_runner", issueOverrides: null, workspaceConfig: {}, environment: {}, environmentEnv: null, projectEnv: null, routineEnv: null, runtimeSkills: [], agentConfigRevision: null };
+      const common = { adapterType: "clayon_runner", issueOverrides: null, workspaceConfig: {}, environment: {}, environmentEnv: null, projectEnv: null, routineEnv: null, runtimeSkills: [], agentConfigRevision: null };
       const previous = await buildEffectiveRunSessionConfigMetadata({ ...common, effectiveAdapterConfig: before.config, managedAiHome: before.home, agentRuntimeConfig: { aiConnection: directBinding } });
       const currentInput = { ...common, effectiveAdapterConfig: after.config, managedAiHome: after.home, agentRuntimeConfig: { aiConnection: { mode: "router", connectionId: pool.id } } };
       const current = await buildEffectiveRunSessionConfigMetadata(currentInput);
@@ -435,7 +435,7 @@ describe("durable, authorized connection routing", () => {
     } finally { await before.cleanup(); await after.cleanup(); }
   });
   it("keeps session identity and fingerprints stable on authenticated refresh, but changes them on manual replacement", async () => {
-    const input = { companyId, agentId, responsibleUserId: "alice", adapterType: "paperclip_runner", binding: members[0]!.binding, config: { provider: "codex", model: "gpt-5.6-sol" } };
+    const input = { companyId, agentId, responsibleUserId: "alice", adapterType: "clayon_runner", binding: members[0]!.binding, config: { provider: "codex", model: "gpt-5.6-sol" } };
     const first = await prepareManagedAiRuntime(db, input);
     const [grant] = await db.select().from(connectionGrants).where(eq(connectionGrants.id, members[0]!.binding.grantId)); const ref = grant!.credentialSecretRefs.find(ref => ref.configPath === "ai.credential")!;
     try {

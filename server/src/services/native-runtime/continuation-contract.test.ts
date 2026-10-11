@@ -51,7 +51,7 @@ const support = await getEmbeddedPostgresTestSupport();
           companyId,
           name: "Executor",
           role: "engineer",
-          adapterType: "paperclip_runner",
+          adapterType: "clayon_runner",
         });
       const [task] = await db
         .insert(issues)
@@ -84,7 +84,7 @@ const support = await getEmbeddedPostgresTestSupport();
         contract: value.contract,
       });
       const oldInput = parseNativeExecutionInput({
-        schema: "paperclip.native-execution-input.v1",
+        schema: "clayon.native-execution-input.v1",
         binding: {
           companyId,
           issueId,

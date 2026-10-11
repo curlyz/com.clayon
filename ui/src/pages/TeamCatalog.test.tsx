@@ -34,7 +34,7 @@ const mockPushToast = vi.hoisted(() => vi.fn());
 const mockSetBreadcrumbs = vi.hoisted(() => vi.fn());
 const mockNavigate = vi.hoisted(() => vi.fn());
 const mockAdapterAvailability = vi.hoisted(() => ({
-  disabled: new Set<string>(["paperclip_runner"]),
+  disabled: new Set<string>(["clayon_runner"]),
   loaded: true,
 }));
 
@@ -111,17 +111,17 @@ describe("TeamCatalog routes", () => {
   });
 
   it("fails closed for Clayon Runner until adapter availability is loaded and enabled", () => {
-    expect(listTeamInstallAdapterTypes(new Set(), false)).not.toContain("paperclip_runner");
+    expect(listTeamInstallAdapterTypes(new Set(), false)).not.toContain("clayon_runner");
     expect(listTeamInstallAdapterTypes(new Set(), false)).not.toContain("process");
     expect(listTeamInstallAdapterTypes(new Set(), false)).not.toContain("http");
-    expect(listTeamInstallAdapterTypes(new Set(["paperclip_runner"]), true))
-      .not.toContain("paperclip_runner");
-    expect(listTeamInstallAdapterTypes(new Set(), true)).toContain("paperclip_runner");
-    expect(resolveTeamInstallAdapterType("paperclip_runner", ["claude_local", "codex_local"]))
+    expect(listTeamInstallAdapterTypes(new Set(["clayon_runner"]), true))
+      .not.toContain("clayon_runner");
+    expect(listTeamInstallAdapterTypes(new Set(), true)).toContain("clayon_runner");
+    expect(resolveTeamInstallAdapterType("clayon_runner", ["claude_local", "codex_local"]))
       .toBe("claude_local");
-    expect(resolveTeamInstallAdapterType("paperclip_runner", ["codex_local"]))
+    expect(resolveTeamInstallAdapterType("clayon_runner", ["codex_local"]))
       .toBe("codex_local");
-    expect(resolveTeamInstallAdapterType("paperclip_runner", []))
+    expect(resolveTeamInstallAdapterType("clayon_runner", []))
       .toBeNull();
   });
 });
@@ -239,7 +239,7 @@ describe("TeamCatalog install preview path", () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
-    mockAdapterAvailability.disabled = new Set(["paperclip_runner"]);
+    mockAdapterAvailability.disabled = new Set(["clayon_runner"]);
     mockAdapterAvailability.loaded = true;
     container = document.createElement("div");
     document.body.appendChild(container);

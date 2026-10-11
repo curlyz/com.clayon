@@ -52,7 +52,7 @@ function execution(provider: NativeExecutionInput["provider"], schema: "v4" | "v
     provider,
     executionMode: "default",
     planningContext: null,
-    completionContract: { id: "contract", sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "paperclip.completion-contract.v1", contract: { revision: "1", objective: "Save the requested document", criteria: [{ id: "objective", requirement: "Document saved" }] } },
+    completionContract: { id: "contract", sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "clayon.completion-contract.v1", contract: { revision: "1", objective: "Save the requested document", criteria: [{ id: "objective", requirement: "Document saved" }] } },
     interactionResponses: [], credentialBindings: [],
     runtimeContext: { ...context, aggregateDigest: canonicalNativeRuntimeContextDigest(context) },
   });
@@ -108,7 +108,7 @@ describe("native instruction payload measurement", () => {
       const continuationRecovery = await continuationBackend.recoverSession!(checkpoint, { signal: new AbortController().signal });
       expect(continuationRecovery.recovered).toBe(true);
       const continuationEnvelope = buildNativeModelEnvelope(continuationInput, { resumedSession: true });
-      expect(continuationEnvelope.schema).toBe("paperclip.native-continuation.v1");
+      expect(continuationEnvelope.schema).toBe("clayon.native-continuation.v1");
       await continuationRecovery.session!.startTurn({ message: { role: "user", text: JSON.stringify(continuationEnvelope) } });
       await continuationRecovery.session!.close({ reason: "measurement" });
 
@@ -119,10 +119,10 @@ describe("native instruction payload measurement", () => {
         expect(instructions).toContain(CLAYON_EXECUTION_PROMPT);
         expect(instructions).toContain("You are an agent in a Clayon company.");
         const deliveredTools = setup.dynamicTools as Array<{ name: string; description: string }>;
-        expect(deliveredTools.filter(tool => tool.name === "paperclip_finish")).toEqual([
+        expect(deliveredTools.filter(tool => tool.name === "clayon_finish")).toEqual([
           expect.objectContaining({ description: PRP_COMPLETION_TOOL_DESCRIPTION }),
         ]);
-        expect(deliveredTools.filter(tool => tool.name === "paperclip_block")).toEqual([
+        expect(deliveredTools.filter(tool => tool.name === "clayon_block")).toEqual([
           expect.objectContaining({ description: PRP_BLOCK_TOOL_DESCRIPTION }),
         ]);
         expect(deliveredTools).toHaveLength(tools.length + 2);
@@ -139,7 +139,7 @@ describe("native instruction payload measurement", () => {
             expect(JSON.stringify(turn.input)).toContain("Document saved");
           }
           expect(JSON.stringify(turn.input)).toContain("objective");
-          expect(JSON.stringify(turn.input)).toContain("Before ending this turn, obtain one accepted paperclip_finish or paperclip_block result.");
+          expect(JSON.stringify(turn.input)).toContain("Before ending this turn, obtain one accepted clayon_finish or clayon_block result.");
           expect(JSON.stringify(turn.input)).toContain("Earlier reports belong to earlier turns");
         } else {
           expect(JSON.stringify(turn.input)).toContain("Obtain one accepted result");
@@ -230,7 +230,7 @@ afterAll(() => {
     sourceFiles: sourcePaths,
     baseSha: "2a8a99e4a5f69aa803b3f10b982f583e75a87042", variant: "measurement" });
   writeFileSync(output, `${JSON.stringify({
-    schema: "paperclip.native-instruction-measurement.v2",
+    schema: "clayon.native-instruction-measurement.v2",
     sourceSha: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     sourceDirty: !source.immutable,
     sourceMetadata: source.sourceMetadata,

@@ -90,7 +90,7 @@ describe("parseFrontmatterMarkdown", () => {
       "metadata:",
       "  sources:",
       "    - kind: github-dir",
-      "      repo: paperclipai/paperclip",
+      "      repo: clayon/clayon",
       "      path: skills/clayon",
       "---",
       "",
@@ -102,7 +102,7 @@ describe("parseFrontmatterMarkdown", () => {
         sources: [
           {
             kind: "github-dir",
-            repo: "paperclipai/paperclip",
+            repo: "clayon/clayon",
             path: "skills/clayon",
           },
         ],
@@ -170,7 +170,7 @@ describe("stringifyFrontmatter", () => {
         metadata: {
           source: {
             kind: "github-dir",
-            repo: "paperclipai/paperclip",
+            repo: "clayon/clayon",
             path: "skills/clayon",
           },
         },

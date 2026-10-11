@@ -77,7 +77,7 @@ describe("accepted native response-wake answers", () => {
     "**Before release**\n- Test and rehearse rollback.\n\n**During release**\n- Deploy incrementally and watch errors.\n\n**After release**\n- Verify workflows and record follow-ups.";
   function fixture(mode = "accepted") {
     const result = {
-      schema: "paperclip.run_result.v1",
+      schema: "clayon.run_result.v1",
       reportedWorkDisposition: "yielded",
       summary,
       completionClaim: { objectiveSatisfied: true, remainingWork: [] },
@@ -110,7 +110,7 @@ describe("accepted native response-wake answers", () => {
         createdAt: new Date(TS),
         payload: {
           prpEvent: {
-            schema: "paperclip.prp.event.v1",
+            schema: "clayon.prp.event.v1",
             schemaVersion: 1,
             runId,
             eventType,
@@ -151,7 +151,7 @@ describe("accepted native response-wake answers", () => {
         ? []
         : [
             event(4, "run.terminal", {
-              schema: "paperclip.prp.terminal.v1",
+              schema: "clayon.prp.terminal.v1",
               turnTerminalState: "completed",
               runTerminalState:
                 mode === "failed_terminal" ? "failed" : "succeeded",
@@ -230,8 +230,8 @@ describe("completion tool feed visibility", () => {
   it("keeps completion events inspectable but hides both tool representations from live and settled feed activity", () => {
     for (const running of [true, false]) {
       const entries: TranscriptEntry[] = [
-        { kind: "tool_call", ts: TS, toolUseId: "legacy-finish", name: "paperclip_finish", input: {} },
-        ...["paperclip_finish", "search_tasks"].map((name) => ({
+        { kind: "tool_call", ts: TS, toolUseId: "legacy-finish", name: "clayon_finish", input: {} },
+        ...["clayon_finish", "search_tasks"].map((name) => ({
           kind: "provider_activity" as const, ts: TS, family: "tool_execution" as const,
           eventType: running ? "tool.execution.started" : "tool.execution.completed",
           status: running ? "running" as const : "completed" as const,
@@ -246,7 +246,7 @@ describe("completion tool feed visibility", () => {
       expect(parsed).toHaveLength(4);
       const activity = clayonRunnerActivityItems(parsed);
       expect(activity).toHaveLength(2);
-      expect(JSON.stringify(activity)).not.toContain("paperclip_finish");
+      expect(JSON.stringify(activity)).not.toContain("clayon_finish");
       expect(JSON.stringify(activity)).toContain("search_tasks");
       expect(JSON.stringify(activity)).toContain("Repository is not trusted");
       expect(clayonRunnerTimelineItems(parsed)).toEqual(activity);
@@ -1021,7 +1021,7 @@ describe("buildActivityPhases provider summaries", () => {
       providerTool("history", "get_task_history", "read", "clayon"),
       providerTool("tasks", "search_tasks", "search", "clayon"),
       providerTool("progress", "report_progress", "edit", "clayon"),
-      providerTool("block", "paperclip_block", "edit", "clayon"),
+      providerTool("block", "clayon_block", "edit", "clayon"),
     ];
     expect(buildActivityPhases(items, false)[0]?.summary).toBe(
       "Searched available tools 6 times, read from Clayon 3 times, used Clayon 3 times",
@@ -1454,7 +1454,7 @@ describe("transcriptToTaskChatItems native usage", () => {
           outputTokens: 10,
           cachedTokens: 5,
           costUsd: 0.02,
-          subtype: "paperclip_runner_usage",
+          subtype: "clayon_runner_usage",
           isError: false,
           errors: [],
         },
@@ -1488,7 +1488,7 @@ describe("transcriptToTaskChatItems native usage", () => {
           outputTokens: 20,
           cachedTokens: 0,
           costUsd: 0,
-          subtype: "paperclip_runner_session_usage",
+          subtype: "clayon_runner_session_usage",
           isError: false,
           errors: [],
         },
@@ -1571,14 +1571,14 @@ describe("buildTurnSummary tool counting", () => {
     const runUsage = {
       kind: "result",
       ts: TS,
-      subtype: "paperclip_runner_usage",
+      subtype: "clayon_runner_usage",
       inputTokens: 40,
       outputTokens: 10,
     } as TranscriptEntry;
     const sessionUsage = {
       kind: "result",
       ts: TS,
-      subtype: "paperclip_runner_session_usage",
+      subtype: "clayon_runner_session_usage",
       inputTokens: 800,
       outputTokens: 200,
     } as TranscriptEntry;
@@ -1871,7 +1871,7 @@ describe("settledRunChildren (PAP-361)", () => {
           outputTokens: 10,
           cachedTokens: 0,
           costUsd: 0,
-          subtype: "paperclip_runner_usage",
+          subtype: "clayon_runner_usage",
           isError: false,
           errors: [],
         } as TranscriptEntry,
@@ -1904,7 +1904,7 @@ describe("settledRunChildren (PAP-361)", () => {
           outputTokens: 10,
           cachedTokens: 0,
           costUsd: 0,
-          subtype: "paperclip_runner_usage",
+          subtype: "clayon_runner_usage",
           isError: false,
           errors: [],
         } as TranscriptEntry,
@@ -1976,7 +1976,7 @@ describe("settledRunChildren (PAP-361)", () => {
           outputTokens: 10,
           cachedTokens: 0,
           costUsd: 0,
-          subtype: "paperclip_runner_usage",
+          subtype: "clayon_runner_usage",
           isError: false,
           errors: [],
         } as TranscriptEntry,
@@ -2304,7 +2304,7 @@ describe("clayon runner semantic channels", () => {
         id: "finish",
         kind: "tool",
         name: "Clayon_finish",
-        rawName: "paperclip_finish",
+        rawName: "clayon_finish",
         status: "completed",
       },
       {

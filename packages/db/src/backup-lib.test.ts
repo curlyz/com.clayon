@@ -181,7 +181,7 @@ describeEmbeddedPostgres("runDatabaseBackup", () => {
       const sourceConnectionString = await createTempDatabase();
       const restoreConnectionString = await createSiblingDatabase(
         sourceConnectionString,
-        "paperclip_restore_target",
+        "clayon_restore_target",
       );
       const backupDir = createTempDir("clayon-db-backup-output-");
       const sourceSql = postgres(sourceConnectionString, { max: 1, onnotice: () => {} });
@@ -315,7 +315,7 @@ describeEmbeddedPostgres("runDatabaseBackup", () => {
       const sourceConnectionString = await createTempDatabase();
       const restoreConnectionString = await createSiblingDatabase(
         sourceConnectionString,
-        "paperclip_full_logical_restore_target",
+        "clayon_full_logical_restore_target",
       );
       const backupDir = createTempDir("clayon-db-full-logical-backup-");
       const sourceSql = postgres(sourceConnectionString, { max: 1, onnotice: () => {} });
@@ -443,7 +443,7 @@ describeEmbeddedPostgres("runDatabaseBackup", () => {
       const sourceConnectionString = await createTempDatabase();
       const restoreConnectionString = await createSiblingDatabase(
         sourceConnectionString,
-        "paperclip_composite_fk_restore_target",
+        "clayon_composite_fk_restore_target",
       );
       const backupDir = createTempDir("clayon-db-composite-fk-backup-");
       const sourceSql = postgres(sourceConnectionString, { max: 1, onnotice: () => {} });
@@ -544,7 +544,7 @@ describeEmbeddedPostgres("runDatabaseBackup", () => {
       const sourceConnectionString = await createTempDatabase();
       const restoreConnectionString = await createSiblingDatabase(
         sourceConnectionString,
-        "paperclip_copy_fk_restore_target",
+        "clayon_copy_fk_restore_target",
       );
       const backupDir = createTempDir("clayon-db-copy-fk-backup-");
       const sourceSql = postgres(sourceConnectionString, { max: 1, onnotice: () => {} });

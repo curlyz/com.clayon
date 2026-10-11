@@ -65,7 +65,7 @@ provide the same version-aware instructions for assistants without browser acces
 connectors and headless clients. Browser clients may require adding a connector
 in their settings; reading an invitation cannot install one. A running client may
 need a restart or a fresh conversation to load its tools. Verify the organization
-with `paperclip_connection` before doing work. Keep existing client configuration,
+with `clayon_connection` before doing work. Keep existing client configuration,
 and use a distinct server name when another Clayon instance is already present.
 
 For OpenCode, merge the displayed `mcp.clayon` entry into your project’s
@@ -239,16 +239,16 @@ OAuth credential bodies and redirect locations are redacted from HTTP logs.
 
 | Tool | Effect |
 | --- | --- |
-| `paperclip_connection` | Person, company, scopes, connection management link |
-| `paperclip_list_agents` | Safe agent summary and availability |
-| `paperclip_list_projects` | Safe project summary |
-| `paperclip_search_tasks` | Bounded task search with offset pagination |
-| `paperclip_read_task` | Current task plus recent comments/history |
-| `paperclip_create_task` | Assigned task, submitted to existing scheduling |
-| `paperclip_add_comment` | Human feedback; may wake or queue work |
-| `paperclip_list_deliverables` | Documents, attachments and work-product references |
-| `paperclip_read_document` | Durable document body and current revision |
-| `paperclip_pending_approvals` | Pending approvals and existing decision links |
+| `clayon_connection` | Person, company, scopes, connection management link |
+| `clayon_list_agents` | Safe agent summary and availability |
+| `clayon_list_projects` | Safe project summary |
+| `clayon_search_tasks` | Bounded task search with offset pagination |
+| `clayon_read_task` | Current task plus recent comments/history |
+| `clayon_create_task` | Assigned task, submitted to existing scheduling |
+| `clayon_add_comment` | Human feedback; may wake or queue work |
+| `clayon_list_deliverables` | Documents, attachments and work-product references |
+| `clayon_read_document` | Durable document body and current revision |
+| `clayon_pending_approvals` | Pending approvals and existing decision links |
 
 Every company-scoped call requires its explicit authorized company ID. The
 server emits bounded projections without upstream credentials. Direct connections
@@ -473,20 +473,20 @@ Normal Clayon permissions are required in addition to the connection scope.
   accessible repository choices and attachment downloads. Native domain read
   permissions still apply. Revision IDs from reads are required for content edits.
 
-`paperclip_search_api` describes the same allowlisted named operations and their
-schemas. `paperclip_call_api` takes an operation identifier and validated arguments.
+`clayon_search_api` describes the same allowlisted named operations and their
+schemas. `clayon_call_api` takes an operation identifier and validated arguments.
 It cannot accept an arbitrary URL, REST path, credential or actor override. Both
 interfaces share scope checks and mutation receipts. Reuse the same request UUID
 and arguments after a timeout. An unknown result means execution is uncertain;
 inspect current state or retry that identity instead of starting another action.
 
 To attach a video, compute its byte size and SHA-256, then call
-`paperclip_get_upload_url` with its task, filename, content type and request UUID.
+`clayon_get_upload_url` with its task, filename, content type and request UUID.
 PUT the exact bytes using the returned Content-Type. Success returns the saved
 attachment immediately; **there is no completion call**. Recover a lost response
 by repeating the upload or requesting its URL with the same identity. Conflicting
-bytes are rejected. `paperclip_list_deliverables` includes attachments, documents
-and work products; `paperclip_get_download_url` downloads one authorized attachment.
+bytes are rejected. `clayon_list_deliverables` includes attachments, documents
+and work products; `clayon_get_download_url` downloads one authorized attachment.
 Replacing a binary deliverable uses a new attachment and updates its reference.
 
 File URLs are ten-minute, transfer-specific credentials: keep them out of chat and

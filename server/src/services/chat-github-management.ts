@@ -494,7 +494,7 @@ export function githubChatManagementService(db: Db, fetchImpl = fetch) {
         label: "Agent runtime supports bot tools",
         ok:
           !!agent &&
-          ["paperclip_runner", "codex_local"].includes(agent.adapterType),
+          ["clayon_runner", "codex_local"].includes(agent.adapterType),
         detail:
           "Use Clayon Runner or Codex with managed MCP tools. Low-trust execution also requires a valid scoped boundary and isolated sandbox; the test task proves runtime execution.",
       });
@@ -581,7 +581,7 @@ export function githubChatManagementService(db: Db, fetchImpl = fetch) {
             applicationKey: "github-chat",
             connectionId: bot.connectionId,
             catalogEntryId: entry.id,
-            providerType: "paperclip_github_chat",
+            providerType: "clayon_github_chat",
             upstreamToolName: entry.toolName,
             riskLevel: entry.riskLevel,
             arguments: {},

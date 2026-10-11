@@ -47,7 +47,7 @@ const manifest: ClayonPluginManifestV1 = {
           },
           imageRegistry: {
             type: "string",
-            description: "Override the default registry for agent runtime images (default: ghcr.io/paperclipai).",
+            description: "Override the default registry for agent runtime images (default: ghcr.io/clayon).",
           },
           imageAllowList: {
             type: "array",

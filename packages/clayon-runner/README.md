@@ -23,7 +23,7 @@ and skill compatibility still gate recovery. An MCP-only assignment change can
 resume only when the selected harness explicitly supports refreshing tools.
 
 Compact continuation messages include the active completion revision and criterion
-IDs plus a reminder to obtain an accepted `paperclip_finish` or `paperclip_block`
+IDs plus a reminder to obtain an accepted `clayon_finish` or `clayon_block`
 result for this turn. Reports from earlier turns do not finish the new turn.
 Provider final text alone remains insufficient; governed waits and strict native
 completion validation keep their existing behavior. This reminder changes the
@@ -208,7 +208,7 @@ operator-controlled qualification admission.
 Remote Codex sessions relay assigned app tools through the server's configured
 gateway. Small catalogs are sent directly. When a catalog would exceed the
 runner's 256-operation or 768 KiB contract limit, the server exposes
-`paperclip_search_assigned_tools` and `paperclip_call_assigned_tool` instead.
+`clayon_search_assigned_tools` and `clayon_call_assigned_tool` instead.
 Search returns bounded pages of names, descriptions, and input schemas. Each
 page intersects the session's pinned assignments with current gateway grants.
 An individual schema that exceeds a page returns an `inputSchemaRef`. The same
@@ -409,7 +409,7 @@ The tracer's final line is stable:
 
 ```json
 {
-  "schemaVersion": "paperclip.runner.conformance.output.v1",
+  "schemaVersion": "clayon.runner.conformance.output.v1",
   "runIdentity": {
     "runId": "run_conformance_0001",
     "sessionId": "session_conformance_0001"
@@ -540,7 +540,7 @@ pnpm --filter @clayon/clayon-runner aws-agentcore:provision -- \
   --github-oidc-provider-arn arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com
 ```
 
-This adds only `repo:paperclipai/paperclip:environment:runner-e2e-paid` as a
+This adds only `repo:clayon/clayon:environment:runner-e2e-paid` as a
 web-identity subject on the scoped invocation role. The generated nonsecret
 profile records that role as both the local invocation role and the hosted
 execution role.

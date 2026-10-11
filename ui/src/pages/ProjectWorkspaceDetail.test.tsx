@@ -103,7 +103,7 @@ function projectWorkspace(overrides: Partial<ProjectWorkspace> = {}): ProjectWor
     name: "Primary checkout",
     sourceType: "local_path",
     cwd: "/tmp/clayon",
-    repoUrl: "https://github.com/paperclipai/paperclip",
+    repoUrl: "https://github.com/clayon/clayon",
     repoRef: "master",
     defaultRef: "origin/main",
     visibility: "default",

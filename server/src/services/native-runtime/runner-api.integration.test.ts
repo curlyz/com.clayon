@@ -521,7 +521,7 @@ else if(m.id!==undefined) send({id:m.id,result:{}});
       const sourceToken = createLocalAgentJwt(
         fixture.agentId,
         fixture.companyId,
-        "paperclip_runner",
+        "clayon_runner",
         fixture.runId,
       );
       expect(sourceToken).toBeTruthy();
@@ -585,7 +585,7 @@ else if(m.id!==undefined) send({id:m.id,result:{}});
       const successorToken = createLocalAgentJwt(
         fixture.agentId,
         fixture.companyId,
-        "paperclip_runner",
+        "clayon_runner",
         successorRunId,
       );
       expect(successorToken).toBeTruthy();

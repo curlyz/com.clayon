@@ -12,7 +12,7 @@ import {
 } from "./helpers/route-test-harness.js";
 
 /**
- * Regression coverage for https://github.com/paperclipai/paperclip/issues/4628.
+ * Regression coverage for https://github.com/clayon/clayon/issues/4628.
  * Express's `qs` parser hands the list route either a string or an array for
  * `?status=`, and the route normalizes both shapes.
  */

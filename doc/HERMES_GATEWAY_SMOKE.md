@@ -99,7 +99,7 @@ the host-published loopback port.
 CLAYON_API_URL=http://127.0.0.1:3100 \
 CLAYON_AUTH_HEADER='Bearer <board-token>' \
 HERMES_CONTAINER_NAME=clayon-hermes-gateway-smoke \
-HERMES_SMOKE_NETWORK=paperclip_default \
+HERMES_SMOKE_NETWORK=clayon_default \
 HERMES_DOCKER_ADD_HOST=0 \
 HERMES_GATEWAY_API_BASE_URL=http://clayon-hermes-gateway-smoke:8642 \
 HERMES_GATEWAY_PROBE_URL=http://127.0.0.1:8642 \
@@ -108,7 +108,7 @@ HERMES_GATEWAY_ALLOW_INSECURE_HTTP=1 \
 pnpm smoke:hermes-gateway-e2e
 ```
 
-Change `paperclip_default` and `clayon` to your Compose network and service
+Change `clayon_default` and `clayon` to your Compose network and service
 name. The unsafe HTTP flag is required because Clayon stores a non-loopback
 `http://` gateway URL for private Docker DNS.
 

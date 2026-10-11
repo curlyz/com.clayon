@@ -14,7 +14,7 @@ const { _: createConversation, y: recordSubmission, n: runPromptTurn,
   dt: serialize, ut: parse, tt: assertKeyPolicy, g: clone, E: apply } =
   await import(pathToFileURL(join(root, "dist/live-checkpoint-BSIrfgVo.js")));
 const envelope = () => ({
-  schema: "paperclip.cursor.native-usage.v1", source: "native_turn_ended",
+  schema: "clayon.cursor.native-usage.v1", source: "native_turn_ended",
   promptId: "12345678-1234-1234-1234-123456789abc", completeness: "partial",
   reasons: ["native_counter_semantics_unverified"],
   observations: [{ invocationId: "invocation-1", role: "parent", nativeRun: 1, sequence: 1,

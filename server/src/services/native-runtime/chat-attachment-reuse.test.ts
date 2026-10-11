@@ -85,7 +85,7 @@ describe("native same-conversation chat attachment reuse", () => {
       id: agentId,
       companyId,
       name: "Native chat agent",
-      adapterType: "paperclip_runner",
+      adapterType: "clayon_runner",
       adapterConfig: { provider: "codex" },
       runtimeConfig: {},
       status: "active",
@@ -528,7 +528,7 @@ describe("native same-conversation chat attachment reuse", () => {
     const verifyReceipt = (semanticToolReceipts: unknown) => validateNativeDeliverableEvidence(db, {
       companyId, issueId, runId, objective: "Send me that file again.", semanticToolReceipts,
     }, {
-      schema: "paperclip.run_result.v1", reportedWorkDisposition: "done", summary: "Prepared the requested existing file.",
+      schema: "clayon.run_result.v1", reportedWorkDisposition: "done", summary: "Prepared the requested existing file.",
       completionClaim: { contractRevision: "test", objectiveSatisfied: true, criteria: [], remainingWork: [] },
       evidence: [{ ref: `deliverable:${preparedId}` }], verification: [], attentionRequests: [], artifacts: [],
     });
@@ -576,7 +576,7 @@ describe("native same-conversation chat attachment reuse", () => {
       {
         ...(run.resultJson ?? {}),
         nativeResult: {
-          schema: "paperclip.run_result.v1",
+          schema: "clayon.run_result.v1",
           summary: "Prepared the earlier file again.",
         },
       },
@@ -602,7 +602,7 @@ describe("native same-conversation chat attachment reuse", () => {
     const reuseActivity = (
       await db.select().from(activityLog).where(eq(activityLog.runId, runId))
     ).find(
-      (row) => row.details?.source === "paperclip_runner_chat_attachment_reuse",
+      (row) => row.details?.source === "clayon_runner_chat_attachment_reuse",
     );
     expect(reuseActivity?.details).toMatchObject({
       sourceAttachmentId,
@@ -663,7 +663,7 @@ describe("native same-conversation chat attachment reuse", () => {
         storageTimeoutMs: 20,
       }),
     ).rejects.toThrow(
-      "paperclip_runner_chat_attachment_storage_write_timed_out",
+      "clayon_runner_chat_attachment_storage_write_timed_out",
     );
     releaseWrite();
     const deletedObjectKey = await Promise.race([
@@ -789,7 +789,7 @@ describe("native same-conversation chat attachment reuse", () => {
     expect(seen).toHaveLength(4);
     const invalidCursor = Buffer.from(
       JSON.stringify({
-        schema: "paperclip.chat-attachment-list-cursor.v1",
+        schema: "clayon.chat-attachment-list-cursor.v1",
         conversationId,
         sourceCommentId: null,
         createdAt: equalCreatedAt.toISOString(),
@@ -804,7 +804,7 @@ describe("native same-conversation chat attachment reuse", () => {
         callId: "malformed-cursor",
         arguments: { cursor: invalidCursor },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_cursor_invalid");
+    ).rejects.toThrow("clayon_runner_chat_attachment_cursor_invalid");
   });
 
   it("keeps an older confirmed lineage when a newer publication was deleted", async () => {
@@ -916,7 +916,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Deleted newer copy",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
     await expect(
       authority().execute({
         tool: "reuse_chat_attachment",
@@ -991,7 +991,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Must remain internal",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
   });
 
   it("rejects forged source pairs, stale reach, and deleted historical sources", async () => {
@@ -1030,7 +1030,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Must not escape",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
 
     await db
       .update(issues)
@@ -1042,7 +1042,7 @@ describe("native same-conversation chat attachment reuse", () => {
         callId: "reassigned-list",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_tool_binding_not_authorized");
+    ).rejects.toThrow("clayon_runner_tool_binding_not_authorized");
     await db
       .update(issues)
       .set({ assigneeAgentId: agentId })
@@ -1058,7 +1058,7 @@ describe("native same-conversation chat attachment reuse", () => {
         callId: "paused-endpoint-list",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_binding_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_binding_denied");
     await db
       .update(chatEndpoints)
       .set({ status: "active" })
@@ -1079,7 +1079,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Earlier requested file",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_principal_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_principal_denied");
     await db
       .update(companyMemberships)
       .set({ status: "active" })
@@ -1100,7 +1100,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Earlier requested file",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_tool_mode_denied");
+    ).rejects.toThrow("clayon_runner_tool_mode_denied");
     await db
       .update(issues)
       .set({ workMode: "standard" })
@@ -1116,7 +1116,7 @@ describe("native same-conversation chat attachment reuse", () => {
         callId: "disabled-reach",
         arguments: {},
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_destination_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_destination_denied");
     await db
       .update(chatEndpointResources)
       .set({ enabled: true })
@@ -1137,7 +1137,7 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Earlier requested file",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
     expect(
       await runner.execute({
         tool: "list_chat_attachments",
@@ -1176,6 +1176,6 @@ describe("native same-conversation chat attachment reuse", () => {
           title: "Earlier requested file",
         },
       }),
-    ).rejects.toThrow("paperclip_runner_chat_attachment_source_denied");
+    ).rejects.toThrow("clayon_runner_chat_attachment_source_denied");
   });
 });

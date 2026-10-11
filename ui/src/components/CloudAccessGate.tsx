@@ -10,9 +10,8 @@ import { isTemporaryApiError } from "@/api/response";
 import { queryKeys } from "@/lib/queryKeys";
 import { BootstrapPendingPage } from "@/components/BootstrapPendingPage";
 import { ClayonLockup } from "@/components/ClayonLockup";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { CloudSignIn } from "@/components/CloudSignIn";
+import { Portal } from "@/components/portal/Portal";
 import { clearCloudSignInAttempt } from "@/lib/cloud-sign-in";
 
 const RECONNECT_INTERVAL_MS = 5_000;
@@ -27,41 +26,39 @@ export function CloudAccessError({
   onRetry: () => void;
 }) {
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-16">
-      <RefreshCw className="size-6 text-muted-foreground" aria-hidden="true" />
-      <div className="flex flex-col gap-2" role="status">
-        <h1 className="text-xl font-semibold">
+    <Portal>
+      <div className="halo-portal-content" role="status">
+        <h1 className="halo-portal-title">
           {temporary ? "Reconnecting to Clayon" : "Unable to load Clayon"}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="halo-portal-description">
           {temporary
             ? "The server may be restarting or your connection was interrupted. We’ll try again every few seconds and reconnect automatically."
             : "We couldn’t check your access to this instance. Try again, or contact your instance administrator if this continues."}
         </p>
-      </div>
-      <div>
-        <Button variant="outline" onClick={onRetry} disabled={retrying}>
+        <button type="button" className="halo-portal-action" onClick={onRetry} disabled={retrying}>
           {retrying ? "Connecting…" : "Try again"}
-        </Button>
+          <RefreshCw className="halo-portal-action-icon" aria-hidden="true" />
+        </button>
       </div>
-    </div>
+    </Portal>
   );
 }
 
 function NoBoardAccessPage() {
   return (
-    <div className="mx-auto max-w-xl py-10">
-      <Card className="block p-6">
-        <h1 className="text-xl font-semibold">No organization access</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+    <Portal>
+      <div className="halo-portal-content">
+        <h1 className="halo-portal-title">No organization access</h1>
+        <p className="halo-portal-description">
           This account is signed in, but it does not have an active organization membership or instance-admin access on
           this Clayon instance.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="halo-portal-note">
           Use an organization invite or sign in with an account that already belongs to this org.
         </p>
-      </Card>
-    </div>
+      </div>
+    </Portal>
   );
 }
 
@@ -170,7 +167,14 @@ export function CloudAccessGate({ allowMembershipRequest = false }: { allowMembe
   }
 
   if (isLoading) {
-    return <ClayonLockup className="text-lg" />;
+    return (
+      <Portal>
+        <div className="halo-portal-content" role="status">
+          <h1 className="halo-portal-title">Opening the portal.</h1>
+          <p className="halo-portal-description">Checking your access…</p>
+        </div>
+      </Portal>
+    );
   }
 
   if (isAuthenticatedMode && healthQuery.data?.cloud && !sessionQuery.data) {

@@ -3,5 +3,5 @@
 # Keep the repository command compatible; the deployable implementation belongs
 # to the skill so agents do not need a checkout of this repository.
 set -euo pipefail
-paperclip_repo_scripts="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec bash "$paperclip_repo_scripts/../skills/clayon/scripts/clayon-issue-update.sh" "$@"
+clayon_repo_scripts="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+exec bash "$clayon_repo_scripts/../skills/clayon/scripts/clayon-issue-update.sh" "$@"

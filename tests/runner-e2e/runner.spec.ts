@@ -1551,7 +1551,7 @@ for (const execution of executions) {
             requestId: restartRequestId,
             deadlineAt,
           });
-          const documentSentinel = `__paperclip_runner_restart_${nonce.replaceAll("-", "_")}`;
+          const documentSentinel = `__clayon_runner_restart_${nonce.replaceAll("-", "_")}`;
           await page.evaluate(
             (key) => Reflect.set(window, key, true),
             documentSentinel,
@@ -2268,7 +2268,7 @@ for (const execution of executions) {
         environmentDriver === "sandbox" ? "daytona" : environmentDriver;
       const observedRuntimeMode =
         run.runtimeMode ??
-        (persistedAgent.adapterType === "paperclip_runner"
+        (persistedAgent.adapterType === "clayon_runner"
           ? "native"
           : "legacy");
       const matcherObservation = {

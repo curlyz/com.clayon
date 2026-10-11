@@ -93,7 +93,7 @@ describe("LCA full heartbeat observation", () => {
       name: "Fixture worker",
       role: "engineer",
       status: "idle",
-      adapterType: mode === "native" ? "paperclip_runner" : "codex_local",
+      adapterType: mode === "native" ? "clayon_runner" : "codex_local",
       adapterConfig: { cwd: workspace, provider: "codex" },
       runtimeConfig: {
         heartbeat: {
@@ -213,7 +213,7 @@ describe("LCA full heartbeat observation", () => {
             .from(heartbeatRuns)
             .where(eq(heartbeatRuns.id, input.binding.runId));
           yield {
-            schema: "paperclip.prp.event.v1",
+            schema: "clayon.prp.event.v1",
             sourceEventId: `${row.runnerInstanceId}:terminal`,
             sourceSeq: 1,
             sourceInstanceId: row.runnerInstanceId!,
@@ -463,7 +463,7 @@ describe("LCA full heartbeat observation", () => {
         name: "Fixture worker",
         role: "engineer",
         status: gate === "paused" ? "paused" : "idle",
-        adapterType: mode === "native" ? "paperclip_runner" : "codex_local",
+        adapterType: mode === "native" ? "clayon_runner" : "codex_local",
         adapterConfig: { cwd: workspace, provider: "codex" },
         runtimeConfig: {
           heartbeat: {

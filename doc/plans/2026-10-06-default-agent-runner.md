@@ -11,7 +11,7 @@ Merging and deployment require separate authorization.
 
 The original implementation is preserved on `codex/default-agent-runner` at
 `171d841295808ca185a258aaeb10b3dee68bb2b9`. Its public review is
-[PR #15422](https://github.com/paperclipai/paperclip/pull/15422).
+[PR #15422](https://github.com/clayon/clayon/pull/15422).
 The user approved splitting that work into four useful steps:
 
 1. Packaged runtime reliability and Codex prerequisites, without changing defaults.
@@ -23,9 +23,9 @@ The user approved splitting that work into four useful steps:
 
 Canonical branch: `codex/runner-packaging-prerequisites`.
 Frozen master base: `1881894973a2b25838d8abed9bd8aeebc3af4441`.
-Canonical PR: [#15555](https://github.com/paperclipai/paperclip/pull/15555).
-Its [checks](https://github.com/paperclipai/paperclip/pull/15555/checks) and
-[commits](https://github.com/paperclipai/paperclip/pull/15555/commits) record the
+Canonical PR: [#15555](https://github.com/clayon/clayon/pull/15555).
+Its [checks](https://github.com/clayon/clayon/pull/15555/checks) and
+[commits](https://github.com/clayon/clayon/pull/15555/commits) record the
 final candidate. Hosted results and review disposition belong to that exact
 candidate; earlier green checks do not qualify a later revision.
 

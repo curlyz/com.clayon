@@ -3,15 +3,15 @@ set -euo pipefail
 
 base_cwd="${CLAYON_WORKSPACE_BASE_CWD:?CLAYON_WORKSPACE_BASE_CWD is required}"
 worktree_cwd="${CLAYON_WORKSPACE_CWD:?CLAYON_WORKSPACE_CWD is required}"
-paperclip_home="${CLAYON_HOME:-$HOME/.clayon}"
-paperclip_instance_id="${CLAYON_INSTANCE_ID:-default}"
-default_source_config_path="$paperclip_home/instances/$paperclip_instance_id/config.json"
-paperclip_dir="$worktree_cwd/.clayon"
-worktree_config_path="$paperclip_dir/config.json"
-worktree_env_path="$paperclip_dir/.env"
-seed_manifest_path="$paperclip_dir/seed-manifest.json"
-seed_pending_marker_path="$paperclip_dir/seed-pending"
-seed_complete_marker_path="$paperclip_dir/seed-complete"
+clayon_home="${CLAYON_HOME:-$HOME/.clayon}"
+clayon_instance_id="${CLAYON_INSTANCE_ID:-default}"
+default_source_config_path="$clayon_home/instances/$clayon_instance_id/config.json"
+clayon_dir="$worktree_cwd/.clayon"
+worktree_config_path="$clayon_dir/config.json"
+worktree_env_path="$clayon_dir/.env"
+seed_manifest_path="$clayon_dir/seed-manifest.json"
+seed_pending_marker_path="$clayon_dir/seed-pending"
+seed_complete_marker_path="$clayon_dir/seed-complete"
 worktree_name="${CLAYON_WORKSPACE_BRANCH:-$(basename "$worktree_cwd")}"
 created_worktree_config=0
 worktree_instance_id="$(WORKTREE_CWD="$worktree_cwd" node <<'EOF'
@@ -101,7 +101,7 @@ if [[ -n "$source_config_path" ]]; then
   source_env_path="$(dirname "$source_config_path")/.env"
 fi
 
-mkdir -p "$paperclip_dir"
+mkdir -p "$clayon_dir"
 
 base_cli_runner_path="$base_cwd/cli/node_modules/tsx/dist/cli.mjs"
 base_cli_entry_path="$base_cwd/cli/src/index.ts"
@@ -391,7 +391,7 @@ write_fallback_worktree_config() {
   WORKTREE_NAME="$worktree_name" \
   BASE_CWD="$base_cwd" \
   WORKTREE_CWD="$worktree_cwd" \
-  CLAYON_DIR="$paperclip_dir" \
+  CLAYON_DIR="$clayon_dir" \
   SOURCE_CONFIG_PATH="$source_config_path" \
   SOURCE_ENV_PATH="$source_env_path" \
   WORKTREE_INSTANCE_ID="$worktree_instance_id" \
@@ -755,7 +755,7 @@ EOF
 
 if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; then
   needs_install=0
-  install_fingerprint_path="$paperclip_dir/pnpm-install-fingerprint"
+  install_fingerprint_path="$clayon_dir/pnpm-install-fingerprint"
   current_install_fingerprint="$(compute_pnpm_install_fingerprint)"
   previous_install_fingerprint=""
   if [[ -f "$install_fingerprint_path" ]]; then

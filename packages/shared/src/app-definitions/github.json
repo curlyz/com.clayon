@@ -31,7 +31,7 @@
       "riskTier": "S3",
       "label": "Connect GitHub",
       "purpose": "tool",
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "github.code",
       "grantKinds": [
         "user",

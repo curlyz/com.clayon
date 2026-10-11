@@ -33,7 +33,7 @@
       "label": "Connect with Clayon",
       "transport": "mcp_remote",
       "auth": "oauth",
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "gmail.read",
       "capabilityProfile": {
         "key": "read",
@@ -106,7 +106,7 @@
       "label": "Connect with Clayon",
       "transport": "mcp_remote",
       "auth": "oauth",
-      "oauthStrategy": "paperclip_cloud_connector",
+      "oauthStrategy": "clayon_cloud_connector",
       "connectorProfile": "gmail.draft",
       "capabilityProfile": {
         "key": "draft",

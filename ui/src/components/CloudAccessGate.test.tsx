@@ -4,7 +4,8 @@ import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { focusManager, QueryClient, QueryClientProvider, QueryObserver } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CloudAccessGate } from "./CloudAccessGate";
+import { CloudAccessGate } from "@/components/CloudAccessGate";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { queryKeys } from "@/lib/queryKeys";
 import { ApiUnavailableError } from "@/api/response";
 
@@ -72,7 +73,11 @@ describe("CloudAccessGate restart recovery", () => {
   }
 
   async function render() {
-    flushSync(() => root.render(<QueryClientProvider client={client}><CloudAccessGate /></QueryClientProvider>));
+    flushSync(() => root.render(
+      <QueryClientProvider client={client}>
+        <ThemeProvider><CloudAccessGate /></ThemeProvider>
+      </QueryClientProvider>,
+    ));
     await flushReact();
   }
 
@@ -149,7 +154,7 @@ describe("CloudAccessGate restart recovery", () => {
     fetchMock.mockResolvedValueOnce(Response.json({ status: "starting", deploymentMode: "local_trusted" }));
     await render();
     expect(container.querySelector("textarea")).toBeNull();
-    container.querySelector("button")!.click();
+    container.querySelector<HTMLButtonElement>(".halo-portal-action")!.click();
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
   });
@@ -176,7 +181,7 @@ describe("CloudAccessGate restart recovery", () => {
     failingPath = "/api/health";
     await render();
     failingPath = null;
-    container.querySelector("button")!.click();
+    container.querySelector<HTMLButtonElement>(".halo-portal-action")!.click();
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
   });
@@ -219,7 +224,7 @@ describe("CloudAccessGate restart recovery", () => {
     await vi.advanceTimersByTimeAsync(15_000);
     expect(fetchMock).toHaveBeenCalledTimes(calls);
     failingPath = null;
-    container.querySelector("button")!.click();
+    container.querySelector<HTMLButtonElement>(".halo-portal-action")!.click();
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
   });

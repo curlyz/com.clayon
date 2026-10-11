@@ -51,7 +51,7 @@ export function createCopilotToolEvidence(binding: {
     }
     const itemId = `copilot-evidence-${digest(`${binding.sessionId}:${binding.turnId}`).slice(0, 24)}-${++sequence}`;
     binding.emit({ eventType: "provider.notice.recorded", itemId, payload: redactClayonSemanticValue({
-      schema: "paperclip.provider.notice.v1", noticeId: itemId, severity: "info",
+      schema: "clayon.provider.notice.v1", noticeId: itemId, severity: "info",
       category, scope: "turn", recoverable: true, userActionable: false,
       summary: stage === "semantic_result" ? "Clayon returned a semantic tool result." : stage === "evidence_incomplete" ? "Some Copilot activity details are unavailable."
         : stage === "permission_requested" ? "Copilot requested permission."
@@ -160,7 +160,7 @@ export function createCopilotToolEvidence(binding: {
           fields.semanticOperationId = candidate.operationId;
           fields.semanticCallIdentitySha256 = candidate.callIdentitySha256;
           fields.semanticInputSha256 = candidate.inputSha256;
-          if (candidate.schema === "paperclip.semantic_tool_receipt.v2") fields.semanticNormalizedInputSha256 = candidate.normalizedInputSha256;
+          if (candidate.schema === "clayon.semantic_tool_receipt.v2") fields.semanticNormalizedInputSha256 = candidate.normalizedInputSha256;
           fields.semanticResultSha256 = candidate.resultSha256;
           fields.semanticOutcome = candidate.outcome;
         }
@@ -198,7 +198,7 @@ export function createCopilotToolEvidence(binding: {
           return;
         }
         semanticReceipts.set(parsed.callIdentitySha256, parsed);
-        notice("semantic_result", undefined, { ...parsed }, "clayon/semantic_tool_result", parsed.schema === "paperclip.semantic_tool_receipt.v2" ? "paperclip_semantic_tool_receipt_v2" : "paperclip_semantic_tool_receipt_v1");
+        notice("semantic_result", undefined, { ...parsed }, "clayon/semantic_tool_result", parsed.schema === "clayon.semantic_tool_receipt.v2" ? "clayon_semantic_tool_receipt_v2" : "clayon_semantic_tool_receipt_v1");
       }); };
     },
     tool: (event: unknown) => { safely(() => projection.tool(event)); },

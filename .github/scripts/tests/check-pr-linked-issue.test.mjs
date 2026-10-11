@@ -32,14 +32,14 @@ test('passes with "refs #NNN" (case-insensitive)', () => {
 
 test('passes with full github.com URL', () => {
   assert.equal(
-    checkLinkedIssue('See https://github.com/paperclipai/paperclip/issues/202', 'fix: bug').passed,
+    checkLinkedIssue('See https://github.com/clayon/clayon/issues/202', 'fix: bug').passed,
     true
   );
 });
 
 test('passes with a full github.com URL followed by punctuation', () => {
   assert.equal(
-    checkLinkedIssue('See (https://github.com/paperclipai/paperclip/issues/202).', 'fix: bug').passed,
+    checkLinkedIssue('See (https://github.com/clayon/clayon/issues/202).', 'fix: bug').passed,
     true
   );
 });
@@ -63,7 +63,7 @@ test('fails with cross-repo issue reference', () => {
 
 test('fails when the Clayon issue URL is embedded inside another host', () => {
   const result = checkLinkedIssue(
-    'See https://evil.example/https://github.com/paperclipai/paperclip/issues/123',
+    'See https://evil.example/https://github.com/clayon/clayon/issues/123',
     'fix: bug'
   );
   assert.equal(result.passed, false);
@@ -71,7 +71,7 @@ test('fails when the Clayon issue URL is embedded inside another host', () => {
 
 test('fails when the Clayon issue URL continues into another host', () => {
   const result = checkLinkedIssue(
-    'See https://github.com/paperclipai/paperclip/issues/123.evil.example',
+    'See https://github.com/clayon/clayon/issues/123.evil.example',
     'fix: bug'
   );
   assert.equal(result.passed, false);

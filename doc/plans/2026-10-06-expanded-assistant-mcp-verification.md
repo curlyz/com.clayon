@@ -1,6 +1,6 @@
 # Expanded assistant MCP qualification — 2026-10-06
 
-This record separates model qualification from client interoperability and deployment. Core PR [15380](https://github.com/paperclipai/paperclip/pull/15380) and Cloud PR [678](https://github.com/paperclipai/paperclip-cloud/pull/678) contain implementation and final delivery status. Merging requires a separate action.
+This record separates model qualification from client interoperability and deployment. Core PR [15380](https://github.com/clayon/clayon/pull/15380) and Cloud PR [678](https://github.com/clayon/clayon-cloud/pull/678) contain implementation and final delivery status. Merging requires a separate action.
 
 ## Paid Product E2E
 
@@ -106,7 +106,7 @@ merged source; this targeted repeat covers the changed transfer/OAuth path and
 stronger later-document grading.
 
 Butter's merged-source deployment was verified on `e81f114bc` by workflow
-[37535338093](https://github.com/paperclipai/paperclip-cloud/actions/runs/37535338093).
+[37535338093](https://github.com/clayon/clayon-cloud/actions/runs/37535338093).
 The public metadata advertises configuration scope; invalid upload and download
 tickets both return 403 through the tenant gateway. In a fresh OpenCode workspace,
 the copied invitation fetched setup instructions, added the remote server, started

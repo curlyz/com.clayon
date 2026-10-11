@@ -48,7 +48,7 @@ The CTO accepts the default-deny gateway architecture from PAP-10341 with these 
 
 `Tool Application`
 
-A company-visible tool source. MVP types are `mcp_http`, `mcp_stdio`, `paperclip_plugin`, and `paperclip_self`. Future types such as `a2a` can be added behind the same concepts.
+A company-visible tool source. MVP types are `mcp_http`, `mcp_stdio`, `clayon_plugin`, and `clayon_self`. Future types such as `a2a` can be added behind the same concepts.
 
 `Connection`
 

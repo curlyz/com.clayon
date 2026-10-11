@@ -1647,7 +1647,7 @@ describe("AppDetail", () => {
     getConnectionMock.mockResolvedValue(perUserConnection());
     startPersonalAuthorizationMock.mockResolvedValue({
       url: "https://my.clayon.app/connections/confirm?session=legacy",
-      handoff: { kind: "paperclip_cloud", session },
+      handoff: { kind: "clayon_cloud", session },
     });
 
     await renderAppDetail();
@@ -1752,8 +1752,8 @@ describe("AppDetail", () => {
     expect(container.querySelectorAll('ul[aria-label="Accessible GitHub repositories"] li')).toHaveLength(2);
     expect(container.textContent).toContain("clayon/first");
     expect(container.textContent).toContain("clayon/second");
-    expect(container.querySelector('a[href="https://github.com/paperclipai/first"] [aria-label="Private repository"]')).toBeTruthy();
-    expect(container.querySelector('a[href="https://github.com/paperclipai/second"] [aria-label="Private repository"]')).toBeNull();
+    expect(container.querySelector('a[href="https://github.com/clayon/first"] [aria-label="Private repository"]')).toBeTruthy();
+    expect(container.querySelector('a[href="https://github.com/clayon/second"] [aria-label="Private repository"]')).toBeNull();
     const configureHint = [...container.querySelectorAll("p a")].find((link) => link.textContent === "Configure access on GitHub");
     expect(configureHint?.getAttribute("href")).toBe("https://github.com/apps/clayon-test/installations/new");
   });
@@ -1833,7 +1833,7 @@ describe("AppDetail", () => {
     expect(container.textContent).toContain("Repositories");
     expect(container.textContent).toContain("1 selected repository");
     expect(container.querySelector('a[href="https://github.com/dottabot"]')?.textContent).toBe("@dottabot");
-    expect(container.querySelector('a[href="https://github.com/paperclipai/test-repo"]')?.textContent).toBe("clayon/test-repo");
+    expect(container.querySelector('a[href="https://github.com/clayon/test-repo"]')?.textContent).toBe("clayon/test-repo");
     expect(container.querySelector(
       'a[href="https://github.com/apps/clayon-test/installations/new"]',
     )?.textContent).toBe("Add More Repos on GitHub");

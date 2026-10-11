@@ -7,7 +7,7 @@ import { TaskChatComposer } from "@/components/task-chat/TaskChatComposer";
 import { Button } from "@/components/ui/button";
 
 const composerQuestions: ClayonQuestionSet = {
-  schema: "paperclip.question_set.v1",
+  schema: "clayon.question_set.v1",
   title: "Express app — scope",
   questions: [
     {
@@ -124,7 +124,7 @@ export const AnswersSubmitted: Story = {
 
 function EditableDraftQuestion() {
   const [response, setResponse] = useState<ClayonQuestionResponse | null>(null);
-  const questionSet: ClayonQuestionSet = { schema: "paperclip.question_set.v1", questions: [{
+  const questionSet: ClayonQuestionSet = { schema: "clayon.question_set.v1", questions: [{
     id: "draft", prompt: "Edit the release note", required: true, answerMode: "text",
     initialText: "Draft release note\n\nDescribe what changed and how it was verified.",
   }] };

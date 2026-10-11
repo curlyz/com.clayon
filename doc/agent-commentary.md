@@ -143,7 +143,7 @@ its temporary data, credentials, and remote sandboxes. Remote reports are emitte
 only after confirmed sandbox deletion.
 
 The Daytona verification used base image
-`ghcr.io/paperclipai/paperclip-daytona-runner@sha256:b81a86d5242088f9d832666a411f09da7438d92e99f9962ccf88ebe439cd3b32`
+`ghcr.io/clayon/clayon-daytona-runner@sha256:b81a86d5242088f9d832666a411f09da7438d92e99f9962ccf88ebe439cd3b32`
 and the Linux runner built from `abf47b5953d14aa7a8dbf2941460b5df8a4d66c3`
 (binary SHA-256 `c794141152ae2e2986da0df14b01a54e4448949e06ec4031c83bad8a9fff8bac`).
 

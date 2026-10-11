@@ -58,7 +58,7 @@ describe.skipIf(!support.supported)("heartbeat runtime execution boundary", () =
 
   async function fixture(native = false) {
     const [company] = await db.insert(companies).values({ name: "Runtime execution", issuePrefix: "EXE" }).returning();
-    const [agent] = await db.insert(agents).values({ companyId: company.id, name: "Executing agent", status: "running", adapterType: native ? "paperclip_runner" : "process", adapterConfig: { provider: "codex" } }).returning();
+    const [agent] = await db.insert(agents).values({ companyId: company.id, name: "Executing agent", status: "running", adapterType: native ? "clayon_runner" : "process", adapterConfig: { provider: "codex" } }).returning();
     const [issue] = await db.insert(issues).values({ companyId: company.id, title: "Complete this task", assigneeAgentId: agent.id }).returning();
     const [run] = await db.insert(heartbeatRuns).values({ companyId: company.id, agentId: agent.id, issueId: issue.id, scopeKind: "issue", status: "running", runtimeMode: native ? "native" : "legacy" }).returning();
     const state = createHeartbeatRunState(db);
@@ -69,7 +69,7 @@ describe.skipIf(!support.supported)("heartbeat runtime execution boundary", () =
       companyId: company.id, agentId: agent.id, runId: run.id, issue,
       taskPrompt: issue.title, workspace: { id: run.id, cwd: home, repoUrl: null, repoRef: null, branchName: null },
       normalizedSessionId: null, provider: "codex", runtimeContext: nativeRuntimeContextFixture(),
-      completionContract: { id: randomUUID(), sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "paperclip.run-result.v1", contract: { revision: "1", objective: issue.title, criteria: [{ id: "output", requirement: issue.title }] } },
+      completionContract: { id: randomUUID(), sha256: `sha256:${"a".repeat(64)}`, schemaVersion: "clayon.run-result.v1", contract: { revision: "1", objective: issue.title, criteria: [{ id: "output", requirement: issue.title }] } },
     }) : null;
     const input: HeartbeatRuntimeExecutionInput = {
       run, agent, options: {},

@@ -756,7 +756,7 @@ describe("sandbox callback bridge", () => {
     expect(loopStep).toBeNull();
   });
 
-  it("test_paperclip_loop_exec_parents_to_run_context", async () => {
+  it("test_clayon_loop_exec_parents_to_run_context", async () => {
     // The worker starts inside the measured `bridge.clayon` step. Its awaited
     // queue-directory setup is startup work and keeps the active step. The poll
     // loop shell stays outside that store. But a per-request unit of work is
@@ -876,7 +876,7 @@ describe("sandbox callback bridge", () => {
     expect(wrapped).toContain("sandbox.callbackBridge.relayRequest");
   });
 
-  it("test_paperclip_loop_exec_stays_unparented_without_getter", async () => {
+  it("test_clayon_loop_exec_stays_unparented_without_getter", async () => {
     // With no `getRuntimeParentContext`, a request runs with an empty active
     // step store, exactly like the earlier `runWithoutActiveStep` behavior. So a
     // request `sandbox.exec` span opens unparented with no stale startup flag.

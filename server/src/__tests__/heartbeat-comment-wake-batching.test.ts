@@ -2294,7 +2294,7 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
             clayonExternalChatExecutionBound: true,
             clayonTaskCommunicationGuidance: "## Communication in Slack\nFrozen connection preference.",
             clayonExternalChatQuestionResponse: expect.objectContaining({
-              schema: "paperclip.external_chat_question_response.v1",
+              schema: "clayon.external_chat_question_response.v1",
               interactionId: answered.id,
               sourceRunId,
               sourceCommentId: sourceComment.id,
