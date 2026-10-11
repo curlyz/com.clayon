@@ -1,8 +1,10 @@
 import * as React from "react";
 import { StrictMode } from "react";
 import * as ReactDOM from "react-dom";
-import { BrowserRouter } from "@/lib/router";
+import { BrowserRouter, HashRouter } from "@/lib/router";
+import { Capacitor } from "@capacitor/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 import { App } from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { SentryGate } from "./components/SentryGate";
@@ -38,8 +40,16 @@ startPerfMeasureReaper();
 // with one reload while the tab is hidden — otherwise an old worker and its
 // cached shell can outlive a deploy indefinitely.
 window.addEventListener("load", () => {
-  startServiceWorkerUpdates();
+  // The native shell bundles its assets; there is no /sw.js at its WebView
+  // origin, so update polling stays a browser-only concern.
+  if (!Capacitor.isNativePlatform()) {
+    startServiceWorkerUpdates();
+  }
 });
+
+// The native shell has no server to answer path routes on reload, so it uses
+// hash history; the browser keeps clean paths.
+const AppRouter = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,7 +79,9 @@ getOrCreatePaperclipReactRoot(window, rootElement).render(
         <SentryGate />
         <ThemeProvider>
           <ReadingFontProvider>
-          <BrowserRouter>
+          {/* The native shell has no server to answer path routes on reload,
+              so it uses hash history; the browser keeps clean paths. */}
+          <AppRouter>
             <CompanyProvider>
               <EditorAutocompleteProvider>
                 <ToastProvider>
@@ -93,7 +105,7 @@ getOrCreatePaperclipReactRoot(window, rootElement).render(
                 </ToastProvider>
               </EditorAutocompleteProvider>
             </CompanyProvider>
-          </BrowserRouter>
+          </AppRouter>
           </ReadingFontProvider>
         </ThemeProvider>
       </QueryClientProvider>

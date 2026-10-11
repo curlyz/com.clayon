@@ -1,8 +1,16 @@
+import { Capacitor } from "@capacitor/core";
+
 import { getPageVisibility, getVisibilityHeaderValue } from "@/lib/page-visibility";
 import { tenantSessionRecovery } from "@/lib/tenant-session-recovery";
 import { readApiJson } from "./response";
 
-const BASE = "/api";
+/**
+ * In the native shell the WebView origin (https://app.paperclip.curly.ng) is
+ * not the API origin, so API calls go to the deployed instance absolutely.
+ * The origin is overridable at build time for other deployments.
+ */
+const NATIVE_API_ORIGIN = import.meta.env.VITE_PAPERCLIP_API_ORIGIN || "https://paperclip.curly.ng";
+const BASE = Capacitor.isNativePlatform() ? `${NATIVE_API_ORIGIN}/api` : "/api";
 
 export class ApiError extends Error {
   status: number;
