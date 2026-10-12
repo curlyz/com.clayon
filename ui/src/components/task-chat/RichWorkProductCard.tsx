@@ -1,7 +1,7 @@
 import { TextAttachmentContext } from "@/context/TextAttachmentContext";
 import { isTextAttachment } from "@/lib/issue-attachments";
 import { getAttachmentArtifactWorkProductMetadata } from "@clayon/shared";
-import { useContext, useState, type CSSProperties } from "react";
+import { useContext, useState } from "react";
 import { IssueGalleryContext } from "@/context/IssueGalleryContext";
 import { ArtifactPreview } from "@/components/artifacts/ArtifactCard";
 import { MediaArtifactCard } from "@/components/artifacts/MediaArtifactCard";
@@ -104,23 +104,23 @@ function urlLabel(url: string | null): string | null {
   }
 }
 
+/** Chip tone → .status-sc-* setter class (ui/src/index.css) — no inline custom-property cast. */
+const STATUS_CHIP_CLASS: Record<StateChip["tone"], string> = {
+  progress: "status-sc-task-in_progress",
+  failure: "status-sc-task-blocked",
+  review: "status-sc-task-in_review",
+  success: "status-sc-task-done",
+  neutral: "status-sc-task-cancelled",
+};
+
 function Chip({ chip }: { chip: StateChip }) {
-  const cssVar = chip.tone === "failure"
-    ? "--status-task-blocked"
-    : chip.tone === "success"
-      ? "--status-task-done"
-      : chip.tone === "neutral"
-        ? "--status-task-cancelled"
-    : chip.tone === "review"
-      ? "--status-task-in_review"
-      : "--status-task-in_progress";
   return (
     <span
       className={cn(
         "status-chip inline-flex shrink-0 items-center rounded-full border px-2 py-1 text-(length:--text-nano) font-medium leading-none",
+        STATUS_CHIP_CLASS[chip.tone],
         chip.dashed && "border-dashed",
       )}
-      style={{ "--sc": `var(${cssVar})` } as CSSProperties}
     >
       {chip.label}
     </span>

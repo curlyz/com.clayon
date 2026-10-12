@@ -353,7 +353,7 @@ function ResizablePropertiesPanel({
           "hidden md:flex bg-card flex-col",
           !maximized && "border-l border-border",
           isFixed
-            ? "tc-pane-glide fixed z-40 overflow-hidden"
+            ? "tc-pane-glide fixed z-(--z-40) overflow-hidden"
             : cn(
                 "relative h-full shrink-0",
                 panelVisible ? "overflow-visible" : "overflow-hidden",

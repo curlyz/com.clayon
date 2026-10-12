@@ -485,7 +485,7 @@ export function Layout() {
           {isMobile && sidebarOpen && (
             <button
               type="button"
-              className="fixed inset-0 z-40 bg-black/50"
+              className="fixed inset-0 z-(--z-40) bg-black/50"
               onClick={() => setSidebarOpen(false)}
               aria-label="Close sidebar"
             />
@@ -494,7 +494,7 @@ export function Layout() {
           {isMobile ? (
             <div
               className={cn(
-                "fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden pt-(--sz-safe-top) transition-transform duration-100 ease-out",
+                "fixed inset-y-0 left-0 z-(--z-50) flex flex-col overflow-hidden pt-(--sz-safe-top) transition-transform duration-100 ease-out",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full",
               )}
             >

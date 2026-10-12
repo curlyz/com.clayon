@@ -177,7 +177,9 @@ export function SwipeToArchive({
       style={{
         height: lockedHeight === null ? undefined : isCollapsing ? 0 : lockedHeight,
         opacity: isCollapsing ? 0 : 1,
-        transition: isCollapsing ? "height 200ms ease, opacity 200ms ease" : undefined,
+        transition: isCollapsing
+      ? "height var(--motion-swipe-collapse) var(--motion-ease-swipe-collapse), opacity var(--motion-swipe-collapse) var(--motion-ease-swipe-collapse)"
+      : undefined,
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -211,7 +213,7 @@ export function SwipeToArchive({
         )}
         style={{
           transform: `translate3d(${offsetX}px, 0, 0)`,
-          transition: isDragging ? "none" : "transform 180ms ease-out",
+          transition: isDragging ? "none" : "transform var(--motion-swipe-release) var(--motion-ease-swipe-release)",
         }}
       >
         {children}

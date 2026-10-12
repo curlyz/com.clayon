@@ -231,7 +231,7 @@ const FEED_ANIMATION_CSS = `
   }
 }
 .feed-item-new {
-  animation: feed-slide-in 300ms ease-out;
+  animation: feed-slide-in var(--motion-feed-slide-in) var(--motion-ease-feed-slide-in);
 }
 `;
 

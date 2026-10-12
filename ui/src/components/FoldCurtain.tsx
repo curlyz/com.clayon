@@ -115,7 +115,7 @@ export function FoldCurtain({
               ? `${naturalHeight}px`
               : undefined,
           transitionDuration: allowTransition ? `${EXPAND_TRANSITION_MS}ms` : undefined,
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionTimingFunction: "var(--e-cubic-bezier-0_16-1-0_3-1)",
           ...maskStyle,
         }}
       >
