@@ -507,7 +507,6 @@ export async function execute(
   delete env.CLAYON_WAKE_PAYLOAD_JSON;
   if (ctx.authToken) env.CLAYON_API_KEY = ctx.authToken;
 
-  // BUG FIX: Read task context from ctx.context (wake context), not ctx.config (adapter config)
   const ctxContext = ctx.context;
   const envTaskId = cfgString(ctxContext.taskId) || cfgString(ctxContext.issueId) || cfgString(ctx.config?.taskId);
   if (envTaskId) env.CLAYON_TASK_ID = envTaskId;

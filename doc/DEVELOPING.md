@@ -35,10 +35,11 @@ the enabled providers as `authSocialProviders` (provider names only, never a
 secret).
 
 In the Google Cloud Console, create an OAuth 2.0 Web client and register the
-redirect URI:
+redirect URIs (the production public URL and the dev UI):
 
 ```
-https://clayon.curly.ng/api/auth/callback/google
+https://clayon.app/api/auth/callback/google
+http://localhost:2009/api/auth/callback/google
 ```
 
 ## Dependency Lockfile Policy

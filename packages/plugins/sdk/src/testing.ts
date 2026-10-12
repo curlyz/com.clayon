@@ -2727,11 +2727,10 @@ export function createEnvironmentTestHarness(options: EnvironmentTestHarnessOpti
     return event;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function callHook<R>(
+  async function callHook<H extends (params: never) => Promise<R>, R>(
     type: EnvironmentEventRecord["type"],
-    hook: ((...args: any[]) => Promise<R>) | undefined,
-    params: unknown,
+    hook: H | undefined,
+    params: Parameters<H>[0],
     hookName: string,
   ): Promise<R> {
     if (!hook) {

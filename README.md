@@ -13,7 +13,7 @@ channels are no longer referenced or followed.
 - Development guide: [doc/DEVELOPING.md](doc/DEVELOPING.md)
 - Repo law: [AGENTS.md](AGENTS.md)
 - Production: the Dokploy stack `clayon` on the antl VPS, live at
-  <https://clayon.curly.ng> (runbook in `../servers/contabo-eu-vps6/README.md`)
+  <https://clayon.app> (runbook in `../servers/contabo-eu-vps6/README.md`)
 
 ## What it does
 
@@ -48,7 +48,7 @@ PostgreSQL database created automatically.
 Dev UI against the production backend (writes hit production data):
 
 ```bash
-pnpm --dir ui dev:remote   # http://localhost:10000, /api proxied to clayon.curly.ng
+pnpm --dir ui dev:remote   # http://localhost:10000, /api proxied to clayon.app
 ```
 
 For an isolated test instance with a CEO agent already initialized:

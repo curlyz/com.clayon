@@ -144,6 +144,8 @@ import {
   resolveClayonRunnerProviderProfile,
 } from "../services/native-runtime/provider-profile.js";
 
+const log = logger.child({ service: "adapter-registry" });
+
 function readConfiguredCommand(config: Record<string, unknown>, fallback: string): string {
   const value = typeof config.command === "string" ? config.command.trim() : "";
   return value.length > 0 ? value : fallback;
@@ -986,7 +988,7 @@ const externalAdaptersReady: Promise<void> = (async () => {
       );
     }
   } catch (err) {
-    console.error("[clayon] Failed to load external adapters:", err);
+    log.error({ err }, "Failed to load external adapters");
   }
 })();
 
@@ -1060,9 +1062,9 @@ function getDeclaredAdapterModels(): ReturnType<typeof parseAdapterModelsEnv> {
   try {
     value = parseAdapterModelsEnv(process.env);
   } catch (err) {
-    console.error(
-      "[clayon] Invalid CLAYON_ADAPTER_MODELS; ignoring declared model lists:",
-      err,
+    log.error(
+      { err },
+      "Invalid CLAYON_ADAPTER_MODELS; ignoring declared model lists",
     );
   }
   adapterModelsEnvCache = { raw, value };

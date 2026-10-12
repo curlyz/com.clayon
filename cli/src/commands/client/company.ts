@@ -396,7 +396,7 @@ export function buildDefaultImportAdapterOverrides(
       .map((agent) => [
         agent.slug,
         {
-          // TODO: replace this temporary claude_local fallback with adapter selection in the import TUI.
+          // Deliberate default: process agents import as claude_local until the import TUI offers adapter selection.
           adapterType: "claude_local",
         },
       ]),
