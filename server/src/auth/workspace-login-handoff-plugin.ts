@@ -14,6 +14,7 @@
 import { and, eq } from "drizzle-orm";
 import { setSessionCookie } from "better-auth/cookies";
 import { createAuthEndpoint } from "better-auth/api";
+import type { BetterAuthPlugin } from "better-auth";
 import type { Session, User } from "better-auth/types";
 import type { Db } from "@clayon/db";
 import { companyMemberships } from "@clayon/db";
@@ -83,10 +84,13 @@ function buildFallbackRedirect(input: {
   return input.baseUrl ? target.toString() : `${target.pathname}${target.search}`;
 }
 
+// The declared return type keeps the emitted declaration portable: inferred,
+// it names better-call's StrictEndpoint through a pnpm-store path (TS2883 in
+// the production image build).
 export function workspaceLoginHandoffPlugin(deps: {
   db: Db;
   resolveExpectedIdentity: () => WorkspaceHandoffExpectedIdentity;
-}) {
+}): BetterAuthPlugin {
   return {
     id: "clayon-workspace-login-handoff",
     endpoints: {
