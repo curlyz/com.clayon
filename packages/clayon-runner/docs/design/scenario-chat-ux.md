@@ -1,24 +1,28 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/design/scenario-chat-ux
+---
+
 # Scenario chat Interaction Map — Mobile Chat with Visible Mock Activity
 
 Status: **approved UX contract**, implemented in TASK-16916 (2026-08-09).
-Deviations taken during implementation are recorded in §11a; the §11 matrix is
-kept as an acceptance contract; the recorded screenshot campaign is deferred.
+Implementation deviations recorded in §11a; the §11 matrix stays
+an acceptance contract; the recorded screenshot campaign is deferred.
 Owner: UXDesigner. Implementer: 7I implementation (TASK-16916), consuming the
-existing 7C mock adapter, 7D semantic catalog, and 7F explorer components.
-Companion records: [Capability interaction map](capability-scenario-explorer-ux.md)
+existing 7C mock adapter, 7D semantic catalog, 7F explorer components.
+Companion records: Capability interaction map `antl:clayon/packages/clayon-runner/docs/design/capability-scenario-explorer-ux`
 (the 7F contract — everything not overridden here is inherited verbatim),
-[Live console interaction map](live-console-interaction-map.md) (chat console
-baseline), [SDK component decisions](sdk-component-decisions.md).
+Live console interaction map `antl:clayon/packages/clayon-runner/docs/design/live-console-interaction-map` (chat console
+baseline), SDK component decisions `antl:clayon/packages/clayon-runner/docs/design/sdk-component-decisions`.
 (annotated desktop + mobile renders in `.clayon-local/evidence/capability/`,
 `scenario-chat-*` slugs).
 
 Scenario chat adds a **Codex-style interactive chat** over the same package-local
 Capability runner and mock `ControlPlanePort`. The board opens a scenario, chats
-with the agent, and — this is the point of the phase — **sees the mock
-Clayon activity for every turn** instead of having it hidden behind chat.
-The 7F explorer remains unchanged as the corpus-review surface; the chat is a
+with the agent, and — the point of the phase — **sees the mock
+Clayon activity for every turn** instead of hiding it behind chat.
+The 7F explorer stays unchanged as the corpus-review surface; the chat is a
 sibling surface in the same app shell, one React tree, sharing the picker,
-transcript grammar, inspector components, and token layer.
+transcript grammar, inspector components, token layer.
 
 The 7F authority rule is binding here too: the chat UI renders records the
 runtime produced. It computes no exposure, evaluates no claim, applies no
@@ -57,13 +61,13 @@ Desktop (≥ 64rem), three regions, one React tree:
   hierarchy. The composer is pinned to the bottom of the column.
 - **Right rail (26rem, proposed token `--pcr-activity-width`):** the
   **Activity stream** — the ordered per-turn evidence (§4). Open by default
-  on desktop; it carries the acceptance evidence, so it is never a
+  on desktop; carries the acceptance evidence, so it is never a
   collapsed-by-default drawer on desktop.
 
 Mobile (< 64rem): single column behind the established segmented control
-pattern (a `radiogroup`, per 7F revision 4), with exactly two segments:
-**Chat · Activity**. The segmented control is sticky at the top; the
-composer is sticky at the bottom of the Chat segment (thumb zone). The
+pattern (a `radiogroup`, per 7F revision 4), exactly two segments:
+**Chat · Activity**. Segmented control sticky at the top; the
+composer sticky at the bottom of the Chat segment (thumb zone). The
 Activity segment contains the complete §4 stream as stacked cards — mobile
 gets **all** the evidence, never a summary-only view. A count chip on the
 Activity segment surfaces attention states without opening it
@@ -127,13 +131,13 @@ must attribute any row to its actor in two seconds):
    this grammar.
 
 **Turn activity strip (new, binding):** after each completed turn the
-conversation appends a full-width summary strip for that turn:
+conversation appends a full-width summary strip:
 `Turn 2 activity · 3 tools · 1 denied · 2 control plane · diff 2 domains ·
 parity ✓`, rendered as a single button. Counts are icon + text, never color
 alone. Activation opens that turn’s group in the Activity stream (desktop:
 scroll + flash the group, same connect cue as 7F authorization rows;
 mobile: switch to the Activity segment anchored at the group, with a
-“Back to chat” affordance that restores scroll position). The strip is the
+“Back to chat” affordance restoring scroll position). The strip is the
 guaranteed per-turn bridge — evidence is reachable from the turn itself,
 not only by scanning the rail (Recognition over Recall).
 
@@ -151,7 +155,7 @@ a live-driver capability, not a replay capability.
 records (§10 data contract). The stream is grouped by turn; groups render
 newest-last and auto-follow the conversation. Each **turn group** is a
 collapsible section headed by `Turn N` + the same counts as the turn strip;
-the newest turn group is expanded by default, earlier groups collapse to
+newest turn group expanded by default, earlier groups collapse to
 their header (progressive disclosure; Miller — never all turns fully open).
 Inside a group, ordered sections, each rendered only when non-empty, always
 in this order:
@@ -191,13 +195,14 @@ route (§9), never protocol state.
 
 ## 5. Actor distinction (binding summary)
 
-| Actor | Surface | Marker |
-| --- | --- | --- |
-| User | `--pcr-accent-surface` bubble, right-aligned | — |
-| Model output | `--pcr-card` message card, left-aligned | streaming caret |
-| Agent tool work | `--pcr-surface-raised` collapsed card, conversation-indented | mono operation + disposition badge |
-| Control plane | `--pcr-muted` full-width strip | “Control plane” badge + gutter glyph |
-| Denied (any) | `--pcr-danger-surface` in place | Deny icon + text |
+```text
+[5]{Actor,Surface,Marker}:
+  User,"`--pcr-accent-surface` bubble, right-aligned",—
+  Model output,"`--pcr-card` message card, left-aligned",streaming caret
+  Agent tool work,"`--pcr-surface-raised` collapsed card, conversation-indented",mono operation + disposition badge
+  Control plane,"`--pcr-muted` full-width strip",“Control plane” badge + gutter glyph
+  Denied (any),`--pcr-danger-surface` in place,Deny icon + text
+```
 
 No view — chat, activity, expanded detail — may render a fact without its
 actor attribution. If a record ever lacks attribution, that is a 7C artifact
@@ -206,27 +211,28 @@ defect to fix upstream, not a UI guess.
 ## 6. Credentials, redaction, denial
 
 7F §5 applies verbatim (including revision 11: redaction chips render
-`••• redacted <rule>` inline, no tooltip-only disclosure). Additionally for
-chat: the composer submits user text to the package-local runner only; in
+`••• redacted <rule>` inline, no tooltip-only disclosure). Chat additions:
+the composer submits user text to the package-local runner only; in
 Codex mode the provider credential stays server-side behind the same relay
-boundary proven in SDK, and no user-typed text is ever written to
-`localStorage` (a page reload may drop an unsent draft; that is the accepted
+boundary proven in SDK; no user-typed text is ever written to
+`localStorage` (a page reload may drop an unsent draft — the accepted
 trade against persisting conversation content).
 
 ## 7. States that must be designed, not defaulted
 
-| State | Surface | Rendering |
-| --- | --- | --- |
-| No scenario selected | Chat + activity | Intro card (corpus stats + “Pick a scenario to start chatting” + three example deep links); activity rail shows the 7F corpus summary. No dead panels. |
-| Seeded, no turns | Chat | Turn-0 control-plane strips render immediately (checkout, exposure); composer focused and ready in Codex mode; primed hint in Replay mode (“Replay the scripted session, or switch to Codex (bounded)”). |
-| Turn streaming | All | Model card streams; composer in `active-turn` (Steer + Stop); the pending turn’s activity group shows a live-updating header (“Turn 3 · running”); controls that would corrupt the run (Reset, Replay, mode switch, scenario switch) disable with reasons. |
-| Turn failed (harness/driver error) | Chat | Danger strip in place with the exact diagnostic and a “Retry turn” affordance; the partial activity group stays visible and is labeled partial. Never silently reset. |
-| Denied operation | Chat + activity | §3/§4 danger rendering; the Activity segment chip counts denials. |
-| Relay unavailable | Session header + composer | Codex option disabled with reason; Replay mode fully usable; composer disabled-reason names the relay, not a generic error. |
-| Session terminal | Composer | `terminal` state with its existing hint (“This session is closed. Replay it or reset the session state.”). |
-| Reset confirm | Dialog | §2; focus returns to the composer after either outcome. |
-| Long JSON / long code / long unbroken strings | Everywhere | `overflow-wrap: anywhere` on prose and key-value values; `pre` blocks may scroll **internally** (x) with a visible affordance, but the page never scrolls horizontally at any viewport ≥ 320px — the 7F `min-w-0` discipline is a hard gate at 390×844. |
-| Unknown case ID in route | Chat | The 7F named error card (“No scenario named …”) — not a silent home fallback (closes 7F revision 10’s accepted gap for chat routes). |
+```text
+[10]{State,Surface,Rendering}:
+  No scenario selected,Chat + activity,"Intro card (corpus stats + “Pick a scenario to start chatting” + three example deep links); activity rail shows the 7F corpus summary. No dead panels."
+  "Seeded, no turns",Chat,"Turn-0 control-plane strips render immediately (checkout, exposure); composer focused and ready in Codex mode; primed hint in Replay mode (“Replay the scripted session, or switch to Codex (bounded)”)."
+  Turn streaming,All,"Model card streams; composer in `active-turn` (Steer + Stop); the pending turn’s activity group shows a live-updating header (“Turn 3 · running”); controls that would corrupt the run (Reset, Replay, mode switch, scenario switch) disable with reasons."
+  "Turn failed (harness/driver error)",Chat,"Danger strip in place with the exact diagnostic and a “Retry turn” affordance; the partial activity group stays visible and is labeled partial. Never silently reset."
+  Denied operation,Chat + activity,"§3/§4 danger rendering; the Activity segment chip counts denials."
+  Relay unavailable,Session header + composer,"Codex option disabled with reason; Replay mode fully usable; composer disabled-reason names the relay, not a generic error."
+  Session terminal,Composer,"`terminal` state with its existing hint (“This session is closed. Replay it or reset the session state.”)."
+  Reset confirm,Dialog,§2; focus returns to the composer after either outcome.
+  "Long JSON / long code / long unbroken strings",Everywhere,"`overflow-wrap: anywhere` on prose and key-value values; `pre` blocks may scroll internally (x) with a visible affordance, but the page never scrolls horizontally at any viewport ≥ 320px — the 7F `min-w-0` discipline is a hard gate at 390×844."
+  "Unknown case ID in route",Chat,"The 7F named error card (“No scenario named …”) — not a silent home fallback (closes 7F revision 10’s accepted gap for chat routes)."
+```
 
 ## 8. Touch, keyboard, focus, accessibility
 
@@ -283,7 +289,7 @@ Hash routing, extending the 7F scheme:
   (`conversation`, `message`, `tool-item`, `reasoning-item`, `Composer`,
   `Dialog`, `Badge`, `Banner`) — `RunnerConsoleApp` itself is *not* the
   shell (same 7F ruling: compose parts, don’t adopt the console’s
-  session-timeline IA). The activity stream composes the existing explorer
+  session-timeline IA). Activity stream composes the existing explorer
   components: `ExposureList`, `AuthorizationTable`, `StateDiff`,
   `ParityPanel`, `ChannelEntry`, `RedactionChip`.
 - **New explorer-local components** (one job each): `SessionHeader`,
@@ -318,13 +324,14 @@ Evidence lands in `.clayon-local/evidence/capability/` as
 from §9 routes after `data-chat-state="settled"`. Mobile captures must show
 the correct active segment and no horizontal scrollbar.
 
-| # | Slug | Route | Expected visible evidence |
-| --- | --- | --- | --- |
-| 1 | `chat-home` | `#/chat` | Picker + chat intro; no dead panels. |
-| 2 | `chat-session` | `#/chat/ix-checkbox-01?replay=fake` | Turn-0 control-plane strips; user/model/tool/control-plane grammars all distinguishable; turn activity strips with counts; composer in its mode-correct state; desktop shows the activity rail with the newest turn expanded. |
-| 3 | `chat-denied` | `#/chat/ap-mcp-gate-01?replay=fake&view=activity&turn=2` | Denied call on danger surface in both conversation and authorization section; missing claim + reason; Activity segment chip counting the deny (mobile). |
-| 4 | `chat-activity-diff` | `#/chat/ix-checkbox-01?replay=fake&view=activity&turn=3` | Turn group with exposure counts, calls, authorization, control-plane rows, per-turn state diff (changed vs unchanged domains), reconciliation/wake row, turn parity verdict. |
-| 5 | `chat-streaming` | `#/chat/ap-mcp-gate-01?replay=fake&stage=streaming` | Streaming model card, composer `active-turn` (Steer/Stop), pending activity group header, disabled session controls with reasons. Exempt from pixel determinism; capture once per viewport. |
+```text
+[5]{#,Slug,Route,Expected visible evidence}:
+  1,`chat-home`,`#/chat`,"Picker + chat intro; no dead panels."
+  2,`chat-session`,`#/chat/ix-checkbox-01?replay=fake`,"Turn-0 control-plane strips; user/model/tool/control-plane grammars all distinguishable; turn activity strips with counts; composer in its mode-correct state; desktop shows the activity rail with the newest turn expanded."
+  3,`chat-denied`,`#/chat/ap-mcp-gate-01?replay=fake&view=activity&turn=2`,"Denied call on danger surface in both conversation and authorization section; missing claim + reason; Activity segment chip counting the deny (mobile)."
+  4,`chat-activity-diff`,`#/chat/ix-checkbox-01?replay=fake&view=activity&turn=3`,"Turn group with exposure counts, calls, authorization, control-plane rows, per-turn state diff (changed vs unchanged domains), reconciliation/wake row, turn parity verdict."
+  5,`chat-streaming`,`#/chat/ap-mcp-gate-01?replay=fake&stage=streaming`,"Streaming model card, composer `active-turn` (Steer/Stop), pending activity group header, disabled session controls with reasons. Exempt from pixel determinism; capture once per viewport."
+```
 
 The scripted fixtures for `ix-checkbox-01` and `ap-mcp-gate-01` chat
 sessions are new 7I fixtures (the 7F fake-agent plans are single-shot, not

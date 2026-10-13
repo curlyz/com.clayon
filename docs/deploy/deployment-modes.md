@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/deploy/deployment-modes
 title: Deployment Modes
 summary: local_trusted vs authenticated (private/public)
 ---
@@ -7,7 +8,7 @@ Clayon supports two runtime modes with different security profiles. Reachability
 
 ## `local_trusted`
 
-The default mode. Optimized for single-operator local use.
+Default mode. Optimized for single-operator local use.
 
 - **Host binding**: loopback only (localhost)
 - **Bind**: `loopback`

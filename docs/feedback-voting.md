@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/feedback-voting
+---
+
 # Feedback Voting — Local Data Guide
 
 When you rate an agent's response with **Helpful** (thumbs up) or **Needs work** (thumbs down), Clayon saves your vote locally alongside your running instance. This guide covers what gets stored, how to access it, and how to export it.
@@ -12,10 +16,8 @@ When you rate an agent's response with **Helpful** (thumbs up) or **Needs work**
 
 Each vote creates two local records:
 
-| Record | What it contains |
-|--------|-----------------|
-| **Vote** | Your vote (up/down), optional reason text, sharing preference, consent version, timestamp |
-| **Trace bundle** | Full context snapshot: the voted-on comment/revision text, issue title, agent info, your vote, and reason — everything needed to understand the feedback in isolation |
+- **Vote** — Your vote (up/down), optional reason text, sharing preference, consent version, timestamp
+- **Trace bundle** — Full context snapshot: the voted-on comment/revision text, issue title, agent info, your vote, and reason — everything needed to understand the feedback in isolation
 
 All data lives in your local Clayon database. Nothing leaves your machine unless you explicitly choose to share.
 
@@ -75,14 +77,15 @@ curl http://127.0.0.1:3102/api/feedback-traces/<traceId>/bundle
 
 The trace endpoints accept query parameters:
 
-| Parameter | Values | Description |
-|-----------|--------|-------------|
-| `vote` | `up`, `down` | Filter by vote direction |
-| `status` | `local_only`, `pending`, `sent`, `failed` | Filter by export status |
-| `targetType` | `issue_comment`, `issue_document_revision` | Filter by what was voted on |
-| `sharedOnly` | `true` | Only show votes the user chose to share |
-| `includePayload` | `true` | Include the full context snapshot |
-| `from` / `to` | ISO date | Date range filter |
+```text
+[6]{Parameter,Values,Description}:
+  `vote`,"`up`, `down`",Filter by vote direction
+  `status`,"`local_only`, `pending`, `sent`, `failed`",Filter by export status
+  `targetType`,"`issue_comment`, `issue_document_revision`",Filter by what was voted on
+  `sharedOnly`,`true`,Only show votes the user chose to share
+  `includePayload`,`true`,Include the full context snapshot
+  `from` / `to`,ISO date,Date range filter
+```
 
 ## Exporting your data
 
@@ -167,12 +170,10 @@ Your preference is saved per-company. You can change it any time via the feedbac
 
 ## Data lifecycle
 
-| Status | Meaning |
-|--------|---------|
-| `local_only` | Vote stored locally, not marked for sharing |
-| `pending` | Marked for sharing, saved locally, and waiting for the immediate upload attempt |
-| `sent` | Successfully transmitted |
-| `failed` | Transmission attempted but failed (for example the backend is unreachable or not configured); later flushes retry once a backend is available |
+- **`local_only`** — Vote stored locally, not marked for sharing
+- **`pending`** — Marked for sharing, saved locally, and waiting for the immediate upload attempt
+- **`sent`** — Successfully transmitted
+- **`failed`** — Transmission attempted but failed (for example the backend is unreachable or not configured); later flushes retry once a backend is available
 
 Your local database always retains the full vote and trace data regardless of sharing status.
 

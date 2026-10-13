@@ -1,22 +1,26 @@
+---
+id: antl:clayon/agents
+---
+
 # AGENTS.md
 
-Guidance for human and AI contributors working in this repository.
+Guidance for human and AI contributors in this repository.
 
 ## 1. Purpose
 
 Clayon is a control plane for AI-agent companies.
-The current implementation target is V1 and is defined in `doc/SPEC-implementation.md`.
+Implementation target: V1, defined in `doc/SPEC-implementation.md`.
 
 **Production runs on the antl VPS (2026-10-10):** Dokploy stack `clayon`
 (project `server`, composeId `CSdiym07Up7Q1AjvEop7j`) on `contabo-eu-vps6`,
-live at https://clayon.app with its own Postgres 17 service.
-Runbook, compose file and bootstrap gotchas:
-[`servers/contabo-eu-vps6/README.md`](../servers/contabo-eu-vps6/README.md) § Clayon.
+live at https://clayon.app, own Postgres 17 service.
+Runbook, compose file, bootstrap gotchas:
+`servers/contabo-eu-vps6/README.md` § Clayon.
 Deploy through Dokploy (panel or authenticated API) — never SSH into the host.
 
 ## 2. Read This First
 
-Before making changes, read in this order:
+Read before changes, in this order:
 
 1. `doc/GOAL.md`
 2. `doc/PRODUCT.md`
@@ -24,14 +28,13 @@ Before making changes, read in this order:
 4. `doc/DEVELOPING.md`
 5. `doc/DATABASE.md`
 
-`doc/SPEC.md` is long-horizon product context.
-`doc/SPEC-implementation.md` is the concrete V1 build contract.
+`doc/SPEC.md`: long-horizon product context.
+`doc/SPEC-implementation.md`: concrete V1 build contract.
 
-When adding or changing an Apps catalog connection, also follow
-`doc/connections/CONNECTOR-PLAYBOOK.md`. It is the canonical connection
-authoring runbook for provider research, supported transport/auth patterns,
-credential handling, branding, implementation, testing, live proof, and PR
-submission.
+When adding or changing an Apps catalog connection, follow
+`doc/connections/CONNECTOR-PLAYBOOK.md` — canonical authoring runbook for
+provider research, supported transport/auth patterns, credential handling,
+branding, implementation, testing, live proof, and PR submission.
 
 ## 3. Repo Map
 
@@ -78,32 +81,32 @@ pnpm dev
 
 ### Dev UI against the production backend (operator, 2026-10-11)
 
-"Dev clayon" is the working-tree UI served by Vite on **http://localhost:2009**
-with `/api` proxied to the production backend `https://clayon.app`.
+"Dev clayon" is the working-tree UI served by Vite on **http://localhost:2009**,
+`/api` proxied to production `https://clayon.app`.
 No local server, database or native runner build runs.
 
 ```sh
 pnpm --dir ui dev:remote   # from com.clayon; strict port 2009
 ```
 
-- The proxy lives in `ui/src/lib/vite-api-proxy.ts` (`createRemoteApiProxy`) and is chosen in `ui/vite.config.ts` when `CLAYON_DEV_API_TARGET` is set. It sends the production origin upstream (the server's origin guard expects it) and strips the cookie `Domain` so the session sticks to localhost.
+- Proxy: `ui/src/lib/vite-api-proxy.ts` (`createRemoteApiProxy`), chosen in `ui/vite.config.ts` when `CLAYON_DEV_API_TARGET` is set. Sends the production origin upstream (the server's origin guard expects it) and strips the cookie `Domain` so the session sticks to localhost.
 - Sign in through the dev UI at `localhost:2009`; Chrome accepts the `Secure` session cookie on localhost.
-- **Writes hit production data.** Autosave saves within a second, so edits in the dev UI change the real company.
-- The port is 2009 (operator, 2026-10-11: "setup the dev frontend port to be 2009"); it was 10000 earlier the same day.
-- Google sign-in from the dev UI needs `http://localhost:2009/api/auth/callback/google` as an authorized redirect URI on the Google OAuth client, or the callback is rejected.
+- **Writes hit production data.** Autosave saves within a second; edits in the dev UI change the real company.
+- Port 2009 (operator, 2026-10-11: "setup the dev frontend port to be 2009"); 10000 earlier the same day.
+- Google sign-in needs `http://localhost:2009/api/auth/callback/google` as an authorized redirect URI on the Google OAuth client, or the callback is rejected.
 
 ## 5. Core Engineering Rules
 
 1. Keep changes company-scoped.
-Every domain entity should be scoped to a company and company boundaries must be enforced in routes/services.
+Scope every domain entity to a company; enforce company boundaries in routes/services.
 
-Explicit exception: announcement dismissals are instance-wide user preferences,
-keyed by user and announcement so they persist across companies. Their audit
-context must still validate company membership. The announcement publication-ID
-registry is instance-level feed metadata; it contains no company or user data.
+Exception: announcement dismissals are instance-wide user preferences,
+keyed by user and announcement, persisting across companies. Audit
+context still validates company membership. The announcement publication-ID
+registry is instance-level feed metadata, no company or user data.
 
 2. Keep contracts synchronized.
-If you change schema/API behavior, update all impacted layers:
+Change schema/API behavior → update all impacted layers:
 - `packages/db` schema and exports
 - `packages/shared` types/constants/validators
 - `server` routes/services
@@ -117,40 +120,40 @@ If you change schema/API behavior, update all impacted layers:
 - Activity logging for mutating actions
 
 4. Do not replace strategic docs wholesale unless asked.
-Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
+Prefer additive updates; keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
 
 5. Keep repo plan docs dated and centralized.
-When you are creating a plan file in the repository itself, new plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames. This does not replace Clayon issue planning: if a Clayon issue asks for a plan, update the issue `plan` document per the `clayon` skill instead of creating a repo markdown file.
+New repo plan documents belong in `doc/plans/`, named `YYYY-MM-DD-slug.md`. This does not replace Clayon issue planning: if a Clayon issue asks for a plan, update the issue `plan` document per the `clayon` skill, not a repo markdown file.
 
 6. Attach inspectable generated artifacts.
-When your task produces a user-inspectable deliverable file, follow the Clayon skill's "Generated Artifacts and Work Products" workflow before final disposition. In this repo, prefer the self-contained skill helper at `skills/clayon/scripts/clayon-upload-artifact.sh` so the file is available through the Clayon API, create/update an artifact work product when the file is the deliverable, link the uploaded artifact in the final issue comment, and then set status. Do not rely on local filesystem paths as the only access path. If an important file intentionally remains workspace-only, create/update a work product with `metadata.resourceRef.kind: "workspace_file"` and a workspace-relative path, then name that work product and path in the final comment. Treat browse/search as a fallback for recovering workspace files, not the preferred deliverable path. See `doc/AGENT-ARTIFACTS.md` for details and `.mp4`/`.webm` examples.
+For a user-inspectable deliverable file, follow the Clayon skill's "Generated Artifacts and Work Products" workflow before final disposition. In this repo, prefer the self-contained skill helper `skills/clayon/scripts/clayon-upload-artifact.sh` so the file is available through the Clayon API; create/update an artifact work product when the file is the deliverable; link the uploaded artifact in the final issue comment, then set status. Never rely on local filesystem paths as the only access path. If an important file intentionally remains workspace-only, create/update a work product with `metadata.resourceRef.kind: "workspace_file"` and a workspace-relative path, then name that work product and path in the final comment. Treat browse/search as a fallback for recovering workspace files, not the preferred deliverable path. See `doc/AGENT-ARTIFACTS.md` for details and `.mp4`/`.webm` examples.
 
 7. Name the three data paths correctly.
-This repo has three separate data paths. Do not confuse them. Match a change to a path by its file path, not by the word "observability" or "telemetry" alone.
+Match a change to a path by file path, not by the word "observability" or "telemetry" alone.
 
-- **Telemetry** is the Clayon first-party event system. It is opt-out and it sends data to a Clayon endpoint by default. Its paths are:
+- **Telemetry** is the Clayon first-party event system. Opt-out; sends data to a Clayon endpoint by default. Paths:
   - `packages/shared/src/telemetry/`
   - the generated contract `packages/shared/src/telemetry/generated/clayon-telemetry.ts`
   - each caller of `packages/shared/src/telemetry/events.ts` or `packages/shared/src/telemetry/client.ts`
-- **Observability** is the OpenTelemetry trace path. An operator must set an OTLP endpoint. Until an operator sets the endpoint, the tracer is a no-operation. Its paths are:
+- **Observability** is the OpenTelemetry trace path. An operator must set an OTLP endpoint; until then the tracer is a no-operation. Paths:
   - `server/src/instrumentation.ts`
   - `doc/observability.md`
   - `packages/adapter-utils/src/duplex-observability.ts`
   - `server/src/services/duplex-observability-recorder.ts`
   - `server/src/services/issue-read-timing.ts`
   - the span attributes in `packages/adapter-utils/src/acpx-engine/startup-timing.ts`
-- **The run log** holds rows in the local `heartbeat_run_events` table. The data stays in the instance database. Its paths are:
+- **The run log** holds rows in the local `heartbeat_run_events` table; data stays in the instance database. Paths:
   - `doc/run-log-events.md`
   - `packages/db/src/schema/heartbeat_run_events.ts`
   - the append path `appendRunEvent` in `server/src/services/heartbeat.ts`
 
 Apply a review level that matches the path:
 
-- **Telemetry change (strict review).** The author updates the generated contract first. The author updates `packages/shared/src/telemetry/README.md` in the same pull request. The author requests a privacy review. Reason: a Telemetry event goes to a Clayon endpoint by default, so a mistake sends data immediately.
-- **Observability change (lighter review).** The operator endpoint gate stays in place. The no-operation behaviour stays when no endpoint is set. A privacy review is not necessary while the change stays inside the closed span-attribute allowlist.
-- **Run-log change (no extra review).** A run-log change needs neither review level above, because the data stays in the instance database.
+- **Telemetry change (strict review).** Author updates the generated contract first, updates `packages/shared/src/telemetry/README.md` in the same pull request, and requests a privacy review. Reason: a Telemetry event goes to a Clayon endpoint by default, so a mistake sends data immediately.
+- **Observability change (lighter review).** Operator endpoint gate stays in place; no-operation behaviour stays when no endpoint is set. No privacy review while the change stays inside the closed span-attribute allowlist.
+- **Run-log change (no extra review).** Data stays in the instance database; neither review level above applies.
 
-**Exclusion.** The word "observability" in a file such as `server/src/services/recovery-observability.ts` names a different concept. Apply this rule by path, not by word match.
+**Exclusion.** "observability" in a file such as `server/src/services/recovery-observability.ts` names a different concept. Apply this rule by path, not word match.
 
 ## 6. Database Change Workflow
 
@@ -176,9 +179,9 @@ Notes:
 
 ## 7. Verification Before Hand-off
 
-[feature-map/README.md](feature-map/README.md) is an optional reference for user
-entry points, verification recipes, and coverage gaps. The map records coverage
-scope, not proof that a live journey passed.
+`feature-map/README.md`: optional reference for user
+entry points, verification recipes, coverage gaps. Records coverage
+scope, not proof a live journey passed.
 
 Default local/agent test path:
 
@@ -186,18 +189,18 @@ Default local/agent test path:
 pnpm test
 ```
 
-This is the cheap default and only runs the Vitest suite. Browser suites stay opt-in:
+Cheap default; runs the Vitest suite only. Browser suites stay opt-in:
 
 ```sh
 pnpm test:e2e
 pnpm test:release-smoke
 ```
 
-Run the browser suites only when your change touches them or when you are explicitly verifying CI/release flows.
+Run browser suites only when your change touches them or you explicitly verify CI/release flows.
 
-For normal issue work, run the smallest relevant verification first. Do not default to repo-wide typecheck/build/test on every heartbeat when a narrower check is enough to prove the change.
+For normal issue work, run the smallest relevant verification first. Do not default to repo-wide typecheck/build/test on every heartbeat when a narrower check proves the change.
 
-Run this full check before claiming repo work done in a PR-ready hand-off, or when the change scope is broad enough that targeted checks are not sufficient:
+Run this full check before a PR-ready hand-off, or when the change scope is too broad for targeted checks:
 
 ```sh
 pnpm -r typecheck
@@ -205,7 +208,7 @@ pnpm test:run
 pnpm build
 ```
 
-If anything cannot be run, explicitly report what was not run and why.
+If anything cannot be run, report what was not run and why.
 
 ## 8. API and Auth Expectations
 
@@ -230,7 +233,7 @@ When adding endpoints:
 
 ## 10. Pull Request Requirements
 
-When creating a pull request (via `gh pr create` or any other method), you **must** read and fill in every section of [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Do not craft ad-hoc PR bodies — use the template as the structure for your PR description. Required sections:
+When creating a pull request (via `gh pr create` or any other method), **must** read and fill in every section of `.github/PULL_REQUEST_TEMPLATE.md`. No ad-hoc PR bodies — the template structures your PR description. Required sections:
 
 - **Thinking Path** — trace reasoning from project context to this change (see `CONTRIBUTING.md` for examples)
 - **What Changed** — bullet list of concrete changes
@@ -247,10 +250,10 @@ A change is done when all are true:
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
-5. PR description follows the [PR template](.github/PULL_REQUEST_TEMPLATE.md) with all sections filled in (including Model Used)
+5. PR description follows the PR template `com.clayon/.github/PULL_REQUEST_TEMPLATE.md` with all sections filled in (including Model Used)
 
 ## Design system
 
-`DESIGN.md` at the repo root is the source of truth for UI design decisions. The token-only rule applies to all `ui/` changes: every color, spacing, radius, type, shadow, and motion value in `ui/src/components/**` and `ui/src/pages/**` comes from the token layer in `ui/src/index.css` — no hex, raw px, arbitrary Tailwind bracket values, or raw `font-size`/`fontSize` declarations in components, outside the documented allowlist in `ui/src/index.css`. Run `pnpm check:token-gates` (`scripts/check-token-gates.mjs`) before committing UI changes — it fails on any violation not covered by that allowlist.
+`DESIGN.md` at repo root is the source of truth for UI design decisions. Token-only rule for all `ui/` changes: every color, spacing, radius, type, shadow, and motion value in `ui/src/components/**` and `ui/src/pages/**` comes from the token layer in `ui/src/index.css` — no hex, raw px, arbitrary Tailwind bracket values, or raw `font-size`/`fontSize` in components, outside the documented allowlist in `ui/src/index.css`. Run `pnpm check:token-gates` (`scripts/check-token-gates.mjs`) before committing UI changes — fails on any violation not covered by that allowlist.
 
 The portal carries no decorative scene (removed 2026-10-11, leader ruling): the emblem remains only as the logo, luminance-masked for transparency on both themes; the surface is flat and theme-aware (light and dark tokens). No further decorative elements.

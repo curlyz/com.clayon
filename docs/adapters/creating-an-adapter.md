@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/adapters/creating-an-adapter
 title: Creating an Adapter
 summary: Guide to building a custom adapter
 ---
@@ -6,22 +7,23 @@ summary: Guide to building a custom adapter
 Build a custom adapter to connect Clayon to any agent runtime.
 
 <Tip>
-If you're using Claude Code, the `.agents/skills/create-agent-adapter` skill can guide you through the full adapter creation process interactively. Just ask Claude to create a new adapter and it will walk you through each step.
+In Claude Code, the `.agents/skills/create-agent-adapter` skill guides the full adapter creation process interactively. Ask Claude to create a new adapter and it walks through each step.
 </Tip>
 
 ## Two Paths
 
-| | Built-in | External Plugin |
-|---|---|---|
-| Source | Inside `clayon-fork` | Separate npm package |
-| Distribution | Ships with Clayon | Independent npm publish |
-| UI parser | Static import | Dynamic load from API |
-| Registration | Edit 3 registries | Auto-loaded at startup |
-| Best for | Core adapters, contributors | Third-party adapters, internal tools |
+```text
+[5]{,Built-in,External Plugin}:
+  Source,"Inside `clayon-fork`",Separate npm package
+  Distribution,"Ships with Clayon",Independent npm publish
+  UI parser,Static import,"Dynamic load from API"
+  Registration,"Edit 3 registries","Auto-loaded at startup"
+  Best for,"Core adapters, contributors","Third-party adapters, internal tools"
+```
 
-For most cases, **build an external adapter plugin**. It's cleaner, independently versioned, and doesn't require modifying Clayon's source. See [External Adapters](/adapters/external-adapters) for the full guide.
+For most cases, **build an external adapter plugin**: cleaner, independently versioned, no Clayon source changes. See External Adapters `antl:clayon/docs/adapters/external-adapters` for the full guide.
 
-The rest of this page covers the shared internals that both paths use.
+The rest of this page covers shared internals for both paths.
 
 ## Package Structure
 
@@ -70,7 +72,7 @@ export { createServerAdapter } from "./server/index.js";
 
 ## Step 2: Server Execute
 
-`src/server/execute.ts` is the core. It receives an `AdapterExecutionContext` and returns an `AdapterExecutionResult`.
+`src/server/execute.ts` is the core. Receives `AdapterExecutionContext`, returns `AdapterExecutionResult`.
 
 Key responsibilities:
 
@@ -84,13 +86,14 @@ Key responsibilities:
 
 ### Available Helpers
 
-| Helper | Source | Purpose |
-|--------|--------|---------|
-| `runChildProcess(cmd, opts)` | `@clayon/adapter-utils/server-utils` | Spawn with timeout, grace, streaming |
-| `buildClayonEnv(agent)` | `@clayon/adapter-utils/server-utils` | Inject `CLAYON_*` env vars |
-| `renderTemplate(tpl, data)` | `@clayon/adapter-utils/server-utils` | `{{variable}}` substitution |
-| `asString(v)` | `@clayon/adapter-utils` | Safe config value extraction |
-| `asNumber(v)` | `@clayon/adapter-utils` | Safe number extraction |
+```text
+[5]{Helper,Source,Purpose}:
+  `runChildProcess(cmd, opts)`,`@clayon/adapter-utils/server-utils`,"Spawn with timeout, grace, streaming"
+  `buildClayonEnv(agent)`,`@clayon/adapter-utils/server-utils`,"Inject `CLAYON_*` env vars"
+  `renderTemplate(tpl, data)`,`@clayon/adapter-utils/server-utils`,"`{{variable}}` substitution"
+  `asString(v)`,`@clayon/adapter-utils`,Safe config value extraction
+  `asNumber(v)`,`@clayon/adapter-utils`,Safe number extraction
+```
 
 ### AdapterExecutionContext
 
@@ -131,11 +134,9 @@ interface AdapterExecutionResult {
 
 Return structured diagnostics:
 
-| Level | Meaning | Effect |
-|-------|---------|--------|
-| `error` | Invalid or unusable setup | Blocks execution |
-| `warn` | Non-blocking issue | Shown with yellow indicator |
-| `info` | Successful check | Shown in test results |
+- **`error`** — Invalid or unusable setup — Blocks execution
+- **`warn`** — Non-blocking issue — Shown with yellow indicator
+- **`info`** — Successful check — Shown in test results
 
 ```ts
 export async function testEnvironment(
@@ -161,7 +162,7 @@ For built-in adapters registered in Clayon's source:
 - `build-config.ts` — converts form values to `adapterConfig` JSON
 - Config fields React component in `ui/src/adapters/<name>/config-fields.tsx`
 
-For external adapters, use a self-contained `ui-parser.ts` instead. See the [UI Parser Contract](/adapters/adapter-ui-parser).
+For external adapters, use a self-contained `ui-parser.ts` instead. See the UI Parser Contract `antl:clayon/docs/adapters/adapter-ui-parser`.
 
 ## Step 5: CLI Module
 
@@ -185,11 +186,11 @@ Add the adapter to all three registries:
 2. `ui/src/adapters/registry.ts`
 3. `cli/src/adapters/registry.ts`
 
-For external adapters, registration is automatic — the plugin loader handles it.
+External adapters: registration is automatic — the plugin loader handles it.
 
 ## Session Persistence
 
-If your agent runtime supports conversation continuity across heartbeats:
+If your runtime supports conversation continuity across heartbeats:
 
 1. Return `sessionParams` from `execute()` (e.g., `{ sessionId: "abc123" }`)
 2. Read `runtime.sessionParams` on the next wake to resume
@@ -205,16 +206,14 @@ export const sessionCodec: AdapterSessionCodec = {
 
 ## Capability Flags
 
-Adapters can declare what "local" capabilities they support by setting optional fields on the `ServerAdapterModule`. The server and UI use these flags to decide which features to enable for agents using the adapter (instructions bundle editor, skills sync, JWT auth, etc.).
+Adapters declare supported "local" capabilities via optional fields on `ServerAdapterModule`. Server and UI use these flags to pick per-agent features (instructions bundle editor, skills sync, JWT auth, etc.).
 
-| Flag | Type | Default | What it controls |
-|------|------|---------|------------------|
-| `supportsLocalAgentJwt` | `boolean` | `false` | Whether heartbeat generates a local JWT for the agent |
-| `supportsInstructionsBundle` | `boolean` | `false` | Managed instructions bundle (AGENTS.md) — server-side resolution + UI editor |
-| `instructionsPathKey` | `string` | `"instructionsFilePath"` | The `adapterConfig` key that holds the instructions file path |
-| `requiresMaterializedRuntimeSkills` | `boolean` | `false` | Whether runtime skill entries must be written to disk before execution |
+- **`supportsLocalAgentJwt`** — `boolean`, default `false` — Whether heartbeat generates a local JWT for the agent
+- **`supportsInstructionsBundle`** — `boolean`, default `false` — Managed instructions bundle (AGENTS.md) — server-side resolution + UI editor
+- **`instructionsPathKey`** — `string`, default `"instructionsFilePath"` — The `adapterConfig` key that holds the instructions file path
+- **`requiresMaterializedRuntimeSkills`** — `boolean`, default `false` — Whether runtime skill entries must be written to disk before execution
 
-These flags are exposed via `GET /api/adapters` in a `capabilities` object, along with a derived `supportsSkills` flag (true when `listSkills` or `syncSkills` is defined).
+Exposed via `GET /api/adapters` in a `capabilities` object, plus a derived `supportsSkills` flag (true when `listSkills` or `syncSkills` is defined).
 
 ### Example
 
@@ -236,9 +235,9 @@ export function createServerAdapter(): ServerAdapterModule {
 }
 ```
 
-With these flags set, the Clayon UI will automatically show the instructions bundle editor, skills management tab, and working directory field for agents using this adapter — no Clayon source changes required.
+With these flags set, the Clayon UI automatically shows the instructions bundle editor, skills management tab, and working directory field for agents using this adapter — no Clayon source changes required.
 
-If capability flags are not set, the server falls back to legacy hardcoded lists for built-in adapter types. External adapters that omit the flags will default to `false` for all capabilities.
+Without capability flags, the server falls back to legacy hardcoded lists for built-in adapter types. External adapters omitting the flags default to `false` for all capabilities.
 
 ## Skills Injection
 
@@ -264,7 +263,7 @@ The invariant adapters must preserve:
 - **Never assume a remote exists.** The local cwd is the source of truth between runs.
 - **Surface restore failures.** A failed sync-back must propagate as a run-level error, not a silent warning. The heartbeat records a `workspace_finalize` row (`succeeded`/`failed`) around `adapter.execute` so dependent issues do not wake on a stale worktree.
 
-The invariant is pinned by the "no-remote-git contract" case in `packages/adapter-utils/src/ssh-fixture.test.ts`: it asserts `git remote` is empty before and after the round-trip and that a remote-only commit still lands locally via restore alone.
+Pinned by the "no-remote-git contract" case in `packages/adapter-utils/src/ssh-fixture.test.ts`: asserts `git remote` is empty before and after the round-trip, and a remote-only commit still lands locally via restore alone.
 
 ## Security
 
@@ -276,6 +275,6 @@ The invariant is pinned by the "no-remote-git contract" case in `packages/adapte
 
 ## Next Steps
 
-- [External Adapters](/adapters/external-adapters) — build a standalone adapter plugin
-- [UI Parser Contract](/adapters/adapter-ui-parser) — ship a custom run-log parser
-- [How Agents Work](/guides/agent-developer/how-agents-work) — the heartbeat lifecycle
+- External Adapters `antl:clayon/docs/adapters/external-adapters` — build a standalone adapter plugin
+- UI Parser Contract `antl:clayon/docs/adapters/adapter-ui-parser` — ship a custom run-log parser
+- How Agents Work `antl:clayon/docs/guides/agent-developer/how-agents-work` — the heartbeat lifecycle

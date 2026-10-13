@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/secrets-remote-import
 title: Secrets Remote Import
 summary: AWS Secrets Manager metadata-only remote import API
 ---

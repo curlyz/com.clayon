@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/adapters/process
 title: Process Adapter
 summary: Generic shell process adapter
 ---
@@ -18,12 +19,10 @@ The `process` adapter executes arbitrary shell commands. Use it for simple scrip
 
 ## Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `command` | string | Yes | Shell command to execute |
-| `cwd` | string | No | Working directory |
-| `env` | object | No | Environment variables |
-| `timeoutSec` | number | No | Process timeout |
+- **`command`** — string, required — Shell command to execute
+- **`cwd`** — string, optional — Working directory
+- **`env`** — object, optional — Environment variables
+- **`timeoutSec`** — number, optional — Process timeout
 
 ## How It Works
 

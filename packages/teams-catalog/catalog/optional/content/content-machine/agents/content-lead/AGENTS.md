@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/agents/packages/teams-catalog/catalog/optional/content/content-machine/agents/content-lead
 name: Content Lead
 slug: content-lead
 title: Content Lead

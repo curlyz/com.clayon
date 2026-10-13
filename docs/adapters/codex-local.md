@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/adapters/codex-local
 title: Codex
 summary: OpenAI Codex local adapter setup and configuration
 ---
 
-The `codex_local` adapter runs OpenAI's Codex CLI locally. It supports session persistence via `previous_response_id` chaining and skills injection through the global Codex skills directory.
+The `codex_local` adapter runs OpenAI's Codex CLI locally. Supports session persistence via `previous_response_id` chaining and skills injection through the global Codex skills directory.
 
 ## Prerequisites
 
@@ -16,20 +17,21 @@ The `codex_local` adapter runs OpenAI's Codex CLI locally. It supports session p
 
 ## Configuration Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `cwd` | string | Yes | Working directory for the agent process (absolute path; created automatically if missing when permissions allow) |
-| `model` | string | No | Model to use |
-| `promptTemplate` | string | No | Prompt used for all runs |
-| `env` | object | No | Environment variables (supports secret refs) |
-| `timeoutSec` | number | No | Process timeout (0 = no timeout) |
-| `graceSec` | number | No | Grace period before force-kill |
-| `fastMode` | boolean | No | Enables Codex Fast mode. Currently supported on `gpt-5.4` only and burns credits faster |
-| `dangerouslyBypassApprovalsAndSandbox` | boolean | No | Skip safety checks (dev only) |
+```text
+[8]{Field,Type,Required,Description}:
+  `cwd`,string,Yes,"Working directory for the agent process (absolute path; created automatically if missing when permissions allow)"
+  `model`,string,No,Model to use
+  `promptTemplate`,string,No,Prompt used for all runs
+  `env`,object,No,"Environment variables (supports secret refs)"
+  `timeoutSec`,number,No,"Process timeout (0 = no timeout)"
+  `graceSec`,number,No,Grace period before force-kill
+  `fastMode`,boolean,No,"Enables Codex Fast mode. Currently supported on `gpt-5.4` only and burns credits faster"
+  `dangerouslyBypassApprovalsAndSandbox`,boolean,No,Skip safety checks (dev only)
+```
 
 ## Session Persistence
 
-Codex uses `previous_response_id` for session continuity. The adapter serializes and restores this across heartbeats, allowing the agent to maintain conversation context.
+Codex uses `previous_response_id` for session continuity. The adapter serializes and restores it across heartbeats, preserving conversation context.
 
 ## Skills Injection
 
@@ -47,13 +49,13 @@ Clayon currently applies that only when the selected model is `gpt-5.4`. On othe
 
 ## Managed `CODEX_HOME`
 
-When Clayon is running inside a managed worktree instance (`CLAYON_IN_WORKTREE=true`), the adapter instead uses a worktree-isolated `CODEX_HOME` under the Clayon instance so Codex skills, sessions, logs, and other runtime state do not leak across checkouts. It seeds that isolated home from the user's main Codex home for shared auth/config continuity.
+Inside a managed worktree instance (`CLAYON_IN_WORKTREE=true`), the adapter uses a worktree-isolated `CODEX_HOME` under the Clayon instance so skills, sessions, logs, and other runtime state do not leak across checkouts. Seeded from the user's main Codex home for shared auth/config continuity.
 
 ### Per-agent isolation and auth seeding
 
 For `codex_local` agents the server isolation guard pins each agent to a per-agent home (`<instance>/companies/<companyId>/agents/<agentId>/codex-home`) and sets `OPENAI_API_KEY=""` so an agent can never spend against the host API key or share another agent's Codex state.
 
-A managed home is created empty, so the adapter must provision auth into it before launching Codex — otherwise the agent runs with zero credentials and the provider returns `401 Missing bearer`. The seeding contract:
+A managed home starts empty, so the adapter must provision auth into it before launching Codex — otherwise the agent runs with zero credentials and the provider returns `401 Missing bearer`. Seeding contract:
 
 - **Managed homes** (the default home and any configured `CODEX_HOME` under the company tree) are always seeded: the ChatGPT-subscription `auth.json` is symlinked from the host Codex home, or, when a per-agent `OPENAI_API_KEY` is configured, an API-key `auth.json` is written instead.
 - **Genuine external overrides** (a `CODEX_HOME` outside the Clayon-managed company tree) are treated as self-managed and are never seeded or overwritten.
@@ -92,12 +94,12 @@ and sets `CODEX_HOME` to the uploaded path. Codex reads the host-owned
 uploaded file, so the sandbox image login does not win.
 
 For high-concurrency sandbox fleets, prefer a per-agent `OPENAI_API_KEY` over a
-shared ChatGPT-subscription login. API-key mode produces a standalone
-`auth.json` for each managed home and avoids many concurrent sandboxes sharing
-one rotating subscription credential. The tradeoff is billing: API-key mode is
+shared ChatGPT-subscription login. API-key mode writes a standalone
+`auth.json` per managed home, avoiding many sandboxes sharing
+one rotating subscription credential. Tradeoff is billing: API-key mode is
 metered per token through the OpenAI API, while ChatGPT-subscription auth uses
-the subscription's flat-plan economics and quota behavior. Pick the mode
-deliberately for the fleet's cost and concurrency profile.
+flat-plan economics and quota behavior. Pick deliberately for the fleet's
+cost and concurrency profile.
 
 ### Deferred config-validation warning spec
 
@@ -138,19 +140,19 @@ a docs-only change.
 
 ## Manual Local CLI
 
-For manual local CLI usage outside heartbeat runs (for example running as `codexcoder` directly), use:
+For manual local CLI usage outside heartbeat runs (e.g. running as `codexcoder` directly):
 
 ```sh
 npx clayon agent local-cli codexcoder --company-id <company-id>
 ```
 
-This installs any missing skills, creates an agent API key, and prints shell exports to run as that agent.
+Installs any missing skills, creates an agent API key, and prints shell exports to run as that agent.
 
 ## Instructions Resolution
 
 If `instructionsFilePath` is configured, Clayon reads that file and prepends it to the stdin prompt sent to `codex exec` on every run.
 
-This is separate from any workspace-level instruction discovery that Codex itself performs in the run `cwd`. Clayon does not disable Codex-native repo instruction files, so a repo-local `AGENTS.md` may still be loaded by Codex in addition to the Clayon-managed agent instructions.
+Separate from Codex's own workspace-level instruction discovery in the run `cwd`. Clayon does not disable Codex-native repo instruction files, so a repo-local `AGENTS.md` may still load in addition to the Clayon-managed agent instructions.
 
 ## Environment Test
 

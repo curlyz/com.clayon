@@ -1,14 +1,12 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/capability-live-runnerd-codex
+---
+
 # Capability live runnerd and Codex loop
 
-> **Reference lab, not the production sandbox topology.** This API remains the
-> runner-lab/session implementation used by UI and recovery tests. Production
-> sandbox execution and live protocol evals use the Rust-owned bridge described
-> in [the runner architecture](architecture.md): external control plane → PRP → one Rust `clayon-runnerd` → provider. The TypeScript dispatcher below does not run in the sandbox.
+> **Reference lab, not the production sandbox topology.** This API remains the runner-lab/session implementation used by UI and recovery tests. Production sandbox execution and live protocol evals use the Rust-owned bridge described in the runner architecture `antl:clayon/packages/clayon-runner/docs/architecture`: external control plane → PRP → one Rust `clayon-runnerd` → provider. The TypeScript dispatcher below does not run in the sandbox.
 
-Capability binds the provider-neutral semantic catalog to a real package-local
-`clayon-runnerd` process and a real Codex app-server session. Clayon data
-remains deterministic mock state behind `ControlPlanePort`; no request reaches
-the Clayon API.
+Capability binds the provider-neutral semantic catalog to a real package-local `clayon-runnerd` process and a real Codex app-server session. Clayon data stays deterministic mock state behind `ControlPlanePort`; no request reaches the Clayon API.
 
 ## Process and authority boundary
 
@@ -19,15 +17,9 @@ CapabilityLiveSession -> clayon-runnerd -> codex app-server
                   -> CapabilitySemanticDispatcher -> ControlPlanePort mock
 ```
 
-`clayon-runnerd` owns the Codex child and proxies newline-delimited JSON-RPC
-over stdio. The transport starts a dedicated Unix process group. Normal close,
-stop/reset cleanup, and fatal protocol errors terminate that group with a
-bounded TERM/KILL sequence so a Codex child is not abandoned.
+`clayon-runnerd` owns the Codex child and proxies newline-delimited JSON-RPC over stdio. The transport starts a dedicated Unix process group. Normal close, stop/reset cleanup, and fatal protocol errors terminate that group with a bounded TERM/KILL sequence so a Codex child is not abandoned.
 
-Only the allowlisted Codex host environment is copied. `CLAYON_*` variables,
-provider credentials other than Codex's server-side home, and credentialed
-proxy URLs are not passed to runnerd or Codex. Model-issued commands still use
-the separate skillless, network-disabled workspace permission profile.
+Only the allowlisted Codex host environment is copied. `CLAYON_*` variables, provider credentials other than Codex's server-side home, and credentialed proxy URLs are not passed to runnerd or Codex. Model-issued commands still use the separate skillless, network-disabled workspace permission profile.
 
 ## Stable session API
 
@@ -61,11 +53,7 @@ const resumed = await new CapabilityLiveSessionService({ store }).resume({
 await resumed.reconcileActiveTurn();
 ```
 
-`resume` first commits the killed attempt as `terminated` and the successor as
-`running`. Only then does it start runnerd, read the checkpointed provider
-thread, and resume that exact thread. A missing or corrupt checkpoint, authority
-binding mismatch, attempt-lineage mismatch, or provider thread/session drift
-fails closed. The killed attempt and its usage remain immutable.
+`resume` first commits the killed attempt as `terminated` and the successor as `running`. Only then does it start runnerd, read the checkpointed provider thread, and resume that exact thread. Missing or corrupt checkpoint, authority binding mismatch, attempt-lineage mismatch, or provider thread/session drift fails closed. The killed attempt and its usage stay immutable.
 
 The handoff surface for later tracks is:
 
@@ -89,34 +77,22 @@ The handoff surface for later tracks is:
   `reset` also deletes the old snapshot and restores the original clean mock
   seed under new run/session authority.
 
-`DurableCapabilityLiveSessionStore` writes a checksummed, revisioned checkpoint
-with atomic rename plus file and directory fsync. It persists provider identity,
-mock state and semantic idempotency receipts, attempt lineage, active and
-terminal turn facts, and the usage ledger. The included in-memory store remains
-limited to tests and single-process consumers.
+`DurableCapabilityLiveSessionStore` writes a checksummed, revisioned checkpoint with atomic rename plus file and directory fsync. It persists provider identity, mock state and semantic idempotency receipts, attempt lineage, active and terminal turn facts, and the usage ledger. The included in-memory store stays limited to tests and single-process consumers.
 
-Every snapshot includes bounded transcript/evidence, serialized mock state,
-semantic authorization records, runner/Codex PIDs and exit state, and explicit
-network evidence. Tool calls are admitted only when their thread and turn match
-the active Codex turn. Their typed `CapabilitySemanticToolResult` is serialized into
-the app-server response, allowing Codex to use the resulting state revision in
-its next response.
+Every snapshot includes bounded transcript/evidence, serialized mock state, semantic authorization records, runner/Codex PIDs and exit state, and explicit network evidence. Tool calls are admitted only when their thread and turn match the active Codex turn. Their typed `CapabilitySemanticToolResult` is serialized into the app-server response, letting Codex use the resulting state revision in its next response.
 
 ## Verification
 
-Run the deterministic contract suite:
+Deterministic contract suite:
 
 ```sh
 pnpm --filter @clayon/clayon-runner test:scenarios
 ```
 
-Run a real runnerd and Codex app-server smoke:
+Real runnerd and Codex app-server smoke:
 
 ```sh
 pnpm --filter @clayon/clayon-runner trace:live-runner -- --json
 ```
 
-The smoke requires an authenticated local Codex installation. It checks a real
-semantic tool mutation, typed-result response, same-thread second turn, process
-ownership/cleanup, cleared authority, and zero Clayon network/child-env
-exposure.
+The smoke requires an authenticated local Codex installation. It checks a real semantic tool mutation, typed-result response, same-thread second turn, process ownership/cleanup, cleared authority, and zero Clayon network/child-env exposure.

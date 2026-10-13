@@ -1,22 +1,26 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/end-to-end
+---
+
 # Native Runner Cumulative End-to-End Tutorial
 
 ## What this tutorial is
 
-This tutorial combines each implemented Native Runner phase into one procedure.
-It currently includes Conformance through the Standalone Clayon adapter tracer.
+Combines each implemented Native Runner phase into one procedure.
+Currently includes Conformance through the Standalone Clayon adapter tracer.
 
 ## What this tutorial proves
 
-This tutorial proves that the standalone package boundary, static replay path,
+The standalone package boundary, static replay path,
 local live-run path, durable transport, and direct Codex driver work
-together. It does not use the Clayon control plane. Codex uses a real
+together. No Clayon control plane. Codex uses a real
 local Codex session through the mock core.
 
-The current system includes the Rust mock-core tracer, shared protocol fixtures,
-the Rust supervisor, a scripted fake harness, CLI live runs, and browser live and
-replay modes. It also includes the Rust outbound WebSocket client and durable
+Current system: Rust mock-core tracer, shared protocol fixtures,
+Rust supervisor, scripted fake harness, CLI live runs, browser live and
+replay modes, the Rust outbound WebSocket client and durable
 outbox.
-The final phase adds a skillless task envelope, direct app-server driver,
+Final phase adds a skillless task envelope, direct app-server driver,
 semantic completion tools, and the same reducer/replay proof used by fixtures.
 SDK freezes that browser transport and reducer projection as public SDK
 subpaths, then proves them with a reference console and a second consumer.
@@ -25,30 +29,30 @@ flag while preserving server-owned workspace, governance, and status authority.
 
 ## Current end-to-end path
 
-1. Follow [Conformance: Run the Standalone Tracer](conformance-standalone-tracer.md).
+1. Follow Conformance: Run the Standalone Tracer `antl:clayon/packages/clayon-runner/docs/tutorials/conformance-standalone-tracer`.
 2. Confirm the final JSON contains `run_conformance_0001`,
    `session_conformance_0001`, and `succeeded`.
 3. Confirm the cross-language parity check passes.
 4. Confirm the shell prompt returns and no Clayon service was started.
-5. Follow [Replay: Validate and Replay a PRP Fixture](replay.md).
+5. Follow Replay: Validate and Replay a PRP Fixture `antl:clayon/packages/clayon-runner/docs/tutorials/replay`.
 6. Compare the happy-path CLI snapshot with the browser page and exercise the
    duplicate, gap, unknown-field, and unsupported-version fixtures.
-7. Follow [Local runner: Run the Local Runner and Fake Harness](local-runner.md).
+7. Follow Local runner: Run the Local Runner and Fake Harness `antl:clayon/packages/clayon-runner/docs/tutorials/local-runner`.
 8. Run the happy, permission/input, interruption, error, and duplicate-terminal scenarios.
 9. Open the browser live mode and confirm the completed run says `Match` for live and replay output.
-10. Follow [Codex: Run the Skillless Codex Driver](codex.md).
+10. Follow Codex: Run the Skillless Codex Driver `antl:clayon/packages/clayon-runner/docs/tutorials/codex`.
 11. Inspect the exact model-context snapshot and confirm that it has no
     Clayon instructions, bearer credentials, or unrelated skills.
 12. Run the safe task, then steer and interrupt separate sessions. Confirm
     stable session identities and exactly one result and terminal event.
-13. Follow [Live console: Run the Protocol Demo Server](live-console-protocol-server.md).
+13. Follow Live console: Run the Protocol Demo Server `antl:clayon/packages/clayon-runner/docs/tutorials/live-console-protocol-server`.
 14. Confirm requests stay pending for a typed browser decision, stale steering
     is rejected, and reconnect keeps the same run and session identities.
-15. Follow [SDK: Run the SDK Console and Mini Consumer](sdk-console.md).
+15. Follow SDK: Run the SDK Console and Mini Consumer `antl:clayon/packages/clayon-runner/docs/tutorials/sdk-console`.
 16. Run the fake lifecycle in both consumers, then confirm the mini consumer
     reaches `Replay parity: match` after reconnect and replay.
 17. Run the safe real-Codex browser smoke.
-18. Follow [Standalone: Run the Thin Clayon Adapter](standalone-thin-clayon-adapter.md).
+18. Follow Standalone: Run the Thin Clayon Adapter `antl:clayon/packages/clayon-runner/docs/tutorials/standalone-thin-clayon-adapter`.
 19. Run the unchanged port conformance suite against mock and database-backed
     Clayon ports, then inspect one local feature-flagged task.
 20. Disable the flag and confirm a fresh task selects legacy while persisted
@@ -151,7 +155,7 @@ pnpm --filter @clayon/clayon-runner console:live-console
 ```
 
 Open `http://127.0.0.1:4180/` and press **Live console**. Work through the
-[Live console tutorial](live-console.md) to reach every
+Live console tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/live-console` to reach every
 state above from the eleven deterministic demo chats. Add
 `CLAYON_LIVE_CONSOLE_DRIVER=codex` to run the identical screens against a real
 Codex session.
@@ -164,5 +168,5 @@ pnpm --filter @clayon/clayon-runner console:sdk
 
 Open `http://127.0.0.1:4181/reference-console/` and
 `http://127.0.0.1:4181/mini-consumer/`. Follow the
-[SDK tutorial](sdk-console.md) for the deterministic lifecycle,
+SDK tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/sdk-console` for the deterministic lifecycle,
 real-Codex smoke, keyboard checks, and package acceptance command.

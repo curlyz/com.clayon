@@ -1,3 +1,7 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/design/standalone-thin-clayon-adapter
+---
+
 # Standalone Thin Clayon Adapter Boundary
 
 > **Scope correction — 2026-08-09:** The board superseded real Clayon
@@ -163,15 +167,16 @@ the result row and coordinator `result_id` commit.
 
 The rest of the finalization storage uses the exact Section 18.7 field sets:
 
-| Durable record | Exact fields added/used |
-|---|---|
-| `completion_contracts` | `id`, `company_id`, `issue_id`, `revision`, `schema_version`, `policy_version`, `risk`, `completion_authority`, `incomplete_criteria_policy`, `contract_json`, `canonical_sha256`, `created_by_actor_type`, `created_by_actor_id`, `created_at`, `supersedes_contract_id` |
-| `native_run_results` | `id`, `company_id`, `issue_id`, `run_id`, `turn_id`, `completion_contract_id`, `caller_result_id`, `caller_dedupe_key`, `server_fingerprint`, `schema_status`, `rejection_code`, `result_json`, `canonical_sha256`, `created_at` |
-| `native_run_finalizations` | `run_id`, `company_id`, `issue_id`, `phase`, `attempt`, `lease_owner`, `lease_expires_at`, `result_id`, `assessment_id`, `decision_id`, `failure_code`, `failure_detail`, `next_attempt_at`, `created_at`, `updated_at` |
-| `work_assessments` | `id`, `company_id`, `issue_id`, `run_id`, `turn_id`, `contract_id`, `result_id`, `trigger_kind`, `trigger_ref`, `trigger_capability`, `trigger_actor_company_id`, `prior_issue_status`, `prior_status_version`, `prior_decision_id`, `policy_version`, `assessment_json`, `input_digest`, `supersedes_assessment_id`, `created_at` |
-| `status_decisions` | `id`, `company_id`, `issue_id`, `assessment_id`, `decision_version`, `policy_version`, `from_status`, `to_status`, `reason_code`, `decision_json`, `decision_digest`, `application_state`, `supersedes_decision_id`, `applied_at`, `created_at` |
-| `status_decision_effects` | `id`, `company_id`, `issue_id`, `decision_id`, `ordinal`, `effect_kind`, `target_type`, `target_id`, `idempotency_key`, `payload`, `delivery_state`, `attempt_count`, `next_attempt_at`, `last_error`, `delivered_at`, `created_at`, `updated_at` |
-| `issues` | new `status_version bigint not null default 0` and `last_status_decision_id uuid null`; existing status/liveness/lock fields remain projections |
+```text
+[7]{Durable record,Exact fields added/used}:
+  `completion_contracts`,"`id`, `company_id`, `issue_id`, `revision`, `schema_version`, `policy_version`, `risk`, `completion_authority`, `incomplete_criteria_policy`, `contract_json`, `canonical_sha256`, `created_by_actor_type`, `created_by_actor_id`, `created_at`, `supersedes_contract_id`"
+  `native_run_results`,"`id`, `company_id`, `issue_id`, `run_id`, `turn_id`, `completion_contract_id`, `caller_result_id`, `caller_dedupe_key`, `server_fingerprint`, `schema_status`, `rejection_code`, `result_json`, `canonical_sha256`, `created_at`"
+  `native_run_finalizations`,"`run_id`, `company_id`, `issue_id`, `phase`, `attempt`, `lease_owner`, `lease_expires_at`, `result_id`, `assessment_id`, `decision_id`, `failure_code`, `failure_detail`, `next_attempt_at`, `created_at`, `updated_at`"
+  `work_assessments`,"`id`, `company_id`, `issue_id`, `run_id`, `turn_id`, `contract_id`, `result_id`, `trigger_kind`, `trigger_ref`, `trigger_capability`, `trigger_actor_company_id`, `prior_issue_status`, `prior_status_version`, `prior_decision_id`, `policy_version`, `assessment_json`, `input_digest`, `supersedes_assessment_id`, `created_at`"
+  `status_decisions`,"`id`, `company_id`, `issue_id`, `assessment_id`, `decision_version`, `policy_version`, `from_status`, `to_status`, `reason_code`, `decision_json`, `decision_digest`, `application_state`, `supersedes_decision_id`, `applied_at`, `created_at`"
+  `status_decision_effects`,"`id`, `company_id`, `issue_id`, `decision_id`, `ordinal`, `effect_kind`, `target_type`, `target_id`, `idempotency_key`, `payload`, `delivery_state`, `attempt_count`, `next_attempt_at`, `last_error`, `delivered_at`, `created_at`, `updated_at`"
+  `issues`,new `status_version bigint not null default 0` and `last_status_decision_id uuid null`; existing status/liveness/lock fields remain projections
+```
 
 Their unique keys, company foreign keys, immutable/supersession rules, and
 effect-ledger semantics are unchanged from Section 18.7. `heartbeat_runs` also
@@ -336,15 +341,16 @@ server-owned values; that transport is not part of this issue.
 
 Threats and required responses:
 
-| Threat | Required response |
-|---|---|
-| Event names another company/run/session | Generic rejection, no lookup disclosure, no write |
-| Same source ID or sequence with different bytes | `native_event_replay_conflict`; fail native run closed |
-| Caller supplies status, approval, or policy outcome | Preserve as untrusted payload at most; never apply |
-| Event/result contains a known credential | Redact before diagnostics and reject persistence of the unsafe payload |
-| Legacy context or raw env reaches native constructor | Validation/test failure before provider invocation |
-| Native port or event store is unavailable | Do not acknowledge; runner keeps its durable outbox; fail/recover without legacy fallback |
-| Flag is disabled after a run started | Finish/cancel the persisted native mode; never splice legacy execution into it |
+```text
+[7]{Threat,Required response}:
+  Event names another company/run/session,"Generic rejection, no lookup disclosure, no write"
+  Same source ID or sequence with different bytes,`native_event_replay_conflict`; fail native run closed
+  "Caller supplies status, approval, or policy outcome",Preserve as untrusted payload at most; never apply
+  Event/result contains a known credential,Redact before diagnostics and reject persistence of the unsafe payload
+  Legacy context or raw env reaches native constructor,Validation/test failure before provider invocation
+  Native port or event store is unavailable,"Do not acknowledge; runner keeps its durable outbox; fail/recover without legacy fallback"
+  Flag is disabled after a run started,"Finish/cancel the persisted native mode; never splice legacy execution into it"
+```
 
 ## Governance and status authority
 
@@ -389,22 +395,23 @@ superseding assessment instead of overwriting organizational authority.
 
 ## Existing lifecycle mapping
 
-| Clayon concern | Standalone mapping | Owner |
-|---|---|---|
-| Checkout and issue execution lock | Unchanged; resolved before native selection | Existing issue/heartbeat services |
-| Budget and pause gate | Unchanged pre-dispatch check | Existing budget/invokability services |
-| Workspace preparation | Unchanged; native receives the realized cwd/target only | Environment/workspace orchestrators |
-| Session execution | `NativeSessionBackend` through package-owned runtime loop | Runner package |
-| Event validation/reducer semantics | Accepted PRP schemas and reducer | Runner package |
-| Event commit/ACK/replay | Bound `ControlPlanePort` implementation | Thin server adapter |
-| Cancellation | Existing cancel route invokes a registered native cancel handle, then existing terminal cleanup | Heartbeat + package session |
-| Workspace finalization | Existing `workspace_finalize` barrier after native execute returns | Heartbeat/workspace services |
-| Run terminal state | Validated discriminator after workspace finalization, coordinated with native finalization | Thin adapter + native finalizer |
-| Issue status | Section 18 assessment, arbitration, CAS, and atomic liveness effects | Native finalizer + existing issue/governance services |
-| Approvals/interactions | Typed native bridge materializes through existing services; unsupported/forged requests fail closed and cannot self-approve | Native interaction bridge + existing governance services |
-| Usage/cost/session state | Converted to existing `AdapterExecutionResult` fields | Existing heartbeat finalizer |
-| Audit/live events | Existing activity and heartbeat event publication | Existing services |
-| Lease/runtime/scratch release | Existing `finally` path | Existing heartbeat/environment services |
+```text
+[14]{Clayon concern,Standalone mapping,Owner}:
+  Checkout and issue execution lock,"Unchanged; resolved before native selection",Existing issue/heartbeat services
+  Budget and pause gate,Unchanged pre-dispatch check,Existing budget/invokability services
+  Workspace preparation,"Unchanged; native receives the realized cwd/target only",Environment/workspace orchestrators
+  Session execution,`NativeSessionBackend` through package-owned runtime loop,Runner package
+  Event validation/reducer semantics,Accepted PRP schemas and reducer,Runner package
+  Event commit/ACK/replay,Bound `ControlPlanePort` implementation,Thin server adapter
+  Cancellation,"Existing cancel route invokes a registered native cancel handle, then existing terminal cleanup",Heartbeat + package session
+  Workspace finalization,Existing `workspace_finalize` barrier after native execute returns,Heartbeat/workspace services
+  Run terminal state,"Validated discriminator after workspace finalization, coordinated with native finalization",Thin adapter + native finalizer
+  Issue status,"Section 18 assessment, arbitration, CAS, and atomic liveness effects",Native finalizer + existing issue/governance services
+  Approvals/interactions,"Typed native bridge materializes through existing services; unsupported/forged requests fail closed and cannot self-approve",Native interaction bridge + existing governance services
+  Usage/cost/session state,Converted to existing `AdapterExecutionResult` fields,Existing heartbeat finalizer
+  Audit/live events,Existing activity and heartbeat event publication,Existing services
+  Lease/runtime/scratch release,Existing `finally` path,"Existing heartbeat/environment services"
+```
 
 ### Cancellation seam
 
@@ -530,40 +537,41 @@ Required shared cases:
 
 ## Test matrix
 
-| ID | Concern | Mock | Real Clayon | Legacy assertion |
-|---|---|---:|---:|---|
-| P6-01 | Default flag off | — | yes | `adapter.execute` called exactly once; no native rows |
-| P6-02 | Per-agent opt-in absent | — | yes | Same as current path |
-| P6-03 | Eligible native selection | yes | yes | Legacy adapter not called |
-| P6-04 | Persisted mode survives flag change | yes | yes | No mid-run mode switch |
-| P6-05 | Kill switch before dispatch | — | yes | New run uses legacy once |
-| P6-06 | Workspace cwd/branch/identity | yes | yes | Same realized workspace and finalize barrier |
-| P6-07 | Workspace finalize failure | yes | yes | Failed run; result preserved; issue unchanged |
-| P6-08 | Budget blocked before dispatch | — | yes | Neither native nor legacy provider starts |
-| P6-09 | Budget hard stop during native run | yes | yes | One cancel, normal lease/resource cleanup |
-| P6-10 | Manual/agent-pause cancellation | yes | yes | Idempotent native cancel and terminal race guard |
-| P6-11 | PRP append/ACK/replay | yes | yes | Legacy event rows unchanged |
-| P6-12 | Duplicate replay | yes | yes | One semantic event, stable cursor |
-| P6-13 | Conflicting replay | yes | yes | Native fails closed; no legacy fallback |
-| P6-14 | Cross-company/run/agent forgery | — | yes | Generic denial, zero rows, no disclosure |
-| P6-15 | Typed input/credential isolation | yes | yes | JWT, API key, MCP credentials, wake/skills, raw env/context canaries absent from package and model |
-| P6-16 | Durable mode/result recovery | yes | yes | Restart/flag-off/process-loss resumes persisted native result and coordinator |
-| P6-17 | Canonical allocator concurrency | yes | yes | Lifecycle/cancel/native/log writers produce unique `(run_id, seq)` and stable replay |
-| P6-18 | Migration/backfill | — | yes | Legacy duplicate repair, `next_event_seq`, bigint, uniqueness, and null native fields proven |
-| P6-19 | Terminal result idempotency/conflict | yes | yes | One canonical result/finalization; changed bytes fail closed |
-| P6-20 | Reported `done` with satisfied contract | yes | yes | Claim stored; server assessment/arbiter/committer applies authoritative `done` once |
-| P6-21 | Incomplete/rejected evidence | yes | yes | Arbiter preserves or creates a valid blocker/review/continuation path; never trusts prose |
-| P6-22 | Governance/status forgery | yes | yes | Caller status/policy/approval fields rejected; zero authoritative effects |
-| P6-23 | Native interaction bridge | yes | yes | Durable materialization/typed response, no invalid issue status or credential exposure |
-| P6-24 | Board/cancel/dependency race | yes | yes | `status_version` CAS and superseding assessment; no reopen/duplicate effect |
-| P6-25 | Missing/invalid native finalization | yes | yes | Native run fails with named recovery; no legacy heuristic |
-| P6-26 | Workspace finalization ordering | yes | yes | Workspace success precedes assessment; failure prevents `done` and preserves claim |
-| P6-27 | Non-terminal liveness effects | yes | yes | Reviewer/blocker/continuation/recovery entity commits atomically with status |
-| P6-28 | Kill switch during arbitration | yes | yes | Existing native coordinator finishes/reconciles; new run selects legacy |
-| P6-29 | Cost/usage/session projection | yes | yes | Existing field meanings unchanged |
-| P6-30 | Activity/live/effect ledger | — | yes | Selection/result/decision/effects/cancel audited and published once |
-| P6-31 | Section 18.13 corpus | yes | yes | Every SD/TC/ATT/LIVE/REC/COMP/MIG fixture emits a joinable consumer result |
-| P6-32 | Full legacy targeted regression | — | yes | Byte-equivalent result/events/UI-read snapshot; zero native history rows |
+```text
+[32]{ID,Concern,Mock,Real Clayon,Legacy assertion}:
+  P6-01,Default flag off,—,yes,`adapter.execute` called exactly once; no native rows
+  P6-02,Per-agent opt-in absent,—,yes,Same as current path
+  P6-03,Eligible native selection,yes,yes,Legacy adapter not called
+  P6-04,Persisted mode survives flag change,yes,yes,No mid-run mode switch
+  P6-05,Kill switch before dispatch,—,yes,New run uses legacy once
+  P6-06,Workspace cwd/branch/identity,yes,yes,Same realized workspace and finalize barrier
+  P6-07,Workspace finalize failure,yes,yes,"Failed run; result preserved; issue unchanged"
+  P6-08,Budget blocked before dispatch,—,yes,Neither native nor legacy provider starts
+  P6-09,Budget hard stop during native run,yes,yes,"One cancel, normal lease/resource cleanup"
+  P6-10,Manual/agent-pause cancellation,yes,yes,Idempotent native cancel and terminal race guard
+  P6-11,PRP append/ACK/replay,yes,yes,Legacy event rows unchanged
+  P6-12,Duplicate replay,yes,yes,"One semantic event, stable cursor"
+  P6-13,Conflicting replay,yes,yes,"Native fails closed; no legacy fallback"
+  P6-14,Cross-company/run/agent forgery,—,yes,"Generic denial, zero rows, no disclosure"
+  P6-15,Typed input/credential isolation,yes,yes,"JWT, API key, MCP credentials, wake/skills, raw env/context canaries absent from package and model"
+  P6-16,Durable mode/result recovery,yes,yes,Restart/flag-off/process-loss resumes persisted native result and coordinator
+  P6-17,Canonical allocator concurrency,yes,yes,"Lifecycle/cancel/native/log writers produce unique `(run_id, seq)` and stable replay"
+  P6-18,Migration/backfill,—,yes,"Legacy duplicate repair, `next_event_seq`, bigint, uniqueness, and null native fields proven"
+  P6-19,Terminal result idempotency/conflict,yes,yes,"One canonical result/finalization; changed bytes fail closed"
+  P6-20,Reported `done` with satisfied contract,yes,yes,"Claim stored; server assessment/arbiter/committer applies authoritative `done` once"
+  P6-21,Incomplete/rejected evidence,yes,yes,"Arbiter preserves or creates a valid blocker/review/continuation path; never trusts prose"
+  P6-22,Governance/status forgery,yes,yes,"Caller status/policy/approval fields rejected; zero authoritative effects"
+  P6-23,Native interaction bridge,yes,yes,"Durable materialization/typed response, no invalid issue status or credential exposure"
+  P6-24,Board/cancel/dependency race,yes,yes,"`status_version` CAS and superseding assessment; no reopen/duplicate effect"
+  P6-25,Missing/invalid native finalization,yes,yes,"Native run fails with named recovery; no legacy heuristic"
+  P6-26,Workspace finalization ordering,yes,yes,"Workspace success precedes assessment; failure prevents `done` and preserves claim"
+  P6-27,Non-terminal liveness effects,yes,yes,Reviewer/blocker/continuation/recovery entity commits atomically with status
+  P6-28,Kill switch during arbitration,yes,yes,"Existing native coordinator finishes/reconciles; new run selects legacy"
+  P6-29,Cost/usage/session projection,yes,yes,Existing field meanings unchanged
+  P6-30,Activity/live/effect ledger,—,yes,Selection/result/decision/effects/cancel audited and published once
+  P6-31,Section 18.13 corpus,yes,yes,Every SD/TC/ATT/LIVE/REC/COMP/MIG fixture emits a joinable consumer result
+  P6-32,Full legacy targeted regression,—,yes,"Byte-equivalent result/events/UI-read snapshot; zero native history rows"
+```
 
 ## Exact implementation sequence
 
@@ -1108,7 +1116,7 @@ host path.
 ## Tutorial outline
 
 The implementation fills in the package-local
-[Standalone tutorial](../tutorials/standalone-thin-clayon-adapter.md) with:
+Standalone tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/standalone-thin-clayon-adapter` with:
 
 1. prerequisites and an isolated local instance;
 2. mock conformance first;

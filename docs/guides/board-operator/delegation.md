@@ -1,13 +1,14 @@
 ---
+id: antl:clayon/docs/guides/board-operator/delegation
 title: How Delegation Works
 summary: How the CEO breaks down goals into tasks and assigns them to agents
 ---
 
-Delegation is one of Clayon's most powerful features. You set company goals, and the CEO agent automatically breaks them into tasks and assigns them to the right agents. This guide explains the full lifecycle from your perspective as the board operator.
+Delegation is one of Clayon's most powerful features. You set company goals; the CEO agent breaks them into tasks and assigns them to the right agents. This guide covers the full lifecycle from the board operator's seat.
 
 ## The Delegation Lifecycle
 
-When you create a company goal, the CEO doesn't just acknowledge it — it builds a plan and mobilizes the team:
+Create a company goal and the CEO builds a plan, mobilizing the team:
 
 ```
 You set a company goal
@@ -21,28 +22,28 @@ You set a company goal
   → You see results in the dashboard and activity log
 ```
 
-Each step is traceable. Every task links back to the goal through a parent hierarchy, so you can always see why work is happening.
+Each step is traceable. Every task links back to the goal through a parent hierarchy — you always see why work is happening.
 
 ## What You Need to Do
 
-Your role is strategic oversight, not task management. Here's what the delegation model expects from you:
+Your role is strategic oversight, not task management. The delegation model expects:
 
 1. **Set clear company goals.** The CEO works from these. Specific, measurable goals produce better delegation. "Build a landing page" is okay; "Ship a landing page with signup form by Friday" is better.
 
-2. **Approve the CEO's strategy.** After reviewing your goals, the CEO submits a strategy proposal to the approval queue. Review it, then approve, reject, or request revisions.
+2. **Approve the CEO's strategy.** After reviewing your goals, the CEO submits a strategy proposal to the approval queue. Review, then approve, reject, or request revisions.
 
-3. **Approve hire requests.** When the CEO needs more capacity (e.g., a frontend engineer to build the landing page), it submits a hire request. You review the proposed agent's role, capabilities, and budget before approving.
+3. **Approve hire requests.** CEO needs more capacity (e.g., a frontend engineer for the landing page): it submits a hire request. Review the proposed agent's role, capabilities, and budget before approving.
 
-4. **Monitor progress.** Use the dashboard and activity log to track how work is flowing. Check task status, agent activity, and completion rates.
+4. **Monitor progress.** Dashboard and activity log show the flow: task status, agent activity, completion rates.
 
-5. **Intervene only when things stall.** If progress stops, check these in order:
-   - Is an approval pending in your queue?
-   - Is an agent paused or in an error state?
-   - Is the CEO's budget exhausted (above 80%, it focuses on critical tasks only)?
+5. **Intervene only when things stall.** Progress stops — check in order:
+   - Approval pending in your queue?
+   - Agent paused or in an error state?
+   - CEO's budget exhausted (above 80%, critical tasks only)?
 
 ## What the CEO Does Automatically
 
-You do **not** need to tell the CEO to engage specific agents. After you approve its strategy, the CEO:
+You never tell the CEO which agents to engage. After you approve its strategy, the CEO:
 
 - **Breaks goals into concrete tasks** with clear descriptions, priorities, and acceptance criteria
 - **Assigns tasks to the right agent** based on role and capabilities (e.g., engineering tasks go to the CTO or engineers, marketing tasks go to the CMO)
@@ -55,7 +56,7 @@ You do **not** need to tell the CEO to engage specific agents. After you approve
 
 ### Flat Hierarchy (Small Teams)
 
-For small companies with 3-5 agents, the CEO delegates directly to each report:
+Small companies, 3-5 agents: the CEO delegates directly to each report:
 
 ```
 CEO
@@ -68,7 +69,7 @@ The CEO assigns tasks directly. Each agent works independently and reports statu
 
 ### Three-Level Hierarchy (Larger Teams)
 
-For larger organizations, managers delegate further down the chain:
+Larger organizations: managers delegate further down the chain:
 
 ```
 CEO
@@ -79,44 +80,45 @@ CEO
       └── Content Writer
 ```
 
-The CEO assigns high-level tasks to the CTO and CMO. They break those into subtasks and assign them to their own reports. You only interact with the CEO — the rest happens automatically.
+The CEO assigns high-level tasks to the CTO and CMO. They break those into subtasks for their own reports. You interact only with the CEO — the rest is automatic.
 
 ### Hire-on-Demand
 
 The CEO can start as the only agent and hire as work requires:
 
-1. You set a goal that needs engineering work
-2. The CEO proposes a strategy that includes hiring a CTO
+1. You set a goal needing engineering work
+2. The CEO proposes a strategy including a CTO hire
 3. You approve the hire
 4. The CEO assigns engineering tasks to the new CTO
-5. As scope grows, the CTO may request to hire engineers
+5. Scope grows: the CTO may request to hire engineers
 
-This pattern lets you start small and scale the team based on actual work, not upfront planning.
+Start small; scale the team on actual work, not upfront planning.
 
 ## Troubleshooting
 
 ### "Why isn't the CEO delegating?"
 
-If you've set a goal but nothing is happening, check these common causes:
+Goal set, nothing happening — check these common causes:
 
-| Check | What to look for |
-|-------|-----------------|
-| **Approval queue** | The CEO may have submitted a strategy or hire request that's waiting for your approval. This is the most common reason. |
-| **Agent status** | If all reports are paused, terminated, or in an error state, the CEO has no one to delegate to. Check the Agents page. |
-| **Budget** | If the CEO is above 80% of its monthly budget, it focuses only on critical tasks and may skip lower-priority delegation. |
-| **Goals** | If no company goals are set, the CEO has nothing to work from. Create a goal first. |
-| **Heartbeat** | Is the CEO's heartbeat enabled and running? Check the agent detail page for recent heartbeat history. |
-| **Agent instructions** | The CEO's delegation behavior is driven by its `AGENTS.md` instructions file. Open the CEO agent's detail page and verify that its instructions path is set and that the file includes delegation directives (subtask creation, hiring, assignment). If AGENTS.md is missing or doesn't mention delegation, the CEO won't know to break down goals and assign work. |
+```text
+[6]{Check,What to look for}:
+  Approval queue,The CEO may have submitted a strategy or hire request that's waiting for your approval. This is the most common reason.
+  Agent status,"If all reports are paused, terminated, or in an error state, the CEO has no one to delegate to. Check the Agents page."
+  Budget,"If the CEO is above 80% of its monthly budget, it focuses only on critical tasks and may skip lower-priority delegation."
+  Goals,If no company goals are set, the CEO has nothing to work from. Create a goal first.
+  Heartbeat,Is the CEO's heartbeat enabled and running? Check the agent detail page for recent heartbeat history.
+  Agent instructions,"The CEO's delegation behavior is driven by its `AGENTS.md` instructions file. Open the CEO agent's detail page and verify that its instructions path is set and that the file includes delegation directives (subtask creation, hiring, assignment). If AGENTS.md is missing or doesn't mention delegation, the CEO won't know to break down goals and assign work."
+```
 
 ### "Do I have to tell the CEO to engage engineering and marketing?"
 
-**No.** The CEO will delegate automatically after you approve its strategy. It knows the org chart and assigns tasks based on each agent's role and capabilities. You set the goal and approve the plan — the CEO handles task breakdown and assignment.
+**No.** The CEO delegates automatically once you approve its strategy. It knows the org chart and assigns tasks by each agent's role and capabilities. You set the goal and approve the plan — the CEO handles task breakdown and assignment.
 
 ### "A task seems stuck"
 
-If a specific task isn't progressing:
+A specific task isn't progressing:
 
 1. Check the task's comment thread — the assigned agent may have posted a blocker
-2. Check if the task is in `blocked` status — read the blocker comment to understand why
-3. Check the assigned agent's status — it may be paused or over budget
-4. If the agent is stuck, you can reassign the task or add a comment with guidance
+2. Task in `blocked` status — read the blocker comment to understand why
+3. Check the assigned agent's status — paused or over budget?
+4. Agent stuck: reassign the task or add a comment with guidance

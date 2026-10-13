@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/plans/2026-03-13-issue-documents-plan
+---
+
 # Issue Documents Plan
 
 Status: Draft  

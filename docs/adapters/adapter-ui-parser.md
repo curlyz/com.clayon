@@ -1,13 +1,14 @@
 ---
+id: antl:clayon/docs/adapters/adapter-ui-parser
 title: Adapter UI Parser Contract
 summary: Ship a custom run-log parser so the Clayon UI renders your adapter's output correctly
 ---
 
-When Clayon runs an agent, stdout is streamed to the UI in real time. The UI needs a **parser** to convert raw stdout lines into structured transcript entries (tool calls, tool results, assistant messages, system events). Without a custom parser, the UI falls back to a generic shell parser that treats every non-system line as `assistant` output — tool commands leak as plain text, durations are lost, and errors are invisible.
+When Clayon runs an agent, stdout streams to the UI in real time. The UI needs a **parser** to convert raw stdout lines into structured transcript entries (tool calls, tool results, assistant messages, system events). Without a custom parser, the UI falls back to a generic shell parser treating every non-system line as `assistant` output — tool commands leak as plain text, durations are lost, errors invisible.
 
 ## The Problem
 
-Most agent CLIs emit structured stdout with tool calls, progress indicators, and multi-line output. For example:
+Most agent CLIs emit structured stdout: tool calls, progress indicators, multi-line output. Example:
 
 ```
 [hermes] Session resumed: abc123
@@ -22,7 +23,7 @@ The project is a CLI tool. Here's what I found:
 - Tests are in /tests
 ```
 
-Without a parser, the UI shows all of this as raw `assistant` text — the tool calls and results are indistinguishable from the agent's actual response.
+Without a parser, the UI shows this as raw `assistant` text — tool calls and results indistinguishable from the agent's actual response.
 
 With a parser, the UI renders:
 
@@ -52,10 +53,10 @@ With a parser, the UI renders:
 └──────────────────┘                     └──────────────────┘
 ```
 
-1. **Build time** — You compile `src/ui-parser.ts` to `dist/ui-parser.js` (zero runtime imports)
-2. **Server startup** — Plugin loader reads the file and caches it in memory
-3. **UI load** — When the user opens a run, the UI fetches the parser from `GET /api/:type/ui-parser.js`
-4. **Runtime** — The fetched module is eval'd and registered. All subsequent lines use the real parser
+1. **Build time** — compile `src/ui-parser.ts` to `dist/ui-parser.js` (zero runtime imports)
+2. **Server startup** — plugin loader reads the file, caches it in memory
+3. **UI load** — user opens a run, UI fetches the parser from `GET /api/:type/ui-parser.js`
+4. **Runtime** — fetched module eval'd and registered. All subsequent lines use the real parser
 
 ## Contract: package.json
 
@@ -69,7 +70,7 @@ With a parser, the UI renders:
 }
 ```
 
-The Clayon host checks this field. If the major version is unsupported, the host logs a warning and falls back to the generic parser instead of executing potentially incompatible code.
+The Clayon host checks this field. Unsupported major version: host logs a warning and falls back to the generic parser instead of executing potentially incompatible code.
 
 | Host expects | Adapter declares | Result |
 |---|---|---|
@@ -107,7 +108,7 @@ export function parseStdoutLine(line: string, ts: string): TranscriptEntry[] {
 
 ### `createStdoutParser(): { parseLine(line, ts): TranscriptEntry[]; reset(): void }`
 
-Stateful parser factory. Preferred if your parser needs to track multi-line continuation, command nesting, or other cross-call state.
+Stateful parser factory. Preferred when your parser tracks multi-line continuation, command nesting, or other cross-call state.
 
 ```ts
 let counter = 0;
@@ -151,7 +152,7 @@ If both are exported, `createStdoutParser` takes priority.
 
 ## Contract: TranscriptEntry
 
-Each entry must match one of these discriminated union shapes:
+Each entry matches one of these discriminated union shapes:
 
 ```ts
 // Assistant message
@@ -181,7 +182,7 @@ Each entry must match one of these discriminated union shapes:
 
 ### Linking tool calls to results
 
-Use `toolUseId` to pair `tool_call` and `tool_result` entries. The UI renders them as collapsible cards.
+`toolUseId` pairs `tool_call` and `tool_result` entries. The UI renders them as collapsible cards.
 
 ```ts
 const id = `my-tool-${++counter}`;
@@ -193,7 +194,7 @@ return [
 
 ### Error handling
 
-Set `isError: true` on tool results to show a red indicator:
+`isError: true` on tool results shows a red indicator:
 
 ```ts
 { kind: "tool_result", ts, toolUseId: id, content: "ENOENT: no such file", isError: true }
@@ -201,38 +202,40 @@ Set `isError: true` on tool results to show a red indicator:
 
 ## Constraints
 
-1. **Zero runtime imports.** Your file is loaded via `URL.createObjectURL` + dynamic `import()` in the browser. No `import`, no `require`, no top-level `await`.
+1. **Zero runtime imports.** File loaded via `URL.createObjectURL` + dynamic `import()` in the browser. No `import`, no `require`, no top-level `await`.
 
-2. **No DOM / Node.js APIs.** Runs in a browser sandbox. Use only vanilla JS (ES2020+).
+2. **No DOM / Node.js APIs.** Browser sandbox. Vanilla JS only (ES2020+).
 
 3. **No side effects.** Module-level code must not modify globals, access `window`, or perform I/O. Only declare and export functions.
 
-4. **Deterministic.** Given the same `(line, ts)` input, the same output must be produced. This matters for log replay.
+4. **Deterministic.** Same `(line, ts)` input must produce the same output. Matters for log replay.
 
-5. **Error-tolerant.** Never throw. Return `[{ kind: "stdout", ts, text: line }]` for any line you can't parse, rather than crashing the transcript.
+5. **Error-tolerant.** Never throw. Return `[{ kind: "stdout", ts, text: line }]` for unparseable lines rather than crashing the transcript.
 
-6. **File size.** Keep under 50 KB. This is served per-request and eval'd in the browser.
+6. **File size.** Under 50 KB. Served per-request and eval'd in the browser.
 
 ## Lifecycle
 
-| Event | What happens |
-|---|---|
-| Server starts | Plugin loader reads `exports["./ui-parser"]`, reads the file, caches in memory |
-| UI opens run | `getUIAdapter(type)` called. If no built-in parser, kicks off async `fetch(/api/:type/ui-parser.js)` |
-| First lines arrive | Generic process parser handles them immediately (no blocking). Dynamic parser loads in background |
-| Parser loads | `registerUIAdapter()` called. All subsequent line parsing uses the real parser |
-| Parser fails (404, eval error) | Warning logged to console. Generic parser continues. Failed type is cached — no retries |
-| Server restart | In-memory cache is repopulated from adapter packages |
+```text
+[6]{Event,What happens}:
+  Server starts,"Plugin loader reads `exports[\"./ui-parser\"]`, reads the file, caches in memory"
+  UI opens run,"`getUIAdapter(type)` called. If no built-in parser, kicks off async `fetch(/api/:type/ui-parser.js)`"
+  First lines arrive,"Generic process parser handles them immediately (no blocking). Dynamic parser loads in background"
+  Parser loads,`registerUIAdapter()` called. All subsequent line parsing uses the real parser
+  "Parser fails (404, eval error)","Warning logged to console. Generic parser continues. Failed type is cached — no retries"
+  Server restart,In-memory cache is repopulated from adapter packages
+```
 
 ## Error Behavior
 
-| Failure | What happens |
-|---|---|
-| Module syntax error (import fails) | Caught, logged, falls back to generic parser. No retries. |
-| Returns wrong shape | Individual entries with missing fields are silently ignored by the transcript builder. |
-| Throws at runtime | Caught per-line. That line falls back to generic. Parser stays registered for future lines. |
-| 404 (no ui-parser export) | Type added to failed-loads set. Generic parser from first call onward. |
-| Contract version mismatch | Server logs warning, skips loading. Generic parser used. |
+```text
+[5]{Failure,What happens}:
+  Module syntax error (import fails),"Caught, logged, falls back to generic parser. No retries."
+  Returns wrong shape,Individual entries with missing fields are silently ignored by the transcript builder.
+  Throws at runtime,Caught per-line. That line falls back to generic. Parser stays registered for future lines.
+  404 (no ui-parser export),Type added to failed-loads set. Generic parser from first call onward.
+  Contract version mismatch,"Server logs warning, skips loading. Generic parser used."
+```
 
 ## Building
 
@@ -241,11 +244,11 @@ Set `isError: true` on tool results to show a red indicator:
 tsc src/ui-parser.ts --outDir dist --target ES2020 --module ES2020 --declaration false
 ```
 
-Your `tsconfig.json` can handle this automatically — just make sure `ui-parser.ts` is included in the build and outputs to `dist/ui-parser.js`.
+`tsconfig.json` can handle this automatically — include `ui-parser.ts` in the build, output to `dist/ui-parser.js`.
 
 ## Testing
 
-Test your parser locally by running it against sample stdout:
+Test your parser locally against sample stdout:
 
 ```ts
 // test-parser.ts
@@ -273,15 +276,15 @@ Run with: `npx tsx test-parser.ts`
 
 ## Skipping the UI Parser
 
-If your adapter's stdout is simple (no tool markers, no special formatting), you can skip the UI parser entirely. The generic `process` parser will handle it — every non-system line becomes `assistant` output. This is fine for:
+Simple stdout (no tool markers, no special formatting): skip the UI parser entirely. The generic `process` parser handles it — every non-system line becomes `assistant` output. Fine for:
 
 - Agents that output plain text responses
 - Custom scripts that just print results
 - Simple CLIs without structured output
 
-To skip it, simply don't include `exports["./ui-parser"]` in your `package.json`.
+To skip it, don't include `exports["./ui-parser"]` in your `package.json`.
 
 ## Next Steps
 
-- [External Adapters](/adapters/external-adapters) — full guide to building adapter packages
-- [Creating an Adapter](/adapters/creating-an-adapter) — adapter internals and built-in integration
+- External Adapters `antl:clayon/docs/adapters/external-adapters` — full guide to building adapter packages
+- Creating an Adapter `antl:clayon/docs/adapters/creating-an-adapter` — adapter internals and built-in integration

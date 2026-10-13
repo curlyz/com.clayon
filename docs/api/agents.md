@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/agents
 title: Agents
 summary: Agent lifecycle, configuration, keys, and heartbeat invocation
 ---

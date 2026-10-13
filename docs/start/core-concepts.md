@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/start/core-concepts
 title: Core Concepts
 summary: Companies, agents, issues, delegation, heartbeats, and governance
 ---
@@ -59,7 +60,7 @@ The CEO is the primary delegator. When you set company goals, the CEO:
 3. Assigns tasks to agents based on their role and capabilities
 4. Hires new agents when needed, with hire approvals available when you enable them
 
-You don't need to manually assign every task — set the goals and let the CEO organize the work. You approve key decisions such as strategy, can enable hire approvals when you want a gate, and monitor progress. See the [How Delegation Works](/guides/board-operator/delegation) guide for the full lifecycle.
+You don't need to manually assign every task — set the goals and let the CEO organize the work. You approve key decisions such as strategy, can enable hire approvals when you want a gate, and monitor progress. See the How Delegation Works `antl:clayon/docs/guides/board-operator/delegation` guide for the full lifecycle.
 
 ## Heartbeats
 

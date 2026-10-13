@@ -1,21 +1,26 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/capability-verification-commands
+---
+
 # Capability Verification Commands
 
 Every command here runs from the repository root, is offline and deterministic,
 starts no Clayon service, and holds no credential. All are prefixed
 `pnpm --filter @clayon/clayon-runner`.
 
-| Surface | Command | Expected result |
-| --- | --- | --- |
-| Capability contract completeness and drift | `check:capability-inventory` | `Capability inventory completeness and generated-output checks passed.` |
-| Contract validator negatives | `test:capability-inventory` | 4 tests pass |
-| Mock control plane + shared port | `exec vitest run src/conformance/control-plane-port.test.ts src/mock-core/capability-mock-control-plane-adapter.test.ts` | 9 tests pass |
-| Semantic tools + authorization/redaction | `exec vitest run src/tools/capability-semantic-tools.test.ts` | 9 tests pass |
-| 106-case conformance | `test:capability-evals` | 1 file (all 106 cases) passes |
-| Fake-agent matrix + bounded Codex + parity report | `report:capability-evals` | `Capability eval conformance passed: 106 cases across 16 groups.` |
-| Scenario runtime + explorer + clean room + routes | `test:scenarios` | 159 tests pass |
-| Browser IA, accessibility, determinism, boundary | `test:browser:scenarios` | Playwright suites pass (60 in the issue-thread/clean-room suite) |
-| Screenshot acceptance set | deferred recorded-evidence campaign | 24 deterministic images |
-| Documentation links | `docs:validate` | all local links resolve |
+```text
+[10]{Surface,Command,Expected result}:
+  Capability contract completeness and drift,`check:capability-inventory`,`Capability inventory completeness and generated-output checks passed.`
+  Contract validator negatives,`test:capability-inventory`,4 tests pass
+  Mock control plane + shared port,`exec vitest run src/conformance/control-plane-port.test.ts src/mock-core/capability-mock-control-plane-adapter.test.ts`,9 tests pass
+  Semantic tools + authorization/redaction,`exec vitest run src/tools/capability-semantic-tools.test.ts`,9 tests pass
+  106-case conformance,`test:capability-evals`,1 file (all 106 cases) passes
+  Fake-agent matrix + bounded Codex + parity report,`report:capability-evals`,`Capability eval conformance passed: 106 cases across 16 groups.`
+  Scenario runtime + explorer + clean room + routes,`test:scenarios`,159 tests pass
+  "Browser IA, accessibility, determinism, boundary",`test:browser:scenarios`,Playwright suites pass (60 in the issue-thread/clean-room suite)
+  Screenshot acceptance set,deferred recorded-evidence campaign,24 deterministic images
+  Documentation links,`docs:validate`,all local links resolve
+```
 
 ## Live commands (not offline)
 
@@ -44,7 +49,7 @@ commands that start a provider.
 
 ## Related
 
-- [Clean-start tutorial](tutorials/capability-scenario-explorer.md)
-- [Eval conformance](capability-eval-conformance.md)
-- [Scenario explorer](capability-scenario-explorer.md)
-- [Clean-room live chat](capability-clean-room-chat.md)
+- Clean-start tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/capability-scenario-explorer`
+- Eval conformance `antl:clayon/packages/clayon-runner/docs/capability-eval-conformance`
+- Scenario explorer `antl:clayon/packages/clayon-runner/docs/capability-scenario-explorer`
+- Clean-room live chat `antl:clayon/packages/clayon-runner/docs/capability-clean-room-chat`

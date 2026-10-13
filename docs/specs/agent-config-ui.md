@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/specs/agent-config-ui
+---
+
 # Agent Configuration & Activity UI
 
 ## Current implementation (2026-09-07)
@@ -36,72 +40,68 @@ Follows the existing `NewIssueDialog` / `NewProjectDialog` pattern: a `Dialog` c
 
 **Identity (always visible):**
 
-| Field | Control | Required | Default | Notes |
-|-------|---------|----------|---------|-------|
-| Name | Text input (large, auto-focused) | Yes | -- | e.g. "Alice", "Build Bot" |
-| Title | Text input (subtitle style) | No | -- | e.g. "VP of Engineering" |
-| Role | Chip popover (select) | No | `general` | Values from `AGENT_ROLES`: ceo, cto, cmo, cfo, engineer, designer, pm, qa, devops, researcher, general |
-| Reports To | Chip popover (agent select) | No | -- | Dropdown of existing agents in the company. If this is the first agent, auto-set role to `ceo` and gray out Reports To. Otherwise required unless role is `ceo`. |
-| Capabilities | Text input | No | -- | Free-text description of what this agent can do |
+```text
+[5]{Field,Control,Required,Default,Notes}:
+  Name,"Text input (large, auto-focused)",Yes,--,"e.g. \"Alice\", \"Build Bot\""
+  Title,Text input (subtitle style),No,--,"e.g. \"VP of Engineering\""
+  Role,"Chip popover (select)",No,`general`,"Values from `AGENT_ROLES`: ceo, cto, cmo, cfo, engineer, designer, pm, qa, devops, researcher, general"
+  Reports To,"Chip popover (agent select)",No,--,"Dropdown of existing agents in the company. If this is the first agent, auto-set role to `ceo` and gray out Reports To. Otherwise required unless role is `ceo`."
+  Capabilities,Text input,No,--,Free-text description of what this agent can do
+```
 
 **Adapter (collapsible section, default open):**
 
-| Field | Control | Default | Notes |
-|-------|---------|---------|-------|
-| Adapter Type | Chip popover (select) | `claude_local` | `claude_local`, `codex_local`, `process`, `http` |
-| Test environment | Button | -- | Runs adapter-specific diagnostics and returns pass/warn/fail checks for current unsaved config |
-| CWD | Text input | -- | Working directory for local adapters |
-| Prompt Template | Textarea | -- | Supports `{{ agent.id }}`, `{{ agent.name }}` etc. |
-| Model | Text input | -- | Optional model override |
+```text
+[5]{Field,Control,Default,Notes}:
+  Adapter Type,"Chip popover (select)",`claude_local`,"`claude_local`, `codex_local`, `process`, `http`"
+  Test environment,Button,--,"Runs adapter-specific diagnostics and returns pass/warn/fail checks for current unsaved config"
+  CWD,Text input,--,Working directory for local adapters
+  Prompt Template,Textarea,--,"Supports `{{ agent.id }}`, `{{ agent.name }}` etc."
+  Model,Text input,--,Optional model override
+```
 
 **Adapter-specific fields (shown/hidden based on adapter type):**
 
 *claude_local:*
-| Field | Control | Default |
-|-------|---------|---------|
-| Max Turns Per Run | Number input | 80 |
-| Skip Permissions | Toggle | true |
+- **Max Turns Per Run** — Number input — 80
+- **Skip Permissions** — Toggle — true
 
 *codex_local:*
-| Field | Control | Default |
-|-------|---------|---------|
-| Search | Toggle | false |
-| Bypass Sandbox | Toggle | true |
+- **Search** — Toggle — false
+- **Bypass Sandbox** — Toggle — true
 
 *process:*
-| Field | Control | Default |
-|-------|---------|---------|
-| Command | Text input | -- |
-| Args | Text input (comma-separated) | -- |
+- **Command** — Text input — --
+- **Args** — Text input (comma-separated) — --
 
 *http:*
-| Field | Control | Default |
-|-------|---------|---------|
-| URL | Text input | -- |
-| Method | Select | POST |
-| Headers | Key-value pairs | -- |
+- **URL** — Text input — --
+- **Method** — Select — POST
+- **Headers** — Key-value pairs — --
 
 **Runtime (collapsible section, default collapsed):**
 
-| Field | Control | Default |
-|-------|---------|---------|
-| Context Mode | Chip popover | `thin` |
-| Monthly Budget (cents) | Number input | 0 |
-| Timeout (sec) | Number input | 900 |
-| Grace Period (sec) | Number input | 15 |
-| Extra Args | Text input | -- |
-| Env Vars | Key-value pair editor | -- |
+```text
+[6]{Field,Control,Default}:
+  Context Mode,Chip popover,`thin`
+  "Monthly Budget (cents)",Number input,0
+  "Timeout (sec)",Number input,900
+  "Grace Period (sec)",Number input,15
+  Extra Args,Text input,--
+  Env Vars,Key-value pair editor,--
+```
 
 **Heartbeat Policy (collapsible section, default collapsed):**
 
-| Field | Control | Default |
-|-------|---------|---------|
-| Enabled | Toggle | true |
-| Interval (sec) | Number input | 300 |
-| Wake on Assignment | Toggle | true |
-| Wake on On-Demand | Toggle | true |
-| Wake on Automation | Toggle | true |
-| Cooldown (sec) | Number input | 10 |
+```text
+[6]{Field,Control,Default}:
+  Enabled,Toggle,true
+  "Interval (sec)",Number input,300
+  Wake on Assignment,Toggle,true
+  Wake on On-Demand,Toggle,true
+  Wake on Automation,Toggle,true
+  "Cooldown (sec)",Number input,10
+```
 
 ### Behavior
 
@@ -246,18 +246,19 @@ Shows a flat list of agents with status badge, name, role, title, and budget bar
 
 New components needed:
 
-| Component | Purpose |
-|-----------|---------|
-| `NewAgentDialog` | Agent creation form dialog |
-| `AgentConfigForm` | Shared form sections for create + edit (adapter, heartbeat, runtime) |
-| `AdapterConfigFields` | Conditional fields based on adapter type |
-| `HeartbeatPolicyFields` | Heartbeat configuration fields |
-| `EnvVarEditor` | Key-value pair editor for environment variables |
-| `RunListItem` | Single run row in the runs list |
-| `RunDetail` | Expanded run detail with log viewer |
-| `LogViewer` | Streaming log viewer with auto-scroll |
-| `OrgChart` | Tree visualization of agent hierarchy |
-| `AgentSelect` | Reusable agent picker (for Reports To, etc.) |
+```text
+[10]{Component,Purpose}:
+  `NewAgentDialog`,Agent creation form dialog
+  `AgentConfigForm`,"Shared form sections for create + edit (adapter, heartbeat, runtime)"
+  `AdapterConfigFields`,Conditional fields based on adapter type
+  `HeartbeatPolicyFields`,Heartbeat configuration fields
+  `EnvVarEditor`,Key-value pair editor for environment variables
+  `RunListItem`,Single run row in the runs list
+  `RunDetail`,Expanded run detail with log viewer
+  `LogViewer`,"Streaming log viewer with auto-scroll"
+  `OrgChart`,Tree visualization of agent hierarchy
+  `AgentSelect`,"Reusable agent picker (for Reports To, etc.)"
+```
 
 Reused existing components:
 - `StatusBadge`, `EntityRow`, `EmptyState`, `PropertyRow`
@@ -269,21 +270,22 @@ Reused existing components:
 
 All endpoints already exist. No new server work needed for V1.
 
-| Action | Endpoint | Used by |
-|--------|----------|---------|
-| List agents | `GET /companies/:id/agents` | List page |
-| Get org tree | `GET /companies/:id/org` | Org chart view |
-| Create agent | `POST /companies/:id/agents` | Creation dialog |
-| Update agent | `PATCH /agents/:id` | Configuration tab |
-| Pause/Resume/Terminate | `POST /agents/:id/{action}` | Header actions |
-| Reset session | `POST /agents/:id/runtime-state/reset-session` | Overflow menu |
-| Create API key | `POST /agents/:id/keys` | Overflow menu |
-| Get runtime state | `GET /agents/:id/runtime-state` | Overview tab, properties panel |
-| Invoke/Wakeup | `POST /agents/:id/heartbeat/invoke` | Header invoke button |
-| List runs | `GET /companies/:id/heartbeat-runs?agentId=X` | Runs tab |
-| Cancel run | `POST /heartbeat-runs/:id/cancel` | Run detail |
-| Run events | `GET /heartbeat-runs/:id/events` | Log viewer |
-| Run log | `GET /heartbeat-runs/:id/log` | Full log view |
+```text
+[13]{Action,Endpoint,Used by}:
+  List agents,`GET /companies/:id/agents`,List page
+  Get org tree,`GET /companies/:id/org`,Org chart view
+  Create agent,`POST /companies/:id/agents`,Creation dialog
+  Update agent,`PATCH /agents/:id`,Configuration tab
+  Pause/Resume/Terminate,`POST /agents/:id/{action}`,Header actions
+  Reset session,`POST /agents/:id/runtime-state/reset-session`,Overflow menu
+  Create API key,`POST /agents/:id/keys`,Overflow menu
+  Get runtime state,`GET /agents/:id/runtime-state`,"Overview tab, properties panel"
+  Invoke/Wakeup,`POST /agents/:id/heartbeat/invoke`,Header invoke button
+  List runs,`GET /companies/:id/heartbeat-runs?agentId=X`,Runs tab
+  Cancel run,`POST /heartbeat-runs/:id/cancel`,Run detail
+  Run events,`GET /heartbeat-runs/:id/events`,Log viewer
+  Run log,`GET /heartbeat-runs/:id/log`,Full log view
+```
 
 ---
 

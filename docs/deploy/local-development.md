@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/deploy/local-development
 title: Local Development
 summary: Set up Clayon for local development
 ---
@@ -26,7 +27,7 @@ No Docker or external database required. Clayon uses embedded PostgreSQL automat
 
 ## One-Command Bootstrap
 
-For a first-time install:
+First-time install:
 
 ```sh
 pnpm clayon run
@@ -67,7 +68,7 @@ Allow additional private hostnames:
 npx clayon allowed-hostname dotta-macbook-pro
 ```
 
-For full setup and troubleshooting, see [Tailscale Private Access](/deploy/tailscale-private-access).
+For full setup and troubleshooting, see Tailscale Private Access `antl:clayon/docs/deploy/tailscale-private-access`.
 
 ## Health Checks
 
@@ -81,7 +82,7 @@ curl http://localhost:3100/api/companies
 
 ## Safe Worktree Bootstrap for Local Agent Runs
 
-For safer parallel local experiments, initialize a dedicated worktree instance instead of reusing your main checkout:
+For safer parallel local experiments, initialize a dedicated worktree instance instead of reusing the main checkout:
 
 ```sh
 npx clayon worktree:make local-lab --seed-mode minimal
@@ -117,13 +118,14 @@ pnpm dev
 
 ## Data Locations
 
-| Data | Path |
-|------|------|
-| Config | `~/.clayon/instances/default/config.json` |
-| Database | `~/.clayon/instances/default/db` |
-| Storage | `~/.clayon/instances/default/data/storage` |
-| Secrets key | `~/.clayon/instances/default/secrets/master.key` |
-| Logs | `~/.clayon/instances/default/logs` |
+```text
+[5]{Data,Path}:
+  Config,`~/.clayon/instances/default/config.json`
+  Database,`~/.clayon/instances/default/db`
+  Storage,`~/.clayon/instances/default/data/storage`
+  Secrets key,`~/.clayon/instances/default/secrets/master.key`
+  Logs,`~/.clayon/instances/default/logs`
+```
 
 Override with environment variables:
 

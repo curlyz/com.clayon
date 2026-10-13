@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/dashboard
 title: Dashboard
 summary: Dashboard metrics endpoint
 ---

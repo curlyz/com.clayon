@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/agents/packages/teams-catalog/catalog/bundled/software-development/product-engineering/agents/senior-coder
 name: Senior Coder
 slug: senior-coder
 title: Senior Software Engineer

@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/specs/external-task-protocol
+---
+
 # Clayon External Task Protocol Specification
 
 Status: Draft v1 (provider-agnostic)
@@ -154,18 +158,19 @@ operator-visible observability.
 This protocol deliberately defers to Symphony's semantics wherever Symphony solves the same
 problem, and maps them onto existing host primitives:
 
-| Symphony concept | This protocol |
-| --- | --- |
-| Tracker client + normalized issue | Task Source Adapter + `ExternalTask` (Section 5) |
-| Active / terminal states | Connector state mapping (Section 7.2) |
-| Claim | Clayon issue checkout + execution lock (Section 9.2) |
-| Running map / live session | Heartbeat runs + issue liveness state (Section 9.3) |
-| Retry queued | Host retry/recovery + scheduled wakes (Section 9.3) |
-| Released | Issue terminal/review/blocked, or external task no longer active (Section 9.3) |
-| Per-issue workspace | Execution workspace / worktree (Section 9.4) |
-| `WORKFLOW.md` | Workflow policy document (Section 9.5) |
-| Tracker writes via agent tools, not orchestrator | Outbound Write Engine + connector tools (Section 10.1) |
-| Status surface | Issue/run/connector health UI (Section 12) |
+```text
+[10]{Symphony concept,This protocol}:
+  Tracker client + normalized issue,Task Source Adapter + `ExternalTask` (Section 5)
+  Active / terminal states,Connector state mapping (Section 7.2)
+  Claim,Clayon issue checkout + execution lock (Section 9.2)
+  Running map / live session,Heartbeat runs + issue liveness state (Section 9.3)
+  Retry queued,Host retry/recovery + scheduled wakes (Section 9.3)
+  Released,"Issue terminal/review/blocked, or external task no longer active (Section 9.3)"
+  Per-issue workspace,Execution workspace / worktree (Section 9.4)
+  `WORKFLOW.md`,Workflow policy document (Section 9.5)
+  "Tracker writes via agent tools, not orchestrator",Outbound Write Engine + connector tools (Section 10.1)
+  Status surface,Issue/run/connector health UI (Section 12)
+```
 
 Where Symphony is intentionally narrow — single repository, coding agents only, one tracker, no
 multi-tenant control plane — this protocol extends it with company scoping, multi-agent routing,
@@ -798,15 +803,16 @@ Every outbound write MUST be:
 
 Per link (with connector-instance defaults):
 
-| Toggle | Default | Meaning |
-| --- | --- | --- |
-| `postBacklink` | on | Clayon URL on the external task (field or pinned comment). |
-| `postProgressComments` | on | Concise milestone comments: claimed, plan ready, PR opened, review requested, done. |
-| `postArtifactLinks` | on | PR/work-product/document links when produced. |
-| `mirrorAgentComments` | off | Full Clayon comment thread mirrored externally. |
-| `postTranscripts` | off | Run logs/transcripts externally. SHOULD remain off; transcripts may contain sensitive context. |
-| `projectStatus` | on | Status projection per Section 10.3. |
-| `mirrorExternalComments` | on (import side) | External comments imported per Section 7.3. |
+```text
+[7]{Toggle,Default,Meaning}:
+  `postBacklink`,on,Clayon URL on the external task (field or pinned comment).
+  `postProgressComments`,on,"Concise milestone comments: claimed, plan ready, PR opened, review requested, done."
+  `postArtifactLinks`,on,PR/work-product/document links when produced.
+  `mirrorAgentComments`,off,Full Clayon comment thread mirrored externally.
+  `postTranscripts`,off,Run logs/transcripts externally. SHOULD remain off; transcripts may contain sensitive context.
+  `projectStatus`,on,Status projection per Section 10.3.
+  `mirrorExternalComments`,on (import side),External comments imported per Section 7.3.
+```
 
 Progress comments MUST be concise and milestone-based, not per-heartbeat chatter. Connectors
 SHOULD batch/debounce outbound comments (RECOMMENDED minimum interval 5 minutes per link except
@@ -1168,27 +1174,28 @@ constraints. Profiles are informative; the normative contract is Sections 4–14
 
 ## Appendix B. Symphony Spec Crosswalk
 
-| Symphony SPEC.md section | This document |
-| --- | --- |
-| 1 Problem Statement | 1 |
-| 2 Goals / Non-Goals | 2 |
-| 3 System Overview | 3 |
-| 4 Core Domain Model (Issue, Run Attempt, Retry Entry, Runtime State) | 4 (`ExternalTask`, `TaskLink`, host run state via 9.3) |
-| 5 Workflow Specification (`WORKFLOW.md`) | 9.5 (layered workflow policy) |
-| 6 Configuration Specification | connector instance configuration (3.4, 5.2, 7.2, 10.2) |
-| 7 Orchestration State Machine | 6.1 (link), 9.3 (claim/run/retry/release on host primitives) |
-| 8 Polling, Scheduling, Reconciliation | 7.1, 9.1, 15.4 |
-| 9 Workspace Management and Safety | 9.4 (host execution workspaces) |
-| 10 Agent Runner Protocol | host heartbeat runtime (out of scope here; see 9.1 boundary) |
-| 11 Issue Tracker Integration Contract | 5 (Task Source Adapter contract) |
-| 11.5 Tracker Writes boundary | 10.1 |
-| 12 Prompt Construction | 9.5.1 (task packet rendering) |
-| 13 Logging, Status, Observability | 12 |
-| 14 Failure Model and Recovery | 13 |
-| 15 Security and Operational Safety | 14 |
-| 16 Reference Algorithms | 15 |
-| 17–18 Test Matrix / Implementation Checklist | 16 |
-| Appendix A SSH Worker | not applicable (host owns execution substrate) |
+```text
+[19]{Symphony SPEC.md section,This document}:
+  1 Problem Statement,1
+  2 Goals / Non-Goals,2
+  3 System Overview,3
+  "4 Core Domain Model (Issue, Run Attempt, Retry Entry, Runtime State)","4 (`ExternalTask`, `TaskLink`, host run state via 9.3)"
+  "5 Workflow Specification (`WORKFLOW.md`)","9.5 (layered workflow policy)"
+  6 Configuration Specification,"connector instance configuration (3.4, 5.2, 7.2, 10.2)"
+  7 Orchestration State Machine,"6.1 (link), 9.3 (claim/run/retry/release on host primitives)"
+  "8 Polling, Scheduling, Reconciliation","7.1, 9.1, 15.4"
+  9 Workspace Management and Safety,"9.4 (host execution workspaces)"
+  10 Agent Runner Protocol,"host heartbeat runtime (out of scope here; see 9.1 boundary)"
+  11 Issue Tracker Integration Contract,"5 (Task Source Adapter contract)"
+  11.5 Tracker Writes boundary,10.1
+  12 Prompt Construction,"9.5.1 (task packet rendering)"
+  "13 Logging, Status, Observability",12
+  14 Failure Model and Recovery,13
+  15 Security and Operational Safety,14
+  16 Reference Algorithms,15
+  17–18 Test Matrix / Implementation Checklist,16
+  Appendix A SSH Worker,"not applicable (host owns execution substrate)"
+```
 
 Differences are deliberate: Symphony assumes one tracker, one repo, and coding agents only, with
 the orchestrator as a standalone daemon. This protocol assumes a multi-tenant control plane that

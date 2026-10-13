@@ -1,9 +1,13 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/standalone-thin-clayon-adapter
+---
+
 # Standalone Standalone Adapter Demo
 
-This tutorial exercises the Standalone tracer entirely inside
-`packages/clayon-runner/`. It does not install the runner into Clayon,
-call a Clayon API, change an instance flag, edit an agent profile, create a
-Clayon task, or use the repository server/database integration.
+Exercises the Standalone tracer entirely inside
+`packages/clayon-runner/`. No runner install into Clayon,
+no Clayon API call, no instance flag change, no agent profile edit, no
+Clayon task, no repository server/database integration.
 
 ## 1. Run the default legacy path
 
@@ -13,7 +17,7 @@ From the repository root:
 pnpm --filter @clayon/clayon-runner trace:standalone
 ```
 
-The JSON trace must report:
+JSON trace must report:
 
 - `resolvedMode: "legacy"`;
 - `resolutionReason: "feature_flag_disabled"`;
@@ -27,9 +31,9 @@ The JSON trace must report:
 pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
 ```
 
-The trace must report `resolvedMode: "native"`. Both paths execute the same
+Trace must report `resolvedMode: "native"`. Both paths execute the same
 public `ControlPlanePort` conformance suite and reduce the same canonical PRP
-events. The adapter label and invocation counters make the selected path
+events. Adapter label and invocation counters make the selected path
 inspectable.
 
 ## 3. Prove the kill switch
@@ -38,8 +42,8 @@ inspectable.
 pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
 ```
 
-The trace must return to `resolvedMode: "legacy"` with
-`resolutionReason: "kill_switch_enabled"`. No native adapter invocation is
+Trace must return to `resolvedMode: "legacy"` with
+`resolutionReason: "kill_switch_enabled"`. No native adapter invocation
 allowed after the kill switch resolves the path.
 
 ## 4. Open the standalone demo page
@@ -48,10 +52,10 @@ allowed after the kill switch resolves the path.
 pnpm --filter @clayon/clayon-runner demo:standalone
 ```
 
-Open `http://127.0.0.1:4182/standalone-demo/`. The page starts on the legacy
-path. Toggle the native demo flag, inspect contract/reducer/finalization state,
-then enable the kill switch and confirm the page returns to legacy. Expand the
-trace JSON to inspect replay and idempotency details.
+Open `http://127.0.0.1:4182/standalone-demo/`. Page starts on legacy.
+Toggle the native demo flag, inspect contract/reducer/finalization state,
+then enable the kill switch and confirm the page returns to legacy. Expand
+trace JSON for replay and idempotency details.
 
 ## 5. Run the package-local checks
 
@@ -62,7 +66,7 @@ pnpm --filter @clayon/clayon-runner exec vitest run \
 pnpm --filter @clayon/clayon-runner run build:standalone
 ```
 
-These checks require no running Clayon service or credentials.
+Checks need no running Clayon service or credentials.
 
 ## Human checkpoint
 

@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/routines
 title: Routines
 summary: Recurring task scheduling, triggers, and run history
 ---
@@ -49,18 +50,19 @@ POST /api/companies/{companyId}/routines
 
 Fields:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `title` | yes | Routine name |
-| `description` | no | Human-readable description of the routine |
-| `assigneeAgentId` | yes | Agent who receives each run |
-| `projectId` | yes | Project this routine belongs to |
-| `goalId` | no | Goal to link runs to |
-| `parentIssueId` | no | Parent issue for created run issues |
-| `priority` | no | `critical`, `high`, `medium` (default), `low` |
-| `status` | no | `active` (default), `paused`, `archived` |
-| `concurrencyPolicy` | no | Behaviour when a run fires while a previous one is still active |
-| `catchUpPolicy` | no | Behaviour for missed scheduled runs |
+```text
+[10]{Field,Required,Description}:
+  `title`,yes,Routine name
+  `description`,no,"Human-readable description of the routine"
+  `assigneeAgentId`,yes,Agent who receives each run
+  `projectId`,yes,Project this routine belongs to
+  `goalId`,no,Goal to link runs to
+  `parentIssueId`,no,Parent issue for created run issues
+  `priority`,no,"`critical`, `high`, `medium` (default), `low`"
+  `status`,no,"`active` (default), `paused`, `archived`"
+  `concurrencyPolicy`,no,Behaviour when a run fires while a previous one is still active
+  `catchUpPolicy`,no,Behaviour for missed scheduled runs
+```
 
 **Concurrency policies:**
 
@@ -139,7 +141,7 @@ Creating a webhook returns `trigger` and one-time `secretMaterial` containing
 `webhookUrl` and `webhookSecret`. Save the secret before closing the dialog.
 Routine details retain the URL; rotate the secret if its value is lost.
 
-**API** — fires only when called explicitly via [Manual Run](#manual-run):
+**API** — fires only when called explicitly via Manual Run:
 
 ```
 {
@@ -199,12 +201,10 @@ Fires a webhook trigger from an external system without a Clayon login. Send
 `Content-Type: application/json` and a JSON object. The trigger authenticates the
 request using its own secret; an agent or board API key is not a substitute.
 
-| Mode | Headers and signature |
-|------|-----------------------|
-| `bearer` | `Authorization: Bearer <webhookSecret>` |
-| `hmac_sha256` | `X-Clayon-Timestamp` (Unix seconds or milliseconds) and `X-Clayon-Signature: sha256=<hex>`; HMAC-SHA256 over the timestamp string, a dot, and the exact body bytes |
-| `github_hmac` | `X-Hub-Signature-256: sha256=<hex>`; HMAC-SHA256 over the exact body bytes, without a timestamp. `X-Clayon-Signature` is also accepted. Configure GitHub to send JSON. |
-| `none` | No signature. Anyone with the generated URL can fire the trigger; keep it private. |
+- **`bearer`** — `Authorization: Bearer <webhookSecret>`
+- **`hmac_sha256`** — `X-Clayon-Timestamp` (Unix seconds or milliseconds) and `X-Clayon-Signature: sha256=<hex>`; HMAC-SHA256 over the timestamp string, a dot, and the exact body bytes
+- **`github_hmac`** — `X-Hub-Signature-256: sha256=<hex>`; HMAC-SHA256 over the exact body bytes, without a timestamp. `X-Clayon-Signature` is also accepted. Configure GitHub to send JSON.
+- **`none`** — No signature. Anyone with the generated URL can fire the trigger; keep it private.
 
 For a bearer trigger:
 
@@ -270,15 +270,16 @@ Returns recent run history for the routine. Defaults to 50 most recent runs.
 
 Agents can read all routines in their company but can only create and manage routines assigned to themselves:
 
-| Operation | Agent | Board |
-|-----------|-------|-------|
-| List / Get | ✅ any routine | ✅ |
-| Create | ✅ own only | ✅ |
-| Update / activate | ✅ own only | ✅ |
-| Add / update / delete triggers | ✅ own only | ✅ |
-| Rotate trigger secret | ✅ own only | ✅ |
-| Manual run | ✅ own only | ✅ |
-| Reassign to another agent | ❌ | ✅ |
+```text
+[7]{Operation,Agent,Board}:
+  List / Get,✅ any routine,✅
+  Create,✅ own only,✅
+  Update / activate,✅ own only,✅
+  Add / update / delete triggers,✅ own only,✅
+  Rotate trigger secret,✅ own only,✅
+  Manual run,✅ own only,✅
+  Reassign to another agent,❌,✅
+```
 
 ## Routine Lifecycle
 

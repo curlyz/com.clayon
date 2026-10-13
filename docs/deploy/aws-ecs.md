@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/deploy/aws-ecs
 title: AWS ECS Fargate
 summary: Deploy Clayon to AWS using ECS Fargate, RDS Postgres, and EFS
 ---
 
-Deploy Clayon to AWS with ECS Fargate (compute), RDS Postgres 17 (database), and EFS (persistent storage). This guide uses the AWS CLI and produces a single-task ECS service behind an ALB with HTTPS.
+Deploy Clayon to AWS: ECS Fargate (compute), RDS Postgres 17 (database), EFS (storage). AWS CLI throughout; yields one ECS task behind an ALB with HTTPS.
 
 ## Prerequisites
 
@@ -214,7 +215,7 @@ aws secretsmanager create-secret \
 
 ## 7. IAM Roles
 
-Create the ECS task execution role (pulls images, reads secrets) and the task role (application permissions).
+Create the task execution role (pulls images, reads secrets) and the task role (app permissions).
 
 ```bash
 # Task execution role
@@ -267,7 +268,7 @@ aws ecs create-cluster --cluster-name clayon
 aws logs create-log-group --log-group-name /ecs/clayon
 ```
 
-Register the task definition using the template at `docker/ecs-task-definition.json`. Before registering, replace the placeholder values:
+Register the task definition from `docker/ecs-task-definition.json`. Replace placeholder values first:
 
 ```bash
 sed -e "s|<ACCOUNT_ID>|$AWS_ACCOUNT_ID|g" \
@@ -282,7 +283,7 @@ aws ecs register-task-definition \
 
 ## 9. ALB and TLS Certificate
 
-Request a certificate (you must validate via DNS):
+Request a certificate (DNS validation):
 
 ```bash
 CERT_ARN=$(aws acm request-certificate \
@@ -296,7 +297,7 @@ aws acm describe-certificate \
   --query 'Certificate.DomainValidationOptions[0].ResourceRecord'
 ```
 
-Add the CNAME to your DNS provider, then wait for validation:
+Add the CNAME at your DNS provider, then wait for validation:
 
 ```bash
 aws acm wait certificate-validated --certificate-arn $CERT_ARN
@@ -379,7 +380,7 @@ aws ecs create-service \
   }]'
 ```
 
-> **Note:** `assignPublicIp: ENABLED` is needed if using public subnets without a NAT Gateway. For private subnets, set to `DISABLED` and ensure a NAT Gateway is configured for outbound internet access.
+> **Note:** `assignPublicIp: ENABLED` for public subnets without a NAT Gateway. Private subnets: set `DISABLED` and ensure a NAT Gateway exists for outbound internet access.
 
 ## 11. Verify Deployment
 
@@ -451,7 +452,7 @@ aws ecs describe-services \
   --query 'services[0].deployments[*].{status:status,running:runningCount,desired:desiredCount,rollout:rolloutState}'
 ```
 
-ECS performs a rolling update: starts a new task, waits for it to pass health checks, then drains the old task.
+Rolling update: new task starts, passes health checks, old task drains.
 
 ## Rollback
 
@@ -564,17 +565,18 @@ aws logs delete-log-group --log-group-name /ecs/clayon
 
 ## Cost Reference
 
-| Service | Config | Monthly |
-|---------|--------|---------|
-| ECS Fargate | 2 vCPU, 4 GB, 24/7 | ~$70 |
-| RDS Postgres | db.t4g.micro, 20 GB | ~$15 |
-| ALB | 1 LCU average | ~$22 |
-| NAT Gateway | 1 AZ (if using private subnets) | ~$35 |
-| EFS | 1 GB Standard | ~$0.30 |
-| Secrets Manager | 5 secrets | ~$2 |
-| CloudWatch Logs | ~1 GB/mo | ~$0.50 |
-| ECR | ~1 GB | ~$0.10 |
-| **Total (public subnets, no NAT)** | | **~$110/mo** |
-| **Total (private subnets + NAT)** | | **~$145/mo** |
+```text
+[10]{Service,Config,Monthly}:
+  ECS Fargate,"2 vCPU, 4 GB, 24/7",~$70
+  RDS Postgres,"db.t4g.micro, 20 GB",~$15
+  ALB,1 LCU average,~$22
+  NAT Gateway,1 AZ (if using private subnets),~$35
+  EFS,1 GB Standard,~$0.30
+  Secrets Manager,5 secrets,~$2
+  CloudWatch Logs,~1 GB/mo,~$0.50
+  ECR,~1 GB,~$0.10
+  "Total (public subnets, no NAT)",,~$110/mo
+  Total (private subnets + NAT),,~$145/mo
+```
 
 Use Fargate Spot and scheduled scaling to 0 during off-hours to reduce to ~$60-85/mo.

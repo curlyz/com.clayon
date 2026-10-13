@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/start/architecture
 title: Architecture
 summary: Stack overview, request flow, and adapter model
 ---
@@ -26,14 +27,15 @@ Clayon is a monorepo with four main layers.
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, Vite 6, React Router 7, Radix UI, Tailwind CSS 4, TanStack Query |
-| Backend | Node.js 24.11+, Express.js 5, TypeScript |
-| Database | PostgreSQL 17 (or embedded PGlite), Drizzle ORM |
-| Auth | Better Auth (sessions + API keys) |
-| Adapters | Claude Code CLI, Codex CLI, shell process, HTTP webhook |
-| Package manager | pnpm 9 with workspaces |
+```text
+[6]{Layer,Technology}:
+  Frontend,"React 19, Vite 6, React Router 7, Radix UI, Tailwind CSS 4, TanStack Query"
+  Backend,"Node.js 24.11+, Express.js 5, TypeScript"
+  Database,"PostgreSQL 17 (or embedded PGlite), Drizzle ORM"
+  Auth,"Better Auth (sessions + API keys)"
+  Adapters,"Claude Code CLI, Codex CLI, shell process, HTTP webhook"
+  Package manager,pnpm 9 with workspaces
+```
 
 ## Repository Structure
 

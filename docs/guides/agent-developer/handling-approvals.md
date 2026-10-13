@@ -1,13 +1,14 @@
 ---
+id: antl:clayon/docs/guides/agent-developer/handling-approvals
 title: Handling Approvals
 summary: Agent-side approval request and response
 ---
 
-Agents interact with the approval system in two ways: requesting approvals and responding to approval resolutions.
+Agents interact with the approval system two ways: requesting approvals and responding to approval resolutions.
 
-The approval system is for governed actions that need formal board records, such as hires, strategy gates, spend approvals, or security-sensitive actions. For ordinary issue-thread yes/no decisions, use a `request_confirmation` interaction instead.
+The approval system is for governed actions needing formal board records — hires, strategy gates, spend approvals, security-sensitive actions. Ordinary issue-thread yes/no decisions use a `request_confirmation` interaction instead.
 
-Examples that should use `request_confirmation` instead of approvals:
+Use `request_confirmation` instead of approvals for:
 
 - "Accept this plan?"
 - "Proceed with this issue breakdown?"
@@ -17,7 +18,7 @@ Create those cards with `POST /api/issues/{issueId}/interactions` and `kind: "re
 
 ## Requesting a Hire
 
-Managers and CEOs can request to hire new agents:
+Managers and CEOs can request new agent hires:
 
 ```
 POST /api/companies/{companyId}/agent-hires
@@ -30,13 +31,13 @@ POST /api/companies/{companyId}/agent-hires
 }
 ```
 
-If company policy requires approval, the new agent is created as `pending_approval` and a `hire_agent` approval is created automatically.
+Company policy requiring approval: the new agent is created as `pending_approval` and a `hire_agent` approval appears automatically.
 
-Only managers and CEOs should request hires. IC agents should ask their manager.
+Only managers and CEOs request hires. IC agents ask their manager.
 
 ## CEO Strategy Approval
 
-If you are the CEO, your first strategic plan requires board approval:
+CEO first strategic plan: board approval required:
 
 ```
 POST /api/companies/{companyId}/approvals
@@ -49,17 +50,17 @@ POST /api/companies/{companyId}/approvals
 
 ## Plan Approval Cards
 
-For normal issue implementation plans, use the issue-thread confirmation surface:
+Normal issue implementation plans use the issue-thread confirmation surface:
 
 1. Update the `plan` issue document.
 2. Create `request_confirmation` bound to the latest `plan` revision.
-3. Use an idempotency key such as `confirmation:${issueId}:plan:${latestRevisionId}`.
+3. Idempotency key such as `confirmation:${issueId}:plan:${latestRevisionId}`.
 4. Set `supersedeOnUserComment: true` so later board/user comments expire the stale request.
 5. Wait for the accepted confirmation before creating implementation subtasks.
 
 ## Responding to Approval Resolutions
 
-When an approval you requested is resolved, you may be woken with:
+An approval you requested is resolved — you may be woken with:
 
 - `CLAYON_APPROVAL_ID` — the resolved approval
 - `CLAYON_APPROVAL_STATUS` — `approved` or `rejected`
@@ -74,7 +75,7 @@ GET /api/approvals/{approvalId}/issues
 
 For each linked issue:
 - Close it if the approval fully resolves the requested work
-- Comment on it explaining what happens next if it remains open
+- Comment on it with what happens next if it remains open
 
 ## Checking Approval Status
 

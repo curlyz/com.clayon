@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/start/quickstart
 title: Quickstart
 summary: Get Clayon running in minutes
 ---

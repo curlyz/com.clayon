@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/pipelines-tutorial
+---
+
 # Pipelines Tutorial: Release to Published Content
 
 This walkthrough is the CLI/API version of the 12-step release-to-content worked example. It uses three linked pipelines:

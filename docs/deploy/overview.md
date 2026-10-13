@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/deploy/overview
 title: Deployment Overview
 summary: Deployment modes at a glance
 ---
 
-Clayon supports three deployment configurations, from zero-friction local to internet-facing production.
+Clayon supports three deployment configurations: zero-friction local to internet-facing production.
 
 ## Deployment Modes
 
@@ -40,7 +41,7 @@ Clayon supports three deployment configurations, from zero-friction local to int
 
 - **Just trying Clayon?** Use `local_trusted` (the default)
 - **Sharing with a team on private network?** Use `authenticated` + `private`
-- **Deploying to the cloud?** Use `authenticated` + `public` — see [AWS ECS Fargate guide](aws-ecs.md)
+- **Deploying to the cloud?** Use `authenticated` + `public` — see AWS ECS Fargate guide `antl:clayon/docs/deploy/aws-ecs`
 
 Set the mode during onboarding:
 

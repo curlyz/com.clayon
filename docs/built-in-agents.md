@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/built-in-agents
+---
+
 # Built-in Agents
 
 Built-in agents are first-party, company-scoped agents that Clayon can resolve by a stable registry key. They are normal rows in `agents`, but they carry immutable metadata under `metadata.clayonBuiltInAgent` so services can find them without hardcoding a database id.

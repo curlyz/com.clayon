@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/pr-screenshots/pr-15773/README
+---
+
 # Overview copy control
 
 These Chromium screenshots render the production `RoutineSectionHeading` and `CopyText` components with the app color tokens. The header and description frame is a preview around that heading. It is not a capture of a signed-in routine page.
@@ -9,7 +13,7 @@ Each theme shows the same heading in two states:
 
 The copy icon stays next to the Overview title in both states. Desktop and mobile widths were checked. These files are the desktop captures.
 
-- [View, light](overview-view-light.png)
-- [Edit, light](overview-edit-light.png)
-- [View, dark](overview-view-dark.png)
-- [Edit, dark](overview-edit-dark.png)
+- View, light `com.clayon/docs/pr-screenshots/pr-15773/overview-view-light.png`
+- Edit, light `com.clayon/docs/pr-screenshots/pr-15773/overview-edit-light.png`
+- View, dark `com.clayon/docs/pr-screenshots/pr-15773/overview-view-dark.png`
+- Edit, dark `com.clayon/docs/pr-screenshots/pr-15773/overview-edit-dark.png`

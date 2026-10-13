@@ -1,26 +1,27 @@
 ---
+id: antl:clayon/docs/guides/board-operator/experimental-features
 title: Experimental Features
 summary: What Clayon experimental features mean for board operators
 ---
 
-Experimental features are opt-in and are provided without compatibility guarantees. They may break, change, or be removed at any time. Use them at your own risk.
+Experimental features are opt-in with no compatibility guarantees. They may break, change, or be removed at any time. Use at your own risk.
 
 ## What "experimental" means
 
-When a feature is marked experimental, Clayon is still evaluating the product shape and implementation details.
+A feature marked experimental: Clayon is still evaluating product shape and implementation details.
 
-- The feature is not part of the stable operator contract yet.
+- Not part of the stable operator contract yet.
 - UI, API, CLI, behavior, and stored configuration may change as the feature evolves.
-- Clayon does not promise compatibility, rollback, migration, or long-term support for experimental features.
+- Clayon promises no compatibility, rollback, migration, or long-term support for experimental features.
 
-If you need stable behavior for an important workflow, do not rely on an experimental feature.
+Stable behavior required for an important workflow: never rely on an experimental feature.
 
 ## Where you enable them
 
 Board operators enable or disable experiments from **Instance Settings > Experimental** in the app.
-Controls are listed alphabetically within each section. Hosting operators can hide
+Controls list alphabetically within each section. Hosting operators can hide
 controls they manage; empty developer and legacy sections are omitted. Hidden
-controls retain their configured values.
+controls keep their configured values.
 
 The CLI exposes the same surface:
 
@@ -29,7 +30,7 @@ pnpm clayon instance settings:experimental
 npx clayon instance settings:experimental:update --payload-json '{...}'
 ```
 
-Those commands change the same opt-in settings that the UI manages.
+Those commands change the same opt-in settings the UI manages.
 
 ## Chat connectors
 
@@ -38,17 +39,17 @@ Slack, GitHub, Microsoft Teams, Telegram, or Discord bot to one Clayon
 agent. The experiment shows chat setup, connection management, agent channels,
 and external task controls.
 
-When it is off, existing production tool connectors remain available. For
-example, GitHub opens its normal tool connection flow without asking you to
+Off: existing production tool connectors remain available. GitHub, for
+example, opens its normal tool connection flow without asking you to
 choose between chat and tools.
 
-This setting controls visibility. Turning it off does not disconnect an
-existing bot or stop its messages. To stop a connection, pause it from its
+Visibility control only. Turning it off never disconnects an
+existing bot or stops its messages. To stop a connection, pause it from its
 chat connection settings before turning off the experiment.
 
 ## When to use them
 
-Experimental features are best used when you are:
+Experimental features fit when you are:
 
 - evaluating a new capability before wider rollout
 - testing a non-critical workflow
@@ -59,13 +60,13 @@ Experimental features are best used when you are:
 
 Before enabling an experimental feature:
 
-- decide whether the workflow can tolerate breakage or churn
-- avoid making the feature a dependency for stable production processes
+- decide whether the workflow tolerates breakage or churn
+- never make the feature a dependency for stable production processes
 - keep the scope small until you understand how the feature behaves in your company
 - watch release notes and docs for changes to the feature contract
 
 ## Related references
 
-- See [Status Cards](/guides/board-operator/status-cards) for the watched-query summary experiment, refresh policies, and cost model.
-- See the CLI caveat in [Control-Plane Commands](/cli/control-plane-commands).
+- See Status Cards `antl:clayon/docs/guides/board-operator/status-cards` for the watched-query summary experiment, refresh policies, and cost model.
+- See the CLI caveat in Control-Plane Commands `antl:clayon/docs/cli/control-plane-commands`.
 - See the repo CLI reference in [`doc/CLI.md`](https://github.com/clayon/clayon/blob/master/doc/CLI.md) when working from the repository.

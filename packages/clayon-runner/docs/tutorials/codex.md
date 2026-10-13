@@ -1,18 +1,22 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/codex
+---
+
 # Codex: Run the Skillless Codex Driver
 
 ## What this phase is
 
 Codex connects the mock core to a real Codex app-server session.
 
-Codex gets one small task envelope. Codex does not get the Clayon skill.
-Codex does not get a Clayon API key or API instructions.
+One small task envelope. No Clayon skill.
+No Clayon API key or API instructions.
 
 ## What this phase proves
 
-This phase proves that a real Codex session can create a file, stream typed
+A real Codex session can create a file, stream typed
 events, return one checked result, and replay the same result.
 
-It also proves that steer, interrupt, resume, and unsupported-operation paths
+Steer, interrupt, resume, and unsupported-operation paths
 keep clear session identities and safe diagnostics.
 
 ## Before you start
@@ -20,7 +24,7 @@ keep clear session identities and safe diagnostics.
 - Run commands from the repository root.
 - Install Node.js 20+, pnpm 9+, Rust, and the `codex` CLI.
 - Sign in to Codex with the normal local Codex setup.
-- Do not add a Clayon or OpenAI API key for this tutorial.
+- Add no Clayon or OpenAI API key for this tutorial.
 
 Check the installed harness:
 
@@ -29,12 +33,12 @@ codex --version
 codex app-server --help
 ```
 
-Run the real-Codex steps from an ordinary operator shell with a workspace that
+Run real-Codex steps from an ordinary operator shell with a workspace that
 has no `AGENTS.md` in that directory or any ancestor. A child directory of this
-repository is not skillless because Codex discovers the repository
+repository is not skillless: Codex discovers the repository
 `AGENTS.md`. In a Clayon-managed agent run, `CLAYON_WORKSPACE_CWD` also
 prevents `mktemp -d` from selecting a directory outside the assigned workspace;
-use a separate clean operator workspace rather than bypassing that guard.
+use a separate clean operator workspace, never bypass that guard.
 
 ## Step 1: Run the focused conformance checks
 
@@ -46,7 +50,7 @@ pnpm --filter @clayon/clayon-runner exec vitest run \
 pnpm --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
-Confirm that the driver tests pass and the package boundary check says
+Confirm driver tests pass and the package boundary check prints
 `Standalone boundary check passed.`
 
 ## Step 2: Run the safe real Codex task
@@ -74,15 +78,15 @@ test "$(cat "$codex_workspace/hello.txt")" = "hello from Codex runner"
 ## Step 3: Inspect the exact model boundary
 
 Clayon sends its runtime instructions as additive `developerInstructions`
-on Codex thread start and resume. Codex retains its stock base instructions.
-The historical `context.baseInstructions` trace field contains the Clayon
-fragment, not the full Codex base prompt. The driver option with the same name
-also supplies this additive fragment.
+on Codex thread start and resume. Codex keeps its stock base instructions.
+Historical `context.baseInstructions` trace field contains the Clayon
+fragment, not the full Codex base prompt. Driver option of the same name
+supplies the same additive fragment.
 
-Threads created before this change retain their saved replacement base prompt
-when resumed. Reset those provider sessions to apply the stock base instructions;
-adding developer instructions does not repair an already saved base prompt.
-This change does not alter session recovery or reset active sessions automatically.
+Threads created before this change keep their saved replacement base prompt
+on resume. Reset those provider sessions to apply the stock base instructions;
+adding developer instructions never repairs an already saved base prompt.
+This change never alters session recovery nor resets active sessions automatically.
 
 ```sh
 jq '.context | {
@@ -144,8 +148,8 @@ Confirm:
 - `liveReplayParity` is `true`;
 - source sequence and item identity assertions are `true`.
 
-The focused test suite supplies deterministic file-change and runtime-request
-events because a real model may choose a shell command instead of a file patch
+Focused test suite supplies deterministic file-change and runtime-request
+events: a real model may choose a shell command instead of a file patch
 and may not need human input for this small task.
 
 ## Step 5: Try steering
@@ -173,9 +177,9 @@ pnpm --filter @clayon/clayon-runner trace:codex -- \
   --interrupt
 ```
 
-An interrupt can win before the file is created. That is expected. Confirm that
-the trace still has one session identity, one semantic result, and one terminal
-event. It must not create a replacement session.
+An interrupt can win before file creation. Expected. Confirm the
+trace still has one session identity, one semantic result, one terminal
+event. Never create a replacement session.
 
 ## Step 7: Run the package verification path
 
@@ -183,10 +187,9 @@ event. It must not create a replacement session.
 pnpm --filter @clayon/clayon-runner verify
 ```
 
-This command is the package acceptance path. The real Codex example remains a
-separate command because automated environments may not have a signed-in Codex
-session.
+Package acceptance path. Real Codex example stays a separate command:
+automated environments may lack a signed-in Codex session.
 
 ## Step 8: Read the driver reference
 
-- [Codex driver reference](../codex-driver.md)
+- Codex driver reference `antl:clayon/packages/clayon-runner/docs/codex-driver`

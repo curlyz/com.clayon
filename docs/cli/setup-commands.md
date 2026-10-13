@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/cli/setup-commands
 title: Setup Commands
 summary: Onboard, run, doctor, and configure
 ---
@@ -119,13 +120,14 @@ npx clayon allowed-hostname my-tailscale-host
 
 ## Local Storage Paths
 
-| Data | Default Path |
-|------|-------------|
-| Config | `~/.clayon/instances/default/config.json` |
-| Database | `~/.clayon/instances/default/db` |
-| Logs | `~/.clayon/instances/default/logs` |
-| Storage | `~/.clayon/instances/default/data/storage` |
-| Secrets key | `~/.clayon/instances/default/secrets/master.key` |
+```text
+[5]{Data,Default Path}:
+  Config,`~/.clayon/instances/default/config.json`
+  Database,`~/.clayon/instances/default/db`
+  Logs,`~/.clayon/instances/default/logs`
+  Storage,`~/.clayon/instances/default/data/storage`
+  Secrets key,`~/.clayon/instances/default/secrets/master.key`
+```
 
 Override with:
 

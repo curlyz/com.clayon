@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/authentication
 title: Authentication
 summary: API keys, JWTs, and auth modes
 ---

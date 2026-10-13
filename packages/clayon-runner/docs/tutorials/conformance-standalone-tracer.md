@@ -1,16 +1,20 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/conformance-standalone-tracer
+---
+
 # Conformance: Run the Standalone Tracer
 
 ## What this phase is
 
-Conformance is the smallest standalone runner path. It uses a mock control plane and does not start Clayon.
+Smallest standalone runner path. Mock control plane; never starts Clayon.
 
 ## What this phase proves
 
-This phase proves that the package has an independent Rust boundary. It also proves that Rust and TypeScript accept the same fixture.
+Package has an independent Rust boundary. Rust and TypeScript accept the same fixture.
 
-You will install the package tools. You will compile the Rust and TypeScript code. You will run the tests and checks.
+You install the package tools, compile Rust and TypeScript, run tests and checks.
 
-You will start the Rust mock core. The tracer validates one fixture and prints a deterministic result. The process then stops.
+You start the Rust mock core. Tracer validates one fixture, prints a deterministic result, then the process stops.
 
 ## Prerequisites
 
@@ -26,9 +30,9 @@ You will start the Rust mock core. The tracer validates one fixture and prints a
 pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-scripts --dev
 ```
 
-`--lockfile=false` follows this repository's policy that automation owns the
+`--lockfile=false` follows repository policy: automation owns the
 root lockfile. `--offline` proves Conformance needs no newly downloaded package.
-`--dev` makes the package tooling explicit even when the calling shell has
+`--dev` makes package tooling explicit even when the calling shell has
 `NODE_ENV=production`.
 
 ## 2. Build the standalone package
@@ -37,7 +41,7 @@ root lockfile. `--offline` proves Conformance needs no newly downloaded package.
 pnpm --filter @clayon/clayon-runner build
 ```
 
-Expected result: TypeScript writes package-local `dist/` files and Cargo builds
+Expected: TypeScript writes package-local `dist/` files; Cargo builds
 the `clayon-runner-core` crate under `runner/target/`.
 
 ## 3. Run the behavior and boundary tests
@@ -47,9 +51,9 @@ pnpm --filter @clayon/clayon-runner test
 pnpm --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
-The tests cover fixture validation, complete Rust and TypeScript mock-core paths,
-stable output, and negative TypeScript/Cargo core-dependency fixtures. The
-standalone boundary check must print `Standalone boundary check passed.`
+Tests cover fixture validation, complete Rust and TypeScript mock-core paths,
+stable output, negative TypeScript/Cargo core-dependency fixtures. Standalone
+boundary check must print `Standalone boundary check passed.`
 
 ## 4. Validate the documentation
 
@@ -57,8 +61,8 @@ standalone boundary check must print `Standalone boundary check passed.`
 pnpm --filter @clayon/clayon-runner docs:validate
 ```
 
-Expected result: documentation-link validation passes. The historical OKF and
-recorded-evidence bundle is intentionally deferred from this release.
+Expected: documentation-link validation passes. Historical OKF and
+recorded-evidence bundle intentionally deferred from this release.
 
 ## 5. Run the tracer
 
@@ -72,16 +76,16 @@ Expected final line:
 {"schemaVersion":"clayon.runner.conformance.output.v1","runIdentity":{"runId":"run_conformance_0001","sessionId":"session_conformance_0001"},"result":{"status":"succeeded","summary":"Standalone Conformance fixture accepted."}}
 ```
 
-The command exits successfully after the mock core stops. No service remains
+Command exits successfully after the mock core stops. No service remains
 
-The default tracer is Rust. Prove that the TypeScript reference produces the
-same bytes with:
+Default tracer is Rust. Prove the TypeScript reference produces the
+same bytes:
 
 ```sh
 pnpm --filter @clayon/clayon-runner check:conformance-parity
 ```
 
-Expected result: `Rust and TypeScript Conformance tracer output matches the shared
+Expected: `Rust and TypeScript Conformance tracer output matches the shared
 golden fixture.`
 
 ## 6. Inspect the conformance fixture
@@ -92,11 +96,11 @@ sed -n '1,240p' packages/clayon-runner/protocol/fixtures/conformance-minimal-run
 
 ## One-command rerun
 
-After installation, the same checks can be repeated with:
+After installation, repeat the same checks with:
 
 ```sh
 pnpm --filter @clayon/clayon-runner verify
 ```
 
-Continue with the [cumulative end-to-end tutorial](end-to-end.md), which points
+Continue with the cumulative end-to-end tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/end-to-end`, which points
 to this tutorial as the current complete path.

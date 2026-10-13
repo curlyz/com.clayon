@@ -1,18 +1,22 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/design/live-console-interaction-map
+---
+
 # Live console Interaction Map — Live Codex Protocol Web UI
 
 Status: **approved for implementation** (UX gate TASK-16832, 2026-08-08).
 Owner: UXDesigner. Implementer: browser tracer owner (TASK-16834).
-Companion record: [component decisions](live-console-component-decisions.md).
+Companion record: component decisions `antl:clayon/packages/clayon-runner/docs/design/live-console-component-decisions`.
 This map is the interaction contract for the Live console required by
-spec §29.1. It binds every surface to canonical Clayon Runner Protocol (PRP)
+spec §29.1. Binds every surface to canonical Clayon Runner Protocol (PRP)
 events and reducer state only. No surface may derive state from third-party
-component message types, and no surface may show a control the upstream
+component message types; no surface may show a control the upstream
 capability set does not support.
 
 ## 0. Shell and information architecture
 
 Extend the existing devtools browser app (`devtools/browser/`) with a new
-**Live console** mode next to the existing Replay–3 modes. Do not build a
+**Live console** mode next to the Replay–3 modes. Do not build a
 second app shell. Reuse the existing token layer in `src/styles.css` and the
 existing `ui-*` primitives.
 
@@ -32,8 +36,8 @@ picker, goal banner, lineage, and inspector become stacked collapsible sections
 behind a segmented control (`Chat · Session · Inspector`). Composer stays
 docked to the bottom of the viewport in the Chat segment.
 
-Density: this is a diagnostic console — lean dense (Doherty: prioritize
-feedback latency over decoration). All spacing from the existing scale.
+Density: diagnostic console — lean dense (Doherty: feedback
+latency over decoration). All spacing from the existing scale.
 
 ## 1. Transcript and composer
 
@@ -64,17 +68,18 @@ Transcript rules:
 
 Composer states (one state machine, one visible primary action):
 
-| State | Trigger | Primary action | Notes |
-|---|---|---|---|
-| `idle` | no active turn | **Send** (`turn.submitted`) | textarea enabled |
-| `submitting` | send clicked, no `turn.accepted` yet | disabled, spinner in button | keep text visible |
-| `active-turn` | `turn.started` for my turn | **Steer** (see §2) + **Stop** icon-button | composer relabels; input stays enabled for steering |
-| `interrupting` | stop clicked | both disabled, "Stopping…" | see §3 |
-| `disconnected` | transport lost | disabled + reconnect banner | see §7 |
-| `terminal` | `session.closed`/`session.failed` | disabled + replay affordance | see §7 |
+```text
+[6]{State,Trigger,Primary action,Notes}:
+  `idle`,no active turn,Send (`turn.submitted`),textarea enabled
+  `submitting`,"send clicked, no `turn.accepted` yet","disabled, spinner in button",keep text visible
+  `active-turn`,`turn.started` for my turn,Steer (see §2) + Stop icon-button,composer relabels; input stays enabled for steering
+  `interrupting`,stop clicked,"both disabled, “Stopping…”",see §3
+  `disconnected`,transport lost,disabled + reconnect banner,see §7
+  `terminal`,`session.closed`/`session.failed`,disabled + replay affordance,see §7
+```
 
-Composer behavior: `Enter` submits, `Shift+Enter` inserts newline. Textarea
-auto-grows to 8 lines, then scrolls. The active state is announced via a
+Composer behavior: `Enter` submits, `Shift+Enter` newline. Textarea
+auto-grows to 8 lines, then scrolls. Active state announced via a
 visually-hidden `aria-live="polite"` status line ("Turn running", "Steering
 sent", "Turn stopped").
 
@@ -84,13 +89,13 @@ While a turn is active the composer's primary action is **Steer** and sends
 `turn/steer` with `expectedTurnId` bound at submit time.
 
 1. **Optimistic pending, explicit ack.** On send, append a local "steering"
-   chip to the transcript in a `pending` visual state (muted, spinner).
-   Promote it to `acknowledged` (solid, check) only on driver acknowledgement.
+   chip in a `pending` visual state (muted, spinner).
+   Promote to `acknowledged` (solid, check) only on driver acknowledgement.
    Never silently merge steering text into the user-message stream before ack.
-2. **Stale-turn rejection is a first-class outcome, not an error toast.** If
-   the turn completed/failed/was interrupted between typing and send, the
-   driver rejects on `expectedTurnId` mismatch. The chip flips to `rejected —
-   turn already ended`, with the composed text preserved in an inline
+2. **Stale-turn rejection is a first-class outcome, not an error toast.** Turn
+   completed/failed/interrupted between typing and send: the
+   driver rejects on `expectedTurnId` mismatch. Chip flips to `rejected —
+   turn already ended`, composed text preserved in an inline
    **"Send as new message"** action (Forgiveness: one keystroke recovers the
    intent; never discard typed input).
 3. The pending chip must resolve to exactly one of `acknowledged`, `rejected
@@ -133,9 +138,9 @@ request contract per request — the card renders only the actions the request
 offers (never invent "approve for session" if the request does not offer it).
 
 Placement: inline in the transcript at timeline position, plus a compact
-"pending requests" counter chip in the session status block that scrolls to
+"pending requests" counter chip in the session status block scrolling to
 the oldest pending card. A pending blocking request also pins a slim banner
-above the composer ("1 request waiting — Review") because the turn cannot
+above the composer ("1 request waiting — Review"): the turn cannot
 proceed (Zeigarnik: make the open loop visible where the user is looking).
 
 Card anatomy (one component, five kinds):
@@ -168,7 +173,7 @@ Rules:
 
 ## 5. Goal capability states (set / view / pause / resume / clear)
 
-**Source of truth:** capability negotiation from the app-server (per spec
+**Source of truth:** capability negotiation from the app-server (spec
 §29.1.5), surfaced through the driver's capability snapshot. Goal state
 changes arrive as canonical events; the banner derives from reducer state.
 
@@ -179,7 +184,7 @@ Surfaces:
   Hidden entirely when no goal has ever been set this session; shows a quiet
   "No goal set" row once goal capability is confirmed supported.
 - **Goal menu** (not a fuzzy palette — five fixed operations, Hick's law):
-  a menu button `Goal ▾` in the session status block opening a menu with
+  menu button `Goal ▾` in the session status block opening a menu with
   `Set goal…`, `View`, `Pause`, `Resume`, `Clear`. `Set goal…` opens a small
   dialog with one textarea. `View` focuses/expands the banner. Operations
   invalid in the current goal state (e.g. `Resume` while active) are disabled
@@ -201,8 +206,7 @@ Capability gating (spec-critical):
 ## 6. Parent/child lineage and subagent activity
 
 **Source of truth:** upstream thread identities (parent/child thread lineage
-from the driver; `normalizedSessionId` / thread ids). No client-side
-inference.
+from the driver; `normalizedSessionId` / thread ids). No client-side inference.
 
 - Left-rail **lineage tree**: root session plus child threads, each row =
   name/id (mono, truncated) + live state dot (`starting`, `running`,
@@ -248,7 +252,7 @@ inference.
 ## 8. Protocol inspector
 
 **Source of truth:** the raw upstream method/event names and the canonical
-event stream, side by side. The inspector is the debugging surface; the
+event stream, side by side. Inspector is the debugging surface; the
 transcript stays clean (Tesler: complexity lives here, deliberately).
 
 Right-rail panel with four tabs:

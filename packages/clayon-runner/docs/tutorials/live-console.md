@@ -1,22 +1,26 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/live-console
+---
+
 # Live console: Run the Live Codex Protocol Console
 
 ## What this is
 
-This tutorial runs the Live console browser console. The
-[protocol demo server](live-console-protocol-server.md) tutorial used `curl`. This
+Runs the Live console browser console. The
+protocol demo server `antl:clayon/packages/clayon-runner/docs/tutorials/live-console-protocol-server` tutorial used `curl`; this
 one uses the real user interface.
 
 ## What this proves
 
-The console shows one live session. You can chat with it, steer it, stop it,
-answer its requests, change its goal, watch its child threads, break its
-connection, refresh the page, and replay the whole record. Every screen reads
+Console shows one live session. Chat with it, steer, stop,
+answer its requests, change its goal, watch child threads, break its
+connection, refresh the page, replay the whole record. Every screen reads
 the canonical protocol. Nothing in the browser holds a provider login.
 
 ## Before you start
 
-Run every command from the repository root. You do not need a Codex account
-for this tutorial. The default driver replays deterministic demo chats.
+Run every command from the repository root. No Codex account
+for this tutorial. Default driver replays deterministic demo chats.
 
 ## Step 1: Run the deterministic checks
 
@@ -27,7 +31,7 @@ pnpm --filter @clayon/clayon-runner exec vitest run \
   devtools/browser/src/live/transcript-model.test.ts
 ```
 
-Expected result: all three files pass. They cover the demo driver, the server
+Expected: all three files pass. They cover the demo driver, server
 routes, and the pure transcript model the console renders.
 
 ## Step 2: Start the console
@@ -82,7 +86,7 @@ Run each demo chat and press **Stop**:
 | Interrupt during generation | while text streams | the stream stops, the partial text stays, and an interrupted divider appears |
 | Interrupt during a tool call | while the tool runs | the tool keeps its last status and shows no result |
 
-The session is never replaced. After a stop you can simply send again.
+Session is never replaced. After a stop, send again.
 
 ## Step 6: Answer requests
 
@@ -101,7 +105,7 @@ Expected facts:
 
 2. Press **User input and expiry**, then **Run this demo chat**.
 
-Type an answer and press **Submit**. Leave the second request alone. After a
+Type an answer, press **Submit**. Leave the second request alone. After a
 few seconds it becomes `expired before response` and stays in the record.
 
 ## Step 7: Change the goal
@@ -110,15 +114,15 @@ few seconds it becomes `expired before response` and stays in the record.
 2. Press **Goal**, then **Set goal…**, type an objective, and confirm.
 3. Press **Goal**, then **Pause**.
 
-Expected facts: the banner shows the objective, the state, and the time of the
-last change. **Resume** is disabled while the goal is active, and **Pause** is
-disabled while it is paused.
+Expected: banner shows the objective, the state, and the time of the
+last change. **Resume** disabled while the goal is active; **Pause** disabled
+while paused.
 
-Now press **Goals unsupported** and run it. The **Goal** button is disabled,
-not hidden, and it names the exact upstream reason:
+Now press **Goals unsupported** and run it. **Goal** button is disabled,
+not hidden, and names the exact upstream reason:
 `Goal operations unsupported: app-server 0.132.0 does not advertise the goals capability`.
-Open the **Protocol inspector** and the **Capabilities** tab. The same string
-appears there.
+Open **Protocol inspector** and the **Capabilities** tab: same string
+there.
 
 ## Step 8: Watch child threads
 
@@ -128,7 +132,7 @@ Expected facts:
 
 - The **Threads** panel lists the root session and two child threads.
 - One child ends `Completed` and one ends `Failed`. Both stay in the tree.
-- Selecting a child shows a breadcrumb and a disabled composer that says
+- Selecting a child shows a breadcrumb and a disabled composer reading
   `Direct steering of child threads is not supported by this app-server.`
 
 ## Step 9: Break the connection and recover
@@ -136,24 +140,23 @@ Expected facts:
 1. Run any demo chat and wait for it to finish.
 2. Press **Simulate connection loss**.
 
-Expected facts: a banner says the connection was lost, and the composer is
-disabled.
+Expected: banner says the connection was lost; composer disabled.
 
 3. Press **Retry now**.
 
-Expected facts: the badge returns to `connected` and the transcript is exactly
-what it was before the drop. Nothing is lost and nothing is duplicated.
+Expected: badge returns to `connected`; transcript exactly
+what it was before the drop. Nothing lost, nothing duplicated.
 
-Now reload the page and press **Live console** again. The same session returns
+Reload the page, press **Live console** again. Same session returns
 with its full transcript.
 
 ## Step 10: Replay the record
 
 Press **Replay**.
 
-Expected facts: a `REPLAY` badge appears, the transcript resets, and a stepper
-appears. Press **Step forward** to walk the session forward one event at a
-time. Press **Play** to run it. Press **Exit replay** to return to live.
+Expected: `REPLAY` badge appears, transcript resets, stepper
+appears. **Step forward** walks the session forward one event at a
+time. **Play** runs it. **Exit replay** returns to live.
 
 ## Step 11: Inspect the protocol
 
@@ -187,17 +190,17 @@ CLAYON_LIVE_CONSOLE_DRIVER=codex \
   pnpm --filter @clayon/clayon-runner console:live-console
 ```
 
-The routes and the screens are the same. The demo chat list still appears, but
+Routes and screens are the same. Demo chat list still appears, but
 the manifest only supplies the first message; the real model produces the rest.
-The Codex login stays on the server.
+Codex login stays on the server.
 
 ## Step 14: Clean up
 
-Stop the console with `Ctrl+C`. The server-owned working directory is a
-temporary directory and is not part of your repository.
+Stop the console with `Ctrl+C`. Server-owned working directory is a
+temporary directory, not part of your repository.
 
 ## Where to go next
 
-- [Cumulative end-to-end tutorial](end-to-end.md)
-- [Live console reference](../live-console.md)
-- [Live console interaction map](../design/live-console-interaction-map.md)
+- Cumulative end-to-end tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/end-to-end`
+- Live console reference `antl:clayon/packages/clayon-runner/docs/live-console`
+- Live console interaction map `antl:clayon/packages/clayon-runner/docs/design/live-console-interaction-map`

@@ -1,3 +1,7 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/architecture
+---
+
 # Architecture and Standalone Boundary
 
 ## Dependency direction
@@ -17,37 +21,23 @@ Clayon App production binding --> implements ControlPlanePort
 Eval/conformance consumers --> use packed runtime + ./evals + ./testing exports
 ```
 
-The dependency arrow always points from an implementation toward a contract.
-The standalone package does not reach backward into a Clayon implementation.
-The production implementation lives in
-`server/src/services/native-runtime/clayon-control-plane-port.ts`; it depends
-on the public port, never the reverse. The accepted package/export ownership is
-recorded in [ADR 0001](adr/0001-runner-testing-eval-package-boundaries.md).
+The dependency arrow always points from an implementation toward a contract. The standalone package never reaches backward into a Clayon implementation. The production implementation lives in `server/src/services/native-runtime/clayon-control-plane-port.ts`; it depends on the public port, never the reverse. The accepted package/export ownership is
+recorded in ADR 0001 `antl:clayon/packages/clayon-runner/docs/adr/0001-runner-testing-eval-package-boundaries`.
 
 ## Public package surfaces
 
-- The package root is runtime-only: PRP, runner/client contracts, normalized
-  backends, catalog/dispatcher, and compatibility preflight.
-- `./evals` exposes the stable native-attempt/build-metadata join and explicit
-  digest-verified runnerd artifact resolution.
+- The package root is runtime-only: PRP, runner/client contracts, normalized backends, catalog/dispatcher, compatibility preflight.
+- `./evals` exposes the stable native-attempt/build-metadata join and explicit digest-verified runnerd artifact resolution.
 - `./testing` contains deterministic mocks and conformance kits.
-- The workspace-private `@clayon/clayon-eval-kernel` contains generic
-  structural matrix orchestration and is a development-only dependency.
-  Runner-specific cases, scorers, and reports remain package-local; paid
-  campaigns remain external.
+- The workspace-private `@clayon/clayon-eval-kernel` contains generic structural matrix orchestration and is a development-only dependency. Runner-specific cases, scorers, and reports stay package-local; paid campaigns stay external.
 
 ## Core contracts
 
-- `ControlPlanePort` is the narrow surface through which a runner opens a run,
-  appends ordered events, and submits a terminal structured result.
-- `HarnessDriver` owns a local harness session and its provider-specific
-  identity, event, turn, snapshot, and close behavior.
-- `NativeSessionBackend` normalizes local runner and hosted-provider sessions for
-  a future control-plane consumer. Environment placement is not implied by the
-  backend type.
+- `ControlPlanePort` is the narrow surface through which a runner opens a run, appends ordered events, and submits a terminal structured result.
+- `HarnessDriver` owns a local harness session and its provider-specific identity, event, turn, snapshot, and close behavior.
+- `NativeSessionBackend` normalizes local runner and hosted-provider sessions for a future control-plane consumer. Environment placement is not implied by the backend type.
 
-The TypeScript contracts name responsibility and dependency direction while
-the executable replay path provides a deterministic oracle:
+The TypeScript contracts name responsibility and dependency direction; the executable replay path provides a deterministic oracle:
 
 ```text
 protocol/schemas/*.json
@@ -64,28 +54,17 @@ TypeScript schema constants/types -> validator -> deterministic reducer
                                       Rust runner-core oracle
 ```
 
-The Rust `runner-core` crate establishes the production language/package
-boundary and checks the same fixture summaries. Local runner adds the package-local
-`clayon-runnerd` and `fake-harness` binaries without changing that dependency
-direction.
+The Rust `runner-core` crate establishes the production language/package boundary and checks the same fixture summaries. Local runner adds the package-local `clayon-runnerd` and `fake-harness` binaries without changing that dependency direction.
 
-The clean-consumer gate packs the declared root, `./evals`, and `./testing`
-exports and stages the release runnerd executable as a separately checksummed
-artifact.
+The clean-consumer gate packs the declared root, `./evals`, and `./testing` exports and stages the release runnerd executable as a separately checksummed artifact.
 
 ## Language ownership
 
-- Rust is the production direction for deterministic runner behavior,
-  supervision, durable delivery, and the eventual `clayon-runnerd` binary.
-- TypeScript owns the control-plane/browser side and remains a useful reference
-  client/test oracle.
-- JSON Schema and shared fixtures are the language-neutral authority. Conformance
-  keeps its narrow tracer fixture; Replay adds the executable PRP v1 schema and
-  conformance corpus without silently changing the accepted Conformance path.
-- `check:conformance-parity` prevents either implementation from introducing a
-  language-specific observable result.
-- `check:replay-parity` prevents TypeScript replay and the Rust production
-  direction from disagreeing on identity, terminal state, duplicates, or gaps.
+- Rust is the production direction for deterministic runner behavior, supervision, durable delivery, and the eventual `clayon-runnerd` binary.
+- TypeScript owns the control-plane/browser side and remains a useful reference client/test oracle.
+- JSON Schema and shared fixtures are the language-neutral authority. Conformance keeps its narrow tracer fixture; Replay adds the executable PRP v1 schema and conformance corpus without silently changing the accepted Conformance path.
+- `check:conformance-parity` prevents either implementation from introducing a language-specific observable result.
+- `check:replay-parity` prevents TypeScript replay and the Rust production direction from disagreeing on identity, terminal state, duplicates, or gaps.
 
 ## Allowed dependencies
 
@@ -106,10 +85,7 @@ The following imports and package dependencies are rejected:
   internals unless a boundary review explicitly allows a public contract;
 - relative or absolute imports that escape `packages/clayon-runner/`.
 
-This rule applies to type-only imports, exports, dynamic imports, CommonJS
-`require` calls, Rust include/path attributes, and Cargo path dependencies. The
-negative fixtures under `test-fixtures/` intentionally reference `server/` and
-must fail the checker.
+This rule applies to type-only imports, exports, dynamic imports, CommonJS `require` calls, Rust include/path attributes, and Cargo path dependencies. The negative fixtures under `test-fixtures/` intentionally reference `server/` and must fail the checker.
 
 ## Enforcement
 
@@ -119,14 +95,11 @@ pnpm --filter @clayon/clayon-runner test
 pnpm --filter @clayon/clayon-runner check:replay-parity
 ```
 
-The first command scans the package source, scripts, and manifest. The test
-command additionally asserts that the negative fixture is rejected. The normal
-scan excludes that fixture so a deliberate proof does not make the package fail.
+The first command scans package source, scripts, and manifest. The test command additionally asserts the negative fixture is rejected. The normal scan excludes that fixture so a deliberate proof does not fail the package.
 
 ## Conformance process boundary
 
-The mock core is an in-memory adapter, not a Clayon server. Starting it only
-changes local object state. The tracer performs this sequence:
+The mock core is an in-memory adapter, not a Clayon server. Starting it only changes local object state. The tracer performs this sequence:
 
 1. load and validate `protocol/fixtures/conformance-minimal-run.json`;
 2. start the mock adapter;
@@ -135,22 +108,13 @@ changes local object state. The tracer performs this sequence:
 5. submit the matching terminal result;
 6. print a stable JSON identity/result and stop the adapter.
 
-No socket, database, browser, Clayon process, or model process is started.
-The default command executes this sequence in Rust. The TypeScript reference
-executes the same sequence, and the parity check compares their complete stdout.
+No socket, database, browser, Clayon process, or model process is started. The default command executes this sequence in Rust; the TypeScript reference executes the same sequence, and the parity check compares their complete stdout.
 
 ## Static replay boundary
 
-`replayReplayFixtureText` is the single entry point used by the CLI and browser.
-It parses JSON, validates JSON Schema plus cross-record bindings, and only then
-calls the reducer. The reducer is pure: it clones input state, applies an event
-at most once by source event ID, records source gaps/out-of-order deliveries,
-and never performs I/O.
+`replayReplayFixtureText` is the single entry point used by the CLI and browser. It parses JSON, validates JSON Schema plus cross-record bindings, and only then calls the reducer. The reducer is pure: it clones input state, applies an event at most once by source event ID, records source gaps/out-of-order deliveries, and never performs I/O.
 
-The browser is a Vite application under `devtools/browser/`. Its Button, Badge,
-Card, and Textarea are source-compatible adaptations of shadcn primitives; all
-visual values live in its local `styles.css` token layer. It imports the same
-replay module as the CLI and does not create a browser-only protocol model.
+The browser is a Vite application under `devtools/browser/`. Its Button, Badge, Card, and Textarea are source-compatible adaptations of shadcn primitives; all visual values live in its local `styles.css` token layer. It imports the same replay module as the CLI and creates no browser-only protocol model.
 
 ## Local process boundary
 
@@ -170,24 +134,13 @@ clayon-runnerd -> canonical PRP events -> mock core
                               browser NDJSON stream
 ```
 
-The mock core starts one runner process. The runner creates a new process group
-for one fake harness and its workers. The runner clears the inherited
-environment and restores only the path needed to launch local executables. It
-captures stderr and scripted log messages in a bounded tail.
+The mock core starts one runner process. The runner creates a new process group for one fake harness and its workers. The runner clears the inherited environment and restores only the path needed to launch local executables. It captures stderr and scripted log messages in a bounded tail.
 
-The controller and harness links use newline-delimited JSON over stdio. This is
-the smallest local transport that keeps process ownership clear. The browser
-does not connect to the runner. A package-local Vite middleware exposes an HTTP
-start/action API and an NDJSON event stream from the TypeScript mock core.
+Controller and harness links use newline-delimited JSON over stdio — the smallest local transport that keeps process ownership clear. The browser never connects to the runner. A package-local Vite middleware exposes an HTTP start/action API and an NDJSON event stream from the TypeScript mock core.
 
-The runner publishes the structured semantic result before it publishes the
-harness process exit fact. It then emits one `run.terminal` event. A non-zero
-harness exit can coexist with a valid yielded result. Duplicate commands and
-duplicate terminal messages cannot repeat side effects or close the run twice.
+The runner publishes the structured semantic result before the harness process exit fact, then emits one `run.terminal` event. A non-zero harness exit can coexist with a valid yielded result. Duplicate commands and duplicate terminal messages cannot repeat side effects or close the run twice.
 
-Every browser event passes `validatePrpEvent` and `applyPrpEvent`. When the run
-ends, the browser reduces the complete event list again and compares the replay
-snapshot with the live snapshot.
+Every browser event passes `validatePrpEvent` and `applyPrpEvent`. When the run ends, the browser reduces the complete event list again and compares the replay snapshot with the live snapshot.
 
 ## Durable transport boundary
 
@@ -203,16 +156,9 @@ clayon-runnerd (Rust WebSocket client)
   +-- Local runner fake-harness process for restart proof
 ```
 
-The runner initiates the loopback WebSocket. The bootstrap ticket is present
-only in the runner process environment. The returned connection-lease token is
-kept only in runner memory. The mock core stores SHA-256 digests of capabilities
-and the runner state stores neither capability. The runner writes each event and
-command result before network delivery, then removes outbox events only after a
-valid cumulative ACK.
+The runner initiates the loopback WebSocket. The bootstrap ticket exists only in the runner process environment. The returned connection-lease token is kept only in runner memory. The mock core stores SHA-256 digests of capabilities; the runner state stores neither capability. The runner writes each event and command result before network delivery, then removes outbox events only after a valid cumulative ACK.
 
-The TypeScript peer is a package-local control-plane implementation, not
-production Clayon. Its focused tests cover lost ACKs, socket loss, malformed
-input, process restarts, lease expiry, storage pressure, drain, and revoke.
+The TypeScript peer is a package-local control-plane implementation, not production Clayon. Its focused tests cover lost ACKs, socket loss, malformed input, process restarts, lease expiry, storage pressure, drain, and revoke.
 
 ## Capability-model boundary
 
@@ -234,23 +180,15 @@ Clayon skill + 7 references        Clayon Evals corpus (106 cases)
                    read-only browser scenario explorer
 ```
 
-Capability is a package-local model of a native Clayon run. It classifies every
-capability as control-plane-owned, always-agent-tool, or optional-agent-tool,
-exposes the always/optional set as a transport-neutral semantic tool catalog,
-gates optional tools behind grants, and proves 106 eval-derived cases against an
-in-process mock `ControlPlanePort`. The mock adapter is the only coupling point,
-so a real adapter can replace it later without touching the catalog,
-authorization rules, or conformance suite. Capability contacts no Clayon
+Capability is a package-local model of a native Clayon run. It classifies every capability as control-plane-owned, always-agent-tool, or optional-agent-tool, exposes the always/optional set as a transport-neutral semantic tool catalog, gates optional tools behind grants, and proves 106 eval-derived cases against an in-process mock `ControlPlanePort`. The mock adapter is the only coupling point, so a real adapter can replace it later without touching the catalog, authorization rules, or conformance suite. Capability contacts no Clayon
 service, database, ACPX session, or provider credential; the
-[forbidden-imports checker](#forbidden-dependencies) keeps it that way. Real
+forbidden-imports checker `antl:clayon/packages/clayon-runner/docs/architecture#forbidden-dependencies` keeps it that way. Real
 integration is future upload integration (ACPX) and requires separate approval; see
-[the future binding boundary](capability-future-binding-boundary.md).
+the future binding boundary `antl:clayon/packages/clayon-runner/docs/capability-future-binding-boundary`.
 
 ## Capability live process topology
 
-The live surface adds a real provider turn loop over the same mock core. The
-package server owns every credential and every child process; the browser holds
-none.
+The live surface adds a real provider turn loop over the same mock core. The package server owns every credential and every child process; the browser holds none.
 
 ```text
  browser (issue thread + evidence panel; no credential)
@@ -271,32 +209,19 @@ none.
         +──────── typed result / typed denial ─────+
 ```
 
-Three actors stay separate at all times: **Real Codex** (the app-server
-session), **Real runnerd** (the package-local binary), and **Mock Clayon**
-(the in-process `ControlPlanePort`). The same
-`CapabilityIssueThreadSnapshot` is produced by deterministic `fake` fixtures for the
-screenshot matrix and by the server-side projection for a live session; the
-projection reads only durable records and decides nothing, so UI-side state math
-is a defect by construction. The scripted (`fake`) mode drives the conformance
-suite and replay offline; the Codex (live) mode requires a locally authenticated
-Codex. See [execution modes and identity](capability-execution-modes.md) for the
-mode and eligibility rules, and [the live runnerd/Codex loop](capability-live-runnerd-codex.md)
+Three actors stay separate at all times: **Real Codex** (the app-server session), **Real runnerd** (the package-local binary), and **Mock Clayon** (the in-process `ControlPlanePort`). The same `CapabilityIssueThreadSnapshot` is produced by deterministic `fake` fixtures for the screenshot matrix and by the server-side projection for a live session; the projection reads only durable records and decides nothing, so UI-side state math is a defect by construction. The scripted (`fake`) mode drives the conformance suite and replay offline; the Codex (live) mode requires a locally authenticated
+Codex. See execution modes and identity `antl:clayon/packages/clayon-runner/docs/capability-execution-modes` for the
+mode and eligibility rules, and the live runnerd/Codex loop `antl:clayon/packages/clayon-runner/docs/capability-live-runnerd-codex`
 for the session API. The package server blocks every request to a real
 Clayon API, and the evidence suite proves no such request occurred. The same
-topology serves the [clean-room chat](capability-clean-room-chat.md): the only
+topology serves the clean-room chat `antl:clayon/packages/clayon-runner/docs/capability-clean-room-chat`: the only
 difference is a mock tenant seeded with a company, an agent, and one blank issue
 instead of a recorded eval case.
 
 ## Integration rule
 
-Clayon core may implement these contracts behind a separately reviewed
-adapter, but this package must remain independently buildable, testable, and
-runnable against the mock adapter.
+Clayon core may implement these contracts behind a separately reviewed adapter, but this package must stay independently buildable, testable, and runnable against the mock adapter.
 
 The proposed Standalone seam is recorded in
-[Standalone Thin Clayon Adapter Boundary](design/standalone-thin-clayon-adapter.md).
-It keeps one dependency direction, branches only after Clayon workspace and
-environment realization, composes a package-owned `NativeSessionBackend` with
-a server-bound `ControlPlanePort`, and returns to the existing Clayon
-finalization path. The core seam contains no runner behavior. The proposal is
-design-only until the CTO gate accepts it.
+Standalone Thin Clayon Adapter Boundary `antl:clayon/packages/clayon-runner/docs/design/standalone-thin-clayon-adapter`.
+It keeps one dependency direction, branches only after Clayon workspace and environment realization, composes a package-owned `NativeSessionBackend` with a server-bound `ControlPlanePort`, and returns to the existing Clayon finalization path. The core seam contains no runner behavior. The proposal is design-only until the CTO gate accepts it.

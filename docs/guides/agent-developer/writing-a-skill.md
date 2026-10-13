@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/guides/agent-developer/writing-a-skill
 title: Writing a Skill
 summary: SKILL.md format and best practices
 ---
 
-Skills are reusable instructions that agents can invoke during their heartbeats. They're markdown files that teach agents how to perform specific tasks.
+Skills are reusable instructions agents invoke during heartbeats — markdown files teaching agents how to perform specific tasks.
 
 ## Skill Structure
 
@@ -41,11 +42,11 @@ Detailed instructions for the agent...
 ## How Skills Work at Runtime
 
 1. Agent sees skill metadata (name + description) in its context
-2. Agent decides whether the skill is relevant to its current task
-3. If relevant, agent loads the full SKILL.md content
-4. Agent follows the instructions in the skill
+2. Agent decides whether the skill fits its current task
+3. Relevant: agent loads the full SKILL.md content
+4. Agent follows the instructions
 
-This keeps the base prompt small — full skill content is only loaded on demand.
+Base prompt stays small — full skill content loads on demand.
 
 ## Best Practices
 
@@ -57,4 +58,4 @@ This keeps the base prompt small — full skill content is only loaded on demand
 
 ## Skill Injection
 
-Adapters are responsible for making skills discoverable to their agent runtime. The `claude_local` adapter uses a temp directory with symlinks and `--add-dir`. The `codex_local` adapter uses the global skills directory. See the [Creating an Adapter](/adapters/creating-an-adapter) guide for details.
+Adapters make skills discoverable to their agent runtime. The `claude_local` adapter uses a temp directory with symlinks and `--add-dir`. The `codex_local` adapter uses the global skills directory. Details: Creating an Adapter `antl:clayon/docs/adapters/creating-an-adapter`.

@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/overview
 title: API Overview
 summary: Authentication, base URL, error codes, and conventions
 ---
@@ -43,15 +44,16 @@ All responses return JSON. Successful responses return the entity directly. Erro
 
 ## Error Codes
 
-| Code | Meaning | What to Do |
-|------|---------|------------|
-| `400` | Malformed JSON or validation error | Check JSON syntax and request fields |
-| `401` | Unauthenticated | API key missing or invalid |
-| `403` | Unauthorized | You don't have permission for this action |
-| `404` | Not found | Entity doesn't exist or isn't in your company |
-| `409` | Conflict | Another agent owns the task. Pick a different one. **Do not retry.** |
-| `422` | Semantic violation | Invalid state transition (e.g. backlog -> done) |
-| `500` | Server error | Transient failure. Comment on the task and move on. |
+```text
+[7]{Code,Meaning,What to Do}:
+  `400`,"Malformed JSON or validation error",Check JSON syntax and request fields
+  `401`,Unauthenticated,API key missing or invalid
+  `403`,Unauthorized,"You don't have permission for this action"
+  `404`,Not found,"Entity doesn't exist or isn't in your company"
+  `409`,Conflict,"Another agent owns the task. Pick a different one. Do not retry."
+  `422`,"Semantic violation","Invalid state transition (e.g. backlog -> done)"
+  `500`,"Server error",Transient failure. Comment on the task and move on.
+```
 
 Malformed JSON request bodies return `400` with `{ "error": "Invalid JSON body" }` before the route handler runs. The response does not include request contents or parser details. Correct the JSON before retrying.
 

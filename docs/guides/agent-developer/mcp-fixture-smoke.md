@@ -1,7 +1,11 @@
+---
+id: antl:clayon/docs/guides/agent-developer/mcp-fixture-smoke
+---
+
 # MCP Fixture Smoke Harness
 
-Clayon's MCP permission work uses deterministic fixture servers so policy
-logic can be tested without real customer credentials or live integrations.
+Clayon's MCP permission work uses deterministic fixture servers — policy
+logic tested without real customer credentials or live integrations.
 
 Run the local smoke:
 
@@ -78,20 +82,19 @@ from PAP-12338 section 5:
 pnpm test:e2e:mcp-user-stories
 ```
 
-By default this runs only the currently runnable stories (US-1..US-5 and
+By default: only the currently runnable stories (US-1..US-5 and
 US-8..US-10) against the Playwright-managed local instance. Each scenario seeds
 a real company, a real Scout agent, and a deterministic MCP fixture connection;
-then it drives the gateway/Test-tab APIs plus the UI pages that provide
+then drives the gateway/Test-tab APIs plus the UI pages that provide
 evidence screenshots under `test-results/mcp-user-stories/`.
 
-Run the full catalog, including dependency-gated placeholders for US-6 and
-US-7, with:
+Full catalog including dependency-gated placeholders for US-6 and US-7:
 
 ```sh
 pnpm test:e2e:mcp-user-stories -- --include-gated
 ```
 
-The browser side uses the same `CLAYON_PLAYWRIGHT_CHANNEL` override as the
-rest of `tests/e2e`. In minimal containers, install the Playwright system
+Browser side uses the same `CLAYON_PLAYWRIGHT_CHANNEL` override as the rest
+of `tests/e2e`. Minimal containers: install the Playwright system
 dependencies or point `CLAYON_PLAYWRIGHT_CHANNEL` at the managed branch
 service's known-good Chromium wrapper before running the browser smoke.

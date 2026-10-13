@@ -1,19 +1,23 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/capability-scenario-explorer
+---
+
 # Capability Clean-Start Tutorial: Capability Contract, Mock Control Plane, and Scenario Explorer
 
-**Time to first success: about 5 minutes.** Two commands take you from a clean
+**Time to first success: about 5 minutes.** Two commands take a clean
 checkout to 106 passing conformance cases and a browser you can click through.
-The whole tutorial runs from the repository root. It starts no Clayon
+Runs from the repository root. Starts no Clayon
 service, contacts no Clayon control plane, clones no external eval
-repository, and holds no provider credential. Everything it needs is checked in
+repository, holds no provider credential. Everything it needs is checked in
 under `packages/clayon-runner/`.
 
-Capability does not integrate the runner into Clayon. It builds a package-local
+Capability never integrates the runner into Clayon. It builds a package-local
 model of what a native Clayon run *would* do — a deterministic mock control
 plane, a transport-neutral semantic tool catalog, an authorization engine, a
-106-case conformance suite derived from the Clayon Evals corpus, and a
+106-case conformance suite derived from the Clayon Evals corpus, a
 read-only browser explorer over all of it. Real integration is future upload integration and
 requires separate approval. See
-[the future binding boundary reference](../capability-future-binding-boundary.md).
+the future binding boundary reference `antl:clayon/packages/clayon-runner/docs/capability-future-binding-boundary`.
 
 ## What you need
 
@@ -35,7 +39,7 @@ pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-
 pnpm --filter @clayon/clayon-runner test:capability-evals
 ```
 
-This runs the eval-derived conformance suite entirely in-process against the
+Runs the eval-derived conformance suite entirely in-process against the
 mock control plane. Expected final line:
 
 ```
@@ -43,8 +47,8 @@ mock control plane. Expected final line:
       Tests  1 passed (1)
 ```
 
-The single test file drives all 106 cases across the 16 eval groups. To see the
-per-group counts, assertion classes, the fake-agent operation matrix, and the
+Single test file drives all 106 cases across the 16 eval groups. For
+per-group counts, assertion classes, the fake-agent operation matrix, the
 bounded Codex binding sample, generate the parity report:
 
 ```sh
@@ -57,12 +61,12 @@ Expected final line:
 Capability eval conformance passed: 106 cases across 16 groups.
 ```
 
-The report is written to
-`.clayon-local/evidence/capability/eval-parity-report.{json,md}`. It is a
-generated-on-demand artifact, not a committed file; a clean checkout does not
-contain it. Delete it before you run `pnpm --filter @clayon/clayon-runner docs:validate`
+Report writes to
+`.clayon-local/evidence/capability/eval-parity-report.{json,md}`. Generated
+on demand, not committed; a clean checkout does not
+contain it. Delete before `pnpm --filter @clayon/clayon-runner docs:validate`
 (the report carries no OKF frontmatter and would otherwise fail the knowledge
-bundle check — see [Known gaps](#known-gaps-and-boundaries)).
+bundle check — see Known gaps `antl:clayon/packages/clayon-runner/docs/tutorials/capability-scenario-explorer#known-gaps-and-boundaries`).
 
 The 16 groups and case counts are fixed by the capability contract:
 
@@ -79,9 +83,9 @@ The 16 groups and case counts are fixed by the capability contract:
 pnpm --filter @clayon/clayon-runner demo:scenarios
 ```
 
-Open `http://127.0.0.1:4183/scenario-explorer/`. The explorer is read-only. It
-runs each scenario in the browser against the same mock control plane and
-renders the run artifact; it never re-judges parity and never leaves its own
+Open `http://127.0.0.1:4183/scenario-explorer/`. Explorer is read-only.
+Runs each scenario in the browser against the same mock control plane,
+renders the run artifact; never re-judges parity, never leaves its own
 origin. Walk this path:
 
 1. **Home.** Confirm 16 group facets whose counts sum to 106.
@@ -98,33 +102,33 @@ origin. Walk this path:
    stated reason. `localStorage` holds no run artifact or grant, and the page
    makes no request beyond its own assets.
 
-The explorer imports the frozen `0.1.2` SDK through the package-local
+Explorer imports the frozen `0.1.2` SDK through the package-local
 `@clayon-runner-local/capability` alias — deliberately not the published package
-name. See [the browser explorer reference](../capability-scenario-explorer.md).
+name. See the browser explorer reference `antl:clayon/packages/clayon-runner/docs/capability-scenario-explorer`.
 
 ## 3. Read what each surface guarantees
 
-The explorer renders four surfaces produced by the runtime. Each has a
+Explorer renders four runtime-produced surfaces. Each has a
 package-local reference page:
 
-- [Capability disposition](../capability-disposition.md) — how every
+- Capability disposition `antl:clayon/packages/clayon-runner/docs/capability-disposition` — how every
   skill/reference behavior and eval case is classified as control-plane-owned,
   always-agent-tool, or optional-agent-tool, and how the generated contract is
   produced and checked.
-- [Mock ControlPlanePort](../capability-mock-control-plane-port.md) — the
+- Mock ControlPlanePort `antl:clayon/packages/clayon-runner/docs/capability-mock-control-plane-port` — the
   deterministic in-memory adapter, its entity domains, and its boundary.
-- [Semantic tool catalog](../capability-semantic-tools.md) — the
+- Semantic tool catalog `antl:clayon/packages/clayon-runner/docs/capability-semantic-tools` — the
   transport-neutral tools an agent may call.
-- [Authorization and exposure](../capability-authorization-and-exposure.md) —
+- Authorization and exposure `antl:clayon/packages/clayon-runner/docs/capability-authorization-and-exposure` —
   grants, typed denials, and secret redaction.
-- [Eval conformance](../capability-eval-conformance.md) — how the 106 cases are
+- Eval conformance `antl:clayon/packages/clayon-runner/docs/capability-eval-conformance` — how the 106 cases are
   derived from the checked-in traceability derivative with no external repo.
 
 ## 4. Run the full focused verification set
 
-Every command below is offline, deterministic, and package-local. The
-[verification commands reference](../capability-verification-commands.md) lists
-each one with its purpose and expected result.
+Every command below is offline, deterministic, package-local. The
+verification commands reference `antl:clayon/packages/clayon-runner/docs/capability-verification-commands` lists
+each with its purpose and expected result.
 
 ```sh
 # Capability contract: completeness, uniqueness, one-to-one MCP folds, no drift.
@@ -161,12 +165,12 @@ pnpm --filter @clayon/clayon-runner docs:validate
 
 - **Reports are local.** `report:capability-evals` writes ignored output under
   `.clayon-local/evidence/`; `docs:validate` does not scan it.
-- **Codex mode is disabled.** The explorer offers a bounded real-Codex binding
-  sample only through `report:capability-evals`; the browser holds no credential
-  and the in-page Codex mode is inert with a stated reason.
+- **Codex mode is disabled.** Explorer offers a bounded real-Codex binding
+  sample only through `report:capability-evals`; browser holds no credential;
+  in-page Codex mode is inert with a stated reason.
 - **No Clayon integration.** Nothing here touches a real control plane,
   database, or provider. future upload integration (ACPX) binds the real adapter behind the same
-  seam and requires separate CTO approval.
+  seam, requires separate CTO approval.
 
 ## Where this sits
 

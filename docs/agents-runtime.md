@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/agents-runtime
+---
+
 # Agent Runtime Guide
 
 Status: User-facing guide

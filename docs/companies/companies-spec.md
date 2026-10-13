@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/companies/companies-spec
+---
+
 # Agent Companies Specification
 
 Extension of the Agent Skills Specification

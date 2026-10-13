@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/costs
 title: Costs
 summary: Cost events, summaries, and budget management
 ---
@@ -63,9 +64,7 @@ PATCH /api/agents/{agentId}
 
 ## Budget Enforcement
 
-| Threshold | Effect |
-|-----------|--------|
-| 80% | Soft alert — agent should focus on critical tasks |
-| 100% | Hard stop — agent is auto-paused |
+- **80%** — Soft alert — agent should focus on critical tasks
+- **100%** — Hard stop — agent is auto-paused
 
 Budget windows reset on the first of each month (UTC).

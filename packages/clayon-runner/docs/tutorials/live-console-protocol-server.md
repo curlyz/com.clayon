@@ -1,16 +1,20 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/live-console-protocol-server
+---
+
 # Live console: Run the Protocol Demo Server
 
 ## What this is
 
-This tutorial runs the Live console server layer. It has no browser UI yet. You can
-use `curl` to act like the browser.
+Runs the Live console server layer. No browser UI yet; `curl`
+acts as the browser.
 
-The server starts Codex. Codex login data stays on the server. The JSON replies
-must not contain a Clayon key, an OpenAI key, or a bearer value.
+Server starts Codex. Codex login data stays server-side. JSON replies
+must contain no Clayon key, no OpenAI key, no bearer value.
 
 ## Step 1: Run deterministic checks
 
-From the repository root, run:
+From the repository root:
 
 ```sh
 pnpm --filter @clayon/clayon-runner exec vitest run \
@@ -18,8 +22,8 @@ pnpm --filter @clayon/clayon-runner exec vitest run \
   src/mock-core/live-console-demo-server.test.ts
 ```
 
-Expected result: both files pass. The tests cover requests, goals, lineage,
-steering, interrupt races, reconnect, replay, and redaction.
+Expected: both files pass. Tests cover requests, goals, lineage,
+steering, interrupt races, reconnect, replay, redaction.
 
 ## Step 2: Start the server
 
@@ -33,8 +37,8 @@ pnpm --filter @clayon/clayon-runner demo:live-console -- \
   --working-directory "$liveConsole_workspace"
 ```
 
-Keep this terminal open. The first output line is JSON. It names the host,
-port, and server-owned working directory. It also says
+Keep this terminal open. First output line is JSON: host,
+port, server-owned working directory, plus
 `"credentialsExposed":false`.
 
 ## Step 3: Check the boundary
@@ -65,8 +69,8 @@ curl -s -X POST http://127.0.0.1:4174/api/liveConsole/sessions \
   | tee "$liveConsole_workspace/session.json" | jq
 ```
 
-Copy `sessionId` and `activeTurnId` from the reply. The server ignores a
-browser-supplied working directory and rejects browser-supplied credential
+Copy `sessionId` and `activeTurnId` from the reply. Server ignores a
+browser-supplied working directory; rejects browser-supplied credential
 fields.
 
 ## Step 5: Read live or replayed events
@@ -78,8 +82,8 @@ curl -s "http://127.0.0.1:4174/api/liveConsole/sessions/$session_id/events?after
   -H 'Sec-Fetch-Site: same-origin' | jq
 ```
 
-The reply contains canonical PRP events and a cursor. A later request can pass
-that cursor as `after`. The same events go through the same reducer during live
+Reply contains canonical PRP events plus a cursor. Later requests pass
+that cursor as `after`. Same events go through the same reducer in live
 view and replay.
 
 For a live stream, run:
@@ -100,11 +104,12 @@ curl -s -X POST \
   -H 'content-type: application/json' --data '{}' | jq
 ```
 
-Confirm that `runId`, `normalizedSessionId`, `driverSessionId`, and
-`providerSessionId` did not change. The new events include `session.resumed`.
+Confirm `runId`, `normalizedSessionId`, `driverSessionId`,
+`providerSessionId` unchanged. New events include `session.resumed`.
 
-The repeated browser headers are intentional admission evidence. DNS-rebinding
-Hosts, cross-origin or missing Fetch Metadata, wildcard binds, and simple
-`text/plain` mutations are rejected. This protects the browser boundary, but
-untrusted local processes can still make loopback requests; Codex sandbox and
+Repeated browser headers are intentional admission evidence. Rejected:
+DNS-rebinding
+Hosts, cross-origin or missing Fetch Metadata, wildcard binds, simple
+`text/plain` mutations. This protects the browser boundary; untrusted local
+processes can still make loopback requests. Codex sandbox and
 approval policy remain the final execution boundary.

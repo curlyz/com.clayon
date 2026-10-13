@@ -1,15 +1,16 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/capability-scenario-explorer
+---
+
 # Capability Browser Scenario Explorer
 
-The scenario explorer is a read-only browser surface over all 106 conformance
-cases. It runs each scenario in the page against the
-[mock control plane](capability-mock-control-plane-port.md) through the
-[semantic tool runtime](capability-semantic-tools.md) and renders the resulting
-run artifact. It never re-judges parity, never leaves its own origin, and holds
-no credential.
+The scenario explorer is a read-only browser surface over all 106 conformance cases. It runs each scenario in the page against the
+mock control plane `antl:clayon/packages/clayon-runner/docs/capability-mock-control-plane-port` through the
+semantic tool runtime `antl:clayon/packages/clayon-runner/docs/capability-semantic-tools` and renders the resulting
+run artifact. It never re-judges parity, never leaves its own origin, holds no credential.
 
-Sources: `src/scenarios/` (scenario index, runner, parity, state diff) and
-`examples/scenario-explorer/`. Interaction contract:
-[Capability scenario explorer UX](design/capability-scenario-explorer-ux.md).
+Sources: `src/scenarios/` (scenario index, runner, parity, state diff) and `examples/scenario-explorer/`. Interaction contract:
+Capability scenario explorer UX `antl:clayon/packages/clayon-runner/docs/design/capability-scenario-explorer-ux`.
 
 ## The run artifact
 
@@ -29,38 +30,25 @@ Running a scenario produces one immutable artifact carrying:
 
 ## Read-only and frozen SDK
 
-The explorer imports the frozen **0.1.2** public SDK through the package-local
-alias `@clayon-runner-local/capability`, which is deliberately not the published
-package name. It adds no SDK export and changes no published surface. Fake mode
-runs entirely in the page against checked-in fixtures and renders fixture time
-only, so two loads of the same route produce identical settled DOM.
+The explorer imports the frozen **0.1.2** public SDK through the package-local alias `@clayon-runner-local/capability`, deliberately not the published package name. It adds no SDK export and changes no published surface. Fake mode runs entirely in the page against checked-in fixtures and renders fixture time only, so two loads of the same route produce identical settled DOM.
 
 ## What the explorer shows
 
-- **Home** — 16 group facets whose counts sum to 106, corpus stats, and example
-  deep links.
-- **Picker** — a listbox with live filter chips, disabled zero-count values, and
-  a clear-filters control.
+- **Home** — 16 group facets whose counts sum to 106, corpus stats, and example deep links.
+- **Picker** — a listbox with live filter chips, disabled zero-count values, and a clear-filters control.
 - **Transcript** — both channels (agent-visible and control-plane).
-- **Inspector** — four tabs: context (exposure and grants), authorization
-  (allow/deny), state diff, and traceability.
+- **Inspector** — four tabs: context (exposure and grants), authorization (allow/deny), state diff, and traceability.
 
 ## Boundary
 
 - No network request leaves the explorer's own origin.
 - `localStorage` holds no run artifact, grant, or fixture payload.
-- Codex mode is a disabled option with a stated reason; wiring it to the SDK
-  relay is deferred, and the browser holds no provider credential either way.
-- Secrets are redacted before display; redaction chips name the rule and never
-  the value. See [authorization and exposure](capability-authorization-and-exposure.md).
+- Codex mode is a disabled option with a stated reason; wiring it to the SDK relay is deferred, and the browser holds no provider credential either way.
+- Secrets are redacted before display; redaction chips name the rule, never the value. See authorization and exposure `antl:clayon/packages/clayon-runner/docs/capability-authorization-and-exposure`.
 
 ## Accessibility
 
-The 7F browser suite asserts: listbox arrow-key navigation with
-`aria-activedescendant`, WAI-ARIA tab arrow-key activation with exactly one
-tablist, every interactive control named, a polite live region announcing the
-settled verdict, three landmarks, a single `h1`, and — at 390px — one segment at
-a time with zero horizontal overflow.
+The 7F browser suite asserts: listbox arrow-key navigation with `aria-activedescendant`, WAI-ARIA tab arrow-key activation with exactly one tablist, every interactive control named, a polite live region announcing the settled verdict, three landmarks, a single `h1`, and — at 390px — one segment at a time with zero horizontal overflow.
 
 ## Running it
 
@@ -80,5 +68,5 @@ pnpm --filter @clayon/clayon-runner test:browser:scenarios
 
 ## Related
 
-- [Eval conformance](capability-eval-conformance.md)
-- [Verification commands](capability-verification-commands.md)
+- Eval conformance `antl:clayon/packages/clayon-runner/docs/capability-eval-conformance`
+- Verification commands `antl:clayon/packages/clayon-runner/docs/capability-verification-commands`

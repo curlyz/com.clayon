@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/adapters/http
 title: HTTP Adapter
 summary: HTTP webhook adapter
 ---
@@ -18,11 +19,9 @@ The `http` adapter sends a webhook request to an external agent service. The age
 
 ## Configuration
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `url` | string | Yes | Webhook URL to POST to |
-| `headers` | object | No | Additional HTTP headers |
-| `timeoutSec` | number | No | Request timeout |
+- **`url`** — string, required — Webhook URL to POST to
+- **`headers`** — object, optional — Additional HTTP headers
+- **`timeoutSec`** — number, optional — Request timeout
 
 ## How It Works
 

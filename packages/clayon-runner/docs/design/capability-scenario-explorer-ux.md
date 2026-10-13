@@ -1,21 +1,25 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/design/capability-scenario-explorer-ux
+---
+
 # Capability Interaction Map — Scenario Explorer and Screenshot Acceptance Spec
 
 Status: **approved UX contract for 7F implementation** (TASK-16899, 2026-08-09).
 Owner: UXDesigner. Implementer: 7F (browser scenario explorer), integrating
 7C mock adapter output and 7E parity output.
-Companion records: [Capability contract](../capability-contract.md),
+Companion records: Capability contract `antl:clayon/packages/clayon-runner/docs/capability-contract`,
 `spec/capability/eval-traceability.yaml`, the Capability plan (TASK-16897),
-[Live console interaction map](live-console-interaction-map.md),
-[SDK component decisions](sdk-component-decisions.md).
+Live console interaction map `antl:clayon/packages/clayon-runner/docs/design/live-console-interaction-map`,
+SDK component decisions `antl:clayon/packages/clayon-runner/docs/design/sdk-component-decisions`.
 (annotated desktop + mobile renders in `.clayon-local/evidence/capability/`).
 
 This map is the interaction contract for the Capability browser scenario
 explorer. The explorer is a **read surface over records the runtime already
-produced**. It renders scenario metadata from the generated 7A traceability
-manifest, run artifacts from the 7C mock control-plane adapter, and parity
+produced**. Renders scenario metadata from the generated 7A traceability
+manifest, run artifacts from the 7C mock control-plane adapter, parity
 results from the 7E conformance suite. The UI never owns state, policy,
-credentials, or execution decisions: it does not compute tool exposure, does
-not evaluate claims, does not apply redaction, and holds no Clayon or
+credentials, or execution decisions: no tool-exposure computation, no
+claim evaluation, no redaction, no Clayon or
 provider credential. Every allow/deny, redaction, and state transition shown
 on screen must arrive as a record emitted by the mock core.
 
@@ -43,11 +47,11 @@ on screen must arrive as a record emitted by the mock core.
 ## 1. Shell and information architecture
 
 Package-local Vite entry `examples/scenario-explorer/` with script
-`demo:scenarios` (default port 4183; 4182 belongs to the Standalone demo). It runs
+`demo:scenarios` (default port 4183; 4182 belongs to the Standalone demo). Runs
 from static assets plus checked-in fixtures with **no Clayon services and
 no network dependency** in fake-agent mode. Reuse the frozen `0.1.2` SDK
 surface (`@clayon/clayon-runner/react` + `./styles.css`) through its
-five approved extension points; do not fork the token layer.
+five approved extension points; never fork the token layer.
 
 Desktop layout (≥ 64rem), one React tree (SDK finding — never render two
 trees):
@@ -63,8 +67,8 @@ trees):
   first-class acceptance evidence, not diagnostics).
 
 Mobile (< 64rem): single column behind a segmented control
-(`Scenarios · Run · Inspect`), same pattern as the Live console console. The
-segmented control is sticky at the top; the Run segment is the default when
+(`Scenarios · Run · Inspect`), same pattern as the Live console console. Segmented
+control sticky at the top; Run segment is the default when
 a case is selected via route. Touch targets ≥ `--pcr-touch-target` (2.75rem).
 
 Density: diagnostic-console dense, like 4b. All spacing, color, type, radius,
@@ -105,11 +109,11 @@ Contents, top to bottom:
    full text in a tooltip), disposition badge, parity status dot+icon.
    Selected row uses `--pcr-accent-surface` with a `--pcr-accent` left rule.
 
-Keyboard: the list is a single-select listbox (`role="listbox"`,
+Keyboard: single-select listbox (`role="listbox"`,
 `aria-activedescendant`); Up/Down move, type-ahead jumps, Enter selects and
 moves focus to the run header. Facets are disclosure buttons +
 checkbox groups. Filter state mirrors into the route (§7) so any filtered
-view is linkable; filter state is never stored as protocol state.
+view is linkable; never stored as protocol state.
 
 Empty results: “No scenarios match these filters.” + Clear filters button —
 never a bare void.
@@ -257,7 +261,7 @@ The eval acceptance surface:
   additionally fails closed by rendering nothing for fields flagged
   redacted.
 - A **denied** tool call renders the typed policy denial: operation, the
-  missing claim, and the denial reason — and never any protected state. An
+  missing claim, and the denial reason — never any protected state. An
   **absent** tool simply does not appear in exposure lists; the Context tab’s
   control-plane section is the affordance proving absence is intentional.
 - The generic escape hatch (`clayonApiRequest` successor), when a test
@@ -292,16 +296,17 @@ scrollbar appears at 390px (SDK finding).
 
 States that must be designed, not defaulted:
 
-| State | Surface | Rendering |
-| --- | --- | --- |
-| No scenario selected | Center + inspector | Explorer intro card: corpus stats (106 cases · 16 groups), “Pick a scenario” pointer at the rail, three example deep links. No dead panels. |
-| Scenario selected, not run | Run view | Header + context render from the index; transcript area shows a primed empty state (“Run to produce the deterministic timeline”) with the Run button duplicated inline (Fitts). Diff/Parity tabs show “No run yet.” |
-| Run in progress | All | Progress in the header (indeterminate, reduced-motion safe); transcript streams; tabs show live counts; controls disable with reasons. |
-| Run failed (harness error) | Run view | Danger banner with the exact diagnostic + “Re-run”; partial timeline stays visible and labeled partial. Never silently reset. |
-| Parity fail | Banner/Parity | Fail is a first-class rendered state (danger banner + failing assertion rows) — the explorer’s job is showing it, not avoiding it. |
-| Denied/absent tool | Transcript/Context | Per §5. |
-| Missing/invalid fixture or artifact | Shell | Error card naming the artifact path and the regenerate command (`pnpm generate:capability-inventory` / 7E command). No blank screen. |
-| Codex relay unavailable | Mode control | Disabled option + reason; fake mode remains fully usable. |
+```text
+[8]{State,Surface,Rendering}:
+  No scenario selected,Center + inspector,"Explorer intro card: corpus stats (106 cases · 16 groups), “Pick a scenario” pointer at the rail, three example deep links. No dead panels."
+  "Scenario selected, not run",Run view,"Header + context render from the index; transcript area shows a primed empty state (“Run to produce the deterministic timeline”) with the Run button duplicated inline (Fitts). Diff/Parity tabs show “No run yet.”"
+  Run in progress,All,"Progress in the header (indeterminate, reduced-motion safe); transcript streams; tabs show live counts; controls disable with reasons."
+  "Run failed (harness error)",Run view,"Danger banner with the exact diagnostic + “Re-run”; partial timeline stays visible and labeled partial. Never silently reset."
+  Parity fail,Banner/Parity,"Fail is a first-class rendered state (danger banner + failing assertion rows) — the explorer’s job is showing it, not avoiding it."
+  Denied/absent tool,Transcript/Context,Per §5.
+  "Missing/invalid fixture or artifact",Shell,"Error card naming the artifact path and the regenerate command (`pnpm generate:capability-inventory` / 7E command). No blank screen."
+  Codex relay unavailable,Mode control,"Disabled option + reason; fake mode remains fully usable."
+```
 
 ## 7. Deterministic screenshot routes
 
@@ -392,20 +397,21 @@ UX acceptance set for 7F (they also cover the plan’s human-checkpoint
 scenario families: heartbeat, planning, blockers, approvals, artifacts,
 interactions, manager, multi-hop, restraint).
 
-| # | Slug | Route | Expected visible evidence |
-| --- | --- | --- | --- |
-| 1 | `explorer-home` | `#/` | Picker with all 16 group facets and counts summing to 106; intro card with corpus stats; no dead panels. |
-| 2 | `picker-filtered` | `#/?group=ix&disposition=always_agent_tool&parity=pass` | Active filter chips; filtered count visible; zero-count facet values disabled but legible; Clear filters affordance. |
-| 3 | `hb-heartbeat` | `#/case/hb-scoped-wake-01?run=fake&view=transcript` | Control-plane channel entries for scoped-wake routing and checkout (“no agent tool exists for this”), then `get_task_context` agent call; pass banner. |
-| 4 | `wk-planning` | `#/case/wk-plan-directive-01?run=fake&view=transcript` | `write_document` call with revision fields, revision-bound `request_human_input` (confirmation), review-parked disposition; no re-plan loop. |
-| 5 | `bl-blockers-diff` | `#/case/bl-create-blocked-01?run=fake&view=diff` | State diff: tasks domain shows the new task created blocked; blockers domain shows first-class `blockedByIssueIds`; unchanged domains collapsed. |
-| 6 | `ap-approval-denied` | `#/case/ap-mcp-gate-01?run=fake&view=authorization` | Authorization table with a Deny row (missing claim + reason, danger surface, no protected state); “Authorization · 1 deny” tab chip; transcript shows the typed denial card. |
-| 7 | `ar-artifacts` | `#/case/ar-upload-before-done-01?run=fake&view=transcript` | `register_deliverable` completing **before** `finish_task` in artifact order; deliverable metadata in the expanded call card. |
-| 8 | `ix-interaction` | `#/case/ix-checkbox-01?run=fake&view=transcript` | `request_human_input(kind=checkbox)` call card with options payload; control-plane wake/continuation entry; result inspection entry. |
-| 9 | `rf-manager` | `#/case/rf-api-mgr-heartbeat-01?run=fake&view=context` | Context tab: manager role; optional discovery tools listed **with their unlocking grants**; control-plane “no tool” list populated; traceability panel showing source anchor + skill elements. |
-| 10 | `mh-multihop` | `#/case/mh-subtask-tree-01?run=fake&view=parity` | Multi-hop assertion rows (child creation, chained blockers) all Pass; forbidden operations section showing “never invoked ✓”. |
-| 11 | `rs-restraint` | `#/case/rs-question-only-01?run=fake&view=parity` | Restraint verdict: answer-only transcript with the “No further operations” note; parity forbidden list showing zero state writes; Pass banner. |
-| 12 | `rs-secret-redaction` | `#/case/rs-secret-hygiene-01?run=fake&view=transcript` | Redaction chips (`•••` + rule name) in call/result cards; comment content free of the key; parity Pass. |
+```text
+[12]{#,Slug,Route,Expected visible evidence}:
+  1,`explorer-home`,`#/`,"Picker with all 16 group facets and counts summing to 106; intro card with corpus stats; no dead panels."
+  2,`picker-filtered`,`#/?group=ix&disposition=always_agent_tool&parity=pass`,"Active filter chips; filtered count visible; zero-count facet values disabled but legible; Clear filters affordance."
+  3,`hb-heartbeat`,`#/case/hb-scoped-wake-01?run=fake&view=transcript`,"Control-plane channel entries for scoped-wake routing and checkout (“no agent tool exists for this”), then `get_task_context` agent call; pass banner."
+  4,`wk-planning`,`#/case/wk-plan-directive-01?run=fake&view=transcript`,"`write_document` call with revision fields, revision-bound `request_human_input` (confirmation), review-parked disposition; no re-plan loop."
+  5,`bl-blockers-diff`,`#/case/bl-create-blocked-01?run=fake&view=diff`,"State diff: tasks domain shows the new task created blocked; blockers domain shows first-class `blockedByIssueIds`; unchanged domains collapsed."
+  6,`ap-approval-denied`,`#/case/ap-mcp-gate-01?run=fake&view=authorization`,"Authorization table with a Deny row (missing claim + reason, danger surface, no protected state); “Authorization · 1 deny” tab chip; transcript shows the typed denial card."
+  7,`ar-artifacts`,`#/case/ar-upload-before-done-01?run=fake&view=transcript`,"`register_deliverable` completing before `finish_task` in artifact order; deliverable metadata in the expanded call card."
+  8,`ix-interaction`,`#/case/ix-checkbox-01?run=fake&view=transcript`,"`request_human_input(kind=checkbox)` call card with options payload; control-plane wake/continuation entry; result inspection entry."
+  9,`rf-manager`,`#/case/rf-api-mgr-heartbeat-01?run=fake&view=context`,"Context tab: manager role; optional discovery tools listed with their unlocking grants; control-plane “no tool” list populated; traceability panel showing source anchor + skill elements."
+  10,`mh-multihop`,`#/case/mh-subtask-tree-01?run=fake&view=parity`,"Multi-hop assertion rows (child creation, chained blockers) all Pass; forbidden operations section showing “never invoked ✓”."
+  11,`rs-restraint`,`#/case/rs-question-only-01?run=fake&view=parity`,"Restraint verdict: answer-only transcript with the “No further operations” note; parity forbidden list showing zero state writes; Pass banner."
+  12,`rs-secret-redaction`,`#/case/rs-secret-hygiene-01?run=fake&view=transcript`,"Redaction chips (`•••` + rule name) in call/result cards; comment content free of the key; parity Pass."
+```
 
 Mobile captures use the same routes; the segmented control must show the
 correct active segment (`Run` for transcript shots, `Inspect` for tab shots)

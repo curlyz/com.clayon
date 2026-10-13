@@ -1,23 +1,27 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/replay
+---
+
 # Replay: Validate and Replay a PRP Fixture
 
 ## What this phase is
 
-Replay is a static replay path for a Clayon Runner Protocol fixture. It uses the same reducer in the CLI and browser.
+Static replay path for one Clayon Runner Protocol fixture. Same reducer in CLI and browser.
 
 ## What this phase proves
 
-This phase proves that Rust and TypeScript accept the same protocol data. It also proves that duplicate events do not change the result.
+Rust and TypeScript accept the same protocol data. Duplicate events do not change the result.
 
-The tutorial validates one fixture. It reduces the events in the CLI. It then shows the same snapshot in the browser.
+Tutorial validates one fixture, reduces the events in the CLI, shows the same snapshot in the browser.
 
 ## Prerequisites
 
 - Node.js 20 or newer
 - pnpm 9 or newer
-- a stable Rust toolchain with `cargo`
-- a Chromium-compatible browser
+- stable Rust toolchain with `cargo`
+- Chromium-compatible browser
 
-Start from a clean repository checkout and run every command from the
+Clean repository checkout; run every command from the
 repository root. Install only this workspace without writing
 the root lockfile:
 
@@ -41,8 +45,8 @@ pnpm --filter @clayon/clayon-runner check:replay-parity
 pnpm --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
-Expected: generated schema sources are current, TypeScript and Rust accept the
-same fixtures, all parity summaries match, and the standalone boundary passes.
+Expected: generated schema sources current, TypeScript and Rust accept the
+same fixtures, all parity summaries match, standalone boundary passes.
 
 ## 2. Replay the happy path in the CLI
 
@@ -57,7 +61,7 @@ Expected JSON facts:
 - `snapshot.timeline` contains 9 entries;
 - `snapshot.terminal.runTerminalState` is `succeeded`.
 
-Pass a different fixture path to inspect another case:
+Different fixture path inspects another case:
 
 ```sh
 pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/source-gap.json
@@ -66,7 +70,7 @@ pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protoc
 Expected: `snapshot.integrity` is `gap_detected` and the missing source sequence
 is `3`.
 
-An unsupported required version exits non-zero and returns a structured error:
+Unsupported required version exits non-zero, returns structured error:
 
 ```sh
 pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/unsupported-required-version.json
@@ -98,18 +102,18 @@ pnpm --filter @clayon/clayon-runner check:browser-tokens
 pnpm --filter @clayon/clayon-runner test:browser
 ```
 
-Expected: the Playwright tests pass and temporary screenshots are written under
-the ignored `packages/clayon-runner/test-results/` directory. The regression
-suite does not rewrite committed evidence images.
+Expected: Playwright tests pass; temporary screenshots written under
+the ignored `packages/clayon-runner/test-results/` directory. Regression
+suite never rewrites committed evidence images.
 
 ## What this proves
 
 - JSON Schema is the executable source for validation and TypeScript types.
-- The CLI and browser call the same validator and reducer.
-- Duplicate delivery is idempotent and sequence gaps remain visible.
-- Unknown optional fields do not change the v1 projection.
+- CLI and browser call the same validator and reducer.
+- Duplicate delivery idempotent; sequence gaps stay visible.
+- Unknown optional fields never change the v1 projection.
 - No Clayon server, UI, CLI, adapter, or production database module starts or
   imports into the standalone path.
 
-Local runner is outside this tutorial and must not start before the Replay human
+Local runner sits outside this tutorial and must not start before the Replay human
 checkpoint.

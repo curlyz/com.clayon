@@ -1,10 +1,14 @@
+---
+id: antl:clayon/docs/guides/execution-policy
+---
+
 # Execution Policy: Review & Approval Workflows
 
-Clayon's execution policy system ensures tasks are completed with the right level of oversight. Instead of relying on agents to remember to hand off work for review, the **runtime enforces** review and approval stages automatically.
+Clayon's execution policy system ensures tasks complete with the right oversight. Agents never need to remember hand-offs: the **runtime enforces** review and approval stages automatically.
 
 ## Overview
 
-An execution policy is an optional structured object on any issue that defines what must happen after the executor finishes their work. It supports three layers of enforcement:
+An execution policy is an optional structured object on any issue defining what happens after the executor finishes. Three enforcement layers:
 
 | Layer | Purpose | Scope |
 |---|---|---|
@@ -12,7 +16,7 @@ An execution policy is an optional structured object on any issue that defines w
 | **Review stage** | A reviewer checks quality/correctness and can request changes | Per-issue, optional |
 | **Approval stage** | A manager/stakeholder gives final sign-off | Per-issue, optional |
 
-These layers compose. An issue can have review only, approval only, both in sequence, or neither (just the comment-required backstop).
+Layers compose: review only, approval only, both in sequence, or neither (comment-required backstop alone).
 
 ## Data Model
 
@@ -40,11 +44,11 @@ interface IssueExecutionStageParticipant {
 }
 ```
 
-Participants can be either agents or board users. Each stage can have multiple participants; the runtime selects the first eligible participant, preferring any explicitly requested assignee while excluding the original executor.
+Participants are agents or board users. Each stage can hold multiple participants; the runtime picks the first eligible one, preferring any explicitly requested assignee and excluding the original executor.
 
 ### Execution State (issue field: `executionState`)
 
-Tracks where the issue currently sits in its policy workflow:
+Tracks where the issue sits in its policy workflow:
 
 ```ts
 interface IssueExecutionState {
@@ -62,7 +66,7 @@ interface IssueExecutionState {
 
 ### Execution Decisions (table: `issue_execution_decisions`)
 
-An audit trail of every review/approval action:
+Audit trail of every review/approval action:
 
 ```ts
 interface IssueExecutionDecision {
@@ -158,22 +162,20 @@ Independent of review stages, every issue-bound agent run must leave a comment. 
 3. **If still no comment after retry**: `issueCommentStatus` is set to `retry_exhausted`. No further retries. The failure is recorded.
 4. **If comment posted**: `issueCommentStatus` is set to `satisfied` and linked to the comment ID.
 
-This prevents silent completions where an agent finishes work but leaves no trace of what happened.
+This blocks silent completions — an agent finishing with no trace of what happened.
 
 ### Run-level tracking fields
 
-| Field | Description |
-|---|---|
-| `issueCommentStatus` | `satisfied`, `retry_queued`, or `retry_exhausted` |
-| `issueCommentSatisfiedByCommentId` | Links to the comment that fulfilled the requirement |
-| `issueCommentRetryQueuedAt` | Timestamp when the retry wake was scheduled |
+- **`issueCommentStatus`** — `satisfied`, `retry_queued`, or `retry_exhausted`
+- **`issueCommentSatisfiedByCommentId`** — Links to the comment that fulfilled the requirement
+- **`issueCommentRetryQueuedAt`** — Timestamp when the retry wake was scheduled
 
 ## Access Control
 
 - Only the **active reviewer/approver** (the `currentParticipant` in execution state) can advance or reject the current stage.
-- Non-participants who attempt to transition the issue receive a `422 Unprocessable Entity` error.
-- Both approvals and change requests **require a comment** — empty or whitespace-only comments are rejected.
-- The decision comment must be included in the same `PATCH /api/issues/{issueId}` request that changes the status. A prior `POST /api/issues/{issueId}/comments` entry remains normal discussion and does not satisfy the review/approval decision guard.
+- Non-participants attempting a transition get `422 Unprocessable Entity`.
+- Approvals and change requests **require a comment** — empty or whitespace-only comments are rejected.
+- The decision comment must ride the same `PATCH /api/issues/{issueId}` request that changes status. A prior `POST /api/issues/{issueId}/comments` entry stays normal discussion and never satisfies the review/approval decision guard.
 
 ## API Usage
 
@@ -191,7 +193,7 @@ PATCH /api/issues/{issueId}
 { "status": "in_progress", "comment": "Reviewer decision: request changes - cover the retry edge case." }
 ```
 
-Do not split a decision into `POST /comments` followed by a status-only `PATCH`; the runtime only records the decision from the `comment` field on the same status update.
+Never split a decision into `POST /comments` plus a status-only `PATCH`; the runtime records the decision only from the `comment` field on the same status update.
 
 ### Setting an execution policy on issue creation
 
@@ -221,7 +223,7 @@ POST /api/companies/{companyId}/issues
 }
 ```
 
-Stage IDs and participant IDs are auto-generated if omitted. Duplicate participants within a stage are automatically deduplicated. Stages with no valid participants are removed. If no valid stages remain, the policy is set to `null`.
+Stage and participant IDs are auto-generated if omitted. Duplicate participants within a stage are deduplicated. Stages with no valid participants are removed; no valid stages left means policy `null`.
 
 ### Updating execution policy on an existing issue
 
@@ -232,7 +234,7 @@ PATCH /api/issues/{issueId}
 }
 ```
 
-If the policy is removed (`null`) while a review is in progress, the execution state is cleared and the issue is returned to the original executor.
+Policy removed (`null`) mid-review: execution state clears and the issue returns to the original executor.
 
 ### Advancing a stage (reviewer/approver approves)
 
@@ -246,11 +248,11 @@ PATCH /api/issues/{issueId}
 }
 ```
 
-The runtime determines whether this completes the workflow or advances to the next stage.
+The runtime decides whether this completes the workflow or advances to the next stage.
 
 ### Requesting changes
 
-The active reviewer transitions to any non-`done` status with a comment:
+Active reviewer transitions to any non-`done` status with a comment:
 
 ```bash
 PATCH /api/issues/{issueId}
@@ -279,8 +281,8 @@ For existing issues, the properties panel shows editable **Reviewer** and **Appr
 
 ## Design Principles
 
-1. **Runtime-enforced, not prompt-dependent.** Agents don't need to remember to hand off work. The runtime intercepts status transitions and routes accordingly.
-2. **Iterative, not terminal.** Review is a loop (request changes → revise → re-review), not a one-shot gate. The system returns to the same stage on re-submission.
-3. **Flexible roles.** Participants can be agents or users. Not every organization has "QA" — the reviewer/approver pattern is generic enough for peer review, manager sign-off, compliance checks, or any multi-party workflow.
-4. **Auditable.** Every decision is recorded with actor, outcome, comment, and run ID. The full review history is queryable per issue.
-5. **Single execution invariant preserved.** Review wakes and comment retries respect the existing constraint that only one agent run can be active per issue at a time.
+1. **Runtime-enforced, not prompt-dependent.** Agents never remember hand-offs; the runtime intercepts status transitions and routes.
+2. **Iterative, not terminal.** Review is a loop (request changes → revise → re-review), not a one-shot gate. Re-submission returns to the same stage.
+3. **Flexible roles.** Participants are agents or users. Not every organization has "QA" — the reviewer/approver pattern covers peer review, manager sign-off, compliance checks, any multi-party workflow.
+4. **Auditable.** Every decision records actor, outcome, comment, run ID. Full review history is queryable per issue.
+5. **Single execution invariant preserved.** Review wakes and comment retries respect the existing constraint: only one agent run active per issue at a time.

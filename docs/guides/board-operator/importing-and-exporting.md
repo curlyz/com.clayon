@@ -1,13 +1,14 @@
 ---
+id: antl:clayon/docs/guides/board-operator/importing-and-exporting
 title: Importing & Exporting Companies
 summary: Export companies to portable packages and import them from local paths or GitHub
 ---
 
-Clayon companies can be exported to portable markdown packages and imported from local directories or GitHub repositories. This lets you share company configurations, duplicate setups, and version-control your agent teams.
+Clayon companies export to portable markdown packages and import from local directories or GitHub repositories — share company configurations, duplicate setups, version-control your agent teams.
 
 ## Package Format
 
-Exported packages follow the [Agent Companies specification](/companies/companies-spec) and use a markdown-first structure:
+Exported packages follow the Agent Companies specification `antl:clayon/docs/companies/companies-spec`, markdown-first structure:
 
 ```text
 my-company/
@@ -31,17 +32,17 @@ my-company/
 
 ## Export & Import in the App
 
-Both flows are also available in the web UI as company settings pages: **Export** and **Import** appear in the company settings navigation.
+Both flows also live in the web UI as company settings pages: **Export** and **Import** in the company settings navigation.
 
-> **Cloud-managed instances:** when a hosting platform manages the instance, the company is provisioned by the platform and importing is disabled — the Import page and buttons are hidden, and every import API route answers `403` with `code: "cloud_managed"`. Export stays available, so you can always take your company's data with you. Self-hosted instances keep the full import surface.
+> **Cloud-managed instances:** a hosting platform manages the instance — the company is provisioned by the platform and importing is disabled. The Import page and buttons are hidden, and every import API route answers `403` with `code: "cloud_managed"`. Export stays available: your company's data is always takeable with you. Self-hosted instances keep the full import surface.
 
-The **Export** page lets you pick exactly which files go into the bundle before downloading it. Above the file tree it shows a **"Not included in this export"** panel — the export fidelity report — listing data the bundle will not carry (for example attachments, approvals, cost history, or activity log entries), with blocking issues highlighted.
+The **Export** page lets you pick exactly which files go into the bundle before downloading. Above the file tree, a **"Not included in this export"** panel — the export fidelity report — lists data the bundle will not carry (for example attachments, approvals, cost history, or activity log entries), blocking issues highlighted.
 
-The **Import** page previews the package, lets you resolve name collisions and adapter assignments, and applies the import. A **"Start imported agents and routines paused"** checkbox (on by default) makes imported agents and routines land paused instead of live. After the import finishes, an **"Activate imported agents and routines"** panel lists everything that was imported paused so you can resume the agents and activate the routines you select — nothing starts running until you say so.
+The **Import** page previews the package, resolves name collisions and adapter assignments, applies the import. A **"Start imported agents and routines paused"** checkbox (on by default) lands imported agents and routines paused instead of live. After import, an **"Activate imported agents and routines"** panel lists everything imported paused so you can resume the agents and activate the routines you select — nothing starts running until you say so.
 
 ## Exporting a Company
 
-Export a company into a portable folder:
+Export a company to a portable folder:
 
 ```sh
 clayon company export <company-id> --out ./my-export
@@ -49,15 +50,16 @@ clayon company export <company-id> --out ./my-export
 
 ### Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--out <path>` | Output directory (required) | — |
-| `--include <values>` | Comma-separated set: `company`, `agents`, `projects`, `issues`, `tasks`, `skills` | `company,agents` |
-| `--skills <values>` | Export only specific skill slugs | all |
-| `--projects <values>` | Export only specific project shortnames or IDs | all |
-| `--issues <values>` | Export specific issue identifiers or IDs | none |
-| `--project-issues <values>` | Export issues belonging to specific projects | none |
-| `--expand-referenced-skills` | Vendor skill file contents instead of keeping upstream references | `false` |
+```text
+[7]{Option,Description,Default}:
+  `--out <path>`,Output directory (required),—
+  `--include <values>`,"Comma-separated set: `company`, `agents`, `projects`, `issues`, `tasks`, `skills`","`company,agents`"
+  `--skills <values>`,Export only specific skill slugs,all
+  `--projects <values>`,Export only specific project shortnames or IDs,all
+  `--issues <values>`,Export specific issue identifiers or IDs,none
+  `--project-issues <values>`,Export issues belonging to specific projects,none
+  `--expand-referenced-skills`,Vendor skill file contents instead of keeping upstream references,`false`
+```
 
 ### Examples
 
@@ -104,37 +106,38 @@ clayon company import org/repo/companies/acme
 
 ### Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--target <mode>` | `new` (create a new company) or `existing` (merge into existing) | inferred from context |
-| `--company-id <id>` | Target company ID for `--target existing` | current context |
-| `--new-company-name <name>` | Override company name for `--target new` | from package |
-| `--include <values>` | Comma-separated set: `company`, `agents`, `projects`, `issues`, `tasks`, `skills` | auto-detected |
-| `--agents <list>` | Comma-separated agent slugs to import, or `all` | `all` |
-| `--collision <mode>` | How to handle name conflicts: `rename`, `skip`, or `replace` | `rename` |
-| `--ref <value>` | Git ref for GitHub imports (branch, tag, or commit) | default branch |
-| `--dry-run` | Preview what would be imported without applying | `false` |
-| `--yes` | Skip the interactive confirmation prompt | `false` |
-| `--json` | Output result as JSON | `false` |
+```text
+[10]{Option,Description,Default}:
+  `--target <mode>`,`new` (create a new company) or `existing` (merge into existing),inferred from context
+  `--company-id <id>`,Target company ID for `--target existing`,current context
+  `--new-company-name <name>`,Override company name for `--target new`,from package
+  `--include <values>`,"Comma-separated set: `company`, `agents`, `projects`, `issues`, `tasks`, `skills`",auto-detected
+  `--agents <list>`,"Comma-separated agent slugs to import, or `all`",`all`
+  `--collision <mode>`,"How to handle name conflicts: `rename`, `skip`, or `replace`",`rename`
+  `--ref <value>`,Git ref for GitHub imports (branch, tag, or commit),default branch
+  `--dry-run`,Preview what would be imported without applying,`false`
+  `--yes`,Skip the interactive confirmation prompt,`false`
+  `--json`,Output result as JSON,`false`
+```
 
 ### Target Modes
 
-- **`new`** — Creates a fresh company from the package. Good for duplicating a company template.
-- **`existing`** — Merges the package into an existing company. Use `--company-id` to specify the target.
+- **`new`** — Fresh company from the package. Good for duplicating a company template.
+- **`existing`** — Merges the package into an existing company. Use `--company-id` for the target.
 
-If `--target` is not specified, Clayon infers it: if a `--company-id` is provided (or one exists in context), it defaults to `existing`; otherwise `new`.
+`--target` unset: Clayon infers it — `--company-id` provided (or in context) means `existing`; otherwise `new`.
 
 ### Collision Strategies
 
-When importing into an existing company, agent or project names may conflict with existing ones:
+Importing into an existing company: agent or project names may conflict:
 
 - **`rename`** (default) — Appends a suffix to avoid conflicts (e.g., `ceo` becomes `ceo-2`).
 - **`skip`** — Skips entities that already exist.
-- **`replace`** — Overwrites existing entities. Only available for non-safe imports (not available through the CEO API).
+- **`replace`** — Overwrites existing entities. Non-safe imports only (never through the CEO API).
 
 ### Interactive Selection
 
-When running interactively (no `--yes` or `--json` flags), the import command shows a selection picker before applying. You can choose exactly which agents, projects, skills, and tasks to import using a checkbox interface.
+Interactive run (no `--yes` or `--json`): the import command shows a selection picker before applying. A checkbox interface picks exactly which agents, projects, skills, and tasks to import.
 
 ### Preview Before Applying
 
@@ -150,9 +153,9 @@ The preview shows:
 - **Env inputs** — Environment variables that may need values after import
 - **Warnings** — Potential issues like missing skills or unresolved references
 
-Imported agents always land with timer heartbeats disabled. Assignment/on-demand wake behavior from the package is preserved, but scheduled runs stay off until a board operator re-enables them.
+Imported agents always land with timer heartbeats disabled. Assignment/on-demand wake behavior from the package is preserved; scheduled runs stay off until a board operator re-enables them.
 
-Imports can additionally request `pauseAutomations` (the default in the app's Import page) so imported agents and routines land fully paused. Use the post-import activation panel — or resume the agents and activate the routines individually — when you are ready for them to run.
+Imports can also request `pauseAutomations` (the default in the app's Import page): imported agents and routines land fully paused. Use the post-import activation panel — or resume agents and activate routines individually — when ready for them to run.
 
 ### Common Workflows
 
@@ -193,26 +196,27 @@ clayon company import ./package \
 
 The CLI commands use these API endpoints under the hood:
 
-| Action | Endpoint |
-|--------|----------|
-| Export company | `POST /api/companies/{companyId}/export` |
-| Export fidelity report | `GET /api/companies/{companyId}/export/fidelity` |
-| Preview import (existing company) | `POST /api/companies/{companyId}/imports/preview` |
-| Apply import (existing company) | `POST /api/companies/{companyId}/imports/apply` |
-| Preview import (new company) | `POST /api/companies/import/preview` |
-| Apply import (new company) | `POST /api/companies/import` |
+```text
+[6]{Action,Endpoint}:
+  Export company,`POST /api/companies/{companyId}/export`
+  Export fidelity report,`GET /api/companies/{companyId}/export/fidelity`
+  Preview import (existing company),`POST /api/companies/{companyId}/imports/preview`
+  Apply import (existing company),`POST /api/companies/{companyId}/imports/apply`
+  Preview import (new company),`POST /api/companies/import/preview`
+  Apply import (new company),`POST /api/companies/import`
+```
 
-Import apply requests accept `pauseAutomations: true` to create imported agents and routines in a paused state.
+Import apply requests accept `pauseAutomations: true`, creating imported agents and routines in a paused state.
 
-CEO agents can also use the safe import routes (`/imports/preview` and `/imports/apply`) which enforce non-destructive rules: `replace` is rejected, collisions resolve with `rename` or `skip`, and issues are always created as new.
+CEO agents can also use the safe import routes (`/imports/preview` and `/imports/apply`) with non-destructive rules: `replace` is rejected, collisions resolve with `rename` or `skip`, and issues are always created as new.
 
 ## GitHub Sources
 
-Clayon supports several GitHub URL formats:
+Supported GitHub URL formats:
 
 - Full URL: `https://github.com/org/repo`
 - Subfolder URL: `https://github.com/org/repo/tree/main/path/to/company`
 - Shorthand: `org/repo`
 - Shorthand with path: `org/repo/path/to/company`
 
-Use `--ref` to pin to a specific branch, tag, or commit hash when importing from GitHub.
+`--ref` pins a specific branch, tag, or commit hash when importing from GitHub.

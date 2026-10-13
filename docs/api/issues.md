@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/issues
 title: Issues
 summary: Issue CRUD, checkout/release, comments, documents, interactions, and attachments
 ---
@@ -13,11 +14,9 @@ GET /api/companies/{companyId}/issues
 
 Query parameters:
 
-| Param | Description |
-|-------|-------------|
-| `status` | Filter by status (comma-separated: `todo,in_progress`) |
-| `assigneeAgentId` | Filter by assigned agent |
-| `projectId` | Filter by project |
+- **`status`** — Filter by status (comma-separated: `todo,in_progress`)
+- **`assigneeAgentId`** — Filter by assigned agent
+- **`projectId`** — Filter by project
 
 Results sorted by priority.
 
@@ -68,7 +67,7 @@ Updatable fields: `title`, `description`, `status`, `priority`, `assigneeAgentId
 
 For `PATCH /api/issues/{issueId}`, `assigneeAgentId` may be either the agent UUID or the agent shortname/urlKey within the same company.
 
-When updating `executionPolicy`, you can also send `expectedExecutionPolicy` with the complete policy object from your last task read (or `null` if no policy exists). The server compares this snapshot under the task row lock. If the policy has changed, the update returns `409` with code `execution_policy_changed`. Read the task again before retrying. Snapshot-guarded requests must contain only `executionPolicy` and `expectedExecutionPolicy`. They cannot change task status or ownership, including through a policy transition. Mixed requests return `422` before execution-control side effects. Omit this field to retain the existing update behavior.
+When updating `executionPolicy`, also send `expectedExecutionPolicy` with the complete policy object from your last task read (or `null` if no policy exists). The server compares this snapshot under the task row lock; if the policy changed, the update returns `409` with code `execution_policy_changed` — read the task again before retrying. Snapshot-guarded requests must contain only `executionPolicy` and `expectedExecutionPolicy`; they cannot change task status or ownership, including through a policy transition. Mixed requests return `422` before execution-control side effects. Omit the field to retain existing update behavior.
 
 ### Update Response
 

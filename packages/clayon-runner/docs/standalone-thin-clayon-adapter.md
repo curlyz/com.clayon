@@ -1,20 +1,19 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/standalone-thin-clayon-adapter
+---
+
 # Standalone Standalone Adapter Demo
 
-Standalone currently proves the thin adapter boundary as a standalone package demo.
-It does not install or enable the runner in a Clayon instance. All active
-implementation, documentation, tutorial, and evidence work remains under
-`packages/clayon-runner/`.
+Standalone currently proves the thin adapter boundary as a standalone package demo. It installs no runner in and enables none for a Clayon instance. All active implementation, documentation, tutorial, and evidence work remains under `packages/clayon-runner/`.
 
 ## Selection and rollback
 
 The standalone resolver has two inputs:
 
-- the native demo feature flag, which defaults off;
+- the native demo feature flag, default off;
 - the kill switch, which always resolves to legacy.
 
-The default path is legacy. Native mode is selected only when the demo flag is
-enabled and the kill switch is disabled. Both paths use the public
-`ControlPlanePort` contract and the canonical PRP reducer.
+Default path is legacy. Native mode is selected only when the demo flag is enabled and the kill switch is disabled. Both paths use the public `ControlPlanePort` contract and the canonical PRP reducer.
 
 ```sh
 # Default legacy path
@@ -35,9 +34,7 @@ Run:
 pnpm --filter @clayon/clayon-runner demo:standalone
 ```
 
-Then open `http://127.0.0.1:4182/standalone-demo/`. The page exposes mode
-selection, contract conformance, reducer projection, replay, finalization, and
-native/legacy invocation counters. It makes no network call to Clayon.
+Then open `http://127.0.0.1:4182/standalone-demo/`. The page exposes mode selection, contract conformance, reducer projection, replay, finalization, and native/legacy invocation counters. It makes no network call to Clayon.
 
 ## Verified boundary
 
@@ -49,9 +46,6 @@ The package-local tracer verifies:
 - idempotent result and terminal finalization;
 - legacy default behavior and deterministic kill-switch rollback.
 
-Company auth, budgets, approvals, audit, workspaces, and product persistence are
-not claimed by this standalone checkpoint. Testing those concerns in a real
-Clayon instance remains outside this package and requires a separately
-reviewed integration.
+Company auth, budgets, approvals, audit, workspaces, and product persistence are not claimed by this standalone checkpoint. Testing those concerns in a real Clayon instance stays outside this package and requires a separately reviewed integration.
 
-See the [runnable tutorial](tutorials/standalone-thin-clayon-adapter.md).
+See the runnable tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/standalone-thin-clayon-adapter`.

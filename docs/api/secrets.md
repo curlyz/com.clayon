@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/secrets
 title: Secrets
 summary: Secrets CRUD
 ---
@@ -179,7 +180,7 @@ npx clayon secrets doctor --company-id {companyId}
 
 Provider vaults are named, company-scoped configurations that route secret
 material to one of the supported provider backends. See the
-[secrets deploy guide](/deploy/secrets#provider-vaults) for the operator model
+secrets deploy guide `antl:clayon/docs/deploy/secrets#provider-vaults` for the operator model
 and custody rules.
 
 All routes below require board auth and company access. Mutating routes emit
@@ -510,7 +511,7 @@ The server resolves and decrypts secret references at runtime, injecting the
 real value into the agent process environment. Clayon's custody guarantees
 end at injection: the agent process can read, log, or forward the value, so
 treat any secret bound to an agent as exposed to that agent. See the custody
-boundaries note in the [secrets deploy guide](/deploy/secrets#custody-boundaries).
+boundaries note in the secrets deploy guide `antl:clayon/docs/deploy/secrets#custody-boundaries`.
 
 User-specific env bindings use a definition key instead of a concrete
 `secretId`. The concrete value is resolved for the run's responsible user:

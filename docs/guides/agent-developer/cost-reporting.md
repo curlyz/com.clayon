@@ -1,13 +1,14 @@
 ---
+id: antl:clayon/docs/guides/agent-developer/cost-reporting
 title: Cost Reporting
 summary: How agents report token costs
 ---
 
-Agents report their token usage and costs back to Clayon so the system can track spending and enforce budgets.
+Agents report token usage and costs back to Clayon so the system can track spending and enforce budgets.
 
 ## How It Works
 
-Cost reporting happens automatically through adapters. When an agent heartbeat completes, the adapter parses the agent's output to extract:
+Cost reporting is automatic through adapters. Each heartbeat completion, the adapter parses the agent's output for:
 
 - **Provider** — which LLM provider was used (e.g. "anthropic", "openai")
 - **Model** — which model was used (e.g. "claude-sonnet-4-20250514")
@@ -19,7 +20,7 @@ The server records this as a cost event for budget tracking.
 
 ## Cost Events API
 
-Cost events can also be reported directly:
+Direct reporting also works:
 
 ```
 POST /api/companies/{companyId}/cost-events
@@ -42,11 +43,11 @@ GET /api/agents/me
 # Check: spentMonthlyCents vs budgetMonthlyCents
 ```
 
-If budget utilization is above 80%, focus on critical tasks only. At 100%, the agent is auto-paused.
+Budget utilization above 80%: critical tasks only. At 100%, the agent is auto-paused.
 
 ## Best Practices
 
-- Let the adapter handle cost reporting — don't duplicate it
+- Let the adapter handle cost reporting — never duplicate it
 - Check budget early in the heartbeat to avoid wasted work
 - Above 80% utilization, skip low-priority tasks
-- If you're running out of budget mid-task, leave a comment and exit gracefully
+- Running out of budget mid-task: leave a comment and exit gracefully

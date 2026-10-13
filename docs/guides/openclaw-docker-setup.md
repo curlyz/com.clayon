@@ -1,10 +1,14 @@
+---
+id: antl:clayon/docs/guides/openclaw-docker-setup
+---
+
 # Running OpenClaw in Docker (Local Development)
 
-How to get OpenClaw running in a Docker container for local development and testing the Clayon OpenClaw adapter integration.
+How to run OpenClaw in a Docker container for local development and testing the Clayon OpenClaw adapter integration.
 
 ## Automated Join Smoke Test (Recommended First)
 
-Clayon includes an end-to-end join smoke harness:
+Clayon ships an end-to-end join smoke harness:
 
 ```bash
 pnpm smoke:openclaw-join
@@ -18,24 +22,24 @@ The harness automates:
 - one-time API key claim (including invalid/replay claim checks)
 - wakeup callback delivery to a dockerized OpenClaw-style webhook receiver
 
-By default, this uses a preconfigured Docker receiver image (`docker/openclaw-smoke`) so the run is deterministic and requires no manual OpenClaw config edits.
+By default this uses a preconfigured Docker receiver image (`docker/openclaw-smoke`) — deterministic, no manual OpenClaw config edits.
 
 Permissions note:
 
 - The harness performs board-governed actions (invite creation, join approval, wakeup of the new agent).
-- In authenticated mode, provide board/operator auth or the run exits early with an explicit permissions error.
+- Authenticated mode: provide board/operator auth or the run exits early with an explicit permissions error.
 
 ## One-Command OpenClaw Gateway UI (Manual Docker Flow)
 
-To spin up OpenClaw in Docker and print a host-browser dashboard URL in one command:
+Spin up OpenClaw in Docker and print a host-browser dashboard URL in one command:
 
 ```bash
 pnpm smoke:openclaw-docker-ui
 ```
 
-Default behavior is zero-flag: you can run the command as-is with no pairing-related env vars.
+Default is zero-flag: run as-is, no pairing-related env vars.
 
-What this command does:
+What the command does:
 
 - clones/updates `openclaw/openclaw` in `/tmp/openclaw-docker`
 - builds `openclaw:local` (unless `OPENCLAW_BUILD=0`)
@@ -66,7 +70,7 @@ Environment knobs:
 
 ### Authenticated mode
 
-If your Clayon deployment is `authenticated`, provide auth context:
+`authenticated` deployment: provide auth context:
 
 ```bash
 CLAYON_AUTH_HEADER="Bearer <token>" pnpm smoke:openclaw-join
@@ -77,9 +81,9 @@ CLAYON_COOKIE="your_session_cookie=..." pnpm smoke:openclaw-join
 ### Network topology tips
 
 - Local same-host smoke: default callback uses `http://127.0.0.1:<port>/webhook`.
-- Inside OpenClaw Docker, `127.0.0.1` points to the container itself, not your host Clayon server.
-- For invite/onboarding URLs consumed by OpenClaw in Docker, use the script-printed Clayon URL (typically `http://host.docker.internal:3100`).
-- If Clayon rejects the container-visible host with a hostname error, allow it from host:
+- Inside OpenClaw Docker, `127.0.0.1` is the container itself, not your host Clayon server.
+- Invite/onboarding URLs consumed by OpenClaw in Docker: use the script-printed Clayon URL (typically `http://host.docker.internal:3100`).
+- Clayon rejects the container-visible host with a hostname error: allow it from host:
 
 ```bash
 npx clayon allowed-hostname host.docker.internal
@@ -101,7 +105,7 @@ npx clayon allowed-hostname <host>
 
 ## Option A: Docker Sandbox (Recommended)
 
-Docker Sandbox provides better isolation (microVM-based) and simpler setup than Docker Compose. Requires Docker Desktop v29+ / Docker Sandbox v0.12+.
+Docker Sandbox: better isolation (microVM-based) and simpler setup than Docker Compose. Requires Docker Desktop v29+ / Docker Sandbox v0.12+.
 
 ```bash
 # 1. Clone the OpenClaw repo and build the image
@@ -184,7 +188,7 @@ docker sandbox version
 
 ## Option B: Docker Compose (Fallback)
 
-Use this if Docker Sandbox is not available (Docker Desktop < v29).
+For when Docker Sandbox is unavailable (Docker Desktop < v29).
 
 ```bash
 # 1. Clone the OpenClaw repo
@@ -290,7 +294,7 @@ docker compose run --rm openclaw-cli dashboard --no-open
 
 ### "no space left on device" when starting containers
 
-Docker Desktop's virtual disk may be full.
+Docker Desktop's virtual disk is probably full.
 
 ```bash
 docker system df                   # check usage
@@ -316,7 +320,7 @@ This issue does not affect the Docker Sandbox approach.
 
 ### Node version mismatch in community template images
 
-Some community-built sandbox templates (e.g. `olegselajev241/openclaw-dmr:latest`) ship Node 20, but OpenClaw requires Node >=22.12.0. Use our locally built `openclaw:local` image as the sandbox template instead, which includes Node 24.
+Some community-built sandbox templates (e.g. `olegselajev241/openclaw-dmr:latest`) ship Node 20; OpenClaw requires Node >=22.12.0. Use the locally built `openclaw:local` image as the sandbox template — it includes Node 24.
 
 ### Gateway takes ~15 seconds to respond after start
 
@@ -324,7 +328,7 @@ The Node.js gateway needs time to initialize. Wait 15 seconds before hitting `ht
 
 ### CLAUDE_AI_SESSION_KEY warnings (Compose only)
 
-These Docker Compose warnings are harmless and can be ignored:
+Harmless Docker Compose warnings, ignore:
 ```
 level=warning msg="The \"CLAUDE_AI_SESSION_KEY\" variable is not set. Defaulting to a blank string."
 ```
@@ -334,11 +338,11 @@ level=warning msg="The \"CLAUDE_AI_SESSION_KEY\" variable is not set. Defaulting
 Config file: `~/.openclaw/openclaw.json` (JSON5 format)
 
 Key settings:
-- `gateway.auth.token` — the auth token for the web UI and API
-- `agents.defaults.model.primary` — the AI model (use `openai/gpt-5.2` or newer)
+- `gateway.auth.token` — auth token for the web UI and API
+- `agents.defaults.model.primary` — the AI model (`openai/gpt-5.2` or newer)
 - `env.OPENAI_API_KEY` — references the `OPENAI_API_KEY` env var (Compose approach)
 
-API keys are stored in `~/.secrets` and passed into containers via env vars.
+API keys live in `~/.secrets`, passed into containers via env vars.
 
 ## Reference
 

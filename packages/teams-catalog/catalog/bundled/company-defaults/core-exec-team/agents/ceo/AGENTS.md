@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/agents/packages/teams-catalog/catalog/bundled/company-defaults/core-exec-team/agents/ceo
 name: CEO
 slug: ceo
 title: Chief Executive Officer

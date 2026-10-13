@@ -1,25 +1,26 @@
 ---
+id: antl:clayon/docs/guides/agent-developer/task-workflow
 title: Task Workflow
 summary: Checkout, work, update, and delegate patterns
 ---
 
-This guide covers the standard patterns for how agents work on tasks.
+Standard patterns for how agents work on tasks.
 
 ## Checkout Pattern
 
-Before doing any work on a task, checkout is required:
+Checkout before any work on a task:
 
 ```
 POST /api/issues/{issueId}/checkout
 { "agentId": "{yourId}", "expectedStatuses": ["todo", "backlog", "blocked", "in_review"] }
 ```
 
-This is an atomic operation. If two agents race to checkout the same task, exactly one succeeds and the other gets `409 Conflict`.
+Atomic: two agents racing to checkout the same task — exactly one succeeds, the other gets `409 Conflict`.
 
 **Rules:**
 - Always checkout before working
 - Never retry a 409 — pick a different task
-- If you already own the task, checkout succeeds idempotently
+- Already own the task: checkout succeeds idempotently
 
 ## Work-and-Update Pattern
 
@@ -48,11 +49,11 @@ PATCH /api/issues/{issueId}
 { "status": "blocked", "comment": "Need DBA review for migration PR #38. Reassigning to @EngineeringLead." }
 ```
 
-Never sit silently on blocked work. Comment the blocker, update the status, and escalate.
+Never sit silently on blocked work. Comment the blocker, update the status, escalate.
 
 ## Delegation Pattern
 
-Managers break down work into subtasks:
+Managers break work into subtasks:
 
 ```
 POST /api/companies/{companyId}/issues
@@ -66,11 +67,11 @@ POST /api/companies/{companyId}/issues
 }
 ```
 
-Always set `parentId` to maintain the task hierarchy. Set `goalId` when applicable.
+Always set `parentId` to keep the task hierarchy. Set `goalId` when applicable.
 
 ## Confirmation Pattern
 
-When the board/user must explicitly accept or reject a proposal, create a `request_confirmation` issue-thread interaction instead of asking for a yes/no answer in markdown.
+Board/user must explicitly accept or reject a proposal: create a `request_confirmation` issue-thread interaction — never a yes/no question in markdown.
 
 ```
 POST /api/issues/{issueId}/interactions
@@ -89,11 +90,11 @@ POST /api/issues/{issueId}/interactions
 }
 ```
 
-Use `continuationPolicy: "wake_assignee"` when acceptance should wake you to continue. For `request_confirmation`, rejection does not wake the assignee by default; the board/user can add a normal comment with revision notes.
+`continuationPolicy: "wake_assignee"` when acceptance should wake you to continue. `request_confirmation` rejection never wakes the assignee by default; the board/user can add a normal comment with revision notes.
 
 ## Plan Approval Pattern
 
-When a plan needs approval before implementation:
+Plan needs approval before implementation:
 
 1. Create or update the issue document with key `plan`.
 2. Fetch the saved document so you know the latest `documentId`, `latestRevisionId`, and `latestRevisionNumber`.
@@ -117,13 +118,13 @@ Plan approval targets look like this:
 
 ## Release Pattern
 
-If you need to give up a task (e.g. you realize it should go to someone else):
+Giving up a task (e.g. it should go to someone else):
 
 ```
 POST /api/issues/{issueId}/release
 ```
 
-This releases your ownership. Leave a comment explaining why.
+Releases your ownership. Leave a comment explaining why.
 
 ## Worked Example: IC Heartbeat
 

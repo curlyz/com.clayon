@@ -1,3 +1,7 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/design/capability-issue-thread-ux-contract
+---
+
 # Capability — Issue-Thread UX Contract
 
 Status: **binding** for track 7G (Clayon-style Web UI) and reviewable by tracks 7E/7K.
@@ -8,7 +12,7 @@ architecture", §"Native issue-thread interactions", §"Live execution contract"
 `contract-schema.json` — TASK-16939).
 
 If a corner of this contract is underspecified, 7G comments on TASK-16940 and waits for a
-revision. 7G does not diverge silently. Deviations are either fixed in the implementation or
+revision. 7G never diverges silently. Deviations are either fixed in the implementation or
 written back into this document as an explicit revision.
 
 ---
@@ -122,19 +126,20 @@ Every thread item renders from a **mock-core record or canonical event** — the
 no state authority, computes no claim/policy/parity result, and never mutates mock state
 outside an interaction response (§5). Items in chronological order, grouped by turn:
 
-| # | Item | Source | Anatomy |
-|---|------|--------|---------|
-| T1 | **User message** | thread record | Right-aligned bubble style is **not** used; Clayon comment card with author "You (board user)", timestamp, markdown body. |
-| T2 | **Agent response** | model output items | Comment card, author = agent identity chip (`Fake agent` / `Real Codex`), streaming state per §6. Model prose only — never confused with durable records (see T3). |
-| T3 | **Durable progress comment** | `report_progress` / `answer_status_question` `operation_result` | Distinct comment card with a `Recorded to mock thread` marker (filled corner tag + tooltip naming the semantic operation). This is the visual boundary between ephemeral model text (T2) and durable mock records. |
-| T4 | **Tool activity strip** | semantic call + typed result | One line per call inside the turn group: status glyph (`✓ ok`, `✕ denied`, `⏳ running`), operation id (`write_document`), one-line human summary, `›` expander. Expanded: request args (redacted per rules), typed result, and a `View in Evidence` link that opens the debug panel pre-filtered to that call. Strips are collapsed by default; a turn shows at most 3 strips + `N more…` expander (progressive disclosure). |
-| T5 | **Interaction card** | `request_human_input` record | §5. Rendered at its chronological position. |
-| T6 | **Document card** | `write_document` result | Document key + title, revision chain (`r3 → r4`), author, `View diff` (opens Evidence → State), and stale marker when a later revision exists. |
-| T7 | **Deliverable card** | `register_deliverable` result | File/ref name, kind (attachment bytes / external ref / workspace file), size, registered-by, download affordance for attachment-backed deliverables. |
-| T8 | **Dependency / delegation card** | optional-op results (`create_task`, `set_dependencies`, …) | Created mock child issues with identifiers and blocker edges (`MCK-32 blocks MCK-31`). |
-| T9 | **Disposition card** | `finish_task` / `block_task` / `request_review` result | Terminal banner card: new status via StatusBadge, explanation body, named blocker owner where applicable. After a terminal disposition the composer enters `disabled` (§6). |
-| T10 | **Denial notice** | typed policy denial (`operation_result` with deny) | Inline red-bordered strip variant of T4: `✕ create_task — denied: missing grant su:read_or_write`. Shows deny reason **from the authorization record verbatim**; never leaks protected state or credentials. |
-| T11 | **System notice** | `runtime_decision_record` (wake, checkout, reconciliation, budget stop, session events) | One-line, muted, icon + text (e.g. `⚙ Wake: issue_blockers_resolved → turn 3 started`). Progressive disclosure into Evidence → Control plane. Never a card; system notices must read quieter than work content. |
+```text
+[11]{#,Item,Source,Anatomy}:
+  T1,User message,thread record,"Right-aligned bubble style is not used; Clayon comment card with author \"You (board user)\", timestamp, markdown body."
+  T2,Agent response,model output items,"Comment card, author = agent identity chip (`Fake agent` / `Real Codex`), streaming state per §6. Model prose only — never confused with durable records (see T3)."
+  T3,Durable progress comment,`report_progress` / `answer_status_question` `operation_result`,Distinct comment card with a `Recorded to mock thread` marker (filled corner tag + tooltip naming the semantic operation). This is the visual boundary between ephemeral model text (T2) and durable mock records.
+  T4,Tool activity strip,semantic call + typed result,"One line per call inside the turn group: status glyph (`✓ ok`, `✕ denied`, `⏳ running`), operation id (`write_document`), one-line human summary, `›` expander. Expanded: request args (redacted per rules), typed result, and a `View in Evidence` link that opens the debug panel pre-filtered to that call. Strips are collapsed by default; a turn shows at most 3 strips + `N more…` expander (progressive disclosure)."
+  T5,Interaction card,`request_human_input` record,§5. Rendered at its chronological position.
+  T6,Document card,`write_document` result,"Document key + title, revision chain (`r3 → r4`), author, `View diff` (opens Evidence → State), and stale marker when a later revision exists."
+  T7,Deliverable card,`register_deliverable` result,"File/ref name, kind (attachment bytes / external ref / workspace file), size, registered-by, download affordance for attachment-backed deliverables."
+  T8,Dependency / delegation card,"optional-op results (`create_task`, `set_dependencies`, …)","Created mock child issues with identifiers and blocker edges (`MCK-32 blocks MCK-31`)."
+  T9,Disposition card,`finish_task` / `block_task` / `request_review` result,"Terminal banner card: new status via StatusBadge, explanation body, named blocker owner where applicable. After a terminal disposition the composer enters `disabled` (§6)."
+  T10,Denial notice,typed policy denial (`operation_result` with deny),"Inline red-bordered strip variant of T4: `✕ create_task — denied: missing grant su:read_or_write`. Shows deny reason from the authorization record verbatim; never leaks protected state or credentials."
+  T11,System notice,"`runtime_decision_record` (wake, checkout, reconciliation, budget stop, session events)","One-line, muted, icon + text (e.g. `⚙ Wake: issue_blockers_resolved → turn 3 started`). Progressive disclosure into Evidence → Control plane. Never a card; system notices must read quieter than work content."
+```
 
 Turn grouping: each turn renders a hairline group header `Turn N · <mode> · <n> tool calls ·
 <hh:mm:ss>` binding T2/T4/T5-T10 items produced within it. Thread auto-follows the newest item
@@ -145,14 +150,15 @@ only while the user is at the bottom; a `Jump to latest` pill appears when scrol
 
 States (mutually exclusive; `data-composer-state` attribute is the test/screenshot hook):
 
-| State | Trigger | Visual | Controls |
-|-------|---------|--------|----------|
-| `ready` | session attached, no active turn, issue non-terminal | normal input, `Send` primary | Send (Cmd/Ctrl+Enter), attach disabled in Capability |
-| `sending` | message posted, turn not yet streaming | input cleared, inline spinner on Send | Send disabled |
-| `streaming` | active turn | input stays **editable** (steer), primary button becomes `Stop` (destructive-outline), helper text `Codex is working — send to steer, or stop the turn.` | Send = steer (queued as next user input), Stop |
-| `waiting` | pending interaction card requires the user | input disabled, helper `Answer the pending request above to continue.` with an anchor link that scrolls to and focuses the pending card | none |
-| `reconnecting` | transport lost | input disabled, helper `Reconnecting… your session is preserved.` | Retry now |
-| `disabled` | terminal disposition, replay mode, or budget stop | input disabled with reason line (`Issue is done`, `Replay is read-only`, `Budget limit reached`) | New scenario / Reset |
+```text
+[6]{State,Trigger,Visual,Controls}:
+  `ready`,"session attached, no active turn, issue non-terminal","normal input, `Send` primary","Send (Cmd/Ctrl+Enter), attach disabled in Capability"
+  `sending`,"message posted, turn not yet streaming","input cleared, inline spinner on Send",Send disabled
+  `streaming`,active turn,"input stays editable (steer), primary button becomes `Stop` (destructive-outline), helper text `Codex is working — send to steer, or stop the turn.`","Send = steer (queued as next user input), Stop"
+  `waiting`,pending interaction card requires the user,"input disabled, helper `Answer the pending request above to continue.` with an anchor link that scrolls to and focuses the pending card",none
+  `reconnecting`,transport lost,"input disabled, helper `Reconnecting… your session is preserved.`",Retry now
+  `disabled`,"terminal disposition, replay mode, or budget stop","input disabled with reason line (`Issue is done`, `Replay is read-only`, `Budget limit reached`)",New scenario / Reset
+```
 
 Draft text survives refresh (localStorage per session id). Stop never discards the transcript;
 a stopped turn's partial output stays in the thread with a `Stopped by user` marker on the
@@ -187,18 +193,19 @@ from the page.
 
 **State matrix (all states are required and visually distinct):**
 
-| State | Store shape | Card treatment |
-|-------|------------|----------------|
-| `pending` | status `pending` | Accent left border (violet), controls enabled, `Waiting for you` chip, focus lands on first control when the card is the reason the composer is `waiting`. |
-| `submitting` | in flight | Controls disabled, inline spinner. |
-| `accepted` | status `accepted` | Green check chip `Accepted`, chosen values summarized inline, controls collapse to read-only summary. |
-| `answered` | status `answered` | Same as accepted with `Answered` chip (questions / verdicts complete). |
-| `rejected` | status `rejected` | Red chip `Changes requested`, reason quoted in the card. |
-| `stale_target` | status `expired`, `result.outcome=stale_target` | Gray chip `Stale — plan moved to r5`, link to the superseding revision, controls removed, body dimmed (see revision 2). |
-| `superseded_by_comment` | status `expired`, `result.outcome=superseded_by_comment` | Gray chip `Superseded by a later comment`, link to that comment. |
-| `expired` | status `expired`, no outcome | Gray chip `Expired <relative time>`. |
-| `withdrawn` | status `cancelled`, `result.outcome=withdrawn` | Gray chip `Withdrawn`, optional reason. |
-| `issue_closed` | status `cancelled`/`expired`, `result.outcome=issue_closed` | Gray chip `Issue closed`. |
+```text
+[10]{State,Store shape,Card treatment}:
+  `pending`,status `pending`,"Accent left border (violet), controls enabled, `Waiting for you` chip, focus lands on first control when the card is the reason the composer is `waiting`."
+  `submitting`,in flight,"Controls disabled, inline spinner."
+  `accepted`,status `accepted`,"Green check chip `Accepted`, chosen values summarized inline, controls collapse to read-only summary."
+  `answered`,status `answered`,Same as accepted with `Answered` chip (questions / verdicts complete).
+  `rejected`,status `rejected`,"Red chip `Changes requested`, reason quoted in the card."
+  `stale_target`,"status `expired`, `result.outcome=stale_target`","Gray chip `Stale — plan moved to r5`, link to the superseding revision, controls removed, body dimmed (see revision 2)."
+  `superseded_by_comment`,"status `expired`, `result.outcome=superseded_by_comment`","Gray chip `Superseded by a later comment`, link to that comment."
+  `expired`,"status `expired`, no outcome",Gray chip `Expired <relative time>`.
+  `withdrawn`,"status `cancelled`, `result.outcome=withdrawn`","Gray chip `Withdrawn`, optional reason."
+  `issue_closed`,"status `cancelled`/`expired`, `result.outcome=issue_closed`",Gray chip `Issue closed`.
+```
 
 Resolved/expired cards are durable history: they stay in the thread at their chronological
 position, are keyboard-reachable, and expose `View request evidence` linking the debug panel
@@ -337,20 +344,21 @@ Viewports: desktop `1440×900`, mobile `390×844`. Output path:
 `.clayon-local/evidence/capability/ui/<slug>--<desktop|mobile>.png` (package-local). Every capture
 also asserts `scrollWidth <= clientWidth` on the scrolling element at 390×844.
 
-| Slug | Seeded state | Must be visible |
-|------|--------------|-----------------|
-| `thread-baseline` | settled 3-turn fake run on `hb-baseline` | header w/ 3 identity chips + mode; T1/T2/T3/T4 items; turn headers; composer `ready` |
-| `turn-streaming` | mid-turn stream | streaming indicator, composer `streaming` w/ Stop, editable steer input |
-| `interaction-question-pending` | `ix-questions-01` pending card | typed question form, `Waiting for you` chip, composer `waiting` w/ anchor helper |
-| `interaction-confirmation-pending` | `ix-confirmation-plan-01` pending | revision-bound target (`plan · r4`) on card, Accept/Reject, reject-reason affordance |
-| `interaction-resolved-mixed` | history incl. accepted + rejected + `stale_target` + `superseded_by_comment` | four visually distinct resolved/expired treatments per §5 |
-| `denial-optional-tool` | denied `create_task` (missing `su:read_or_write`) | T10 denial strip w/ verbatim deny reason; Evidence badge increment |
-| `document-revision` | `dp-plan-doc-01` after `write_document` | T6 card w/ revision chain `r3 → r4` + View diff |
-| `deliverable-registered` | `ar-upload-before-done-01` | T7 deliverable card w/ kind + registered-by |
-| `disposition-terminal` | `st-done-comment-01` finished | T9 terminal card, StatusBadge `done`, composer `disabled` w/ reason |
-| `debug-panel-open` | baseline + `?panel=authorization` | desktop: panel open at 384px w/ 8 sections, authorization records; mobile: `Evidence` segment active |
-| `reconnect-banner` | forced transport drop | amber reconnect banner, composer `reconnecting`, frozen stream glyph |
-| `replay-mode` | replay of recorded fake run `?at=12` | `Replay · fake source` chip, read-only composer, progress strip |
+```text
+[12]{Slug,Seeded state,Must be visible}:
+  `thread-baseline`,settled 3-turn fake run on `hb-baseline`,"header w/ 3 identity chips + mode; T1/T2/T3/T4 items; turn headers; composer `ready`"
+  `turn-streaming`,mid-turn stream,"streaming indicator, composer `streaming` w/ Stop, editable steer input"
+  `interaction-question-pending`,`ix-questions-01` pending card,"typed question form, `Waiting for you` chip, composer `waiting` w/ anchor helper"
+  `interaction-confirmation-pending`,`ix-confirmation-plan-01` pending,"revision-bound target (`plan · r4`) on card, Accept/Reject, reject-reason affordance"
+  `interaction-resolved-mixed`,history incl. accepted + rejected + `stale_target` + `superseded_by_comment`,four visually distinct resolved/expired treatments per §5
+  `denial-optional-tool`,denied `create_task` (missing `su:read_or_write`),T10 denial strip w/ verbatim deny reason; Evidence badge increment
+  `document-revision`,`dp-plan-doc-01` after `write_document`,T6 card w/ revision chain `r3 → r4` + View diff
+  `deliverable-registered`,`ar-upload-before-done-01`,T7 deliverable card w/ kind + registered-by
+  `disposition-terminal`,`st-done-comment-01` finished,"T9 terminal card, StatusBadge `done`, composer `disabled` w/ reason"
+  `debug-panel-open`,baseline + `?panel=authorization`,"desktop: panel open at 384px w/ 8 sections, authorization records; mobile: `Evidence` segment active"
+  `reconnect-banner`,forced transport drop,"amber reconnect banner, composer `reconnecting`, frozen stream glyph"
+  `replay-mode`,replay of recorded fake run `?at=12`,"`Replay · fake source` chip, read-only composer, progress strip"
+```
 
 Determinism rule: two captures of the same slug/viewport from a clean checkout must be
 pixel-identical (the Scenario chat byte-identical bar). Anything time-, random-, or

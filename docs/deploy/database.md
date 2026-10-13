@@ -1,19 +1,20 @@
 ---
+id: antl:clayon/docs/deploy/database
 title: Database
 summary: Embedded PGlite vs Docker Postgres vs hosted
 ---
 
-Clayon uses PostgreSQL via Drizzle ORM. There are three ways to run the database.
+Clayon uses PostgreSQL via Drizzle ORM. Three ways to run it.
 
 ## 1. Embedded PostgreSQL (Default)
 
-Zero config. If you don't set `DATABASE_URL`, the server starts an embedded PostgreSQL instance automatically.
+Zero config: no `DATABASE_URL` means the server starts an embedded PostgreSQL instance automatically.
 
 ```sh
 pnpm dev
 ```
 
-On first start, the server:
+First start:
 
 1. Creates `~/.clayon/instances/default/db/` for storage
 2. Ensures the `clayon` database exists
@@ -32,7 +33,7 @@ For a full PostgreSQL server locally:
 docker compose up -d
 ```
 
-This starts PostgreSQL 17 on `localhost:5432`. Set the connection string:
+Starts PostgreSQL 17 on `localhost:5432`. Set the connection string:
 
 ```sh
 cp .env.example .env
@@ -48,7 +49,7 @@ DATABASE_URL=postgres://clayon:clayon@localhost:5432/clayon \
 
 ## 3. Hosted PostgreSQL (Supabase)
 
-For production, use a hosted provider like [Supabase](https://supabase.com/).
+For production, use hosted providers like [Supabase](https://supabase.com/).
 
 1. Create a project at [database.new](https://database.new)
 2. Copy the connection string from Project Settings > Database
@@ -56,35 +57,34 @@ For production, use a hosted provider like [Supabase](https://supabase.com/).
 
 Use the **direct connection** (port 5432) for migrations and the **pooled connection** (port 6543) for the application.
 
-If using connection pooling (transaction mode), disable prepared statements via the environment — no source edits needed:
+Transaction-mode pooling: disable prepared statements via the environment — no source edits:
 
 ```sh
 DATABASE_PREPARED_STATEMENTS=false
 ```
 
-Related optional client tuning: `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, `DATABASE_APPLICATION_NAME`. Driver defaults apply when unset, except that idle pooled connections close after 60 seconds (`DATABASE_IDLE_TIMEOUT_SECONDS=0` keeps them open) and the pool reports `application_name=clayon`. See [Connection pool settings](#connection-pool-settings).
+Related optional client tuning: `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, `DATABASE_APPLICATION_NAME`. Driver defaults apply when unset, except that idle pooled connections close after 60 seconds (`DATABASE_IDLE_TIMEOUT_SECONDS=0` keeps them open) and the pool reports `application_name=clayon`. See Connection pool settings `antl:clayon/docs/deploy/database#connection-pool-settings`.
 
 ## Connection Pool Settings
 
-The server opens one postgres.js pool for its own queries (and a second one when `DATABASE_MIGRATION_URL` points at a different connection). Every setting is optional:
+The server opens one postgres.js pool for its own queries, a second when `DATABASE_MIGRATION_URL` points elsewhere. All settings optional:
 
-| Variable | Default | Effect |
-|----------|---------|--------|
-| `DATABASE_POOL_MAX` | `10` (driver) | Maximum pooled connections. |
-| `DATABASE_IDLE_TIMEOUT_SECONDS` | `60` | Close a pooled connection after this much idle time. `0` keeps idle connections open forever (the driver default). |
-| `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` (driver) | Give up on a connection attempt after this long. |
-| `DATABASE_MAX_LIFETIME_SECONDS` | 30–60 min, randomized (driver) | Recycle a pooled connection once it is this old. |
-| `DATABASE_APPLICATION_NAME` | `clayon` | Value of `application_name` in `pg_stat_activity`, so you can find Clayon's backends: `SELECT * FROM pg_stat_activity WHERE application_name = 'clayon';` |
-| `DATABASE_PREPARED_STATEMENTS` | `true` (driver) | Set `false` behind a transaction-mode pooler (see above). |
+```text
+[6]{Variable,Default,Effect}:
+  `DATABASE_POOL_MAX`,`10` (driver),Maximum pooled connections.
+  `DATABASE_IDLE_TIMEOUT_SECONDS`,`60`,Close a pooled connection after this much idle time. `0` keeps idle connections open forever (the driver default).
+  `DATABASE_CONNECT_TIMEOUT_SECONDS`,`30` (driver),Give up on a connection attempt after this long.
+  `DATABASE_MAX_LIFETIME_SECONDS`,"30–60 min, randomized (driver)",Recycle a pooled connection once it is this old.
+  `DATABASE_APPLICATION_NAME`,`clayon`,"Value of `application_name` in `pg_stat_activity`, so you can find Clayon's backends: `SELECT * FROM pg_stat_activity WHERE application_name = 'clayon';`"
+  `DATABASE_PREPARED_STATEMENTS`,`true` (driver),Set `false` behind a transaction-mode pooler (see above).
+```
 
-The server ends its pools during shutdown (SIGINT/SIGTERM) and when startup fails after the pool was opened, so a restarting server does not leave idle backends behind. Size `max_connections` on the PostgreSQL side for at least `DATABASE_POOL_MAX` per server process plus your other clients.
+Pools end on shutdown (SIGINT/SIGTERM) and on startup failure after the pool opened, so restarts leave no idle backends. Size PostgreSQL `max_connections` for at least `DATABASE_POOL_MAX` per server process plus other clients.
 
 ## Switching Between Modes
 
-| `DATABASE_URL` | Mode |
-|----------------|------|
-| Not set | Embedded PostgreSQL |
-| `postgres://...localhost...` | Local Docker PostgreSQL |
-| `postgres://...supabase.com...` | Hosted Supabase |
+- **Not set** — Embedded PostgreSQL
+- **`postgres://...localhost...`** — Local Docker PostgreSQL
+- **`postgres://...supabase.com...`** — Hosted Supabase
 
 The Drizzle schema (`packages/db/src/schema/`) is the same regardless of mode.

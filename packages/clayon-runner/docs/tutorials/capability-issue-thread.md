@@ -1,25 +1,29 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/capability-issue-thread
+---
+
 # Capability Clean-Start Tutorial: The Clayon-Style Issue Thread Over a Mock Control Plane
 
-**Time to first success: about 5 minutes.** Two commands take you from a clean
+**Time to first success: about 5 minutes.** Two commands take a clean
 checkout to 106 passing conformance cases and a Clayon-style issue thread you
-can click through in a browser. The whole tutorial runs from the repository
-root. It starts no Clayon service, contacts no Clayon control plane, clones
-no external eval repository, and holds no provider credential. Everything the
+can click through in a browser. Runs from the repository
+root. Starts no Clayon service, contacts no Clayon control plane, clones
+no external eval repository, holds no provider credential. Everything the
 default path needs is checked in under `packages/clayon-runner/`.
 
-This is the canonical Capability tutorial for the final build. It covers both agent
-modes: **scripted (deterministic) fake mode**, which is fully offline, and
-**Codex (bounded) live mode**, which is optional and needs a locally
-authenticated Codex. The two modes share one mock control plane, one semantic
-tool catalog, one authorization engine, and one view contract. See
-[execution modes and identity](../capability-execution-modes.md) for the rules that
-separate them, and [the future binding boundary](../capability-future-binding-boundary.md)
+Canonical Capability tutorial for the final build. Covers both agent
+modes: **scripted (deterministic) fake mode**, fully offline, and
+**Codex (bounded) live mode**, optional, needs a locally
+authenticated Codex. Both modes share one mock control plane, one semantic
+tool catalog, one authorization engine, one view contract. See
+execution modes and identity `antl:clayon/packages/clayon-runner/docs/capability-execution-modes` for the rules that
+separate them, and the future binding boundary `antl:clayon/packages/clayon-runner/docs/capability-future-binding-boundary`
 for why none of this touches real Clayon — that is future upload integration and needs separate
 approval.
 
-For a deeper tour of the read-only scenario explorer and the capability
-contract, see the companion
-[scenario-explorer tutorial](capability-scenario-explorer.md); this page focuses
+Deeper tour of the read-only scenario explorer and the capability
+contract: companion
+scenario-explorer tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/capability-scenario-explorer`; this page focuses
 on the issue-thread surface and the live loop.
 
 ## What you need
@@ -37,10 +41,10 @@ Install the package workspace from the repository root:
 NODE_ENV=development pnpm install --filter @clayon/clayon-runner --frozen-lockfile --offline --ignore-scripts
 ```
 
-This keeps the checked-in lockfile authoritative while using only packages
-already present in the pnpm store, so the offline install does not re-resolve
-dependencies to registry-latest versions. Setting `NODE_ENV=development`
-ensures the complete test toolchain is installed even when the checkout
+Checked-in lockfile stays authoritative; uses only packages
+already present in the pnpm store, so the offline install never re-resolves
+dependencies to registry-latest versions. `NODE_ENV=development`
+ensures the complete test toolchain installs even when the checkout
 inherits `NODE_ENV=production`.
 
 ## 1. Prove the 106-case conformance suite (about 1 minute)
@@ -49,7 +53,7 @@ inherits `NODE_ENV=production`.
 pnpm --filter @clayon/clayon-runner test:capability-evals
 ```
 
-This drives all 106 eval-derived cases across the 16 groups entirely in-process
+Drives all 106 eval-derived cases across the 16 groups entirely in-process
 against the mock control plane. Expected final line:
 
 ```
@@ -70,8 +74,8 @@ Expected final line:
 Capability eval conformance passed: 106 cases across 16 groups.
 ```
 
-The report is written to `.clayon-local/evidence/capability/eval-parity-report.{json,md}`.
-It is generated on demand and is not committed; delete it before running
+Report writes to `.clayon-local/evidence/capability/eval-parity-report.{json,md}`.
+Generated on demand, not committed; delete it before running
 `docs:validate`, or run validation first.
 
 ## 2. Run the issue-thread contract and UI tests (about 1 minute)
@@ -87,7 +91,7 @@ Expected final lines:
       Tests  137 passed (137)
 ```
 
-This covers the mock `ControlPlanePort`, the semantic tools with their
+Covers the mock `ControlPlanePort`, semantic tools with
 authorization and redaction rules, and the `CapabilityIssueThreadSnapshot`
 view-model contract — including that every one of the twelve deterministic
 screenshot states builds a schema-valid snapshot with no credential anywhere in
@@ -101,41 +105,42 @@ pnpm --filter @clayon/clayon-runner console:issue-thread
 
 Open <http://127.0.0.1:4184/#/issue/hb-baseline?shot=thread-baseline>.
 
-You are looking at a Clayon issue thread, not a dashboard. The header carries
-three identity chips that stay visible in every mode — `Fake agent`,
-`In-process runner`, and `Mock Clayon` — plus the mock issue identifier
+A Clayon issue thread, not a dashboard. Header carries
+three identity chips visible in every mode — `Fake agent`,
+`In-process runner`, `Mock Clayon` — plus the mock issue identifier
 (reserved `MCK-` prefix), status, priority, and the Scenario / Replay / Reset /
-Stop controls. The main column is one readable work thread; the Evidence panel is
+Stop controls. Main column is one readable work thread; Evidence panel
 collapsed on the right.
 
 Swap the `shot` value to seed any of the twelve contract states — each one is a
 different item type or interaction state from the
-[issue-thread UX contract](../design/capability-issue-thread-ux-contract.md):
+issue-thread UX contract `antl:clayon/packages/clayon-runner/docs/design/capability-issue-thread-ux-contract`:
 
-| `shot=` | What it shows |
-| --- | --- |
-| `thread-baseline` | User message, model prose, a durable `Recorded to mock thread` comment, and a collapsed tool strip. |
-| `turn-streaming` | A streaming turn with the composer in its `streaming` state (input editable, Stop primary). |
-| `interaction-question-pending` | An inline `ask_user_questions` card that refuses an incomplete submit. |
-| `interaction-confirmation-pending` | A revision-bound confirmation that requires a reject reason. |
-| `interaction-resolved-mixed` | Accepted, rejected, expired, and stale interactions as durable history. |
-| `denial-optional-tool` | A verbatim typed denial with its Evidence badge and no protected data. |
-| `document-revision` | A document revision card bound to the mock document. |
-| `deliverable-registered` | A registered deliverable reporting one size in one unit. |
-| `disposition-terminal` | A terminal disposition that disables the composer. |
-| `debug-panel-open` | The eight-section Evidence panel opened on the authorization records. |
-| `reconnect-banner` | The reconnect banner and its `Reconnected` confirmation. |
-| `replay-mode` | The replay progress strip with `Step back`, `Next turn`, and `Play all`. |
+```text
+[12]{shot=,What it shows}:
+  `thread-baseline`,"User message, model prose, a durable `Recorded to mock thread` comment, and a collapsed tool strip."
+  `turn-streaming`,"A streaming turn with the composer in its `streaming` state (input editable, Stop primary)."
+  `interaction-question-pending`,An inline `ask_user_questions` card that refuses an incomplete submit.
+  `interaction-confirmation-pending`,A revision-bound confirmation that requires a reject reason.
+  `interaction-resolved-mixed`,"Accepted, rejected, expired, and stale interactions as durable history."
+  `denial-optional-tool`,A verbatim typed denial with its Evidence badge and no protected data.
+  `document-revision`,A document revision card bound to the mock document.
+  `deliverable-registered`,A registered deliverable reporting one size in one unit.
+  `disposition-terminal`,A terminal disposition that disables the composer.
+  `debug-panel-open`,The eight-section Evidence panel opened on the authorization records.
+  `reconnect-banner`,"The reconnect banner and its `Reconnected` confirmation."
+  `replay-mode`,"The replay progress strip with `Step back`, `Next turn`, and `Play all`."
+```
 
-Open the Evidence panel (or the `Evidence` segment on a phone). Its eight
-sections stay in a fixed order: Tools exposed, Calls & results, Authorization,
-Control plane, Runner & events, State diff, Traceability, Parity. The Tools
+Open the Evidence panel (or the `Evidence` segment on a phone). Eight
+sections stay in fixed order: Tools exposed, Calls & results, Authorization,
+Control plane, Runner & events, State diff, Traceability, Parity. Tools
 section separates `Agent tool — always`, `Agent tool — granted` (with its
 grant), and a `Control plane (not exposed to the agent)` list — what the model
 *cannot* call is first-class evidence. Every strip, denial, and card deep-links
-into its record, and each record links back to its thread anchor.
+into its record; each record links back to its thread anchor.
 
-Resize the browser below 768px: the page collapses to a `Thread` / `Evidence`
+Resize below 768px: page collapses to a `Thread` / `Evidence`
 segmented control, keeps Stop outside the `⋯` menu while a turn is active, and
 never scrolls horizontally.
 
@@ -146,19 +151,19 @@ never scrolls horizontally.
 pnpm --filter @clayon/clayon-runner check:capability:ui
 ```
 
-The first writes 24 images — the twelve slugs at 1440×900 and 390×844 — to
+First writes 24 images — twelve slugs at 1440×900 and 390×844 — to
 `.clayon-local/evidence/capability/ui/`. Every mobile capture asserts no horizontal
-scroll before the shot. The second re-records and confirms all 24 reproduce
-byte-for-byte, which is the property that makes the fake-mode matrix a stable
-acceptance artifact. Both modes render fixture time only, so a fresh checkout
+scroll before the shot. Second re-records and confirms all 24 reproduce
+byte-for-byte — the property that makes the fake-mode matrix a stable
+acceptance artifact. Both modes render fixture time only; a fresh checkout
 reproduces the committed images exactly.
 
 ## 5. Optional: drive a real Codex turn (live mode)
 
-Live mode needs a Rust toolchain and a locally authenticated Codex. It starts a
-real `clayon-runnerd` process and a real Codex app-server session; the
-package server owns the process, the tool loop, and the provider credential, and
-the browser receives none of them. **Skip this section if you do not have Codex
+Live mode needs a Rust toolchain and a locally authenticated Codex. Starts a
+real `clayon-runnerd` process and a real Codex app-server session;
+package server owns the process, the tool loop, and the provider credential;
+the browser receives none of them. **Skip this section without Codex
 installed** — nothing above depends on it.
 
 Headless smoke over the package server:
@@ -167,10 +172,10 @@ Headless smoke over the package server:
 pnpm --filter @clayon/clayon-runner smoke:capability:ui
 ```
 
-This creates a session, runs live turns, and asserts the identity reads
-`Real Codex` / `Real runnerd` / `Mock Clayon`, that a real tool call was
-recorded with its authorization record, that the control-plane-owned list is
-withheld from the agent, and that no credential appears in the view.
+Creates a session, runs live turns, asserts identity reads
+`Real Codex` / `Real runnerd` / `Mock Clayon`, a real tool call
+recorded with its authorization record, the control-plane-owned list
+withheld from the agent, no credential in the view.
 
 Capture the live browser frames (a real browser driving a real Codex turn):
 
@@ -178,9 +183,9 @@ Capture the live browser frames (a real browser driving a real Codex turn):
 # Recorded evidence generation is deferred from this release.
 ```
 
-The frames land in `.clayon-local/evidence/capability/ui-live/`. They are intentionally
-**not** byte-stable — a real provider turn varies — so they are excluded from the
-determinism gate and are the mode that satisfies the final live acceptance
+Frames land in `.clayon-local/evidence/capability/ui-live/`. Intentionally
+**not** byte-stable — a real provider turn varies — so excluded from the
+determinism gate; this mode satisfies the final live acceptance
 criteria. A scripted (`mode=fake`) frame cannot.
 
 Prove the process and network boundary directly:
@@ -189,24 +194,24 @@ Prove the process and network boundary directly:
 pnpm --filter @clayon/clayon-runner trace:live-runner -- --json
 ```
 
-This checks a real semantic-tool mutation, a typed result, a same-thread second
+Checks a real semantic-tool mutation, typed result, same-thread second
 turn, process ownership and cleanup (`runnerExited`, `authorityCleared`), and —
 critically — `noRealClayonRequest` and `noClayonAuthorityInChild`.
 
 ## Reset, stop, replay, and cleanup
 
-These controls work the same in either mode because they act on the mock core
-and the runner session, not on the agent:
+These controls work the same in either mode: they act on the mock core
+and the runner session, not the agent:
 
 - **Reset** asks first, then restores the original clean mock seed under new
-  run/session authority and rotates or clears the old authority. It does not
-  touch another browser session.
+  run/session authority and rotates or clears the old authority. Never
+  touches another browser session.
 - **Stop** cancels only the active turn and reaps the runnerd process group; the
   session and transcript survive with a `Stopped by user` marker.
-- **Replay** reproduces a recorded canonical timeline. It is always scripted and
+- **Replay** reproduces a recorded canonical timeline. Always scripted,
   always labelled fake-derived.
 - **Refresh / reconnect** restores the same session, pending interaction,
-  transcript, and mock state; reconnect starts a fresh runnerd and Codex and
+  transcript, mock state; reconnect starts a fresh runnerd and Codex and
   resumes the persisted thread without restarting the conversation.
 
 ## What this does not do
@@ -214,9 +219,9 @@ and the runner session, not on the agent:
 - No ACPX implementation and no real control-plane integration. Real Clayon
   binding is future upload integration and requires separate approval.
 - No provider, runner, or control-plane credential in the browser, ever.
-- Nothing you type is persisted beyond the mock session. A reload drops an
+- Nothing you type persists beyond the mock session. Reload drops an
   unsent draft — the accepted trade against storing conversation content.
 
-References: [issue-thread UI](../capability-issue-thread-ui.md),
-[live runnerd and Codex loop](../capability-live-runnerd-codex.md),
-[execution modes and identity](../capability-execution-modes.md).
+References: issue-thread UI `antl:clayon/packages/clayon-runner/docs/capability-issue-thread-ui`,
+live runnerd and Codex loop `antl:clayon/packages/clayon-runner/docs/capability-live-runnerd-codex`,
+execution modes and identity `antl:clayon/packages/clayon-runner/docs/capability-execution-modes`.

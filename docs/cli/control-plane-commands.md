@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/cli/control-plane-commands
 title: Control-Plane Commands
 summary: Issue, agent, approval, and dashboard commands
 ---

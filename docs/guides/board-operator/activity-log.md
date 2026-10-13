@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/guides/board-operator/activity-log
 title: Activity Log
 summary: Audit trail for all mutations
 ---
 
-Every mutation in Clayon is recorded in the activity log. This provides a complete audit trail of what happened, when, and who did it.
+Every Clayon mutation is recorded in the activity log — a complete audit trail of what happened, when, and who did it.
 
 ## What Gets Logged
 
@@ -17,7 +18,7 @@ Every mutation in Clayon is recorded in the activity log. This provides a comple
 
 ### Web UI
 
-The Activity section in the sidebar shows a chronological feed of all events across the company. You can filter by:
+The sidebar's Activity section shows a chronological feed of all company events. Filter by:
 
 - Agent
 - Entity type (issue, agent, approval)
@@ -47,7 +48,7 @@ Each activity entry includes:
 
 ## Using Activity for Debugging
 
-When something goes wrong, the activity log is your first stop:
+Something broke: the activity log is your first stop.
 
 1. Find the agent or task in question
 2. Filter the activity log to that entity

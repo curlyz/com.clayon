@@ -1,17 +1,12 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/capability-semantic-tools
+---
+
 # Capability Semantic Tool Catalog
 
-The semantic tool catalog is the transport-neutral surface an agent may call. It
-is a frozen set of JSON-schema descriptors — no HTTP method, path, or provider
-detail. Provider-specific shapes are produced only by *bindings*, so every
-provider sees the same operation set.
+The semantic tool catalog is the transport-neutral surface an agent may call. A frozen set of JSON-schema descriptors — no HTTP method, path, or provider detail. Provider-specific shapes come only from *bindings*, so every provider sees the same operation set.
 
-Each protocol action is single-sourced in its own module under
-`src/protocol-actions/`. That module owns the action's policy metadata,
-documentation, examples, and its live and scenario JSON-schema presentations.
-`src/catalog/canonical-operations.ts`, `src/semantic-tools/catalog.ts`, and
-`src/tools/capability-semantic-tool-catalog.ts` are compatibility projections;
-do not add action definitions to them. See
-[catalog reconciliation](../spec/capability/catalog-reconciliation.md).
+Each protocol action is single-sourced in its own module under `src/protocol-actions/`. That module owns the action's policy metadata, documentation, examples, and its live and scenario JSON-schema presentations. `src/catalog/canonical-operations.ts`, `src/semantic-tools/catalog.ts`, and `src/tools/capability-semantic-tool-catalog.ts` are compatibility projections; do not add action definitions to them. See catalog reconciliation `com.clayon/packages/clayon-runner/spec/capability/catalog-reconciliation.md`.
 
 Sources: `src/protocol-actions/`, `src/catalog/canonical-operations.ts`,
 `src/tools/capability-semantic-tool-catalog.ts`,
@@ -20,11 +15,7 @@ barrel `src/tools/index.ts`.
 
 ## Two dispositions, plus a separate control-plane list
 
-A tool descriptor's `disposition` is either **`always_agent_tool`** or
-**`optional_agent_tool`**. Control-plane-owned operations are a separate frozen
-list, not a disposition — they are never exposed as tools. See
-[capability disposition](capability-disposition.md) and
-[authorization and exposure](capability-authorization-and-exposure.md).
+A tool descriptor's `disposition` is either **`always_agent_tool`** or **`optional_agent_tool`**. Control-plane-owned operations are a separate frozen list, not a disposition — never exposed as tools. See capability disposition `antl:clayon/packages/clayon-runner/docs/capability-disposition` and authorization and exposure `antl:clayon/packages/clayon-runner/docs/capability-authorization-and-exposure`.
 
 The catalog holds **40 tools**: 14 always-agent tools and 26 optional tools
 across 10 groups.
@@ -41,18 +32,19 @@ by src/catalog/catalog-docs.test.ts; update the catalog, not the numbers. -->
 
 ### Optional tools (26), by group
 
-| Group | Tools |
-| --- | --- |
-| discovery | `search_tasks`, `list_agents`, `list_projects`, `list_goals` |
-| delegation_dependencies | `create_task`, `reassign_task`, `set_dependencies` |
-| governance | `list_approvals`, `request_approval`, `decide_approval`, `comment_on_approval` |
-| cases | `list_cases`, `upsert_case` |
-| workspace_runtime | `get_workspace_runtime`, `control_workspace_service` |
-| routines | `list_routines`, `manage_routine` |
-| company_skills | `create_skill`, `update_skill`, `list_company_skills`, `sync_company_skills` |
-| secrets | `list_secret_metadata`, `read_secret_value` |
-| portability_admin | `export_company`, `administer_company` |
-| test_escape_hatch | `generic_api_request` |
+```text
+[10]{Group,Tools}:
+  discovery,"`search_tasks`, `list_agents`, `list_projects`, `list_goals`"
+  delegation_dependencies,"`create_task`, `reassign_task`, `set_dependencies`"
+  governance,"`list_approvals`, `request_approval`, `decide_approval`, `comment_on_approval`"
+  cases,"`list_cases`, `upsert_case`"
+  workspace_runtime,"`get_workspace_runtime`, `control_workspace_service`"
+  routines,"`list_routines`, `manage_routine`"
+  company_skills,"`create_skill`, `update_skill`, `list_company_skills`, `sync_company_skills`"
+  secrets,"`list_secret_metadata`, `read_secret_value`"
+  portability_admin,"`export_company`, `administer_company`"
+  test_escape_hatch,`generic_api_request`
+```
 
 ## Descriptor shape
 
@@ -69,17 +61,12 @@ the tool does against the mock, never *how* a transport would carry it.
 
 ## Transport neutrality
 
-Bindings, not descriptors, produce provider shapes, both derived from the same
-`visibleTools.tools` array:
+Bindings, not descriptors, produce provider shapes, both derived from the same `visibleTools.tools` array:
 
-- `CapabilityFakeAgentToolBinding` emits `{operationId, description, inputSchema,
-  outputSchema}`.
-- `CapabilityCodexToolBinding` emits `{type: "function", name, description, strict:
-  true, parameters}`.
+- `CapabilityFakeAgentToolBinding` emits `{operationId, description, inputSchema, outputSchema}`.
+- `CapabilityCodexToolBinding` emits `{type: "function", name, description, strict: true, parameters}`.
 
-Because both bindings derive from one array, the fake-agent and Codex operation
-surfaces are byte-identical. The [conformance suite](capability-eval-conformance.md)
-asserts this parity (the 18/18 fake-agent/Codex operation matrix).
+Both bindings derive from one array, so the fake-agent and Codex operation surfaces are byte-identical. The conformance suite `antl:clayon/packages/clayon-runner/docs/capability-eval-conformance` asserts this parity (the 18/18 fake-agent/Codex operation matrix).
 
 ## Running the tests
 
@@ -93,29 +80,14 @@ that every optional group is present.
 
 ## Related
 
-- [Authorization and exposure](capability-authorization-and-exposure.md)
-- [Mock ControlPlanePort](capability-mock-control-plane-port.md)
-- [Eval conformance](capability-eval-conformance.md)
+- Authorization and exposure `antl:clayon/packages/clayon-runner/docs/capability-authorization-and-exposure`
+- Mock ControlPlanePort `antl:clayon/packages/clayon-runner/docs/capability-mock-control-plane-port`
+- Eval conformance `antl:clayon/packages/clayon-runner/docs/capability-eval-conformance`
 
 ## Reassigning existing tasks
 
-`reassign_task` moves another existing company task to an eligible agent. Read
-`search_tasks` first and send the observed `expectedAssigneeActorId` (nullable)
-and `expectedStatusVersion`, the new `assigneeActorId`, a handoff `reason`, and a
-stable `idempotencyKey`. It requires `delegation:tasks:assign` and production
-`tasks:assign` authorization in standard mode. The same task retains its
-documents, dependencies, scope, priority, and history.
+`reassign_task` moves another existing company task to an eligible agent. Read `search_tasks` first; send the observed `expectedAssigneeActorId` (nullable) and `expectedStatusVersion`, the new `assigneeActorId`, a handoff `reason`, and a stable `idempotencyKey`. Requires `delegation:tasks:assign` and production `tasks:assign` authorization in standard mode. The task retains its documents, dependencies, scope, priority, and history.
 
-The old execution and any live goal must stop before ownership changes. Active
-work returns to todo; backlog and blocked work retain their status and are not
-started. An audited reassignment stop does not create a recovery blocker or
-retry the outgoing run when it ends without a semantic completion result.
-Assignment changes advance the observed version, including ordinary
-API changes, to reject stale handoffs. A durable audit receipt makes retries
-idempotent across caller runs; retrying after failed dispatch repairs the wake
-with a stable key and an owner/status/version guard.
+The old execution and any live goal must stop before ownership changes. Active work returns to todo; backlog and blocked work retain their status and are not started. An audited reassignment stop creates no recovery blocker and does not retry the outgoing run when it ends without a semantic completion result. Assignment changes advance the observed version, including ordinary API changes, to reject stale handoffs. A durable audit receipt makes retries idempotent across caller runs; retrying after failed dispatch repairs the wake with a stable key and an owner/status/version guard.
 
-The current caller task, conversations, human-assigned tasks, completed or
-cancelled tasks, and pending reviews cannot be reassigned with this tool. Use
-`create_task` to delegate new work from the current task. A stop failure or
-concurrent ownership change fails without applying the handoff.
+The current caller task, conversations, human-assigned tasks, completed or cancelled tasks, and pending reviews cannot be reassigned with this tool. Use `create_task` to delegate new work from the current task. A stop failure or concurrent ownership change fails without applying the handoff.

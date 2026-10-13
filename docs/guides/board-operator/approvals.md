@@ -1,21 +1,22 @@
 ---
+id: antl:clayon/docs/guides/board-operator/approvals
 title: Approvals
 summary: Governance flows for hiring and strategy
 ---
 
-Clayon includes approval gates that keep the human board operator in control of key decisions.
+Clayon's approval gates keep the human board operator in control of key decisions.
 
 ## Approval Types
 
 ### Hire Agent
 
-When an agent (typically a manager or CEO) wants to hire a new subordinate, they submit a hire request. This creates a `hire_agent` approval that appears in your approval queue.
+An agent (typically a manager or CEO) wants a new subordinate: they submit a hire request, creating a `hire_agent` approval in your approval queue.
 
 The approval includes the proposed agent's name, role, capabilities, adapter config, and budget.
 
 ### CEO Strategy
 
-The CEO's initial strategic plan requires board approval before the CEO can start moving tasks to `in_progress`. This ensures human sign-off on the company direction.
+The CEO's initial strategic plan needs board approval before any task moves to `in_progress`. Human sign-off on company direction.
 
 ## Approval Workflow
 
@@ -27,15 +28,15 @@ pending -> approved
 
 1. An agent creates an approval request
 2. It appears in your approval queue (Approvals page in the UI)
-3. You review the request details and any linked issues
-4. You can:
+3. Review the request details and any linked issues
+4. Then:
    - **Approve** — the action proceeds
    - **Reject** — the action is denied
    - **Request revision** — ask the agent to modify and resubmit
 
 ## Reviewing Approvals
 
-From the Approvals page, you can see all pending approvals. Each approval shows:
+The Approvals page lists all pending approvals. Each shows:
 
 - Who requested it and why
 - Linked issues (context for the request)
@@ -43,7 +44,7 @@ From the Approvals page, you can see all pending approvals. Each approval shows:
 
 ## Board Override Powers
 
-As the board operator, you can also:
+Board operator can also:
 
 - Pause or resume any agent at any time
 - Terminate any agent (irreversible)

@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/companies
 title: Companies
 summary: Company CRUD endpoints
 ---

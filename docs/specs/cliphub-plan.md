@@ -1,3 +1,7 @@
+---
+id: antl:clayon/docs/specs/cliphub-plan
+---
+
 # ClipHub: Marketplace for Clayon Team Configurations
 
 > Supersession note: this marketplace plan predates the markdown-first company package direction. For the current package-format and import/export rollout plan, see `doc/plans/2026-03-13-company-import-export-v2.md` and `docs/companies/companies-spec.md`.
@@ -8,13 +12,14 @@
 
 **ClipHub** sells **entire team configurations** — org charts, agent roles, inter-agent workflows, governance rules, and project templates — for Clayon-managed companies.
 
-| Dimension | ClipHub |
-|---|---|
-| Unit of sale | Team blueprint (multi-agent org) |
-| Buyer | Founder / team lead spinning up an AI company |
-| Install target | Clayon company (agents, projects, governance) |
-| Value prop | "Skip org design — get a shipping team in minutes" |
-| Price range | $0–$499 per blueprint (+ individual add-ons) |
+```text
+[5]{Dimension,ClipHub}:
+  Unit of sale,"Team blueprint (multi-agent org)"
+  Buyer,Founder / team lead spinning up an AI company
+  Install target,"Clayon company (agents, projects, governance)"
+  Value prop,"\"Skip org design — get a shipping team in minutes\""
+  Price range,$0–$499 per blueprint (+ individual add-ons)
+```
 
 ---
 
@@ -250,50 +255,53 @@ interface Review {
 
 ### 4.1 Public Pages
 
-| Route | Page | Description |
-|---|---|---|
-| `/` | Homepage | Hero, featured blueprints, popular skills, how it works |
-| `/browse` | Marketplace browse | Filterable grid of all listings |
-| `/browse?type=team_blueprint` | Team blueprints | Filtered to team configs |
-| `/browse?type=agent_blueprint` | Agent blueprints | Single-agent configs |
-| `/browse?type=skill` | Skills | Skill listings |
-| `/browse?type=governance_template` | Governance | Policy templates |
-| `/listings/:slug` | Listing detail | Full product page |
-| `/creators/:slug` | Creator profile | Bio, all listings, stats |
-| `/about` | About ClipHub | Mission, how it works |
-| `/pricing` | Pricing & fees | Creator revenue share, buyer info |
+```text
+[10]{Route,Page,Description}:
+  `/`,Homepage,"Hero, featured blueprints, popular skills, how it works"
+  `/browse`,Marketplace browse,Filterable grid of all listings
+  `/browse?type=team_blueprint`,Team blueprints,Filtered to team configs
+  `/browse?type=agent_blueprint`,Agent blueprints,Single-agent configs
+  `/browse?type=skill`,Skills,Skill listings
+  `/browse?type=governance_template`,Governance,Policy templates
+  `/listings/:slug`,Listing detail,Full product page
+  `/creators/:slug`,Creator profile,"Bio, all listings, stats"
+  `/about`,About ClipHub,"Mission, how it works"
+  `/pricing`,Pricing & fees,"Creator revenue share, buyer info"
+```
 
 ### 4.2 Authenticated Pages
 
-| Route | Page | Description |
-|---|---|---|
-| `/dashboard` | Buyer dashboard | Purchased items, installed blueprints |
-| `/dashboard/purchases` | Purchase history | All transactions |
-| `/dashboard/installs` | Installations | Deployed blueprints with status |
-| `/creator` | Creator dashboard | Listing management, analytics |
-| `/creator/listings/new` | Create listing | Multi-step listing wizard |
-| `/creator/listings/:id/edit` | Edit listing | Modify existing listing |
-| `/creator/analytics` | Analytics | Revenue, installs, views |
-| `/creator/payouts` | Payouts | Stripe Connect payout history |
+```text
+[8]{Route,Page,Description}:
+  `/dashboard`,Buyer dashboard,"Purchased items, installed blueprints"
+  `/dashboard/purchases`,Purchase history,All transactions
+  `/dashboard/installs`,Installations,Deployed blueprints with status
+  `/creator`,Creator dashboard,"Listing management, analytics"
+  `/creator/listings/new`,Create listing,Multi-step listing wizard
+  `/creator/listings/:id/edit`,Edit listing,Modify existing listing
+  `/creator/analytics`,Analytics,"Revenue, installs, views"
+  `/creator/payouts`,Payouts,Stripe Connect payout history
+```
 
 ### 4.3 API Routes
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/listings` | Browse listings (filters: type, category, price range, sort) |
-| `GET` | `/api/listings/:slug` | Get listing detail |
-| `POST` | `/api/listings` | Create listing (creator auth) |
-| `PATCH` | `/api/listings/:id` | Update listing |
-| `DELETE` | `/api/listings/:id` | Archive listing |
-| `POST` | `/api/listings/:id/purchase` | Purchase listing (Stripe checkout) |
-| `POST` | `/api/listings/:id/install` | Install to Clayon company |
-| `GET` | `/api/listings/:id/reviews` | Get reviews |
-| `POST` | `/api/listings/:id/reviews` | Submit review |
-| `GET` | `/api/creators/:slug` | Creator profile |
-| `GET` | `/api/creators/me` | Current creator profile |
-| `POST` | `/api/creators` | Register as creator |
-| `GET` | `/api/purchases` | Buyer's purchase history |
-| `GET` | `/api/analytics` | Creator analytics |
+```text
+[14]{Method,Endpoint,Description}:
+  `GET`,`/api/listings`,"Browse listings (filters: type, category, price range, sort)"
+  `GET`,`/api/listings/:slug`,Get listing detail
+  `POST`,`/api/listings`,Create listing (creator auth)
+  `PATCH`,`/api/listings/:id`,Update listing
+  `DELETE`,`/api/listings/:id`,Archive listing
+  `POST`,`/api/listings/:id/purchase`,"Purchase listing (Stripe checkout)"
+  `POST`,`/api/listings/:id/install`,Install to Clayon company
+  `GET`,`/api/listings/:id/reviews`,Get reviews
+  `POST`,`/api/listings/:id/reviews`,Submit review
+  `GET`,`/api/creators/:slug`,Creator profile
+  `GET`,`/api/creators/me`,Current creator profile
+  `POST`,`/api/creators`,Register as creator
+  `GET`,`/api/purchases`,Buyer's purchase history
+  `GET`,`/api/analytics`,Creator analytics
+```
 
 ---
 
@@ -358,13 +366,14 @@ Running Clayon company → "Export as Blueprint" (CLI or UI)
 
 ### 6.2 Key Design Elements
 
-| Element | ClipHub |
-|---|---|
-| Product card | Org chart mini-preview + agent count badge |
-| Detail page | Interactive org chart + per-agent breakdown |
-| Install flow | One-click deploy to Clayon company |
-| Social proof | "X companies running this blueprint" |
-| Preview | Live demo sandbox (stretch goal) |
+```text
+[5]{Element,ClipHub}:
+  Product card,Org chart mini-preview + agent count badge
+  Detail page,Interactive org chart + per-agent breakdown
+  Install flow,One-click deploy to Clayon company
+  Social proof,"\"X companies running this blueprint\""
+  Preview,"Live demo sandbox (stretch goal)"
+```
 
 ### 6.3 Listing Card Design
 
@@ -442,12 +451,10 @@ The install handler:
 
 ## 8. Revenue Model
 
-| Fee | Amount | Notes |
-|---|---|---|
-| Creator revenue share | 90% of sale price | Minus Stripe processing (~2.9% + $0.30) |
-| Platform fee | 10% of sale price | ClipHub's cut |
-| Free listings | $0 | No fees for free listings |
-| Stripe Connect | Standard rates | Handled by Stripe |
+- **Creator revenue share** — 90% of sale price — Minus Stripe processing (~2.9% + $0.30)
+- **Platform fee** — 10% of sale price — ClipHub's cut
+- **Free listings** — $0 — No fees for free listings
+- **Stripe Connect** — Standard rates — Handled by Stripe
 
 ---
 

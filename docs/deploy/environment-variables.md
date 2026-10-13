@@ -1,58 +1,58 @@
 ---
+id: antl:clayon/docs/deploy/environment-variables
 title: Environment Variables
 summary: Full environment variable reference
 ---
 
-All environment variables that Clayon uses for server configuration.
+All environment variables Clayon uses for server configuration.
 
 ## Server Configuration
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3100` | Server port |
-| `CLAYON_BIND` | `loopback` | Reachability preset: `loopback`, `lan`, `tailnet`, or `custom` |
-| `CLAYON_BIND_HOST` | (unset) | Required when `CLAYON_BIND=custom` |
-| `HOST` | `127.0.0.1` | Legacy host override; prefer `CLAYON_BIND` for new setups |
-| `DATABASE_URL` | (embedded) | PostgreSQL connection string |
-| `CLAYON_HOME` | `~/.clayon` | Base directory for all Clayon data |
-| `CLAYON_INSTANCE_ID` | `default` | Instance identifier (for multiple local instances) |
-| `CLAYON_DEPLOYMENT_MODE` | `local_trusted` | Runtime mode override |
-| `CLAYON_DEPLOYMENT_EXPOSURE` | `private` | Exposure policy when deployment mode is `authenticated` |
-| `CLAYON_API_URL` | (auto-derived) | Clayon API base URL. When set externally (e.g., via Kubernetes ConfigMap, load balancer, or reverse proxy), the server preserves the value instead of deriving it from the listen host and port. Useful for deployments where the public-facing URL differs from the local bind address. |
-| `CLAYON_CHAT_WEBHOOK_PUBLIC_URL` | (board public origin) | Optional HTTPS origin for native chat provider webhooks when ingress and the board use different hosts. Must have no credentials, path, query, or fragment; invalid configuration refuses startup. Used only for provider callback URLs, not board links, authentication, trusted hosts, or identity confirmation. |
-| `CLAYON_RUNNER_PUBLIC_URL` | (unset) | Explicit `wss://` base URL used only when a remote `clayon_runner` target dials Clayon directly. Clayon appends `/api/runner/v1/connect/<runId>`; the reverse proxy must forward WebSocket upgrades for that route. This value is never inferred from request headers. Daytona ignores it and uses provider ingress. |
-| `CLAYON_RUNNER_CA_BUNDLE_PATH` | (unset) | Optional PEM CA bundle for direct runner WSS. Platform roots remain enabled. There is no insecure TLS bypass. |
-| `CLAYON_RUNNER_REMOTE_BINARY_PATH` | (host build) | Host-local path to a `clayon-runnerd` artifact built for the remote target OS and architecture. Required when Clayon and the remote sandbox do not share a compatible platform; build metadata and the required transport mode are verified before launch. |
-| `CLAYON_RUNNER_REMOTE_CODEX_PATH` | (unset) | Optional host-local path to a Codex executable built for the remote target OS and architecture. For remote Codex-backed runners, Clayon stages and verifies this executable beside `clayon-runnerd`. |
-| `CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC` | (unset) | Optional pinned npm package spec (for example, `@openai/codex@0.160.0`) installed inside each fresh remote lease when its Codex harness is not baked into the sandbox image. Mutually exclusive with `CLAYON_RUNNER_REMOTE_CODEX_PATH`; Clayon verifies the installed executable before starting `runnerd`. |
-| `CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH` | `/opt/clayon-runner/provider-pack` in Docker; otherwise unset | Host-local path to the immutable provider pack built by `pnpm --filter @clayon/clayon-runner build:provider-pack`. Stamped standard Docker images include the pack; downstream compositions and the `cloud` target inherit it. Unstamped local Docker builds skip pack generation. The pack includes its target-built Node 24.11+ runtime, locked production dependencies, OpenCode proxy/executable, and ACPX sidecar. Remote OpenCode and ACPX fail closed without it. A preinstalled pack is accepted only when its complete digested manifest matches this build-owned pack; otherwise Clayon stages this pack into the sandbox. |
-| `CLAYON_HIDDEN_SETTINGS` | (unset) | Comma-separated settings surfaces to hide from the UI and floor at the API, for operators hosting Clayon for others (managed cloud, internal shared server). See [Hiding settings surfaces](#hiding-settings-surfaces). |
-| `CLAYON_SETTING_DEFAULTS` | (unset) | JSON object replacing the schema default of selected instance settings, for hosting operators. See [Operator setting defaults](#operator-setting-defaults). |
+```text
+[19]{Variable,Default,Description}:
+  `PORT`,`3100`,Server port
+  `CLAYON_BIND`,`loopback`,"Reachability preset: `loopback`, `lan`, `tailnet`, or `custom`"
+  `CLAYON_BIND_HOST`,(unset),Required when `CLAYON_BIND=custom`
+  `HOST`,`127.0.0.1`,Legacy host override; prefer `CLAYON_BIND` for new setups
+  `DATABASE_URL`,(embedded),PostgreSQL connection string
+  `CLAYON_HOME`,`~/.clayon`,Base directory for all Clayon data
+  `CLAYON_INSTANCE_ID`,`default`,Instance identifier (for multiple local instances)
+  `CLAYON_DEPLOYMENT_MODE`,`local_trusted`,Runtime mode override
+  `CLAYON_DEPLOYMENT_EXPOSURE`,`private`,Exposure policy when deployment mode is `authenticated`
+  `CLAYON_API_URL`,(auto-derived),"Clayon API base URL. When set externally (e.g., via Kubernetes ConfigMap, load balancer, or reverse proxy), the server preserves the value instead of deriving it from the listen host and port. Useful for deployments where the public-facing URL differs from the local bind address."
+  `CLAYON_CHAT_WEBHOOK_PUBLIC_URL`,(board public origin),"Optional HTTPS origin for native chat provider webhooks when ingress and the board use different hosts. Must have no credentials, path, query, or fragment; invalid configuration refuses startup. Used only for provider callback URLs, not board links, authentication, trusted hosts, or identity confirmation."
+  `CLAYON_RUNNER_PUBLIC_URL`,(unset),"Explicit `wss://` base URL used only when a remote `clayon_runner` target dials Clayon directly. Clayon appends `/api/runner/v1/connect/<runId>`; the reverse proxy must forward WebSocket upgrades for that route. This value is never inferred from request headers. Daytona ignores it and uses provider ingress."
+  `CLAYON_RUNNER_CA_BUNDLE_PATH`,(unset),Optional PEM CA bundle for direct runner WSS. Platform roots remain enabled. There is no insecure TLS bypass.
+  `CLAYON_RUNNER_REMOTE_BINARY_PATH`,(host build),"Host-local path to a `clayon-runnerd` artifact built for the remote target OS and architecture. Required when Clayon and the remote sandbox do not share a compatible platform; build metadata and the required transport mode are verified before launch."
+  `CLAYON_RUNNER_REMOTE_CODEX_PATH`,(unset),"Optional host-local path to a Codex executable built for the remote target OS and architecture. For remote Codex-backed runners, Clayon stages and verifies this executable beside `clayon-runnerd`."
+  `CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC`,(unset),"Optional pinned npm package spec (for example, `@openai/codex@0.160.0`) installed inside each fresh remote lease when its Codex harness is not baked into the sandbox image. Mutually exclusive with `CLAYON_RUNNER_REMOTE_CODEX_PATH`; Clayon verifies the installed executable before starting `runnerd`."
+  `CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH`,`/opt/clayon-runner/provider-pack` in Docker; otherwise unset,"Host-local path to the immutable provider pack built by `pnpm --filter @clayon/clayon-runner build:provider-pack`. Stamped standard Docker images include the pack; downstream compositions and the `cloud` target inherit it. Unstamped local Docker builds skip pack generation. The pack includes its target-built Node 24.11+ runtime, locked production dependencies, OpenCode proxy/executable, and ACPX sidecar. Remote OpenCode and ACPX fail closed without it. A preinstalled pack is accepted only when its complete digested manifest matches this build-owned pack; otherwise Clayon stages this pack into the sandbox."
+  `CLAYON_HIDDEN_SETTINGS`,(unset),"Comma-separated settings surfaces to hide from the UI and floor at the API, for operators hosting Clayon for others (managed cloud, internal shared server). See Hiding settings surfaces `antl:clayon/docs/deploy/environment-variables#hiding-settings-surfaces`."
+  `CLAYON_SETTING_DEFAULTS`,(unset),"JSON object replacing the schema default of selected instance settings, for hosting operators. See Operator setting defaults `antl:clayon/docs/deploy/environment-variables#operator-setting-defaults`."
+```
 
-Daytona connectivity for `clayon_runner` uses authenticated provider
-WebSocket ingress and follows the instance experimental setting
-`enableNativeRunner` (default `false`). There is no separate ingress opt-in.
-Disabling Clayon Runner blocks fresh native starts while persisted native
-runs retain their recovery path. The deprecated `enableRunnerPreviewIngress`
-key remains accepted in stored and managed configuration for version-skew
-compatibility, but it has no runtime effect. The setting has no effect on
-legacy adapters or callback bridges.
+Daytona connectivity for `clayon_runner` uses authenticated provider WebSocket
+ingress and follows the instance experimental setting `enableNativeRunner`
+(default `false`). No separate ingress opt-in. Disabling Clayon Runner blocks
+fresh native starts; persisted native runs keep their recovery path. The
+deprecated `enableRunnerPreviewIngress` key stays accepted in stored and
+managed configuration for version-skew compatibility but has no runtime
+effect. No effect on legacy adapters or callback bridges.
 
 ### Webhook-only chat ingress
 
 Keep `CLAYON_PUBLIC_URL` (or the explicit authentication public URL) pointed
-at the actual board. If the board is private, set
+at the actual board. Private board: set
 `CLAYON_CHAT_WEBHOOK_PUBLIC_URL=https://chat-ingress.example.com` and forward
 only `POST /api/chat-webhooks/*` from that host. Provider signatures still gate
-ingress; this variable does not expose routes or grant provider access.
+ingress; this variable exposes no routes and grants no provider access.
 Never forward the private `local_trusted` board through a public tunnel.
 
 In Clayon Cloud, chat callback URLs and account-linking URLs follow the
-instance's signed canonical origin after a warm instance is claimed, without
-requiring a restart. An explicit `CLAYON_CHAT_WEBHOOK_PUBLIC_URL` still takes
-precedence for provider callbacks only; board links follow the claimed origin.
-Existing provider-side callback settings must be updated if they were created
-with an old URL.
+instance's signed canonical origin after a warm instance is claimed, no restart
+needed. An explicit `CLAYON_CHAT_WEBHOOK_PUBLIC_URL` still takes precedence
+for provider callbacks only; board links follow the claimed origin. Update
+existing provider-side callback settings if they were created with an old URL.
 
 Task links in external messages require an externally safe HTTPS board URL.
 Local/private board URLs are omitted with instructions to open the task in
@@ -62,19 +62,19 @@ confirmation stays on the board and requires the user to be able to reach it.
 ### Preinstalled remote runner images
 
 Remote sandbox images may preinstall `clayon-runnerd`, `codex`, and the
-provider pack at `/opt/clayon-runner/provider-pack` instead of
-paying the upload and npm-install cost on every fresh lease. Put both executable
-names on the sandbox user's `PATH`; `$HOME/.local/bin` is checked explicitly
-before `PATH`. Clayon verifies runner build metadata, the selected PRP
-transport capability, Codex startup, the provider-pack digest, exact harness
-pins, Node compatibility, and packaged bridge digests before linking artifacts
-into the run-specific runtime directory. A missing or incompatible executable falls back
-to `CLAYON_RUNNER_REMOTE_BINARY_PATH` and
+provider pack at `/opt/clayon-runner/provider-pack`, skipping the upload and
+npm-install cost on every fresh lease. Put both executable names on the
+sandbox user's `PATH`; `$HOME/.local/bin` is checked explicitly before `PATH`.
+Clayon verifies runner build metadata, the selected PRP transport capability,
+Codex startup, the provider-pack digest, exact harness pins, Node
+compatibility, and packaged bridge digests before linking artifacts into the
+run-specific runtime directory. A missing or incompatible executable falls
+back to `CLAYON_RUNNER_REMOTE_BINARY_PATH` and
 `CLAYON_RUNNER_REMOTE_CODEX_NPM_SPEC` (or
 `CLAYON_RUNNER_REMOTE_CODEX_PATH`) without changing the selected transport.
-OpenCode and ACPX instead fall back only to
-`CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH`; they never start a provider
-process on the Clayon host for a remote target.
+OpenCode and ACPX fall back only to
+`CLAYON_RUNNER_REMOTE_PROVIDER_PACK_PATH`; they never start a provider process
+on the Clayon host for a remote target.
 The Daytona environment editor's **Configure image** action can create this
 image without a separate container registry: install the executables in its
 setup sandbox, finish setup, and Clayon captures and promotes the resulting
@@ -104,7 +104,7 @@ Daytona snapshot for future leases.
   Add `!instance.experimental.<flagKey>` entries to leave specific controls
   available. The server expands this policy against its own feature catalog,
   so new toggles stay hidden without an environment change. The Experimental
-  page remains available. Exceptions only apply to the wildcard; an explicit
+  page remains available. Exceptions apply only to the wildcard; an explicit
   hidden toggle or `instance.experimental` page restriction always wins,
   regardless of entry order. Unknown exceptions are logged and ignored.
 - Any top-level company settings page: `company.members`, `company.invites`,
@@ -124,23 +124,23 @@ Daytona snapshot for future leases.
 - `workspaces.isolation` hides project execution-workspace policy, task and
   routine workspace selectors, pipeline workspace overrides, isolated re-issue
   actions, and the execution-workspace Configuration tab (including direct
-  links). Workspace navigation, files, status, and runtime access stay available.
-  This key only controls UI visibility: it does not disable isolation, change
-  saved policies, or block APIs used by agents. New tasks and routine runs omit
-  hidden draft overrides so the server applies the existing defaults. Tasks
-  launched from a workspace or parent task keep that explicit context. Hide the two
+  links). Workspace navigation, files, status, and runtime access stay
+  available. UI visibility only: no isolation changes, no saved-policy
+  changes, no blocked agent APIs. New tasks and routine runs omit hidden
+  draft overrides so the server applies the existing defaults. Tasks launched
+  from a workspace or parent task keep that explicit context. Hide the two
   experimental isolation toggles separately when the operator manages them.
 
-Unknown keys are logged and ignored, so one list can be rolled across a fleet
-of mixed app versions, and retired keys (like `instance.heartbeats`, whose
-page was removed) can stay in an operator list without breaking older or
-newer releases. With the variable unset nothing is hidden and behavior
-is identical to earlier releases. Hiding a toggle does not change its value;
-pair hiding with the desired default where it matters (for general settings,
-see [Operator setting defaults](#operator-setting-defaults)).
+Unknown keys are logged and ignored, so one list rolls across a fleet of
+mixed app versions, and retired keys (like `instance.heartbeats`, whose page
+was removed) stay in an operator list without breaking older or newer
+releases. Variable unset: nothing hidden, behavior identical to earlier
+releases. Hiding a toggle never changes its value; pair hiding with the
+desired default where it matters (for general settings, see Operator setting
+defaults `antl:clayon/docs/deploy/environment-variables#operator-setting-defaults`).
 
-For example, this allows only the Environments control and keeps the Plugins
-settings page hidden:
+Example — allow only the Environments control, keep the Plugins settings
+page hidden:
 
 ```sh
 CLAYON_HIDDEN_SETTINGS='instance.plugins,instance.experimental.*,!instance.experimental.enableEnvironments'
@@ -148,7 +148,7 @@ CLAYON_HIDDEN_SETTINGS='instance.plugins,instance.experimental.*,!instance.exper
 
 `GET /api/health` returns the expanded concrete keys in `hiddenSettings`.
 The UI and settings API use the same restrictions. Reads and same-value
-echoes remain allowed; changing a hidden value returns
+echoes stay allowed; changing a hidden value returns
 `403 settings_operator_managed`.
 
 Older images that predate wildcard support ignore the wildcard and exceptions.
@@ -162,13 +162,13 @@ without a wildcard has no effect.
 `CLAYON_SETTING_DEFAULTS` takes a JSON object whose fields come from the
 registry in `packages/shared/src/setting-defaults.ts` (currently
 `feedbackDataSharingPreference`). The operator value substitutes for the
-schema default at read time: any field whose effective value is still the
-schema default resolves to the operator value, while an explicit non-default
-user choice always wins. The overlay is never persisted, so unsetting the
-variable restores stock behavior wherever a user has not chosen otherwise.
-A client that writes back the full settings object it read does not persist
-the operator value either: writing the operator value over a still-unchosen
-field is treated as an echo of the overlay and the field stays unchosen.
+schema default at read time: any field still at its schema default resolves to
+the operator value; an explicit non-default user choice always wins. The
+overlay is never persisted, so unsetting the variable restores stock behavior
+wherever a user has not chosen otherwise. A client writing back the full
+settings object it read never persists the operator value either: writing it
+over a still-unchosen field counts as an echo of the overlay and the field
+stays unchosen.
 
 Example: `CLAYON_SETTING_DEFAULTS='{"feedbackDataSharingPreference":"allowed"}'`
 defaults AI feedback sharing to allowed; pairing it with
@@ -191,23 +191,22 @@ configuration fails closed.
 
 These are set automatically by the server when invoking agents:
 
-| Variable | Description |
-|----------|-------------|
-| `CLAYON_AGENT_ID` | Agent's unique ID |
-| `CLAYON_COMPANY_ID` | Company ID |
-| `CLAYON_API_URL` | Clayon API base URL (inherits the server-level value; see Server Configuration above) |
-| `CLAYON_API_KEY` | Short-lived JWT for API auth |
-| `CLAYON_RUN_ID` | Current heartbeat run ID |
-| `CLAYON_TASK_ID` | Issue that triggered this wake |
-| `CLAYON_WAKE_REASON` | Wake trigger reason |
-| `CLAYON_WAKE_COMMENT_ID` | Comment that triggered this wake |
-| `CLAYON_APPROVAL_ID` | Resolved approval ID |
-| `CLAYON_APPROVAL_STATUS` | Approval decision |
-| `CLAYON_LINKED_ISSUE_IDS` | Comma-separated linked issue IDs |
+```text
+[11]{Variable,Description}:
+  `CLAYON_AGENT_ID`,Agent's unique ID
+  `CLAYON_COMPANY_ID`,Company ID
+  `CLAYON_API_URL`,Clayon API base URL (inherits the server-level value; see Server Configuration above)
+  `CLAYON_API_KEY`,Short-lived JWT for API auth
+  `CLAYON_RUN_ID`,Current heartbeat run ID
+  `CLAYON_TASK_ID`,Issue that triggered this wake
+  `CLAYON_WAKE_REASON`,Wake trigger reason
+  `CLAYON_WAKE_COMMENT_ID`,Comment that triggered this wake
+  `CLAYON_APPROVAL_ID`,Resolved approval ID
+  `CLAYON_APPROVAL_STATUS`,Approval decision
+  `CLAYON_LINKED_ISSUE_IDS`,Comma-separated linked issue IDs
+```
 
 ## LLM Provider Keys (for adapters)
 
-| Variable | Description |
-|----------|-------------|
-| `ANTHROPIC_API_KEY` | Anthropic API key (for Claude Code adapter) |
-| `OPENAI_API_KEY` | OpenAI API key (for Codex adapter) |
+- **`ANTHROPIC_API_KEY`** — Anthropic API key (for Claude Code adapter)
+- **`OPENAI_API_KEY`** — OpenAI API key (for Codex adapter)

@@ -1,29 +1,30 @@
 ---
+id: antl:clayon/docs/guides/board-operator/creating-a-company
 title: Creating a Company
 summary: Set up your first autonomous AI company
 ---
 
-A company is the top-level unit in Clayon. Everything — agents, tasks, goals, budgets — lives under a company.
+A company is Clayon's top-level unit. Everything — agents, tasks, goals, budgets — lives under one.
 
 ## Step 1: Create the Company
 
-In the web UI, click "New Company" and provide:
+Web UI: click "New Company" and provide:
 
 - **Name** — your company's name
 - **Description** — what this company does (optional but recommended)
 
 ## Step 2: Set a Goal
 
-Every company needs a goal — the north star that all work traces back to. Good goals are specific and measurable:
+Every company needs a goal — the north star all work traces back to. Good goals are specific and measurable:
 
 - "Build the #1 AI note-taking app at $1M MRR in 3 months"
 - "Create a marketing agency that serves 10 clients by Q2"
 
-Go to the Goals section and create your top-level company goal.
+Goals section: create your top-level company goal.
 
 ## Step 3: Create the CEO Agent
 
-The CEO is the first agent you create. Choose an adapter type (Claude Code is a good default) and configure:
+The CEO is your first agent. Pick an adapter type (Claude Code is a good default) and configure:
 
 - **Name** — e.g. "CEO"
 - **Role** — `ceo`
@@ -31,7 +32,7 @@ The CEO is the first agent you create. Choose an adapter type (Claude Code is a 
 - **Prompt template** — instructions for what the CEO does on each heartbeat
 - **Budget** — monthly spend limit in cents
 
-The CEO's prompt should instruct it to review company health, set strategy, and delegate work to reports.
+The CEO's prompt should instruct it to review company health, set strategy, delegate to reports.
 
 ## Step 4: Build the Org Chart
 
@@ -41,15 +42,15 @@ From the CEO, create direct reports:
 - **CMO** managing marketing agents
 - **Other executives** as needed
 
-Each agent gets their own adapter config, role, and budget. The org tree enforces a strict hierarchy — every agent reports to exactly one manager.
+Each agent gets its own adapter config, role, and budget. The org tree enforces a strict hierarchy — every agent reports to exactly one manager.
 
 ## Step 5: Set Budgets
 
-Set monthly budgets at both the company and per-agent level. Clayon enforces:
+Set monthly budgets at company and per-agent level. Clayon enforces:
 
 - **Soft alert** at 80% utilization
-- **Hard stop** at 100% — agents are auto-paused
+- **Hard stop** at 100% — agents auto-paused
 
 ## Step 6: Launch
 
-Enable heartbeats for your agents and they'll start working. Monitor progress from the dashboard.
+Enable heartbeats; agents start working. Monitor progress from the dashboard.

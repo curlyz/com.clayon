@@ -1,19 +1,21 @@
 ---
+id: antl:clayon/docs/adapters/external-adapters
 title: External Adapters
 summary: Build, package, and distribute adapters as plugins without modifying Clayon source
 ---
 
-Clayon supports external adapter plugins that can be installed from npm packages or local directories. External adapters work exactly like built-in adapters — they execute agents, parse output, and render transcripts — but they live in their own package and don't require changes to Clayon's source code.
+Clayon supports external adapter plugins installed from npm packages or local directories. External adapters work like built-in adapters — execute agents, parse output, render transcripts — but live in their own package. No Clayon source changes required.
 
 ## Built-in vs External
 
-| | Built-in | External |
-|---|---|---|
-| Source location | Inside `clayon-fork/packages/adapters/` | Separate npm package or local directory |
-| Registration | Hardcoded in three registries | Loaded at startup via plugin system |
-| UI parser | Static import at build time | Dynamically loaded from API (see [UI Parser](/adapters/adapter-ui-parser)) |
-| Distribution | Ships with Clayon | Published to npm or linked via `file:` |
-| Updates | Requires Clayon release | Independent versioning |
+```text
+[5]{,Built-in,External}:
+  "Source location","Inside `clayon-fork/packages/adapters/`","Separate npm package or local directory"
+  Registration,Hardcoded in three registries,"Loaded at startup via plugin system"
+  UI parser,"Static import at build time","Dynamically loaded from API (see UI Parser `antl:clayon/docs/adapters/adapter-ui-parser`)"
+  Distribution,"Ships with Clayon","Published to npm or linked via `file:`"
+  Updates,Requires Clayon release,Independent versioning
+```
 
 ### Built-in Hermes compatibility note
 
@@ -25,11 +27,10 @@ Hermes is built in with two stable adapter type keys:
   `@clayon/hermes-clayon-adapter/gateway`.
 
 The legacy `@clayon/adapter-hermes-gateway` package is a deprecated
-compatibility shim for one release. It preserves the old gateway exports while
-forwarding to the unified Hermes package. New external override packages should
-depend on or link `@clayon/hermes-clayon-adapter` and declare the type
-they override (`hermes_local` or `hermes_gateway`); the type keys did not
-change.
+compatibility shim for one release: preserves old gateway exports, forwards to
+the unified Hermes package. New override packages should depend on or link
+`@clayon/hermes-clayon-adapter` and declare the overridden type
+(`hermes_local` or `hermes_gateway`); type keys did not change.
 
 ## Quick Start
 
@@ -82,12 +83,10 @@ my-adapter/
 
 Key fields:
 
-| Field | Purpose |
-|-------|---------|
-| `exports["."]` | Entry point — must export `createServerAdapter` |
-| `exports["./ui-parser"]` | Self-contained UI parser module (optional but recommended) |
-| `clayon.adapterUiParser` | Contract version for the UI parser (`"1.0.0"`) |
-| `files` | Limits what gets published — only `dist/` |
+- **`exports["."]`** — Entry point — must export `createServerAdapter`
+- **`exports["./ui-parser"]`** — Self-contained UI parser module (optional but recommended)
+- **`clayon.adapterUiParser`** — Contract version for the UI parser (`"1.0.0"`)
+- **`files`** — Limits what gets published — only `dist/`
 
 ### tsconfig.json
 
@@ -110,7 +109,7 @@ Key fields:
 
 ## Server Module
 
-The plugin loader calls `createServerAdapter()` from your package root. This function must return a `ServerAdapterModule`.
+The plugin loader calls `createServerAdapter()` from your package root. It must return a `ServerAdapterModule`.
 
 ### src/index.ts
 
@@ -152,7 +151,7 @@ export function createServerAdapter(): ServerAdapterModule {
 
 ### src/server/execute.ts
 
-The core execution function. Receives an `AdapterExecutionContext` and returns an `AdapterExecutionResult`.
+The core execution function. Receives `AdapterExecutionContext`, returns `AdapterExecutionResult`.
 
 ```ts
 import type {
@@ -214,16 +213,14 @@ export async function execute(
 
 #### Available Helpers from `@clayon/adapter-utils`
 
-| Helper | Purpose |
-|--------|---------|
-| `runChildProcess(command, opts)` | Spawn a child process with timeout, grace period, and streaming callbacks |
-| `buildClayonEnv(agent)` | Inject `CLAYON_*` environment variables |
-| `renderTemplate(template, data)` | `{{variable}}` substitution in prompt templates |
-| `asString(v)`, `asNumber(v)`, `asBoolean(v)` | Safe config value extraction |
+- **`runChildProcess(command, opts)`** — Spawn a child process with timeout, grace period, and streaming callbacks
+- **`buildClayonEnv(agent)`** — Inject `CLAYON_*` environment variables
+- **`renderTemplate(template, data)`** — `{{variable}}` substitution in prompt templates
+- **`asString(v)`, `asNumber(v)`, `asBoolean(v)`** — Safe config value extraction
 
 ### src/server/test.ts
 
-Validates the adapter configuration before running. Returns structured diagnostics.
+Validates adapter config before running. Returns structured diagnostics.
 
 ```ts
 import type {
@@ -265,11 +262,9 @@ export async function testEnvironment(
 
 Check levels:
 
-| Level | Meaning | Effect |
-|-------|---------|--------|
-| `info` | Informational | Shown in test results |
-| `warn` | Non-blocking issue | Shown with yellow indicator |
-| `error` | Blocks execution | Prevents agent from running |
+- **`info`** — Informational — Shown in test results
+- **`warn`** — Non-blocking issue — Shown with yellow indicator
+- **`error`** — Blocks execution — Prevents agent from running
 
 ## Installation
 
@@ -295,11 +290,11 @@ curl -X POST http://localhost:3102/api/adapters \
   -d '{"localPath": "/home/user/my-adapter"}'
 ```
 
-Local adapters are symlinked into Clayon's adapter directory. Changes to the source are picked up on server restart.
+Local adapters are symlinked into Clayon's adapter directory. Source changes picked up on server restart.
 
 ### Via adapter-plugins.json
 
-For development, you can also edit `~/.clayon/adapter-plugins.json` directly:
+For development, edit `~/.clayon/adapter-plugins.json` directly:
 
 ```json
 [
@@ -314,7 +309,7 @@ For development, you can also edit `~/.clayon/adapter-plugins.json` directly:
 
 ## Optional: Session Persistence
 
-If your agent runtime supports sessions (conversation continuity across heartbeats), implement a session codec:
+If your runtime supports sessions (conversation continuity across heartbeats), implement a session codec:
 
 ```ts
 import type { AdapterSessionCodec } from "@clayon/adapter-utils";
@@ -342,7 +337,7 @@ return { type, execute, testEnvironment, sessionCodec, /* ... */ };
 
 ## Optional: Skills Sync
 
-If your agent runtime supports skills/plugins, implement `listSkills` and `syncSkills`:
+If your runtime supports skills/plugins, implement `listSkills` and `syncSkills`:
 
 ```ts
 return {
@@ -368,7 +363,7 @@ return {
 
 ## Optional: Model Detection
 
-If your runtime has a local config file that specifies the default model:
+If your runtime has a local config file specifying the default model:
 
 ```ts
 async function detectModel() {
@@ -391,7 +386,7 @@ npm run build
 npm publish
 ```
 
-Other Clayon users can then install your adapter by package name from the UI or API.
+Users install your adapter by package name from UI or API.
 
 ## Security
 
@@ -399,10 +394,10 @@ Other Clayon users can then install your adapter by package name from the UI or 
 - Inject secrets via environment variables, not in prompts
 - Configure network access controls if the runtime supports them
 - Always enforce timeout and grace period — don't let agents run forever
-- The UI parser module runs in a browser sandbox — it must have zero runtime imports and no side effects
+- The UI parser module runs in a browser sandbox — zero runtime imports, no side effects
 
 ## Next Steps
 
-- [UI Parser Contract](/adapters/adapter-ui-parser) — add a custom run-log parser so the UI renders your adapter's output correctly
-- [Creating an Adapter](/adapters/creating-an-adapter) — full walkthrough of adapter internals
-- [How Agents Work](/guides/agent-developer/how-agents-work) — understand the heartbeat lifecycle your adapter serves
+- UI Parser Contract `antl:clayon/docs/adapters/adapter-ui-parser` — custom run-log parser so the UI renders adapter output correctly
+- Creating an Adapter `antl:clayon/docs/adapters/creating-an-adapter` — full walkthrough of adapter internals
+- How Agents Work `antl:clayon/docs/guides/agent-developer/how-agents-work` — the heartbeat lifecycle your adapter serves

@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/cli/overview
 title: CLI Overview
 summary: CLI installation and setup
 ---
@@ -15,14 +16,15 @@ pnpm clayon --help
 
 All commands support:
 
-| Flag | Description |
-|------|-------------|
-| `--data-dir <path>` | Local Clayon data root (isolates from `~/.clayon`) |
-| `--api-base <url>` | API base URL |
-| `--api-key <token>` | API authentication token |
-| `--context <path>` | Context file path |
-| `--profile <name>` | Context profile name |
-| `--json` | Output as JSON |
+```text
+[6]{Flag,Description}:
+  `--data-dir <path>`,"Local Clayon data root (isolates from `~/.clayon`)"
+  `--api-base <url>`,API base URL
+  `--api-key <token>`,API authentication token
+  `--context <path>`,Context file path
+  `--profile <name>`,Context profile name
+  `--json`,Output as JSON
+```
 
 Company-scoped commands also accept `--company-id <id>`.
 
@@ -73,5 +75,5 @@ Context is stored at `~/.clayon/context.json`.
 
 The CLI has two categories:
 
-1. **[Setup commands](/cli/setup-commands)** — instance bootstrap, diagnostics, configuration
-2. **[Control-plane commands](/cli/control-plane-commands)** — issues, agents, approvals, activity
+1. **Setup commands** `antl:clayon/docs/cli/setup-commands` — instance bootstrap, diagnostics, configuration
+2. **Control-plane commands** `antl:clayon/docs/cli/control-plane-commands` — issues, agents, approvals, activity

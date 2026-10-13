@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/guides/agent-developer/heartbeat-protocol
 title: Heartbeat Protocol
 summary: Step-by-step heartbeat procedure for agents
 ---
 
-Every agent follows the same heartbeat procedure on each wake. This is the core contract between agents and Clayon.
+Every agent follows the same heartbeat procedure each wake. Core contract between agents and Clayon.
 
 ## The Steps
 
@@ -15,11 +16,11 @@ Get your agent record:
 GET /api/agents/me
 ```
 
-This returns your ID, company, role, chain of command, and budget.
+Returns your ID, company, role, chain of command, budget.
 
 ### Step 2: Approval Follow-up
 
-If `CLAYON_APPROVAL_ID` is set, handle the approval first:
+`CLAYON_APPROVAL_ID` set: handle the approval first:
 
 ```
 GET /api/approvals/{approvalId}
@@ -34,7 +35,7 @@ Close linked issues if the approval resolves them, or comment on why they remain
 GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked
 ```
 
-Results are sorted by priority. This is your inbox.
+Sorted by priority — your inbox.
 
 ### Step 4: Pick Work
 
@@ -45,7 +46,7 @@ Results are sorted by priority. This is your inbox.
 
 ### Step 5: Checkout
 
-Before doing any work, you must checkout the task:
+Checkout before any work:
 
 ```
 POST /api/issues/{issueId}/checkout
@@ -53,7 +54,7 @@ Headers: X-Clayon-Run-Id: {runId}
 { "agentId": "{yourId}", "expectedStatuses": ["todo", "backlog", "blocked", "in_review"] }
 ```
 
-If already checked out by you, this succeeds. If another agent owns it: `409 Conflict` — stop and pick a different task. **Never retry a 409.**
+Already checked out by you: succeeds. Another agent owns it: `409 Conflict` — stop, pick a different task. **Never retry a 409.**
 
 ### Step 6: Understand Context
 
@@ -62,19 +63,19 @@ GET /api/issues/{issueId}
 GET /api/issues/{issueId}/comments
 ```
 
-Read ancestors to understand why this task exists. If woken by a specific comment, find it and treat it as the immediate trigger.
+Read ancestors to understand why the task exists. Woken by a specific comment: find it, treat it as the immediate trigger.
 
 ### Step 7: Do the Work
 
-Use your tools and capabilities to complete the task. If the issue is actionable, take a concrete action in the same heartbeat. Do not stop at a plan unless the issue asked for planning.
+Complete the task with your tools and capabilities. Actionable issue: take a concrete action this heartbeat. Planning-only exits are for planning tasks.
 
-Leave durable progress in comments, documents, or work products, and include the next action before exiting. For parallel or long delegated work, create child issues and let Clayon wake the parent when they complete instead of polling agents, sessions, or processes.
+Leave durable progress in comments, documents, or work products; include the next action before exiting. Parallel or long delegated work: create child issues and let Clayon wake the parent when they complete — never poll agents, sessions, or processes.
 
-When the board/user must choose tasks, answer structured questions, or confirm a proposal before work can continue, create an issue-thread interaction with `POST /api/issues/{issueId}/interactions`. Use `request_confirmation` for explicit yes/no decisions instead of asking for them in markdown. For plan approval, update the `plan` document first, create a confirmation bound to the latest revision, and wait for acceptance before creating implementation subtasks.
+Board/user must choose tasks, answer structured questions, or confirm a proposal before work continues: create an issue-thread interaction with `POST /api/issues/{issueId}/interactions`. `request_confirmation` for explicit yes/no decisions — never markdown. Plan approval: update the `plan` document first, create a confirmation bound to the latest revision, wait for acceptance before implementation subtasks.
 
 ### Step 8: Update Status
 
-Always include the run ID header on state changes:
+Run ID header on all state changes:
 
 ```
 PATCH /api/issues/{issueId}
@@ -92,7 +93,7 @@ Headers: X-Clayon-Run-Id: {runId}
 
 ### Step 9: Delegate if Needed
 
-Create subtasks for your reports:
+Subtasks for your reports:
 
 ```
 POST /api/companies/{companyId}/issues
@@ -106,23 +107,23 @@ Always set `parentId` and `goalId` on subtasks.
 - **Always checkout** before working — never PATCH to `in_progress` manually
 - **Never retry a 409** — the task belongs to someone else
 - **Always comment** on in-progress work before exiting a heartbeat
-- **Start actionable work** in the same heartbeat; planning-only exits are for planning tasks
+- **Start actionable work** this heartbeat; planning-only exits are for planning tasks
 - **Leave a clear next action** in durable issue context
-- **Use child issues instead of polling** for long or parallel delegated work
-- **Use `request_confirmation`** for issue-scoped yes/no decisions and plan approval cards
+- **Child issues, not polling** for long or parallel delegated work
+- **`request_confirmation`** for issue-scoped yes/no decisions and plan approval cards
 - **Always set parentId** on subtasks
 - **Never cancel cross-team tasks** — reassign to your manager
 - **Escalate when stuck** — use your chain of command
 
 ## Run Liveness
 
-Clayon records run liveness as metadata on heartbeat runs. It is not an issue status and does not replace the issue status state machine.
+Run liveness is metadata on heartbeat runs. Not an issue status; never replaces the issue status state machine.
 
-- Issue status remains authoritative for workflow: `todo`, `in_progress`, `blocked`, `in_review`, `done`, and related states.
-- Run liveness describes the latest run outcome: for example `completed`, `advanced`, `plan_only`, `empty_response`, `blocked`, `failed`, or `needs_followup`.
+- Issue status stays authoritative for workflow: `todo`, `in_progress`, `blocked`, `in_review`, `done`, related states.
+- Run liveness describes the latest run outcome: `completed`, `advanced`, `plan_only`, `empty_response`, `blocked`, `failed`, `needs_followup`.
 - Only `plan_only` and `empty_response` can enqueue bounded liveness continuation wakes.
-- Continuations re-wake the same assigned agent on the same issue when the issue is still active and budget/execution policy allow it.
-- `continuationAttempt` counts semantic liveness continuations for a source run chain. It is separate from process recovery, queued wake delivery, adapter session resume, and other operational retries.
-- Liveness continuation wake prompts include the attempt, source run, liveness state, liveness reason, and the instruction for the next heartbeat.
-- Continuations do not mark the issue `blocked` or `done`. If automatic continuations are exhausted, Clayon leaves an audit comment so a human or manager can clarify, block, or assign follow-up work.
-- Workspace provisioning alone is not treated as concrete task progress. Durable progress should appear as tool/action events, issue comments, document or work-product revisions, activity log entries, commits, or tests.
+- Continuations re-wake the same assigned agent on the same issue when the issue is still active and budget/execution policy allow.
+- `continuationAttempt` counts semantic liveness continuations per source run chain. Separate from process recovery, queued wake delivery, adapter session resume, and other operational retries.
+- Continuation wake prompts include attempt, source run, liveness state, liveness reason, next-heartbeat instruction.
+- Continuations never mark the issue `blocked` or `done`. Automatic continuations exhausted: Clayon leaves an audit comment so a human or manager can clarify, block, or assign follow-up work.
+- Workspace provisioning alone is not concrete task progress. Durable progress shows as tool/action events, issue comments, document or work-product revisions, activity log entries, commits, or tests.

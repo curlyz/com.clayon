@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/agents/packages/teams-catalog/catalog/bundled/product/product-design/agents/ux-designer
 name: UXDesigner
 slug: ux-designer
 title: Principal Product Designer

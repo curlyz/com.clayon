@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/approvals
 title: Approvals
 summary: Approval workflow endpoints
 ---
@@ -13,9 +14,7 @@ GET /api/companies/{companyId}/approvals
 
 Query parameters:
 
-| Param | Description |
-|-------|-------------|
-| `status` | Filter by status (e.g. `pending`) |
+- **`status`** — Filter by status (e.g. `pending`)
 
 ## Get Approval
 

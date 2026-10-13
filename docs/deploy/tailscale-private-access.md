@@ -1,9 +1,10 @@
 ---
+id: antl:clayon/docs/deploy/tailscale-private-access
 title: Tailscale Private Access
 summary: Run Clayon with Tailscale-friendly bind presets and connect from other devices
 ---
 
-Use this when you want to access Clayon over Tailscale (or a private LAN/VPN) instead of only `localhost`.
+Use this to access Clayon over Tailscale (or a private LAN/VPN) instead of only `localhost`.
 
 ## 1. Start Clayon in private authenticated mode
 
@@ -37,11 +38,11 @@ From the machine running Clayon:
 tailscale ip -4
 ```
 
-You can also use your Tailscale MagicDNS hostname (for example `my-macbook.tailnet.ts.net`).
+Your Tailscale MagicDNS hostname also works (for example `my-macbook.tailnet.ts.net`).
 
 ## 3. Open Clayon from another device
 
-Use the Tailscale IP or MagicDNS host with the Clayon port:
+Tailscale IP or MagicDNS host plus the Clayon port:
 
 ```txt
 http://<tailscale-host-or-ip>:3100
@@ -55,7 +56,7 @@ http://my-macbook.tailnet.ts.net:3100
 
 ## 4. Allow custom private hostnames when needed
 
-If you access Clayon with a custom private hostname, add it to the allowlist:
+Custom private hostname: add it to the allowlist:
 
 ```sh
 npx clayon allowed-hostname my-macbook.tailnet.ts.net

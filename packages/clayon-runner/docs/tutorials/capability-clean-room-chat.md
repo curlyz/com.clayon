@@ -1,24 +1,28 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/capability-clean-room-chat
+---
+
 # Capability Tutorial: Chat With Real Codex In A Clean Room
 
-**Time to first success: about 3 minutes**, once the package is installed. You
-open a blank chat, type whatever you like, and watch a real Codex session work a
+**Time to first success: about 3 minutes**, once the package is installed.
+Open a blank chat, type anything, watch a real Codex session work a
 brand-new mock Clayon issue through a real `clayon-runnerd` process. No
-scenario to pick, no recorded transcript, and no real Clayon service anywhere
+scenario to pick, no recorded transcript, no real Clayon service anywhere
 in the picture.
 
-This is the second primary Capability path. The first — the preset scenario
+Second primary Capability path. First — the preset scenario
 explorer — is covered by the
-[issue-thread tutorial](capability-issue-thread.md) and stays available and
-unchanged. Read [the clean-room reference](../capability-clean-room-chat.md) for
+issue-thread tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/capability-issue-thread`, still available and
+unchanged. Read the clean-room reference `antl:clayon/packages/clayon-runner/docs/capability-clean-room-chat` for
 the seed, exposure profile, bounds, and route contract behind what you see here.
 
 ## What you need
 
 - Node.js 20 or newer and pnpm 9 or newer (verified with Node 22.22.2 and pnpm
   9.15.4).
-- A Rust toolchain, because this path builds the real `clayon-runnerd`
-  binary. There is no offline fallback: the clean room is live-only by design.
-- A locally authenticated Codex CLI. The package server owns that
+- Rust toolchain: this path builds the real `clayon-runnerd`
+  binary. No offline fallback: the clean room is live-only by design.
+- Locally authenticated Codex CLI. Package server owns that
   authentication; the browser never receives it.
 
 Install the workspace from the repository root:
@@ -27,8 +31,8 @@ Install the workspace from the repository root:
 NODE_ENV=development pnpm install --filter @clayon/clayon-runner --frozen-lockfile --offline --ignore-scripts
 ```
 
-Setting `NODE_ENV=development` matters even if your shell already has
-`NODE_ENV=production`: pnpm silently skips devDependencies otherwise, and the
+`NODE_ENV=development` matters even if your shell already has
+`NODE_ENV=production`: pnpm silently skips devDependencies otherwise; the
 build tooling lives there.
 
 ## 1. Prove the path without a browser (about 1 minute)
@@ -37,8 +41,8 @@ build tooling lives there.
 pnpm --filter @clayon/clayon-runner smoke:capability:cleanroom -- --json
 ```
 
-This builds the TypeScript output and `clayon-runnerd`, starts the package
-server on loopback, opens a clean room, and drives two real Codex turns through
+Builds the TypeScript output and `clayon-runnerd`, starts the package
+server on loopback, opens a clean room, drives two real Codex turns through
 the same HTTP routes the browser uses. Expected shape:
 
 ```json
@@ -55,7 +59,7 @@ the same HTTP routes the browser uses. Expected shape:
 }
 ```
 
-Every assertion must read `true`. The two issue identifiers differ because
+Every assertion must read `true`. The two issue identifiers differ:
 `New chat` mints a new mock tenant rather than clearing the old one.
 
 ## 2. Open the chat in a browser (about 1 minute)
@@ -64,13 +68,13 @@ Every assertion must read `true`. The two issue identifiers differ because
 pnpm --filter @clayon/clayon-runner console:issue-thread
 ```
 
-Open `http://127.0.0.1:4184/`. The landing surface is the scenario explorer.
+Open `http://127.0.0.1:4184/`. Landing surface is the scenario explorer.
 Above the issue header, a two-item rail offers **Scenario explorer** and
 **New chat · clean room**. Click `New chat`, or go straight to
 `http://127.0.0.1:4184/#/chat`.
 
-The first load takes a few seconds: the server is starting a real runnerd and a
-real Codex app-server for you. When it settles you should see:
+First load takes a few seconds: the server starts a real runnerd and a
+real Codex app-server for you. When it settles:
 
 - three identity chips — `Real Codex`, `Real runnerd`, `Mock Clayon` — plus a
   `Clean room <token>` chip naming the tenant;
@@ -78,8 +82,8 @@ real Codex app-server for you. When it settles you should see:
 - a blank thread with a short explanation of what the surface is;
 - a composer, and an `Evidence` button that is closed.
 
-If Codex or runnerd cannot start, the page says so and offers `Try again`. It
-will not quietly show you a fixture.
+If Codex or runnerd cannot start, the page says so and offers `Try again`. Never
+quietly shows a fixture.
 
 ## 3. Send a real message
 
@@ -89,21 +93,21 @@ Type anything. A useful first prompt:
 Read this issue, then record a one-sentence status on it.
 ```
 
-You should see a user message, a `Real Codex` reply, collapsed tool strips for
+You see a user message, a `Real Codex` reply, collapsed tool strips for
 the semantic calls Codex chose (`get_task_context`, `report_progress`, …), and a
-durable comment card tagged **Recorded to mock thread** — that card is a mock
+durable comment card tagged **Recorded to mock thread** — a mock
 control-plane record, not model prose.
 
-Keep going. The conversation is free-form and multi-turn on one durable session.
+Conversation is free-form and multi-turn on one durable session.
 Ask Codex to write a document, register a deliverable, propose child tasks, or
 ask you a structured question; interaction cards render inline and resume the
 same Codex thread once you answer.
 
 ## 4. Look at the evidence, when you want it
 
-Click `DevTools`. The drawer carries the same eight evidence sections the scenario path
+Click `DevTools`. Drawer carries the same eight evidence sections the scenario path
 uses: tools exposed, calls and typed results, authorization decisions,
-control-plane actions, runner events, state diffs, traceability, and parity.
+control-plane actions, runner events, state diffs, traceability, parity.
 Above those sections, the DevTools inspector provides six tabs:
 
 - **Timeline** selects any retained control-plane revision.
@@ -113,21 +117,21 @@ Above those sections, the DevTools inspector provides six tabs:
 - **Protocol**, **Runtime**, and **Authority** show the surrounding scaffolding
   that explains why each mutation happened.
 
-Use **Pause** to stop following the newest revision, **Export** to download a
-redacted JSON snapshot, or **Fork rN** to replace this chat with a fresh live
+**Pause** stops following the newest revision, **Export** downloads a
+redacted JSON snapshot, **Fork rN** replaces this chat with a fresh live
 branch rooted at the selected mock-company revision.
 
-Drag the bright divider at the drawer's left edge to resize it (up to 960px), or
-focus that divider and use the arrow keys. As soon as you send a message, the
+Drag the bright divider at the drawer's left edge to resize (up to 960px), or
+focus it and use the arrow keys. On send, the
 live activity rail reports the current Codex stage; shell commands, built-in
-Codex tools, and Clayon semantic calls also appear as individual activity
-rows while the turn is still open.
+Codex tools, Clayon semantic calls also appear as individual activity
+rows while the turn is open.
 
-Two things are worth finding on your first pass:
+Two things to find on your first pass:
 
-- **Tools exposed** lists `decide_approval`, `control_workspace_service`, and
+- **Tools exposed** lists `decide_approval`, `control_workspace_service`,
   `generic_api_request` under `Control plane (not exposed to the agent)`. Those
-  grants are withheld on purpose, so a denial stays reachable in a conversation
+  grants are withheld on purpose: a denial stays reachable in a conversation
   nobody scripted.
 - **Control plane** carries a `network-guard-…` row reading
   `Real Clayon API requests: 0. Child CLAYON_* environment keys: none.`
@@ -142,14 +146,14 @@ Close the drawer and the surface is a plain chat again.
 - **New chat** does the same without the dialog.
 - **Refresh** (F5) reconnects to the same chat. It does not become a recording.
 
-After a reset or a new chat, look at the header: the `MCK-` identifier, the run
-id, and the `Clean room` token have all changed. The previous session is gone —
+After a reset or new chat, check the header: the `MCK-` identifier, the run
+id, the `Clean room` token all changed. Previous session is gone —
 its id answers `404` on every route.
 
 ## 6. Confirm the scenario explorer still works
 
 Click `Scenario explorer` in the rail. Every preset deep link still resolves,
-including the deterministic capture routes:
+including deterministic capture routes:
 
 ```
 http://127.0.0.1:4184/#/issue/hb-baseline?shot=denial-optional-tool&capture=1
@@ -157,9 +161,9 @@ http://127.0.0.1:4184/#/issue/hb-baseline?shot=denial-optional-tool&capture=1
 
 ## Where to go next
 
-- [Clean-room chat reference](../capability-clean-room-chat.md) — seed, exposure
+- Clean-room chat reference `antl:clayon/packages/clayon-runner/docs/capability-clean-room-chat` — seed, exposure
   profile, session routes, and bounds.
-- [Execution modes and identity](../capability-execution-modes.md) — why a
+- Execution modes and identity `antl:clayon/packages/clayon-runner/docs/capability-execution-modes` — why a
   `mode=fake` artifact can never satisfy a live criterion.
-- [Verification commands](../capability-verification-commands.md) — the full
+- Verification commands `antl:clayon/packages/clayon-runner/docs/capability-verification-commands` — the full
   command set, including the browser and screenshot gates.

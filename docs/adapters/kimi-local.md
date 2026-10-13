@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/adapters/kimi-local
 title: Kimi Code CLI
 summary: Kimi Code CLI local adapter setup and configuration
 ---
@@ -15,19 +16,20 @@ The `kimi_local` adapter runs the Kimi Code CLI (`kimi`) locally. It has two exe
 
 ## Configuration Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `engine` | string | No | Execution engine: `acp` (default; streaming ACP lane via `kimi acp`), `cli` (headless `kimi -p` lane), or unset/`auto` (ACP; unavailable prerequisites fail the run). |
-| `cwd` | string | Yes | Working directory for the agent process (absolute path; created automatically if missing when permissions allow) |
-| `model` | string | No | Kimi model alias (`provider/model`). Defaults to `kimi-code/kimi-for-coding`. When empty, Kimi uses `default_model` from its own `config.toml`. |
-| `promptTemplate` | string | No | Prompt used for all runs |
-| `instructionsFilePath` | string | No | Markdown instructions file prepended to the prompt. Sibling files in the same directory (`HEARTBEAT.md`, `SOUL.md`, `TOOLS.md`) are made readable via `--add-dir` on local runs. |
-| `effort` | string | No | Thinking effort (`low` \| `medium` \| `high` \| `max`). **CLI lane only**: forwarded as `KIMI_MODEL_THINKING_EFFORT` for effort-capable models (currently `kimi-code/k3`); `medium` maps to `high` since Kimi has no medium tier. Ignored for models without `support_efforts`, and not forwarded on the default ACP engine lane — pin `engine: cli` when effort control matters. |
-| `command` | string | No | CLI command override. Defaults to `kimi`. |
-| `extraArgs` | string[] | No | Additional CLI arguments appended to every run |
-| `env` | object | No | Environment variables (supports secret refs) |
-| `timeoutSec` | number | No | Process timeout (0 = no timeout) |
-| `graceSec` | number | No | Grace period before force-kill |
+```text
+[11]{Field,Type,Required,Description}:
+  `engine`,string,No,"Execution engine: `acp` (default; streaming ACP lane via `kimi acp`), `cli` (headless `kimi -p` lane), or unset/`auto` (ACP; unavailable prerequisites fail the run)."
+  `cwd`,string,Yes,"Working directory for the agent process (absolute path; created automatically if missing when permissions allow)"
+  `model`,string,No,"Kimi model alias (`provider/model`). Defaults to `kimi-code/kimi-for-coding`. When empty, Kimi uses `default_model` from its own `config.toml`."
+  `promptTemplate`,string,No,Prompt used for all runs
+  `instructionsFilePath`,string,No,"Markdown instructions file prepended to the prompt. Sibling files in the same directory (`HEARTBEAT.md`, `SOUL.md`, `TOOLS.md`) are made readable via `--add-dir` on local runs."
+  `effort`,string,No,"Thinking effort (`low` | `medium` | `high` | `max`). CLI lane only: forwarded as `KIMI_MODEL_THINKING_EFFORT` for effort-capable models (currently `kimi-code/k3`); `medium` maps to `high` since Kimi has no medium tier. Ignored for models without `support_efforts`, and not forwarded on the default ACP engine lane — pin `engine: cli` when effort control matters."
+  `command`,string,No,CLI command override. Defaults to `kimi`.
+  `extraArgs`,string[],No,Additional CLI arguments appended to every run
+  `env`,object,No,"Environment variables (supports secret refs)"
+  `timeoutSec`,number,No,"Process timeout (0 = no timeout)"
+  `graceSec`,number,No,Grace period before force-kill
+```
 
 ## Execution Engine
 

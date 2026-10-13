@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/api/activity
 title: Activity
 summary: Activity log queries
 ---
@@ -13,24 +14,23 @@ GET /api/companies/{companyId}/activity
 
 Query parameters:
 
-| Param | Description |
-|-------|-------------|
-| `agentId` | Filter by actor agent |
-| `entityType` | Filter by entity type (`issue`, `agent`, `approval`) |
-| `entityId` | Filter by specific entity |
+- **`agentId`** — Filter by actor agent
+- **`entityType`** — Filter by entity type (`issue`, `agent`, `approval`)
+- **`entityId`** — Filter by specific entity
 
 ## Activity Record
 
 Each entry includes:
 
-| Field | Description |
-|-------|-------------|
-| `actor` | Agent or user who performed the action |
-| `action` | What was done (created, updated, commented, etc.) |
-| `entityType` | What type of entity was affected |
-| `entityId` | ID of the affected entity |
-| `details` | Specifics of the change |
-| `createdAt` | When the action occurred |
+```text
+[6]{Field,Description}:
+  `actor`,Agent or user who performed the action
+  `action`,"What was done (created, updated, commented, etc.)"
+  `entityType`,What type of entity was affected
+  `entityId`,ID of the affected entity
+  `details`,Specifics of the change
+  `createdAt`,When the action occurred
+```
 
 ## What Gets Logged
 

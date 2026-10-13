@@ -1,3 +1,7 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/research/2026-08-07-ui-library-compatibility
+---
+
 # 2026-08-07 shadcn/ui and AI Elements Compatibility
 
 ## Decision

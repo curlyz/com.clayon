@@ -1,16 +1,20 @@
+---
+id: antl:clayon/packages/clayon-runner/docs/tutorials/local-runner
+---
+
 # Local runner: Run the Local Runner and Fake Harness
 
 ## What this phase is
 
-Local runner is a local live-run path. A TypeScript mock core starts a Rust runner.
-The Rust runner starts a scripted fake harness. The processes use JSON lines over
+Local live-run path. TypeScript mock core starts a Rust runner;
+the Rust runner starts a scripted fake harness. Processes use JSON lines over
 stdio.
 
 ## What this phase proves
 
-This phase proves that a native session can run from start to finish without
-Clayon, a network provider, or a real model. It proves cleanup, request
-resolution, interruption, bounded logs, one terminal result, and live/replay
+A native session can run start to finish without
+Clayon, a network provider, or a real model. Proves cleanup, request
+resolution, interruption, bounded logs, one terminal result, live/replay
 parity.
 
 ## Prerequisites
@@ -20,8 +24,8 @@ parity.
 - a stable Rust toolchain with `cargo`
 - a Chromium-compatible browser
 
-Start from a clean repository checkout and run every command from the
-repository root. Install the package dependencies and browser:
+Clean repository checkout; run every command from the
+repository root. Install package dependencies and browser:
 
 ```sh
 pnpm install --filter @clayon/clayon-runner --lockfile=false --ignore-scripts --dev
@@ -34,10 +38,10 @@ On a minimal Linux host, install the browser libraries too:
 pnpm --filter @clayon/clayon-runner exec playwright install-deps chromium
 ```
 
-`playwright install-deps` requires root. On a Debian or Ubuntu host where root
-is unavailable, use the package's rootless verification command instead. It
-downloads the required browser-library packages into a user-owned cache,
-extracts them without installing system packages, and scopes `LD_LIBRARY_PATH`
+`playwright install-deps` requires root. No root on a Debian or Ubuntu host:
+use the package's rootless verification command instead. It
+downloads required browser-library packages into a user-owned cache,
+extracts them without installing system packages, scopes `LD_LIBRARY_PATH`
 to the verification process:
 
 ```sh
@@ -50,8 +54,8 @@ pnpm --filter @clayon/clayon-runner verify:rootless
 pnpm --filter @clayon/clayon-runner verify
 ```
 
-Expected: Rust, TypeScript, protocol, boundary, documentation, and browser
-checks pass. The final Local runner line reports one terminal event and a successful
+Expected: Rust, TypeScript, protocol, boundary, documentation, browser
+checks pass. Final Local runner line reports one terminal event and a successful
 semantic result.
 
 ## 2. Run the happy path in the CLI
@@ -73,7 +77,7 @@ Capture the live trace as a validated replay fixture:
 # Recorded evidence generation is deferred from this release.
 ```
 
-The command writes
+Command writes
 `packages/clayon-runner/.clayon-local/evidence/local-runner-happy-path.json`.
 
 ## 3. Run the scripted control flows
@@ -102,16 +106,16 @@ Start the package-local server:
 pnpm --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
 ```
 
-Open `http://127.0.0.1:4179`, then follow these steps:
+Open `http://127.0.0.1:4179`, then:
 
 1. Keep `Happy path` selected and choose **Start local run**.
 2. Confirm the terminal badge says `succeeded`.
 3. Confirm `Harness process exit` is `0` and `Semantic result` is `done`.
 4. Confirm `Live and replay reducer output` says `Match`.
 5. Select `Permission and input`, start the run, and choose **Allow**.
-6. Enter a trace name and choose **Send input**. Confirm the run completes.
-   Each interactive request remains open for five minutes. If it expires, the
-   page reports that the run finished and asks you to start a new run.
+6. Enter a trace name, choose **Send input**. Confirm the run completes.
+   Each interactive request stays open five minutes. On expiry the
+   page reports the run finished and asks you to start a new run.
 7. Select `Interruption`, start the run, and choose **Interrupt turn** when the
    button becomes active.
 8. Confirm the terminal badge says `cancelled`, the semantic result says
@@ -120,14 +124,14 @@ Open `http://127.0.0.1:4179`, then follow these steps:
 
 Stop Vite with `Ctrl+C`.
 
-The browser regression suite writes its temporary screenshots under the
-ignored `packages/clayon-runner/test-results/` directory. It never rewrites
-the committed protocol fixtures.
+Browser regression suite writes temporary screenshots under the
+ignored `packages/clayon-runner/test-results/` directory. Never rewrites
+committed protocol fixtures.
 
 ## 5. Inspect the fixtures
 
-- [Local-runner fixtures](../../protocol/fixtures/local-runner/)
-- [Local-runner protocol reference](../local-runner.md)
+- Local-runner fixtures `com.clayon/packages/clayon-runner/protocol/fixtures/local-runner/`
+- Local-runner protocol reference `antl:clayon/packages/clayon-runner/docs/local-runner`
 
 ## What this proves
 

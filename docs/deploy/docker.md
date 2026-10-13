@@ -1,4 +1,5 @@
 ---
+id: antl:clayon/docs/deploy/docker
 title: Docker
 summary: Docker Compose quickstart
 ---
@@ -50,7 +51,7 @@ All data is persisted under the bind mount (`./data/docker-clayon`):
 
 ## Local Adapter CLIs in Docker
 
-The Docker image pre-installs these agent CLIs so their `*_local` adapters can run inside the container:
+The image pre-installs these agent CLIs so their `*_local` adapters run inside the container:
 
 - `claude` (Anthropic Claude Code CLI) — `claude_local`
 - `codex` (OpenAI Codex CLI) — `codex_local`
@@ -71,10 +72,10 @@ docker run --name clayon \
   clayon-local
 ```
 
-Each adapter reads its provider's standard credentials — for example `ANTHROPIC_API_KEY` (Claude), `OPENAI_API_KEY` (Codex), and `GEMINI_API_KEY` or `GOOGLE_API_KEY` (Gemini). OpenCode is multi-provider and uses whichever provider key you supply.
+Each adapter reads its provider's standard credentials — `ANTHROPIC_API_KEY` (Claude), `OPENAI_API_KEY` (Codex), `GEMINI_API_KEY` or `GOOGLE_API_KEY` (Gemini). OpenCode is multi-provider and uses whichever provider key you supply.
 
-> **Gemini key restrictions:** Google requires Gemini API keys to be *restricted* to the Gemini API (scoped in the Google Cloud console); unrestricted keys are blocked and `gemini_local` runs will fail with an auth error. Create a restricted key, or authenticate with `gemini auth login` (OAuth) and persist `~/.gemini` via the data volume so the credential survives container restarts.
+> **Gemini key restrictions:** Google requires Gemini API keys *restricted* to the Gemini API (scoped in the Google Cloud console); unrestricted keys are blocked and `gemini_local` runs fail with an auth error. Create a restricted key, or authenticate with `gemini auth login` (OAuth) and persist `~/.gemini` via the data volume so the credential survives container restarts.
 
-The image sets `GEMINI_SANDBOX=false` so the Gemini CLI does not try to launch its own (Docker-in-Docker) sandbox inside the container. The `gemini_local` adapter already passes `--sandbox=none` per run, so this env var only matters if you invoke `gemini` manually inside the container; override it if you have nested-container support and want CLI-level sandboxing.
+The image sets `GEMINI_SANDBOX=false` so the Gemini CLI never launches its own (Docker-in-Docker) sandbox inside the container. The `gemini_local` adapter already passes `--sandbox=none` per run, so this env var matters only when invoking `gemini` manually inside the container; override it if you have nested-container support and want CLI-level sandboxing.
 
-Without API keys, the app runs normally — adapter environment checks will surface missing prerequisites.
+Without API keys, the app runs normally — adapter environment checks surface missing prerequisites.
