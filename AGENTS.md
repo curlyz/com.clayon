@@ -49,7 +49,25 @@ branding, implementation, testing, live proof, and PR submission.
 - `packages/teams-catalog/`: app-shipped teams catalog (`@clayon/teams-catalog`)
 - `cli/`: `clayon` CLI package (published bin, agent-facing commands)
 - `skills/`: Clayon runtime/operational skills (not part of the app catalog)
-- `doc/`: operational and product docs
+- `doc/`: operational and product docs (`doc/logs/` holds dated implementation reports)
+- `docs/`: the published Mintlify docs site (`docs.json`)
+- `tests/`: unit, e2e and runner-e2e suites
+- `evals/`: agent-behaviour eval framework
+- `feature-map/`: user-capability recipes for reproducing and verifying bugs
+- `integrations/`: assistant plugin bundles (Claude, Codex)
+- `docker/`: agent-runtime and onboarding images
+- `skills-releases/`: published Clayon skill releases
+- `tools/`: standalone helper binaries (`agent-shim`)
+- `design/` · `announcements/`: one-off design pages and announcement examples
+- `patches/`: pnpm `patchedDependencies` sources (see the deviation below)
+
+**Structure deviation from the antl brand shape (operator, 2026-10-13: "pls
+clayon app stay with its express app. no convex"):** Clayon is its own
+Express and pnpm product, not an `apps/` + `packages/` brand. It keeps its
+upstream tree, its test suites and its `patches/` folder, which
+`pnpm-workspace.yaml` `patchedDependencies` reads; the antl bans on tests and
+`patches/` apply to the brand workspaces only. Removing a patch breaks
+`pnpm install`.
 
 ## 4. Dev Setup (Auto DB)
 

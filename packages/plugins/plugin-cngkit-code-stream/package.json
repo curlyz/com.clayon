@@ -1,0 +1,48 @@
+{
+  "name": "@clayon/plugin-cngkit-code-stream",
+  "version": "0.1.0",
+  "description": "Live feed of code changes streamed by `cngkit git watch --convex`, read from a Convex deployment",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "clayonPlugin": {
+    "manifest": "./dist/manifest.js",
+    "worker": "./dist/worker.js",
+    "ui": "./dist/ui/"
+  },
+  "keywords": [
+    "clayon",
+    "plugin",
+    "cngkit",
+    "git",
+    "convex"
+  ],
+  "scripts": {
+    "prebuild": "pnpm --filter @clayon/plugin-sdk ensure-build-deps",
+    "build": "tsc && node ./scripts/build-ui.mjs",
+    "clean": "rm -rf dist",
+    "typecheck": "pnpm --filter @clayon/plugin-sdk ensure-build-deps && tsc --noEmit"
+  },
+  "dependencies": {
+    "@clayon/plugin-sdk": "workspace:*",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "esbuild": "^0.28.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "engines": {
+    "node": ">=24.11.0"
+  }
+}
