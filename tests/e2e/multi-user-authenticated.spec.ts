@@ -60,13 +60,11 @@ function createBootstrapInvite() {
     throw new Error(`Authenticated bootstrap helper not found at ${BOOTSTRAP_SCRIPT_PATH}`);
   }
 
-  const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+  const bunCommand = process.platform === "win32" ? "bun.exe" : "bun";
   return execFileSync(
-    pnpmCommand,
+    bunCommand,
     [
-      "--filter",
-      "@clayon/db",
-      "exec",
+      "x",
       "tsx",
       BOOTSTRAP_SCRIPT_PATH,
       "--config",
@@ -343,7 +341,7 @@ test("agent chats keep personal identity and ordinary company visibility", async
     const joined = await sessionJsonRequest(invited.page, `${BASE}/api/invites/${inviteToken}/accept`, { method: "POST", data: { requestType: "human" } });
     expect(joined.ok).toBe(true);
       // Persistent chats are personal identities, not private messaging.
-      const originalFlags = await sessionJsonRequest<Record<string, boolean>>(page, `${BASE}/api/instance/settings/experimental`);
+      const originalFlags = await sessionJsonRequest<{ enableAgentChat: boolean }>(page, `${BASE}/api/instance/settings/experimental`);
       const enable = await sessionJsonRequest(page, `${BASE}/api/instance/settings/experimental`, { method: "PATCH", data: { enableAgentChat: true } });
       expect(enable.ok).toBe(true);
       try {

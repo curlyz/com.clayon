@@ -20,7 +20,7 @@ parity.
 ## Prerequisites
 
 - Node.js 24.11 or newer
-- pnpm 9 or newer
+- Bun 1.4 or newer
 - a stable Rust toolchain with `cargo`
 - a Chromium-compatible browser
 
@@ -28,14 +28,14 @@ Clean repository checkout; run every command from the
 repository root. Install package dependencies and browser:
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --ignore-scripts --dev
-pnpm --filter @clayon/clayon-runner exec playwright install chromium
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
+bun x playwright install chromium
 ```
 
 On a minimal Linux host, install the browser libraries too:
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec playwright install-deps chromium
+bun x playwright install-deps chromium
 ```
 
 `playwright install-deps` requires root. No root on a Debian or Ubuntu host:
@@ -45,13 +45,13 @@ extracts them without installing system packages, scopes `LD_LIBRARY_PATH`
 to the verification process:
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify:rootless
+bun run --filter @clayon/clayon-runner verify:rootless
 ```
 
 ## 1. Run the package verification path
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter @clayon/clayon-runner verify
 ```
 
 Expected: Rust, TypeScript, protocol, boundary, documentation, browser
@@ -61,7 +61,7 @@ semantic result.
 ## 2. Run the happy path in the CLI
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path --quiet
 ```
 
 Expected summary facts:
@@ -71,23 +71,16 @@ Expected summary facts:
 - `semanticResult` is `done`;
 - harness and runner exit codes are `0`.
 
-Capture the live trace as a validated replay fixture:
-
-```sh
-# Recorded evidence generation is deferred from this release.
-```
-
-Command writes
-`packages/clayon-runner/.clayon-local/evidence/local-runner-happy-path.json`.
+Recorded evidence generation is deferred from this release.
 
 ## 3. Run the scripted control flows
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario permission-input --quiet
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario interrupted --quiet
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario error --quiet
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario duplicate-terminal --quiet
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path --duplicate-turn-command --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario permission-input --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario interrupted --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario error --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario duplicate-terminal --quiet
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path --duplicate-turn-command --quiet
 ```
 
 Expected:
@@ -103,7 +96,7 @@ Expected:
 Start the package-local server:
 
 ```sh
-pnpm --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
+bun run --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
 ```
 
 Open `http://127.0.0.1:4179`, then:
@@ -130,7 +123,7 @@ committed protocol fixtures.
 
 ## 5. Inspect the fixtures
 
-- Local-runner fixtures `com.clayon/packages/clayon-runner/protocol/fixtures/local-runner/`
+- Local-runner fixtures `packages/clayon-runner/protocol/fixtures/local-runner/`
 - Local-runner protocol reference `antl:clayon/packages/clayon-runner/docs/local-runner`
 
 ## What this proves

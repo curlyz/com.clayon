@@ -3,6 +3,7 @@ import { createUsageCheckpointLog } from "@clayon/adapter-utils/usage-checkpoint
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 import { inferOpenAiCompatibleBiller, resolveManagedOpenAiBilling, type AdapterExecutionContext, type AdapterExecutionResult } from "@clayon/adapter-utils";
 import { buildCodexAuthInboundProvision } from "./codex-auth-merge-scripts.js";
 import { copyBackCodexAuth } from "./codex-auth-copyback.js";
@@ -139,6 +140,10 @@ function firstNonEmptyLine(text: string): string {
   );
 }
 
+function readErrorMessage(error: unknown): string {
+  return String(error).replace(/^Error:\s*/, "");
+}
+
 // Benign stderr lines that never explain a nonzero exit and must not be
 // surfaced as the run error: Codex always prints the YOLO approvals warning
 // because this adapter passes the approvals-bypass flag itself, and
@@ -203,7 +208,7 @@ function resolveCodexBiller(env: Record<string, string>, billingType: "api" | "s
 
 async function isLikelyClayonRepoRoot(candidate: string): Promise<boolean> {
   const [hasWorkspace, hasPackageJson, hasServerDir, hasAdapterUtilsDir] = await Promise.all([
-    pathExists(path.join(candidate, "pnpm-workspace.yaml")),
+    pathExists(path.join(candidate, "bun.lock")),
     pathExists(path.join(candidate, "package.json")),
     pathExists(path.join(candidate, "server")),
     pathExists(path.join(candidate, "packages", "adapter-utils")),
@@ -260,11 +265,21 @@ async function pruneBrokenUnavailableClayonSkillSymlinks(
       continue;
     }
 
-    await fs.unlink(target).catch(() => {});
-    await onLog(
-      "stdout",
-      `[clayon] Removed stale Codex skill "${entry.name}" from ${skillsHome}\n`,
+    const unlinkError = await fs.unlink(target).then(
+      () => null,
+      (error: unknown) => error,
     );
+    if (unlinkError) {
+      await onLog(
+        "stderr",
+        `[clayon] Failed to remove stale Codex skill "${entry.name}" from ${skillsHome}: ${readErrorMessage(unlinkError)}\n`,
+      );
+    } else {
+      await onLog(
+        "stdout",
+        `[clayon] Removed stale Codex skill "${entry.name}" from ${skillsHome}\n`,
+      );
+    }
   }
 }
 
@@ -557,7 +572,7 @@ export async function ensureCodexSkillsInjected(
     } catch (err) {
       await onLog(
         "stderr",
-        `[clayon] Failed to inject Codex skill "${entry.key}" into ${skillsHome}: ${err instanceof Error ? err.message : String(err)}\n`,
+        `[clayon] Failed to inject Codex skill "${entry.key}" into ${skillsHome}: ${readErrorMessage(err)}\n`,
       );
     }
   }
@@ -610,19 +625,22 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   const workspaceWorktreePath = asString(workspaceContext.worktreePath, "");
   const agentHome = asString(workspaceContext.agentHome, "");
   const workspaceHints = Array.isArray(context.clayonWorkspaces)
-    ? context.clayonWorkspaces.filter(
-        (value): value is Record<string, unknown> => typeof value === "object" && value !== null,
-      )
+    ? context.clayonWorkspaces.flatMap((value) => {
+        const parsed = z.record(z.string(), z.unknown()).safeParse(value);
+        return parsed.success ? [parsed.data] : [];
+      })
     : [];
   const runtimeServiceIntents = Array.isArray(context.clayonRuntimeServiceIntents)
-    ? context.clayonRuntimeServiceIntents.filter(
-        (value): value is Record<string, unknown> => typeof value === "object" && value !== null,
-      )
+    ? context.clayonRuntimeServiceIntents.flatMap((value) => {
+        const parsed = z.record(z.string(), z.unknown()).safeParse(value);
+        return parsed.success ? [parsed.data] : [];
+      })
     : [];
   const runtimeServices = Array.isArray(context.clayonRuntimeServices)
-    ? context.clayonRuntimeServices.filter(
-        (value): value is Record<string, unknown> => typeof value === "object" && value !== null,
-      )
+    ? context.clayonRuntimeServices.flatMap((value) => {
+        const parsed = z.record(z.string(), z.unknown()).safeParse(value);
+        return parsed.success ? [parsed.data] : [];
+      })
     : [];
   const runtimePrimaryUrl = asString(context.clayonRuntimePrimaryUrl, "");
   const executionTarget = readAdapterExecutionTarget({
@@ -638,10 +656,9 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   const cwd = effectiveWorkspaceCwd || configuredCwd || process.cwd();
   const envConfig = parseObject(config.env);
   const executionTargetIsRemote = adapterExecutionTargetIsRemote(executionTarget);
+  const configuredCodexHomeRaw = asString(envConfig.CODEX_HOME, "").trim();
   let configuredCodexHome =
-    typeof envConfig.CODEX_HOME === "string" && envConfig.CODEX_HOME.trim().length > 0
-      ? path.resolve(envConfig.CODEX_HOME.trim())
-      : null;
+    configuredCodexHomeRaw.length > 0 ? path.resolve(configuredCodexHomeRaw) : null;
   const connectorSourceHome = configuredCodexHome;
   const connectorSkillDigest = typeof config.clayonConnectorSkillDigest === "string"
     && /^[a-f0-9]{64}$/.test(config.clayonConnectorSkillDigest) ? config.clayonConnectorSkillDigest : null;
@@ -659,10 +676,9 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   if (!executionTargetIsRemote) {
     await ensureAbsoluteDirectory(cwd, { createIfMissing: true });
   }
+  const configuredOpenAiApiKeyRaw = asString(envConfig.OPENAI_API_KEY, "").trim();
   const configuredOpenAiApiKey =
-    typeof envConfig.OPENAI_API_KEY === "string" && envConfig.OPENAI_API_KEY.trim().length > 0
-      ? envConfig.OPENAI_API_KEY.trim()
-      : null;
+    configuredOpenAiApiKeyRaw.length > 0 ? configuredOpenAiApiKeyRaw : null;
   // A configured CODEX_HOME that lives under the Clayon-managed company tree
   // (the per-agent home set by the server isolation guard) still needs auth
   // seeded — it ships with no credentials and OPENAI_API_KEY="" by default.
@@ -692,9 +708,8 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       // run: log and fall through to seed from the unrefreshed shared credential.
       await onLog(
         "stderr",
-        `[clayon] Codex auth cache: vend skipped after an error; using the shared credential as-is.\n`,
+        `[clayon] Codex auth cache: vend failed: ${readErrorMessage(error)}; using the shared credential as-is.\n`,
       );
-      void error;
     });
   }
   if (configuredCodexHome == null || (connectorSkillDigest && connectorSourceHome == null)) {
@@ -916,7 +931,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
         ? context.approvalStatus.trim()
         : null;
     const linkedIssueIds = Array.isArray(context.issueIds)
-      ? context.issueIds.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      ? context.issueIds.flatMap((value) => {
+          const parsed = z.string().safeParse(value);
+          return parsed.success && parsed.data.trim().length > 0 ? [parsed.data] : [];
+        })
       : [];
     const issueWorkMode = readClayonIssueWorkModeFromContext(context);
     if (wakeTaskId) {
@@ -1099,7 +1117,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
           `The above agent instructions were loaded from ${instructionsFilePath}. ` +
           `Resolve any relative file references from ${instructionsDir}.\n\n`;
       } catch (err) {
-        const reason = err instanceof Error ? err.message : String(err);
+        const reason = readErrorMessage(err);
         await onLog(
           "stdout",
           `[clayon] Warning: could not read agent instructions file "${instructionsFilePath}": ${reason}\n`,
@@ -1310,13 +1328,17 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
                   const stillSent = signalCodexChild(target, "SIGKILL");
                   if (stillSent) monitorTerminationSignal = "SIGKILL";
                 }, CODEX_OUTPUT_INACTIVITY_MONITOR_SIGTERM_GRACE_MS);
-                if (typeof (sigkillTimer as { unref?: () => void }).unref === "function") {
-                  (sigkillTimer as { unref: () => void }).unref();
-                }
+                sigkillTimer.unref();
               },
             });
 
-      const wrappedOnSpawn = async (meta: { pid: number; processGroupId: number | null; startedAt: string }) => {
+      type CodexSpawnMeta = {
+        pid: number;
+        processGroupId: number | null;
+        startedAt: string;
+      };
+
+      const wrappedOnSpawn = async (meta: CodexSpawnMeta) => {
         killTarget = { pid: meta.pid ?? null, processGroupId: meta.processGroupId };
         if (monitor && resolvedMonitorTimeoutMs !== null && !executionTargetIsRemote) {
           processActivityMonitor.current = createCodexProcessActivityMonitor({
@@ -1396,16 +1418,36 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       }
     };
 
+    type CodexAttemptProc = {
+      exitCode: number | null;
+      signal: string | null;
+      timedOut: boolean;
+      stdout: string;
+      stderr: string;
+      errorCode?: string | null;
+    };
+
+    type CodexRunAttempt = {
+      proc: CodexAttemptProc;
+      rawStderr: string;
+      parsed: ReturnType<typeof parseCodexJsonl>;
+      pricingContext?: AdapterExecutionResult["pricingContext"];
+      monitor?:
+        | { fired: false }
+        | { fired: true; terminationSignal: NodeJS.Signals | null; elapsedMsSinceLastEvent: number; timeoutMs: number };
+    };
+
+    type CodexResolvedSessionParams = {
+      sessionId: string;
+      cwd: string;
+      remoteExecution?: Record<string, unknown> | null;
+      workspaceId?: string;
+      repoUrl?: string;
+      repoRef?: string;
+    };
+
     const toResult = (
-      attempt: {
-        proc: { exitCode: number | null; signal: string | null; timedOut: boolean; stdout: string; stderr: string; errorCode?: string | null };
-        rawStderr: string;
-        parsed: ReturnType<typeof parseCodexJsonl>;
-        pricingContext?: AdapterExecutionResult["pricingContext"];
-        monitor?:
-          | { fired: false }
-          | { fired: true; terminationSignal: NodeJS.Signals | null; elapsedMsSinceLastEvent: number; timeoutMs: number };
-      },
+      attempt: CodexRunAttempt,
       clearSessionOnMissingSession = false,
       isRetry = false,
     ): AdapterExecutionResult => {
@@ -1469,8 +1511,8 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       const resolvedSessionId =
         attempt.parsed.sessionId ??
         (canFallbackToRuntimeSession ? (runtimeSessionId ?? runtime.sessionId ?? null) : null);
-      const resolvedSessionParams = resolvedSessionId
-        ? ({
+      const resolvedSessionParams: CodexResolvedSessionParams | null = resolvedSessionId
+        ? {
           sessionId: resolvedSessionId,
           cwd: effectiveExecutionCwd,
           ...(executionTargetIsRemote
@@ -1481,7 +1523,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
           ...(workspaceId ? { workspaceId } : {}),
           ...(workspaceRepoUrl ? { repoUrl: workspaceRepoUrl } : {}),
           ...(workspaceRepoRef ? { repoRef: workspaceRepoRef } : {}),
-        } as Record<string, unknown>)
+        }
         : null;
       const parsedError = typeof attempt.parsed.errorMessage === "string" ? attempt.parsed.errorMessage.trim() : "";
       const stderrLine = firstMeaningfulStderrLine(attempt.proc.stderr);
@@ -1639,7 +1681,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
                 "stderr",
                 `[clayon] Failed to restore workspace changes from ${describeAdapterExecutionTarget(
                   executionTarget,
-                )}: ${error instanceof Error ? error.message : String(error)}\n`,
+                )}: ${readErrorMessage(error)}\n`,
               ),
             ).catch(() => undefined);
             // A provider failure remains the primary outcome. When provider work
@@ -1658,9 +1700,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       await fs.rm(stagedCodexHomeDir, { recursive: true, force: true }).catch(async (error) => {
         await onLog(
           "stderr",
-          `[clayon] Failed to remove staged Codex home "${stagedCodexHomeDir}": ${
-            error instanceof Error ? error.message : String(error)
-          }\n`,
+          `[clayon] Failed to remove staged Codex home "${stagedCodexHomeDir}": ${readErrorMessage(error)}\n`,
         );
       });
     }

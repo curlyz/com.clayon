@@ -73,7 +73,7 @@ production.
 To rebuild and serve:
 
 ```sh
-pnpm --filter @clayon/ui build-storybook
+bun run --filter @clayon/ui build-storybook
 node scripts/serve-storybook-static.mjs --port 6137
 ```
 
@@ -151,11 +151,11 @@ they are not Linux visual-regression baselines.
 Commands:
 
 ```sh
-pnpm --filter @clayon/ui typecheck
-pnpm check:token-gates
-pnpm exec vitest run ui/src/components/SetupWizard.test.tsx ui/src/components/JsonSchemaForm.test.tsx ui/src/features/connections/ConnectionSetupFlow.architecture.test.ts ui/src/pages/apps/app-detail/TestPanel.test.tsx
-pnpm --filter @clayon/ui build-storybook
-pnpm exec playwright test --config tests/storybook-visual/remote-mcp-connections.config.ts
+bun run --filter @clayon/ui typecheck
+bun run check:token-gates
+bun x vitest run ui/src/components/SetupWizard.test.tsx ui/src/components/JsonSchemaForm.test.tsx ui/src/features/connections/ConnectionSetupFlow.architecture.test.ts ui/src/pages/apps/app-detail/TestPanel.test.tsx
+bun run --filter @clayon/ui build-storybook
+bun x playwright test --config tests/storybook-visual/remote-mcp-connections.config.ts
 ```
 
 Observed fixes during review: Save & exit now explicitly avoids submitting its

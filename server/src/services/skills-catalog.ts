@@ -64,7 +64,7 @@ export function isCatalogManifestUnavailableError(error: unknown): error is Cata
 }
 
 function manifestUnavailableMessage(manifestPath: string) {
-  return `Skills catalog manifest not found at ${manifestPath}. Run pnpm --filter @clayon/skills-catalog build:manifest.`;
+  return `Skills catalog manifest not found at ${manifestPath}. Run bun run --filter @clayon/skills-catalog build:manifest.`;
 }
 
 function packageResolutionFailureMessage() {
@@ -215,7 +215,7 @@ async function fetchCatalogSourceFile(
   }
 
   if (source.type !== "github") {
-    throw unprocessable(`Unsupported catalog source type: ${(source as { type: string }).type}`);
+    throw unprocessable(`Unsupported catalog source type: ${source.type}`);
   }
 
   const sourcePath = resolveCatalogSourcePath(source, relativePath);

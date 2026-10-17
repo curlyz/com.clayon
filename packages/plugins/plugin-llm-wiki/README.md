@@ -36,18 +36,18 @@ The accepted policy lives in [doc/plans/2026-05-06-llm-wiki-clayon-asset-securit
 ## Development
 
 ```bash
-pnpm install
-pnpm dev            # watch builds
-pnpm dev:ui         # local dev server with hot-reload events
-pnpm test
+bun install
+bun run dev            # watch builds
+bun run dev:ui         # local dev server with hot-reload events
+bun run test
 ```
 
 From the Clayon repo root:
 
 ```bash
-pnpm --filter @clayon/plugin-llm-wiki typecheck
-pnpm --filter @clayon/plugin-llm-wiki test
-pnpm --filter @clayon/plugin-llm-wiki build
+bun run --filter @clayon/plugin-llm-wiki typecheck
+bun run --filter @clayon/plugin-llm-wiki test
+bun run --filter @clayon/plugin-llm-wiki build
 ```
 
 ## Alpha Verification
@@ -56,9 +56,9 @@ Run these commands from the Clayon repo root before handing off alpha plugin
 changes:
 
 ```bash
-pnpm --filter @clayon/plugin-llm-wiki typecheck
-pnpm --filter @clayon/plugin-llm-wiki test
-pnpm --filter @clayon/plugin-llm-wiki build
+bun run --filter @clayon/plugin-llm-wiki typecheck
+bun run --filter @clayon/plugin-llm-wiki test
+bun run --filter @clayon/plugin-llm-wiki build
 ```
 
 The focused Vitest suite covers:
@@ -87,19 +87,19 @@ Remaining alpha gaps:
 ```bash
 curl -X POST http://127.0.0.1:3100/api/plugins/install \
   -H "Content-Type: application/json" \
-  -d '{"packageName":"/Users/dotta/clayon/.clayon/worktrees/PAP-3179-design-a-llm-wiki-plugin/packages/plugins/plugin-llm-wiki","isLocalPath":true}'
+  -d '{"packageName":"/absolute/path/to/clayon/packages/plugins/plugin-llm-wiki","isLocalPath":true}'
 ```
 
 ## Build Options
 
-- `pnpm build` uses esbuild presets from `@clayon/plugin-sdk/bundlers`.
-- `pnpm build:rollup` uses rollup presets from the same SDK.
+- `bun run build` uses esbuild presets from `@clayon/plugin-sdk/bundlers`.
+- `bun run build:rollup` uses rollup presets from the same SDK.
 
 After changing manifest-loaded assets such as skills, agent instructions, or
 templates, recompile the local plugin before re-enabling it:
 
 ```bash
-pnpm --filter @clayon/plugin-llm-wiki build
+bun run --filter @clayon/plugin-llm-wiki build
 ```
 
 The package-local `dist/` directory is ignored by git, but local Clayon

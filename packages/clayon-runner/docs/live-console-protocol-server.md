@@ -57,7 +57,7 @@ Root and child threads use `thread.id`, `thread.sessionId`, `forkedFromId`, and 
 Start it with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner demo:live-console -- \
+bun run --filter @clayon/clayon-runner demo:live-console -- \
   --host 127.0.0.1 --port 4174
 ```
 
@@ -88,7 +88,7 @@ Residual risk: a loopback service stays reachable by untrusted local processes, 
 Run deterministic conformance first, then the real Codex boundary:
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/drivers/codex/codex-app-server-driver.test.ts \
   src/mock-core/live-console-demo-server.test.ts
 ```

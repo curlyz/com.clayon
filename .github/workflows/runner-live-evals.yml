@@ -52,7 +52,15 @@ jobs:
             echo "RUNNER_E2E_ALLOWED_ACTOR_IDS must be a non-empty JSON array of numeric GitHub user IDs." >&2
             exit 1
           fi
-          triggering_actor_id="$(gh api "users/$TRIGGERING_ACTOR" --jq .id)"
+          # Retry transient transport/server failures, but never proceed without
+          # a successfully resolved identity and the allowlist checks below.
+          for attempt in 1 2 3; do
+            if triggering_actor_id="$(timeout 30s gh api "users/$TRIGGERING_ACTOR" --jq .id)"; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep "$((attempt * 2))"
+          done
           if [ "$triggering_actor_id" != "$ACTOR_ID" ] && [ "$TRIGGERING_ACTOR" = "$ACTOR" ]; then
             echo "GitHub actor identity contexts disagree; refusing the paid run." >&2
             exit 1
@@ -101,6 +109,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REF: ${{ github.ref }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ACTOR: ${{ github.actor }}
           ACTOR_ID: ${{ github.actor_id }}
           TRIGGERING_ACTOR: ${{ github.triggering_actor }}
           ALLOWED_ACTOR_IDS: ${{ vars.RUNNER_E2E_ALLOWED_ACTOR_IDS }}
@@ -108,12 +117,26 @@ jobs:
           set -euo pipefail
           test "$REF" = "refs/heads/$DEFAULT_BRANCH"
           jq -e 'type == "array" and length > 0 and all(.[]; type == "number" and . > 0 and floor == .)' <<< "${ALLOWED_ACTOR_IDS:-}" >/dev/null
-          triggering_actor_id="$(gh api "users/$TRIGGERING_ACTOR" --jq .id)"
+          # Retry transient transport/server failures, but never proceed without
+          # a successfully resolved identity and the allowlist checks below.
+          for attempt in 1 2 3; do
+            if triggering_actor_id="$(timeout 30s gh api "users/$TRIGGERING_ACTOR" --jq .id)"; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep "$((attempt * 2))"
+          done
+          if [ "$triggering_actor_id" != "$ACTOR_ID" ] && [ "$TRIGGERING_ACTOR" = "$ACTOR" ]; then
+            echo "GitHub actor identity contexts disagree; refusing the paid run." >&2
+            exit 1
+          fi
           jq -e --argjson candidate "$triggering_actor_id" 'index($candidate) != null' <<< "$ALLOWED_ACTOR_IDS" >/dev/null
           jq -e --argjson candidate "$ACTOR_ID" 'index($candidate) != null' <<< "$ALLOWED_ACTOR_IDS" >/dev/null
 
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Generate private eval-repository token
         id: evals_token
@@ -135,10 +158,10 @@ jobs:
           token: ${{ steps.evals_token.outputs.value }}
           persist-credentials: false
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - name: Setup bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -146,7 +169,7 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Restore compatible weekly baseline
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -157,7 +180,7 @@ jobs:
             runner-live-eval-history-${{ github.ref_name }}-
 
       - name: Build provider-neutral eval kernel
-        run: pnpm --filter @clayon/clayon-eval-kernel build
+        run: bun run --filter @clayon/clayon-eval-kernel build
 
       - name: Run trend-only live matrix
         env:
@@ -172,7 +195,7 @@ jobs:
           CLAYON_EVAL_CASE: ${{ inputs.case }}
           CLAYON_EVAL_LIMIT: ${{ inputs.limit }}
           CLAYON_EVALBOOK_PROGRAM: ${{ github.workspace }}/.clayon-evals/evals/clayon-runner/tools/eval_program.py
-        run: pnpm --filter @clayon/clayon-runner report:runner-live-evals
+        run: bun run --filter @clayon/clayon-runner report:runner-live-evals
 
       - name: Publish job summary
         if: always()

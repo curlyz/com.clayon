@@ -48,10 +48,10 @@ controller is interrupted during a subsequent revision with another queued
 requirement.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite everyday-workflows
-pnpm test:e2e:runner -- --suite everyday-workflows --environment local --max-parallel 2
-pnpm test:e2e:runner -- --id everyday-workflows.runner-codex-mini.local.build-revise
-pnpm test:e2e:runner -- --suite everyday-workflows --environment daytona --max-parallel 2
+bun run test:e2e:runner -- --list --suite everyday-workflows
+bun run test:e2e:runner -- --suite everyday-workflows --environment local --max-parallel 2
+bun run test:e2e:runner -- --id everyday-workflows.runner-codex-mini.local.build-revise
+bun run test:e2e:runner -- --suite everyday-workflows --environment daytona --max-parallel 2
 ```
 
 Before project stories or the Python calibration tests, start Docker on the
@@ -76,8 +76,8 @@ production connection, transport, tool approval, and document delivery paths.
 ## Deterministic checks and calibration
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
 python3 -m unittest discover -s tests/runner-e2e -p test_everyday_artifact.py
 ```
 
@@ -194,8 +194,9 @@ failure. Do not introduce a new paid case just to replace a retired row.
 ## Skill creation (16 September)
 
 `create-skill-studio` adds five cells: three local profiles and the two core
-profiles on Daytona. The current catalog has **35 cells: 27 local and eight
-remote**. The test opens the created skill from its task-feed card, checks the
+profiles on Daytona. That expansion brought the catalog to **35 cells: 27 local
+and eight remote**; it later grew to the current 52 cells. The test opens the
+created skill from its task-feed card, checks the
 canonical skill identity in Studio, saves an edit, and returns to the same skill
 in the task sidebar. A model's authored document heading is not used as the
 identity check.
@@ -203,8 +204,9 @@ identity check.
 ## External-provider fallback
 
 Three explicit local cases cover aggregator routing with the normal production
-agent guidance. They add nine local cells. The AgentMail setup case adds three
-local cells; the suite now has 50 cells total.
+agent guidance. They added nine local cells. The AgentMail setup case added
+three local cells; the suite had 50 cells total at that point and has 52 cells
+today.
 
 The AgentMail case uses real model discovery and production interaction/UI paths,
 but declines before sending credentials to AgentMail. Its independent grader is
@@ -214,7 +216,7 @@ defaults, assignment checks, and completion using a fixture provider. Neither
 test qualifies live AgentMail delivery. Run a bounded local model cell with:
 
 ```sh
-pnpm test:e2e:runner -- --id everyday-workflows.runner-codex-mini.local.agentmail-setup --max-automatic-retries 0
+bun run test:e2e:runner -- --id everyday-workflows.runner-codex-mini.local.agentmail-setup --max-automatic-retries 0
 ```
 
 - `provider-native`: Jira is supported natively and by aggregators. Require the

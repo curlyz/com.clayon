@@ -3,7 +3,7 @@
 Run the repeatable baseline from the repository root:
 
 ```sh
-pnpm exec playwright test --config tests/perf/issue-detail/playwright.config.ts
+bun x playwright test --config tests/perf/issue-detail/playwright.config.ts
 ```
 
 The rig starts an isolated seeded Clayon instance, runs five samples for each scenario/profile, and writes median-ready raw data plus a Markdown table to `test-results/issue-detail-perf/`.
@@ -21,7 +21,7 @@ Profiles:
 Override the sample count (minimum five) or port when needed:
 
 ```sh
-CLAYON_ISSUE_PERF_RUNS=7 CLAYON_ISSUE_PERF_PORT=3210 pnpm exec playwright test --config tests/perf/issue-detail/playwright.config.ts
+CLAYON_ISSUE_PERF_RUNS=7 CLAYON_ISSUE_PERF_PORT=3210 bun x playwright test --config tests/perf/issue-detail/playwright.config.ts
 ```
 
 Outputs include `baseline.md`, `baseline.json`, and a Chrome trace for the first run of each scenario/profile. Open `*.trace.json` in Chrome DevTools Performance to inspect the `issue-detail:*` user-timing marks.
@@ -43,8 +43,8 @@ offset; total scroll offset legitimately changes when history is prepended.
 To run against an existing **disposable local test-drive instance**:
 
 ```sh
-CLAYON_ISSUE_PERF_BASE_URL=http://127.0.0.1:3102 \
-  pnpm exec playwright test --config tests/perf/issue-detail/playwright.config.ts layout-stability.spec.ts
+CLAYON_ISSUE_PERF_BASE_URL=http://127.0.0.1:3100 \
+  bun x playwright test --config tests/perf/issue-detail/playwright.config.ts layout-stability.spec.ts
 ```
 
 The suite creates its own company and fixtures. The URL override accepts only
@@ -60,7 +60,7 @@ a small `sum.mjs` fixture. The script sends a paced job, scrolls up, disconnects
 and reconnects, steers a follow-up, and records through completion:
 
 ```sh
-CLAYON_LAYOUT_LIVE_URL=http://127.0.0.1:3102/LAY/issues/LAY-8 \
+CLAYON_LAYOUT_LIVE_URL=http://127.0.0.1:3100/LAY/issues/LAY-8 \
   node tests/perf/issue-detail/live-feed.walkthrough.mjs
 ```
 

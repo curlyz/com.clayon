@@ -6,12 +6,12 @@ set -euo pipefail
 #
 # Usage:
 #   ./scripts/backup-db.sh
-#   pnpm db:backup
+#   bun run db:backup
 #
-# The embedded postgres must be running (start with: pnpm dev)
+# The embedded postgres must be running (start with: bun run dev)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$PROJECT_ROOT"
-exec pnpm clayon db:backup "$@"
+exec bun run clayon db:backup "$@"

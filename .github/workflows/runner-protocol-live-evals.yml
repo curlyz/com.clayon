@@ -167,7 +167,7 @@ jobs:
           fi
 
   target_lock:
-    name: Resolve target pnpm lockfile
+    name: Resolve target bun lockfile
     needs: authorize
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -186,34 +186,30 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - name: Resolve target lockfile without lifecycle scripts
         id: lock
         run: |
           set -euo pipefail
-          pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only
-          test -s pnpm-lock.yaml
-          unexpected="$(git status --short | awk '$2 != "pnpm-lock.yaml" { print }')"
+          bun install --ignore-scripts --lockfile-only
+          test -s bun.lock
+          unexpected="$(git status --short | awk '$2 != "bun.lock" { print }')"
           if [ -n "$unexpected" ]; then
-            echo "Lockfile resolution changed files other than pnpm-lock.yaml:" >&2
+            echo "Lockfile resolution changed files other than bun.lock:" >&2
             echo "$unexpected" >&2
             exit 1
           fi
-          echo "sha256=$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum bun.lock | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
 
       - name: Upload resolved target lockfile
         id: upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: runner-protocol-target-pnpm-lock-${{ github.run_id }}-${{ github.run_attempt }}
-          path: pnpm-lock.yaml
+          name: runner-protocol-target-bun-lock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: bun.lock
           retention-days: 30
           if-no-files-found: error
 
@@ -316,13 +312,9 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - name: Download resolved target lockfile
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -337,19 +329,14 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-protocol-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-protocol-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Materialize the pinned OpenCode executable before packaging
         run: node packages/clayon-runner/scripts/materialize-opencode-binary.mjs
@@ -363,9 +350,9 @@ jobs:
       - name: Build runner CLI, daemon, and canonical attempt viewer
         run: |
           set -euo pipefail
-          pnpm --filter @clayon/clayon-runner build:typescript
-          pnpm --filter @clayon/clayon-runner build:runner-binaries
-          pnpm --filter @clayon/clayon-runner build:issue-thread
+          bun run --filter @clayon/clayon-runner build:typescript
+          bun run --filter @clayon/clayon-runner build:runner-binaries
+          bun run --filter @clayon/clayon-runner build:issue-thread
           # Older target refs must fail before paid cells, not publish an empty viewer.
           grep -q 'clayon-eval-report' packages/clayon-runner/dist-issue-thread/assets/*.js
           grep -q 'evalbook-site' packages/clayon-runner/dist-issue-thread/assets/*.css
@@ -374,17 +361,17 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/runner-protocol-build/package" "$RUNNER_TEMP/runner-protocol-build/portable"
-          pnpm --dir packages/clayon-runner pack \
-            --pack-destination "$RUNNER_TEMP/runner-protocol-build/package"
+          (cd packages/clayon-runner && bun pm pack \
+            --destination "$RUNNER_TEMP/runner-protocol-build/package")
           package="$(find "$RUNNER_TEMP/runner-protocol-build/package" -maxdepth 1 -type f -name '*.tgz' -print -quit)"
           test -f "$package"
-          pnpm --filter @clayon/clayon-runner deploy --prod \
+          node packages/clayon-runner/scripts/deploy-runner-production-graph.mjs \
             "$RUNNER_TEMP/runner-protocol-build/portable"
           cp "$package" "$RUNNER_TEMP/runner-protocol-build/clayon-runner.tgz"
           cp packages/clayon-runner/runner/target/debug/clayon-runnerd "$RUNNER_TEMP/runner-protocol-build/clayon-runnerd"
           cp -R packages/clayon-runner/dist-issue-thread "$RUNNER_TEMP/runner-protocol-build/dist-issue-thread"
           test -f "$RUNNER_TEMP/runner-protocol-build/portable/dist/cli/eval-session.js"
-          test -d "$RUNNER_TEMP/runner-protocol-build/portable/node_modules/.pnpm"
+          test -d "$RUNNER_TEMP/runner-protocol-build/portable/node_modules/@openai/codex"
           test -x "$RUNNER_TEMP/runner-protocol-build/clayon-runnerd"
           tar --create --gzip --file runner-protocol-build.tar.gz -C "$RUNNER_TEMP/runner-protocol-build" .
           sha256sum runner-protocol-build.tar.gz > runner-protocol-build.tar.gz.sha256
@@ -509,7 +496,7 @@ jobs:
           const triple = arch === "x64" ? "x86_64-unknown-linux-musl" : "aarch64-unknown-linux-musl";
           const suffix = `/vendor/${triple}/bin/codex`;
           const binary = realpathSync(path.join(path.dirname(platformPackage), suffix));
-          if (!binary.startsWith(root + "/node_modules/.pnpm/") || !binary.endsWith(suffix) || !/^[/A-Za-z0-9_.@+\-]+$/.test(binary)) {
+          if (!binary.startsWith(root + "/node_modules/@openai/") || !binary.endsWith(suffix) || !/^[/A-Za-z0-9_.@+\-]+$/.test(binary)) {
             throw new Error("Codex executable is outside the resolved dependency tree");
           }
           const name = `clayon-e2e-codex-${createHash("sha256").update(binary).digest("hex").slice(0,16)}`;
@@ -692,24 +679,15 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - name: Resolve trusted report lockfile without lifecycle scripts
         run: |
           set -euo pipefail
-          pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only
-          test -s pnpm-lock.yaml
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
+          bun install --ignore-scripts --lockfile-only
+          test -s bun.lock
 
       - name: Download immutable campaign catalog
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -791,15 +769,10 @@ jobs:
             --coverage-matrix .clayon-evals/evals/clayon-runner/coverage-matrix.json
           cp runner-protocol-merged/campaign.json runner-protocol-merged/public-report/campaign.json
 
-      - name: Set up report browser verification
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        with:
-          version: 9.15.4
-
       - name: Verify the actual chat viewer before publication
         run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --filter @clayon/clayon-runner exec playwright install --with-deps chromium
+          bun install --frozen-lockfile
+          bun run playwright install --with-deps chromium
           node packages/clayon-runner/scripts/verify-runner-evalbook-viewer.mjs --report-root runner-protocol-merged/public-report --screenshots runner-protocol-merged/viewer-proof
           node packages/clayon-runner/scripts/verify-runner-evalbook-viewer.mjs --report-root runner-protocol-merged/report
 

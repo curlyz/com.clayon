@@ -66,7 +66,7 @@ service is required before that external route asks for provider consent.
 ## Regression coverage
 
 ```sh
-pnpm exec vitest run packages/shared/src/connection-search.test.ts packages/shared/src/connection-routing.test.ts packages/shared/src/validators/connection-intent.test.ts server/src/__tests__/connection-aggregator-fallback.test.ts server/src/__tests__/connection-intents-service.test.ts
+bun x vitest run packages/shared/src/connection-search.test.ts packages/shared/src/connection-routing.test.ts packages/shared/src/validators/connection-intent.test.ts server/src/__tests__/connection-aggregator-fallback.test.ts server/src/__tests__/connection-intents-service.test.ts
 ```
 
 The database suite covers the original AgentMail sentence, split names, typos,

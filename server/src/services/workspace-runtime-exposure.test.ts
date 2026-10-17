@@ -60,7 +60,7 @@ function serviceCommand() {
  * They must be real files named `dev-runner*.mjs` for two reasons: the command
  * has to look like a dev-runner invocation for the rewrite to apply at all, and
  * `node <file> --bind lan` hands the flags to the script, which is exactly how a
- * real `pnpm dev --bind lan` reaches `scripts/dev-runner.ts`.
+ * real `bun run dev --bind lan` reaches `scripts/dev-runner.ts`.
  */
 let guestDir: string;
 
@@ -317,11 +317,19 @@ const LEGACY_HTTP_EXPOSE = {
   urlTemplate: "http://clayon-dev:{{port}}",
 } as const;
 
+type StartInputReadiness = {
+  type: "http";
+  urlTemplate?: string;
+  timeoutSec: number;
+  intervalMs?: number;
+};
+
 function startInput(options?: {
   serviceName?: string;
   expose?: Record<string, unknown> | null;
   port?: Record<string, unknown> | number;
   command?: string;
+  readiness?: StartInputReadiness;
 }) {
   const expose = options?.expose === undefined ? DECLARED_EXPOSE : options.expose;
   return {
@@ -353,7 +361,7 @@ function startInput(options?: {
           port: options?.port ?? { type: "auto", envKey: "PORT" },
           // These lifecycle tests spawn real servers; cold CI startup can take
           // five seconds before the first listener is ready.
-          readiness: { type: "http", urlTemplate: "http://127.0.0.1:{{port}}", timeoutSec: 10 },
+          readiness: options?.readiness ?? { type: "http", urlTemplate: "http://127.0.0.1:{{port}}", timeoutSec: 10 },
           ...(expose ? { expose } : {}),
         }],
       },
@@ -731,15 +739,14 @@ describe("readiness probes loopback for an exposed runtime (PAP-17256)", () => {
     const { broker, calls } = createBroker();
     installDeps({ broker });
 
+    // Drop the explicit loopback readiness URL so the fallback path is exercised.
     const input = startInput({
       serviceName: "clayon-dev",
       command: `${guestCommand("dev-runner.mjs")} --bind lan`,
       expose: LEGACY_HTTP_EXPOSE,
       port: { type: "auto", envKey: "PORT" },
+      readiness: { type: "http", timeoutSec: 10, intervalMs: 100 },
     });
-    // Drop the explicit loopback readiness URL so the fallback path is exercised.
-    const service = input.config.workspaceRuntime.services[0] as Record<string, unknown>;
-    service.readiness = { type: "http", timeoutSec: 10, intervalMs: 100 };
 
     const [runtime] = await startRuntimeServicesForWorkspaceControl(input);
 

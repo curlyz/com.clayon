@@ -190,19 +190,19 @@ not enough to restore named secret versions.
 Onboarding writes default secrets config:
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 ```
 
 Update secrets settings:
 
 ```sh
-pnpm clayon configure --section secrets
+bun run clayon configure --section secrets
 ```
 
 Validate secrets config:
 
 ```sh
-pnpm clayon doctor
+bun run clayon doctor
 npx clayon secrets doctor --company-id <company-id>
 ```
 
@@ -469,8 +469,8 @@ npx clayon secrets migrate-inline-env --company-id <company-id>
 npx clayon secrets migrate-inline-env --company-id <company-id> --apply
 
 # low-level script for direct database maintenance
-pnpm secrets:migrate-inline-env         # dry run
-pnpm secrets:migrate-inline-env --apply # apply migration
+bun run secrets:migrate-inline-env         # dry run
+bun run secrets:migrate-inline-env --apply # apply migration
 ```
 
 Use the CLI command for normal operations: it goes through the Clayon API,

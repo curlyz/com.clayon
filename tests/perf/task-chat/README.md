@@ -3,7 +3,7 @@
 Run from the repository root:
 
 ```sh
-pnpm exec playwright test --config tests/perf/task-chat/playwright.config.ts
+bun x playwright test --config tests/perf/task-chat/playwright.config.ts
 ```
 
 The test starts an isolated Vite server on port 4197. It needs no database,
@@ -25,7 +25,7 @@ For manual inspection, start the same server and open
 `http://127.0.0.1:4197/tests/task-chat-perf.html`:
 
 ```sh
-pnpm --filter @clayon/ui exec vite --host 127.0.0.1 --port 4197 --strictPort
+bun run --cwd ui vite --host 127.0.0.1 --port 4197 --strictPort
 ```
 
 This HTML entry is not part of the shipped application build.

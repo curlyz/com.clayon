@@ -4,9 +4,9 @@ Least-privilege host broker that manages **only** Clayon-owned, tailnet-only,
 same-number HTTPS-to-loopback listeners for managed branch runtimes.
 
 It exists so the Clayon app/agent account never gains Tailscale operator
-authority (see [PAP-16989](../../)) while still getting automatic trusted HTTPS
-previews per branch runtime. Design: [PAP-17049](../../) plan; security contract:
-[PAP-17050](../../) threat-model verdict.
+authority (see PAP-16989) while still getting automatic trusted HTTPS
+previews per branch runtime. Design: PAP-17049 plan; security contract:
+PAP-17050 threat-model verdict.
 
 Runtime services opt in explicitly; existing services and the primary `:443`
 route are unchanged:
@@ -104,7 +104,7 @@ Tailscale-operator service account distinct from the Clayon app account.
    needed).
 
    ```sh
-   pnpm --filter @clayon/tailscale-https-broker build
+   bun run --filter @clayon/tailscale-https-broker build
    sudo install -d -m 0755 /opt/clayon/packages/tailscale-https-broker
    sudo cp -r packages/tailscale-https-broker/dist \
      /opt/clayon/packages/tailscale-https-broker/
@@ -243,7 +243,7 @@ redacted.
 ## Tests
 
 ```sh
-pnpm --filter @clayon/tailscale-https-broker test        # 72 tests
-pnpm --filter @clayon/tailscale-https-broker typecheck
-pnpm --filter @clayon/tailscale-https-broker build
+bun run --filter @clayon/tailscale-https-broker test        # 72 tests
+bun run --filter @clayon/tailscale-https-broker typecheck
+bun run --filter @clayon/tailscale-https-broker build
 ```

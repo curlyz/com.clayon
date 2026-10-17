@@ -1,0 +1,44 @@
+type: object
+required:
+  - id
+  - companyId
+  - name
+  - role
+  - title
+  - status
+  - lifecycleState
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: The agent id.
+  companyId:
+    type: string
+    format: uuid
+    description: The owning company id.
+  name:
+    type: string
+    description: Display name of the agent.
+  role:
+    type: string
+    description: Functional role, default general.
+  title:
+    type:
+      - string
+      - 'null'
+    description: Optional human job title.
+  status:
+    type: string
+    description: Runtime status, default idle.
+  lifecycleState:
+    type: string
+    description: Lifecycle state, default ready.
+  createdAt:
+    type: string
+    description: ISO timestamp of creation.
+  updatedAt:
+    type: string
+    description: ISO timestamp of the last update.
+additionalProperties: false

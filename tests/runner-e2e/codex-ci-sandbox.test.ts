@@ -83,7 +83,7 @@ describe("Codex CI sandbox trust boundary", () => {
     expect(paid).toBeGreaterThan(setup);
     const step = workflow.slice(setup, paid);
     expect(step).toContain("matrix.profileId == 'runner-codex-mini'");
-    expect(step).toContain('binary.startsWith(root + "/node_modules/.pnpm/")');
+    expect(step).toContain('binary.startsWith(root + "/node_modules/@openai/")');
     expect(step).toContain("binary.endsWith(suffix)");
     expect(step).toContain('"-n", "apparmor_parser", "-r", profilePath');
     expect(step).toContain('flag:"wx"');

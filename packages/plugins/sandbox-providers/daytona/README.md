@@ -2,7 +2,7 @@
 
 Published Daytona sandbox provider plugin for Clayon.
 
-This package lives in the Clayon monorepo, but it is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn for Daytona's SDK dependencies.
+This package lives in the Clayon monorepo, but it is intentionally excluded from the root Bun workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn for Daytona's SDK dependencies.
 
 ## Install
 
@@ -38,11 +38,13 @@ Notes:
 
 ```bash
 cd packages/plugins/sandbox-providers/daytona
-pnpm install --ignore-workspace --no-lockfile
-pnpm build
-pnpm test
-pnpm typecheck
+bun install --frozen-lockfile
+bun run build
+bun run test
+bun run typecheck
 ```
+
+Daytona is the only sandbox provider with a committed `bun.lock` and `workspaces: ["."]`: the frozen install reproduces the published standalone package's dependency graph, which `scripts/build-standalone-public-packages.mjs` relies on when it finds a lockfile in the package directory.
 
 These commands assume the repo root has already been installed once so the local `@clayon/plugin-sdk` workspace package is available to the compiler during development.
 

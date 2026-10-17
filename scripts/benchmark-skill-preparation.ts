@@ -1,12 +1,15 @@
-/** Isolated, repeatable preparation benchmark. Run with pnpm --filter @clayon/server exec tsx ../scripts/benchmark-skill-preparation.ts. */
+/** Isolated, repeatable preparation benchmark. Run with bun run --cwd server tsx ../scripts/benchmark-skill-preparation.ts. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import type { BufferEncodingOption, ObjectEncodingOptions } from "node:fs";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { companies, companySkills, createDb, startEmbeddedPostgresTestDatabase } from "../packages/db/src/index.js";
+import type { NonSharedBuffer } from "node:buffer";
+import type { PgSelectBuilder, SelectedFields } from "../packages/db/node_modules/drizzle-orm/pg-core/index.js";
+import { companies, companySkills, createDb, startEmbeddedPostgresTestDatabase} from "../packages/db/src/index.js";
 import { removeRuntimeSkillCache } from "../server/src/services/runtime-skill-cache.js";
 import { companySkillService } from "../server/src/services/company-skills.js";
 
@@ -23,16 +26,24 @@ let inventoryRefreshes = 0;
 let rebuilds = 0;
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async (input) => { upstreamFetches++; return new Response(`# Fixture\n${String(input)}\n`); };
-const originalSelect = db.select.bind(db);
-db.select = ((fields?: Record<string, unknown>) => {
-  if (fields && Object.keys(fields).length === 1 && fields.id === companies.id) inventoryRefreshes++;
-  return originalSelect(fields as never);
-}) as typeof db.select;
+type CountedSelectFn = (fields?: SelectedFields) => PgSelectBuilder<SelectedFields>;
+const selectMethod: CountedSelectFn = db.select;
+const originalSelect = selectMethod.bind(db);
+
+function countedSelect(): PgSelectBuilder<undefined>;
+function countedSelect<TSelection extends SelectedFields>(fields: TSelection): PgSelectBuilder<TSelection>;
+function countedSelect(fields?: SelectedFields): PgSelectBuilder<SelectedFields> | PgSelectBuilder<undefined> {
+  if (fields !== undefined && Object.keys(fields).length === 1 && fields.id === companies.id) inventoryRefreshes++;
+  return originalSelect(fields);
+}
+db.select = countedSelect;
+type MkOptions = ObjectEncodingOptions | BufferEncoding | BufferEncodingOption | null;
 const originalMkdtemp = fs.mkdtemp;
-fs.mkdtemp = ((prefix: string, ...args: unknown[]) => {
+const countedMkdtemp: typeof fs.mkdtemp = (prefix, options) => {
   if (String(prefix).includes("__runtime_cache_v1__") && String(prefix).includes(".staging-")) rebuilds++;
-  return Reflect.apply(originalMkdtemp, fs, [prefix, ...args]);
-}) as typeof fs.mkdtemp;
+  return Reflect.apply(originalMkdtemp, fs, [prefix, ...(options === undefined ? [] : [options])]);
+};
+fs.mkdtemp = countedMkdtemp;
 
 async function measure(label: string) {
   upstreamFetches = inventoryRefreshes = rebuilds = 0;

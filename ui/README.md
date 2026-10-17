@@ -11,8 +11,8 @@ The npm package contains the production build under `dist/`. It does not ship th
 Storybook config, stories, and fixtures live under `ui/storybook/`.
 
 ```sh
-pnpm --filter @clayon/ui storybook
-pnpm --filter @clayon/ui build-storybook
+bun run --filter @clayon/ui storybook
+bun run --filter @clayon/ui build-storybook
 ```
 
 ## Typical use
@@ -27,4 +27,4 @@ extension identity, while Lezer parsers and syntax highlighters require shared
 `NodeProp` IDs. Multiple Lezer copies can crash code-block highlighting with
 `tags is not iterable`. `src/lib/codemirror-single-instance.test.ts` checks the
 installed dependency graph and highlights sample code through the editor's real
-language dependencies. GitHub Actions owns regeneration of `pnpm-lock.yaml`.
+language dependencies. GitHub Actions owns regeneration of `bun.lock`.

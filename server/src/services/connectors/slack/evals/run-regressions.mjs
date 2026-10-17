@@ -33,7 +33,7 @@ if (args.length === 1 && args[0] === '--list') {
   } else {
     const files = [...new Set(selected.flatMap(entry => entry.regressionFiles))];
     console.log(`Slack deterministic checks for: ${selected.map(entry => entry.id).join(', ')}. This does not grade the manual model probes.`);
-    const child = spawn(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['exec', 'vitest', 'run', ...files], { cwd: root, stdio: 'inherit' });
+    const child = spawn(process.platform === 'win32' ? 'bun.exe' : 'bun', ['x', 'vitest', 'run', ...files], { cwd: root, stdio: 'inherit' });
     child.on('error', error => { console.error(error.message); process.exitCode = 1; });
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => child.kill(signal));
     child.on('exit', (code, signal) => { process.exitCode = code ?? (signal === 'SIGINT' ? 130 : 1); });

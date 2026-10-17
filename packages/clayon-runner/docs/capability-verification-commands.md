@@ -6,7 +6,7 @@ id: antl:clayon/packages/clayon-runner/docs/capability-verification-commands
 
 Every command here runs from the repository root, is offline and deterministic,
 starts no Clayon service, and holds no credential. All are prefixed
-`pnpm --filter @clayon/clayon-runner`.
+`bun run --filter @clayon/clayon-runner`.
 
 ```text
 [10]{Surface,Command,Expected result}:

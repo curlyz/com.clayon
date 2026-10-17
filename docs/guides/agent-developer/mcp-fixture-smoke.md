@@ -10,7 +10,7 @@ logic tested without real customer credentials or live integrations.
 Run the local smoke:
 
 ```sh
-pnpm smoke:mcp-fixtures
+bun run smoke:mcp-fixtures
 ```
 
 The runner starts one local stdio fixture and one remote-style HTTP fixture,
@@ -28,19 +28,19 @@ checks the local Clayon `/api/health` endpoint when available, then exercises:
 Use a specific dev instance URL:
 
 ```sh
-pnpm smoke:mcp-fixtures -- --clayon-url http://127.0.0.1:3100
+bun run smoke:mcp-fixtures -- --clayon-url http://127.0.0.1:3100
 ```
 
 Require the dev instance health check:
 
 ```sh
-pnpm smoke:mcp-fixtures -- --require-clayon
+bun run smoke:mcp-fixtures -- --require-clayon
 ```
 
 JSON output for CI or release-smoke ingestion:
 
 ```sh
-pnpm smoke:mcp-fixtures -- --json
+bun run smoke:mcp-fixtures -- --json
 ```
 
 ## Fixture Catalog
@@ -79,7 +79,7 @@ The Phase 5a MCP production harness scripts the accepted user-story catalog
 from PAP-12338 section 5:
 
 ```sh
-pnpm test:e2e:mcp-user-stories
+bun run test:e2e:mcp-user-stories
 ```
 
 By default: only the currently runnable stories (US-1..US-5 and
@@ -91,7 +91,7 @@ evidence screenshots under `test-results/mcp-user-stories/`.
 Full catalog including dependency-gated placeholders for US-6 and US-7:
 
 ```sh
-pnpm test:e2e:mcp-user-stories -- --include-gated
+bun run test:e2e:mcp-user-stories -- --include-gated
 ```
 
 Browser side uses the same `CLAYON_PLAYWRIGHT_CHANNEL` override as the rest

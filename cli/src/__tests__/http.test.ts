@@ -79,7 +79,7 @@ describe("ClayonApiClient", () => {
       /curl http:\/\/localhost:3100\/api\/health/,
     );
     await expect(client.post("/api/companies/import/preview", {})).rejects.toThrow(
-      /pnpm dev|npx clayon run/,
+      /bun run dev|npx clayon run/,
     );
   });
 

@@ -25,7 +25,7 @@ describe("server package build script", () => {
     };
 
     expect(packageJson.scripts?.prepack).toBe(
-      "pnpm run prepare:ui-dist && pnpm run build",
+      "bun run prepare:ui-dist && bun run build",
     );
   });
 
@@ -58,7 +58,7 @@ describe("server package build script", () => {
       "workspace:*",
     );
     expect(packageJson.scripts?.["prepare:runner-vendor"]).toBe(
-      "pnpm --filter @clayon/clayon-runner build",
+      "bun run --filter @clayon/clayon-runner build",
     );
     expect(packageJson.scripts?.build).toContain(
       "cp -Rf ../packages/clayon-runner/dist/. dist/vendor/clayon-runner/",

@@ -22,17 +22,17 @@ To start Clayon again later:
 npx clayon run
 ```
 
-> **Note:** If you used `npx` for setup, always use `npx clayon` to run commands. The `pnpm clayon` form only works inside a cloned copy of the Clayon repository (see Local Development below).
+> **Note:** If you used `npx` for setup, always use `npx clayon` to run commands. The `bun run clayon` form only works inside a cloned copy of the Clayon repository (see Local Development below).
 
 ## Local Development
 
-For contributors working on Clayon itself. Prerequisites: Node.js 24.11+ and pnpm 9+.
+For contributors working on Clayon itself. Prerequisites: Node.js 24.11+ and Bun 1.4.3+.
 
 Clone the repository, then:
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts the API server and UI at [http://localhost:3100](http://localhost:3100).
@@ -42,7 +42,7 @@ No external database required — Clayon uses an embedded PostgreSQL instance by
 When working from the cloned repo, you can also use:
 
 ```sh
-pnpm clayon run
+bun run clayon run
 ```
 
 This auto-onboards if config is missing, runs health checks with auto-repair, and starts the server.

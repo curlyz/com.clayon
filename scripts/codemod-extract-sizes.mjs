@@ -52,8 +52,7 @@
  *                        e.g. --pct-neg-50: -50%; (kept as a DISTINCT token
  *                        from --pct-50 rather than negated at the utility
  *                        level, since the source bracket already carries the
- *                        minus sign inside the value, not as a utility
- *                        prefix — see Step 0 spike notes in TOKEN-AUDIT.md).
+ *                        minus sign inside the value, not as a utility prefix).
  *   --rad-<value>        radius/ring/outline width values (unitless numeric
  *                        suffix, unit implied px unless the source used a
  *                        different unit, in which case the unit is appended
@@ -76,7 +75,7 @@
  * operators (percent/length arithmetic), in addition to underscore reversal.
  *
  * Tailwind v4 paren-shorthand rewrite forms used (confirmed via mandatory
- * Step-0 syntax spike — scratch story + `pnpm build-storybook` + grep of
+ * Step-0 syntax spike — scratch story + `bun run build-storybook` + grep of
  * emitted CSS, then deleted before this codemod ran):
  *   w-[320px]              -> w-(--sz-320)                 width:var(--sz-320)
  *   max-h-[85vh]           -> max-h-(--sz-85vh)             max-height:var(...)
@@ -115,7 +114,7 @@
  * theme(spacing.3)+theme(spacing.2) expression, i.e. Tailwind pre-resolves
  * it when both operands are compile-time constants). The resolved-equivalent
  * calc() is minted as the token value (byte-equivalent computed output
- * verified via headless-browser spike, see TOKEN-AUDIT.md Batch 3 log).
+ * verified via headless-browser spike).
  *
  * Idempotent: the FIND regex only matches the ORIGINAL bracket-literal form;
  * once rewritten the pattern no longer matches, so re-running is a no-op.
@@ -455,7 +454,7 @@ function main() {
     lines.push("/* Batch 3/4: width/height/min/max, padding/margin/gap/inset/translate,");
     lines.push("   radius, ring/outline-width, and shadow literals, verbatim (no");
     lines.push("   normalizing — the human scale-collapse decision comes later per");
-    lines.push("   DESIGN.md/TOKEN-AUDIT.md). --sz-* is ONE shared family across");
+    lines.push("   DESIGN.md). --sz-* is ONE shared family across");
     lines.push("   w/h/p/m/gap/inset/translate so identical values dedupe regardless of");
     lines.push("   which property used them. --rad-* is likewise shared across");
     // NOTE: never write a literal "*/" sequence in this prose (e.g. from a
@@ -475,8 +474,7 @@ function main() {
     lines.push("     var(--new-issue-dialog-height) etc. are rewritten to the bare paren");
     lines.push("     form directly (e.g. w-(--radix-popover-trigger-width)) — these are");
     lines.push("     runtime library/component variables, not design values, so no new");
-    lines.push("     --sz-* token is minted for them (see TOKEN-AUDIT.md extraction log");
-    lines.push("     for the full site list).");
+    lines.push("     --sz-* token is minted for them.");
     lines.push("*/");
     lines.push(":root {");
     for (const [name, { value, comment }] of szTokens) {

@@ -28,7 +28,7 @@ product disposition recovery still counts as actual usage. This is not a new
 | SH-2: identity-only default hire manual | Existing public agent-creation and onboarding-asset tests cover default, custom, and CEO exceptions. | The public bundle is exactly one `AGENTS.md` containing the eight-word shipped identity, checked before provider execution and again during cleanup. |
 | SH-3: reduced shared legacy task/chat defaults and resume delta | Shared prompt tests and ACPX, Codex, OpenCode, Pi, Hermes, and Cursor Cloud adapter regressions retain runtime context and exclude removed generic procedures. | Actual legacy `adapter.invoke` prompts retain fresh identity/connection guidance, omit the removed procedures, and have complete receipts for every observed run. |
 
-`pnpm test:e2e:runner:stock-harness` runs these credential-free prerequisites,
+`bun run test:e2e:runner:stock-harness` runs these credential-free prerequisites,
 including the Rust test. It writes JSON reports, the source SHA, a working-source
 fingerprint, selected checks, test counts, and `providerCalls: 0` under
 `results/stock-harness-preflight-<UTC>/`. Missing reports or required skipped
@@ -90,14 +90,14 @@ legacy cells qualify the common prompt reduction, not vendor base preservation.
 
 ```sh
 # No credentials or paid providers:
-pnpm test:e2e:runner:stock-harness --list
-pnpm test:e2e:runner:stock-harness
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite stock-harness
+bun run test:e2e:runner:stock-harness --list
+bun run test:e2e:runner:stock-harness
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite stock-harness
 
 # With authorization and the selected profile's required provider credential:
-pnpm test:e2e:runner -- --id stock-harness.runner-codex.local.assigned-skill-explicit-invocation
+bun run test:e2e:runner -- --id stock-harness.runner-codex.local.assigned-skill-explicit-invocation
 ```
 
 Use an exact cell first, then expand profile/journey selections when its evidence

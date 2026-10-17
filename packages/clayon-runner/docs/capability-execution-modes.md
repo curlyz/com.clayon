@@ -20,7 +20,7 @@ The live surface renders a `Real Codex`, `Real runnerd`, and `Mock Clayon` marke
 
 ### Scripted (deterministic) — fake mode
 
-The scripted driver replays a recorded conversation over the same mock core. No provider credential, no runnerd process, no network after `pnpm install`. Used for:
+The scripted driver replays a recorded conversation over the same mock core. No provider credential, no runnerd process, no network after `bun install`. Used for:
 
 - the 106-case conformance suite and its bounded parity report;
 - the byte-stable screenshot matrix;

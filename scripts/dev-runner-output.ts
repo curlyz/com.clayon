@@ -63,10 +63,10 @@ export function createCapturedOutputBuffer(maxBytes = DEFAULT_CAPTURED_OUTPUT_BY
   };
 }
 
-export async function parseJsonResponseWithLimit<T>(
+export async function parseJsonResponseWithLimit(
   response: Response,
   maxBytes = DEFAULT_JSON_RESPONSE_BYTES,
-): Promise<T> {
+): Promise<unknown> {
   const limit = normalizeByteLimit(maxBytes);
   const contentLength = Number.parseInt(response.headers.get("content-length") ?? "", 10);
   if (Number.isFinite(contentLength) && contentLength > limit) {
@@ -98,5 +98,5 @@ export async function parseJsonResponseWithLimit<T>(
     reader.releaseLock();
   }
 
-  return JSON.parse(text) as T;
+  return JSON.parse(text);
 }

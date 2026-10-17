@@ -54,13 +54,13 @@ The 7F browser suite asserts: listbox arrow-key navigation with `aria-activedesc
 
 ```sh
 # Open the explorer on 127.0.0.1:4183.
-pnpm --filter @clayon/clayon-runner demo:scenarios
+bun run --filter @clayon/clayon-runner demo:scenarios
 
 # Scenario runtime, explorer components, and route determinism (49 tests).
-pnpm --filter @clayon/clayon-runner test:scenarios
+bun run --filter @clayon/clayon-runner test:scenarios
 
 # Browser IA, determinism, evidence routes, boundary, a11y, responsive (25).
-pnpm --filter @clayon/clayon-runner test:browser:scenarios
+bun run --filter @clayon/clayon-runner test:browser:scenarios
 
 # Deterministic 24-image acceptance set (12 routes x 2 viewports).
 # Recorded evidence generation is deferred from this release.

@@ -21,7 +21,7 @@ implements the runner's `HarnessDriver` contract and executes through
 After installing and building workspace dependencies:
 
 ```sh
-pnpm prototype:dot
+bun run prototype:dot
 ```
 
 The command creates a temporary PostgreSQL database, company, user and task;
@@ -32,11 +32,11 @@ removes the temporary state. Its synthetic Dot peer deliberately retries a
 write concurrently to prove there is only one report. No credentials are
 printed. This is a CLI demo, not a mock UI or a connection to your Dot account.
 
-Fresh-worktree preparation (use the repository's pinned pnpm version):
+Fresh-worktree preparation (use the repository's pinned Bun version):
 
 ```sh
-pnpm install --no-frozen-lockfile
-pnpm --filter '@clayon/server^...' --filter '!@clayon/clayon-runner' --filter '!@clayon/ui' build
+bun install
+bun run --filter '@clayon/server^...' --filter '!@clayon/clayon-runner' --filter '!@clayon/ui' build
 ```
 
 The local callback uses an injected transport restricted to one fixed synthetic
@@ -54,7 +54,7 @@ Expose **only port 43127** through an HTTPS tunnel, then run:
 
 ```sh
 cloudflared tunnel --protocol http2 --url http://127.0.0.1:43127 --no-autoupdate
-DOT_LAB_ORIGIN=https://YOUR-TUNNEL-HOST pnpm prototype:dot:live
+DOT_LAB_ORIGIN=https://YOUR-TUNNEL-HOST bun run prototype:dot:live
 ```
 
 Add `https://YOUR-TUNNEL-HOST/mcp/clayon` as an OAuth MCP plugin in the
@@ -204,9 +204,9 @@ and [app review](https://developers.openai.com/plugins/deploy/app-review).
 ## Verification
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run src/drivers/dot/dot-harness-driver.test.ts
-pnpm --filter @clayon/server exec vitest run src/__tests__/public-mcp.test.ts
-pnpm prototype:dot
+bun run --cwd packages/clayon-runner vitest run src/drivers/dot/dot-harness-driver.test.ts
+bun run --cwd server vitest run src/__tests__/public-mcp.test.ts
+bun run prototype:dot
 ```
 
 Runner tests cover native PRP validation, cross-company/grant/turn rejection,

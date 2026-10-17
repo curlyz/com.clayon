@@ -50,16 +50,14 @@ export function createBundledInstallManifest(publishManifest, bundledDependencie
   return installManifest;
 }
 
-// npm consumers cannot inherit the workspace's pnpm overrides or patches.
+// npm consumers cannot inherit the workspace's overrides or patches.
 // Materialize the already-qualified Codex bridge closure in the tarball,
 // with overrides confined to the temporary, scripts-disabled producer graph.
 export function configureBundledProviderOverrides(installManifest, bundledDependencies, rootPackage, profileData) {
   const result = structuredClone(installManifest);
   const selected = [];
-  for (const [agent, serverPackage, runtimePackage] of [
-    ["codex", "@agentclientprotocol/codex-acp", "@openai/codex"],
-  ]) {
-    if (!bundledDependencies.includes(serverPackage)) continue;
+  const [agent, serverPackage, runtimePackage] = ["codex", "@agentclientprotocol/codex-acp", "@openai/codex"];
+  if (bundledDependencies.includes(serverPackage)) {
     const profile = profileData?.profiles?.[agent];
     if (profileData?.schema !== "clayon.acpx-profiles.v1" || profile?.agentServerPackage !== serverPackage
       || profile.agentRuntimePackage !== runtimePackage || !/^\d+\.\d+\.\d+$/.test(profile.agentServerVersion ?? "")
@@ -67,8 +65,7 @@ export function configureBundledProviderOverrides(installManifest, bundledDepend
       || result.dependencies?.[serverPackage] !== profile.agentServerVersion) {
       throw new Error(`Bundled ${agent} bridge must match its exact qualified profile`);
     }
-    const selector = `${serverPackage}@${profile.agentServerVersion}>${runtimePackage}`;
-    if (rootPackage.pnpm?.overrides?.[selector] !== profile.agentRuntimeVersion) {
+    if (rootPackage.overrides?.[serverPackage]?.[runtimePackage] !== profile.agentRuntimeVersion) {
       throw new Error(`Bundled ${agent} runtime override must match its qualified profile`);
     }
     const npmSelector = `${serverPackage}@${profile.agentServerVersion}`;
@@ -336,7 +333,7 @@ export function selectBundledDependencyPatches(
 
 export function applyBundledDependencyPatches(destinationDir, bundledDependencies, sourceRoot = repoRoot) {
   const rootPackage = JSON.parse(readFileSync(resolve(sourceRoot, "package.json"), "utf8"));
-  const patchedDependencies = rootPackage.pnpm?.patchedDependencies ?? {};
+  const patchedDependencies = rootPackage.patchedDependencies ?? {};
 
   for (const { packageName, patchPath } of selectBundledDependencyPatches(
     destinationDir,

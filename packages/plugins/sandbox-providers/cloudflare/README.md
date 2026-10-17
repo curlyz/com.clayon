@@ -2,7 +2,7 @@
 
 Published Cloudflare sandbox provider plugin for Clayon.
 
-This package lives in the Clayon monorepo, but it is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. Operators can install it from the Plugins page by package name, and the host will fetch its dependencies at install time without adding lockfile churn to the Clayon repo.
+This package lives in the Clayon monorepo, but it is intentionally excluded from the root Bun workspace and shaped to publish and install like a standalone npm package. Operators can install it from the Plugins page by package name, and the host will fetch its dependencies at install time without adding lockfile churn to the Clayon repo.
 
 ## Install
 
@@ -39,10 +39,10 @@ The package includes an operator-facing Cloudflare Worker scaffold under [bridge
 
 ```bash
 cd packages/plugins/sandbox-providers/cloudflare
-pnpm install --ignore-workspace --no-lockfile
-pnpm build
-pnpm test
-pnpm typecheck
+bun install --no-save
+bun run build
+bun run test
+bun run typecheck
 ```
 
 These commands assume the repo root has already been installed once so the local `@clayon/plugin-sdk` workspace package is available to the compiler during development.

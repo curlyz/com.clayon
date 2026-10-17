@@ -68,11 +68,11 @@ human login/Slack alerts are unchanged.
 Focused verification:
 
 ```sh
-pnpm exec vitest run server/src/__tests__/customer-success.test.ts \
+bun x vitest run server/src/__tests__/customer-success.test.ts \
   server/src/__tests__/agent-auth-jwt.test.ts server/src/__tests__/agent-identity.test.ts
 # Coordinated qualification, with the sibling Cloud build:
 CLAYON_INSPECTION_CLOUD_DIST=/absolute/path/clayon-cloud/dist \
-  pnpm exec vitest run server/src/__tests__/customer-success-cloud.test.ts
+  bun x vitest run server/src/__tests__/customer-success-cloud.test.ts
 ```
 
 The coordinated test uses two disposable local PostgreSQL databases, a real

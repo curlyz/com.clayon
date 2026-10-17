@@ -81,8 +81,8 @@ were captured by the execution tool: baseline 103.48 s, candidate 83.97 s.
 Run from `packages/clayon-runner`:
 
 ```sh
-CLAYON_FINAL_BURST_BENCHMARK=1 CLAYON_FINAL_BURST_REPETITIONS=3 CLAYON_FINAL_BURST_BINARY=/tmp/clayon-final-burst-cargo.YoIBsw/baseline-clayon-runnerd pnpm exec vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
-CLAYON_FINAL_BURST_BENCHMARK=1 CLAYON_FINAL_BURST_REPETITIONS=3 CLAYON_FINAL_BURST_BINARY=/tmp/clayon-final-burst-cargo.YoIBsw/release/clayon-runnerd pnpm exec vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
+CLAYON_FINAL_BURST_BENCHMARK=1 CLAYON_FINAL_BURST_REPETITIONS=3 CLAYON_FINAL_BURST_BINARY=/tmp/clayon-final-burst-cargo.YoIBsw/baseline-clayon-runnerd bun x vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
+CLAYON_FINAL_BURST_BENCHMARK=1 CLAYON_FINAL_BURST_REPETITIONS=3 CLAYON_FINAL_BURST_BINARY=/tmp/clayon-final-burst-cargo.YoIBsw/release/clayon-runnerd bun x vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
 ```
 
 Without `CLAYON_FINAL_BURST_BINARY`, the test selects the existing staged

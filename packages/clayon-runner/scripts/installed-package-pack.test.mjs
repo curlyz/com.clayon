@@ -9,7 +9,7 @@ import { withInstalledPackagePackInput } from "./lib/installed-package-pack.mjs"
 async function fixture(t, extra = {}) {
   const root = await mkdtemp(join(tmpdir(), "runner-pack-test-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  const source = join(root, "node_modules/.pnpm/fixture/node_modules/fixture");
+  const source = join(root, "node_modules/.bun/fixture/node_modules/fixture");
   await mkdir(source, { recursive: true });
   await writeFile(join(source, "package.json"), JSON.stringify({ name: "pack-fixture", version: "1.0.0", ...extra }));
   return { root, source };

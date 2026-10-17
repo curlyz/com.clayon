@@ -72,7 +72,7 @@ control sticky at the top; Run segment is the default when
 a case is selected via route. Touch targets ≥ `--pcr-touch-target` (2.75rem).
 
 Density: diagnostic-console dense, like 4b. All spacing, color, type, radius,
-motion from `--pcr-*` tokens only (`DESIGN.md` principles 2–4; `pnpm
+motion from `--pcr-*` tokens only (`DESIGN.md` principles 2–4; `bun run
 check:token-gates` applies).
 
 ## 2. Scenario picker and filters (left rail)
@@ -304,7 +304,7 @@ States that must be designed, not defaulted:
   "Run failed (harness error)",Run view,"Danger banner with the exact diagnostic + “Re-run”; partial timeline stays visible and labeled partial. Never silently reset."
   Parity fail,Banner/Parity,"Fail is a first-class rendered state (danger banner + failing assertion rows) — the explorer’s job is showing it, not avoiding it."
   Denied/absent tool,Transcript/Context,Per §5.
-  "Missing/invalid fixture or artifact",Shell,"Error card naming the artifact path and the regenerate command (`pnpm generate:capability-inventory` / 7E command). No blank screen."
+  "Missing/invalid fixture or artifact",Shell,"Error card naming the artifact path and the regenerate command (`bun run generate:capability-inventory` / 7E command). No blank screen."
   Codex relay unavailable,Mode control,"Disabled option + reason; fake mode remains fully usable."
 ```
 

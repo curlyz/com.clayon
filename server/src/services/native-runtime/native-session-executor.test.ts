@@ -23,6 +23,7 @@ import {
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { inspect } from "node:util";
+import { z } from "zod";
 import { join } from "node:path";
 import {
   heartbeatRuns,
@@ -334,7 +335,6 @@ import {
   nativeGovernedWaitResult,
   nativeConversationReplyResult,
   nativeToolsRefreshWaitResult,
-  parseRemoteExecutableCandidate,
   buildRemoteCodexLauncherCommand,
   mayUsePreinstalledRunnerArtifact,
   nativeUsageCostUsd,
@@ -367,6 +367,7 @@ import {
   verifyNativeHarnessBackup,
   shouldRestoreNativeHarnessBackupIntoSandbox,
 } from "./native-session-executor.js";
+import { parseRemoteExecutableCandidate } from "./codex-model-fallback.js";
 
 beforeEach(() => {
   state.bundledPackManifestPath = null;
@@ -1132,7 +1133,7 @@ describe("remote provider pack manifest", () => {
     const digest = "sha256:" + "a".repeat(64);
     const artifacts = Object.fromEntries(Object.entries({
       grokLauncher: "dist/providers/grok/launcher.cjs", nodeCommand: "node_modules/node/bin/node",
-      productionLock: "pnpm-lock.yaml", opencodeCommand: "node_modules/.bin/opencode",
+      productionLock: "bun.lock", opencodeCommand: "node_modules/.bin/opencode",
       opencodeExecutable: "node_modules/opencode-ai/bin/opencode.exe",
       opencodeProxy: "dist/cli/opencode-app-server-proxy.cjs", acpxSidecar: "dist/cli/acpx-runtime-sidecar.cjs",
     }).map(([key, path]) => [key, { path, sha256: digest }]));
@@ -1210,7 +1211,7 @@ describe("remote provider pack manifest", () => {
       sidecar,
     );
     await writeFile(join(root, "node_modules", "node", "bin", "node"), node);
-    await writeFile(join(root, "pnpm-lock.yaml"), lockfile);
+    await writeFile(join(root, "bun.lock"), lockfile);
     await writeFile(
       join(root, "node_modules", ".bin", "opencode"),
       opencodeCommand,
@@ -1250,7 +1251,7 @@ describe("remote provider pack manifest", () => {
           path: "node_modules/node/bin/node",
           sha256: digest(node),
         },
-        productionLock: { path: "pnpm-lock.yaml", sha256: digest(lockfile) },
+        productionLock: { path: "bun.lock", sha256: digest(lockfile) },
         opencodeCommand: {
           path: "node_modules/.bin/opencode",
           sha256: digest(opencodeCommand),
@@ -4420,9 +4421,15 @@ describe("stopped native conversation physical cleanup", () => {
           agentRuntimeVersion: null, commandDigest: "fixture" } },
       session: { ...execution.session, driverKind: provider === "codex" ? "codex_app_server" : "acpx_runtime" },
     });
-    const canonical = (value: any): string => value && typeof value === "object" && !Array.isArray(value)
-      ? `{${Object.entries(value).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k,v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(",")}}`
-      : JSON.stringify(value);
+    const canonical = (value: unknown): string => {
+      const record = z.record(z.string(), z.unknown()).safeParse(value);
+      if (!record.success) {
+        // Preserve the helper's output contract with the production
+        // canonicalizer (canonical.ts): non-records stay JSON-serialized.
+        return JSON.stringify(value) ?? "null";
+      }
+      return `{${Object.entries(record.data).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(",")}}`;
+    };
     const hash = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
     const providerScope = input.provider.kind === "acpx" ? { kind: "acpx", agent: input.provider.agent, profile: input.provider.profile } : { kind: "codex" };
     const root = join(base, hash({ schema: "clayon.native-session-scope.v2", companyId: input.binding.companyId,
@@ -4454,7 +4461,14 @@ describe("stopped native conversation physical cleanup", () => {
       [{ provider: mode === "remote" ? "daytona" : "local", releasedAt: mode === "unreleased" ? null : new Date() }],
       [stop], mode === "missing_receipt" ? [] : [receipt, ...(mode.startsWith("replacement") ? [{ ...receipt, sourceEventId: `${identity.runnerInstanceId}:${identity.runId}:2`, sourcePayloadSha256: hash(replacement), payload: { prpEvent: replacement } }] : [])],
     ][queryIndex++] ?? [];
-      const q: any = { from: () => q, where: () => q, orderBy: () => q, limit: () => q,
+      interface QueryBuilderStub {
+        from: (table: unknown) => QueryBuilderStub;
+        where: (condition: unknown) => QueryBuilderStub;
+        orderBy: (order: unknown) => QueryBuilderStub;
+        limit: (count: number) => QueryBuilderStub;
+        then: Promise<unknown[]>["then"];
+      }
+      const q: QueryBuilderStub = { from: () => q, where: () => q, orderBy: () => q, limit: () => q,
         then: Promise.resolve(rows).then.bind(Promise.resolve(rows)) }; return q;
     } } as unknown as Db;
     const run = { id: input.binding.runId, companyId: mode === "foreign_company" ? "foreign" : input.binding.companyId,

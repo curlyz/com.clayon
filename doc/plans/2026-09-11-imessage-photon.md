@@ -194,8 +194,8 @@ free/custom/multiselect/partial/submitted/invalid drafts; accept/reject/reason,
 stale target, Board race and one continuation; accessible responsive UI.
 
 Run targeted suites, migration/package checks, affected chat-adapters browser
-suite, then `pnpm check:token-gates`, `pnpm -r typecheck`, `pnpm test:run`,
-`pnpm build`. Leave lockfile to the repository bot. Update channel setup,
+suite, then `bun run check:token-gates`, `bun run --filter '*' typecheck`, `bun run test:run`,
+`bun run build`. Leave lockfile to the repository bot. Update channel setup,
 troubleshooting/feature boundaries and relevant spec addendum; regenerate catalog.
 Prepare every PR-template section and explicitly report unavailable credentials,
 failed checks and unqualified behavior.

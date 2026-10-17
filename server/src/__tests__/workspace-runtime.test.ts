@@ -694,7 +694,7 @@ describe("ensureServerWorkspaceLinksCurrent", () => {
     await fs.mkdir(stalePackageDir, { recursive: true });
     await fs.mkdir(serverNodeModulesScopeDir, { recursive: true });
     await fs.writeFile(path.join(repoRoot, ".git"), "gitdir: /tmp/clayon-main/.git/worktrees/runtime-links\n", "utf8");
-    await fs.writeFile(path.join(repoRoot, "pnpm-workspace.yaml"), "packages:\n  - packages/*\n  - server\n", "utf8");
+    await fs.writeFile(path.join(repoRoot, "bun.lock"), "{}\n", "utf8");
     await fs.writeFile(
       path.join(repoRoot, "server", "package.json"),
       JSON.stringify({
@@ -730,7 +730,7 @@ describe("ensureServerWorkspaceLinksCurrent", () => {
     await fs.mkdir(expectedPackageDir, { recursive: true });
     await fs.mkdir(serverNodeModulesScopeDir, { recursive: true });
     await fs.writeFile(path.join(repoRoot, ".git"), "gitdir: /tmp/clayon-main/.git/worktrees/runtime-links-current\n", "utf8");
-    await fs.writeFile(path.join(repoRoot, "pnpm-workspace.yaml"), "packages:\n  - packages/*\n  - server\n", "utf8");
+    await fs.writeFile(path.join(repoRoot, "bun.lock"), "{}\n", "utf8");
     await fs.writeFile(
       path.join(repoRoot, "server", "package.json"),
       JSON.stringify({
@@ -763,7 +763,7 @@ describe("ensureServerWorkspaceLinksCurrent", () => {
     await fs.mkdir(expectedPackageDir, { recursive: true });
     await fs.mkdir(stalePackageDir, { recursive: true });
     await fs.mkdir(serverNodeModulesScopeDir, { recursive: true });
-    await fs.writeFile(path.join(repoRoot, "pnpm-workspace.yaml"), "packages:\n  - packages/*\n  - server\n", "utf8");
+    await fs.writeFile(path.join(repoRoot, "bun.lock"), "{}\n", "utf8");
     await fs.writeFile(
       path.join(repoRoot, "server", "package.json"),
       JSON.stringify({

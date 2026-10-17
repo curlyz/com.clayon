@@ -282,19 +282,19 @@ for (const file of ["config.json", ".env", "seed-manifest.json", "seed-pending",
 for (const installExit of [0, 42]) {
   test(`plain checkout dependency provisioning preserves install exit ${installExit}`, () => {
     const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-    const bin = makeTempDir("clayon-checkout-pnpm-");
-    fs.writeFileSync(path.join(bin, "pnpm"), `#!/bin/sh\nprintf '%s\\n' "$*" >> pnpm-calls\nmkdir -p node_modules cli/node_modules\nexit ${installExit}\n`, { mode: 0o700 });
+    const bin = makeTempDir("clayon-checkout-bun-");
+    fs.writeFileSync(path.join(bin, "bun"), `#!/bin/sh\nprintf '%s\\n' "$*" >> bun-calls\nmkdir -p node_modules cli/node_modules\nexit ${installExit}\n`, { mode: 0o700 });
     const { result, worktreeCwd } = runProvision(baseCwd, {
       pathPrefix: bin,
       setupInstance: (home) => fs.rmSync(path.join(home, "instances", "default", "config.json")),
       setupWorktree(root) {
         fs.writeFileSync(path.join(root, "package.json"), "{}\n");
-        fs.writeFileSync(path.join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+        fs.writeFileSync(path.join(root, "bun.lock"), "{}\n");
       },
     });
     assert.equal(result.status, installExit, result.stderr);
-    assert.match(fs.readFileSync(path.join(worktreeCwd, "pnpm-calls"), "utf8"), /^install --prod=false --frozen-lockfile/);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "pnpm-install-fingerprint")), installExit === 0);
+    assert.match(fs.readFileSync(path.join(worktreeCwd, "bun-calls"), "utf8"), /^install --frozen-lockfile/);
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "bun-install-fingerprint")), installExit === 0);
     assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "config.json")), false);
     assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon", "seed-manifest.json")), false);
     assert.deepEqual(readCliInvocations(baseCwd), []);
@@ -346,9 +346,9 @@ test("rejects a dangling base workspace .clayon symlink instead of falling back"
 });
 
 test("falls back to an isolated config when the base CLI cannot boot", () => {
-  // Simulates the dangling pnpm symlink incident: the runner and entry files
+  // Simulates the dangling symlink incident: the runner and entry files
   // exist, but booting the CLI fails ESM resolution. The base has no
-  // package.json/pnpm-lock.yaml, so the repair install is not possible and the
+  // package.json/bun.lock, so the repair install is not possible and the
   // script must degrade to the no-CLI fallback config instead of failing.
   const baseCwd = makeBaseWorkspace({ helpExit: 1, initExit: 0 });
   const { result, worktreeCwd, worktreesHome } = runProvision(baseCwd);
@@ -420,8 +420,8 @@ test("repairs an unhealthy base install under the lock and then uses the CLI", (
     return;
   }
 
-  // The CLI's health is controlled by a flag file, and a fake `pnpm install`
-  // creates that flag — modeling a forced reinstall that relinks the store.
+  // The CLI's health is controlled by a flag file, and a fake `bun install`
+  // creates that flag — modeling a forced reinstall that relinks packages.
   const baseCwd = makeTempDir("clayon-provision-repair-base-");
   const healthFlag = path.join(baseCwd, "cli-healthy.flag");
   const runnerPath = path.join(baseCwd, "cli", "node_modules", "tsx", "dist", "cli.mjs");
@@ -447,13 +447,13 @@ process.exit(0);
 `,
   );
   fs.writeFileSync(path.join(baseCwd, "package.json"), "{}\n");
-  fs.writeFileSync(path.join(baseCwd, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+  fs.writeFileSync(path.join(baseCwd, "bun.lock"), "{}\n");
   spawnSync("git", ["init", "-q", baseCwd], { env: { PATH: testPath } });
 
   const fakeBin = makeTempDir("clayon-provision-fakebin-");
-  const installLog = path.join(baseCwd, "pnpm-invocations.log");
+  const installLog = path.join(baseCwd, "bun-invocations.log");
   fs.writeFileSync(
-    path.join(fakeBin, "pnpm"),
+    path.join(fakeBin, "bun"),
     `#!/usr/bin/env bash
 if [[ "$1" == "install" ]]; then
   echo "$@" >> ${JSON.stringify(installLog)}
@@ -635,45 +635,30 @@ test("runtime provisioning does not trust a truncated verified manifest", () => 
 });
 
 /**
- * pnpm 9.15.4 calls the deprecated url.parse() once per `pnpm install`
- * (see toNerfDart in the pnpm bundle), which Node 24 reports as DEP0169.
- * Each `pnpm install` call site must silence that one warning code, and must
- * append the flag to any NODE_OPTIONS value the environment already set
- * instead of overwriting it.
+ * bun install does not trigger the pnpm-era DEP0169 url.parse() warning, so
+ * neither script may carry a warning-suppression flag or a repair NODE_OPTIONS
+ * override any more, and both repair call sites must run bun install directly.
  */
-test("every pnpm install call site silences DEP0169 without overwriting NODE_OPTIONS", () => {
-  const disableWarningFlag = "--disable-warning=DEP0169";
-  const appendsToExistingNodeOptions = /NODE_OPTIONS="\$\{NODE_OPTIONS:-\} --disable-warning=DEP0169"/;
-
+test("bun install call sites carry no NODE_OPTIONS warning suppression", () => {
   const provisionSource = fs.readFileSync(script, "utf8");
-  const repairCallSites = provisionSource.match(/env -u NODE_ENV CI=true NODE_OPTIONS="\$repair_node_options" "\$\{repair_cmd\[@\]\}"/g) ?? [];
-  assert.equal(repairCallSites.length, 2, "expected the repair pnpm install to carry the flag at both call sites (locked and unlocked)");
-  assert.match(provisionSource, /local repair_node_options="\$\{NODE_OPTIONS:-\} --disable-warning=DEP0169"/);
-  assert.match(provisionSource, appendsToExistingNodeOptions);
-  assert.match(provisionSource, /NODE_OPTIONS="\$\{NODE_OPTIONS:-\} --disable-warning=DEP0169" pnpm install --prod=false "\$@"/);
-
   const runtimeSource = fs.readFileSync(runtimeScript, "utf8");
-  const runtimeRepairCallSites = runtimeSource.match(/env -u NODE_ENV CI=true NODE_OPTIONS="\$repair_node_options" "\$\{repair_cmd\[@\]\}"/g) ?? [];
-  assert.equal(runtimeRepairCallSites.length, 2, "expected the repair pnpm install to carry the flag at both call sites (locked and unlocked)");
-  assert.match(runtimeSource, /local repair_node_options="\$\{NODE_OPTIONS:-\} --disable-warning=DEP0169"/);
-
-  // No other warning code is suppressed anywhere in either script.
   for (const source of [provisionSource, runtimeSource]) {
-    const disableWarningMatches = source.match(/--disable-warning=[^\s"]+/g) ?? [];
-    for (const match of disableWarningMatches) {
-      assert.equal(match, disableWarningFlag);
-    }
+    assert.doesNotMatch(source, /--disable-warning/);
+    assert.doesNotMatch(source, /repair_node_options/);
+    assert.match(source, /local repair_cmd=\(bun install --force --frozen-lockfile\)/);
+    const repairCallSites = source.match(/env -u NODE_ENV CI=true "\$\{repair_cmd\[@\]\}"/g) ?? [];
+    assert.equal(repairCallSites.length, 2, "expected the repair bun install at both call sites (locked and unlocked)");
   }
 });
 
-for (const failure of ["ERR_PNPM_LOCKFILE_CONFIG_MISMATCH", "ERR_PNPM_OUTDATED_LOCKFILE", "ENOTFOUND", "retry-fails"]) {
+for (const failure of ["lockfile had changes, but lockfile is frozen", "ENOTFOUND", "retry-fails"]) {
   test(`dependency provisioning preserves failures and bounds recovery: ${failure}`, () => {
     const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-    const bin = makeTempDir("clayon-fake-pnpm-");
-    fs.writeFileSync(path.join(bin, "pnpm"), `#!/bin/sh
-printf '%s\\n' "$*" >> pnpm-calls
+    const bin = makeTempDir("clayon-fake-bun-");
+    fs.writeFileSync(path.join(bin, "bun"), `#!/bin/sh
+printf '%s\\n' "$*" >> bun-calls
 case "$*" in
-  *--frozen-lockfile*) echo '${failure === "retry-fails" ? "ERR_PNPM_LOCKFILE_CONFIG_MISMATCH" : failure}' >&2; exit 42 ;;
+  *--frozen-lockfile*) echo '${failure === "retry-fails" ? "lockfile had changes, but lockfile is frozen" : failure}' >&2; exit 42 ;;
   *) ${failure === "retry-fails" ? "exit 43" : "mkdir -p node_modules; exit 0"} ;;
 esac
 `, { mode: 0o700 });
@@ -681,32 +666,32 @@ esac
       pathPrefix: bin,
       setupWorktree(root) {
         fs.writeFileSync(path.join(root, "package.json"), "{}\n");
-        fs.writeFileSync(path.join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+        fs.writeFileSync(path.join(root, "bun.lock"), "{}\n");
       },
     });
-    const recovers = failure.startsWith("ERR_PNPM_");
+    const recovers = failure.startsWith("lockfile had changes");
     assert.equal(result.status, recovers ? 0 : failure === "ENOTFOUND" ? 42 : 1, result.stderr);
-    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon/pnpm-install-fingerprint")), recovers);
-    const calls = fs.readFileSync(path.join(worktreeCwd, "pnpm-calls"), "utf8").trim().split("\n").filter((call) => call.startsWith("install "));
+    assert.equal(fs.existsSync(path.join(worktreeCwd, ".clayon/bun-install-fingerprint")), recovers);
+    const calls = fs.readFileSync(path.join(worktreeCwd, "bun-calls"), "utf8").trim().split("\n").filter((call) => call.startsWith("install"));
     assert.equal(calls.length, failure === "ENOTFOUND" ? 1 : 2);
-    if (calls.length === 2) assert.match(calls[1], /--no-frozen-lockfile/);
+    if (calls.length === 2) assert.doesNotMatch(calls[1], /--frozen-lockfile/);
   });
 }
 
 test("patch content changes invalidate an otherwise matching install fingerprint", () => {
   const baseCwd = makeBaseWorkspace({ helpExit: 0, initExit: 0 });
-  const bin = makeTempDir("clayon-patch-pnpm-");
-  fs.writeFileSync(path.join(bin, "pnpm"), '#!/bin/sh\ncase "$1" in install) echo install >> pnpm-calls; mkdir -p node_modules cli/node_modules ;; esac\n', { mode: 0o700 });
+  const bin = makeTempDir("clayon-patch-bun-");
+  fs.writeFileSync(path.join(bin, "bun"), '#!/bin/sh\ncase "$1" in install) echo install >> bun-calls; mkdir -p node_modules cli/node_modules ;; esac\n', { mode: 0o700 });
   const first = runProvision(baseCwd, { pathPrefix: bin, setupWorktree(root) {
-    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ pnpm: { patchedDependencies: { "dependency@1": "patches/dependency.diff" } } }));
-    fs.writeFileSync(path.join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+    fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ patchedDependencies: { "dependency@1": "patches/dependency.diff" } }));
+    fs.writeFileSync(path.join(root, "bun.lock"), "{}\n");
     fs.mkdirSync(path.join(root, "patches"));
     fs.writeFileSync(path.join(root, "patches/dependency.diff"), "first patch");
   } });
   assert.equal(first.result.status, 0, first.result.stderr);
   const options = { pathPrefix: bin, existingWorktree: first.worktreeCwd };
   assert.equal(runProvision(baseCwd, options).result.status, 0);
-  const callsPath = path.join(first.worktreeCwd, "pnpm-calls");
+  const callsPath = path.join(first.worktreeCwd, "bun-calls");
   assert.equal(fs.readFileSync(callsPath, "utf8"), "install\n");
   fs.writeFileSync(path.join(first.worktreeCwd, "unrelated.patch"), "unrelated change");
   assert.equal(runProvision(baseCwd, options).result.status, 0);

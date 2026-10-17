@@ -61,14 +61,14 @@ flag while preserving server-owned workspace, governance, and status authority.
 The one-command form after installation is:
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter @clayon/clayon-runner verify
 ```
 
 On a minimal Debian or Ubuntu host without root access, use the rootless browser
 dependency path:
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify:rootless
+bun run --filter @clayon/clayon-runner verify:rootless
 ```
 
 ## Cumulative guarantees
@@ -148,10 +148,10 @@ pnpm --filter @clayon/clayon-runner verify:rootless
 - both consumers preserve identity through reconnect and reduce replay to the
   same final state.
 
-## Step 6: Chat with a live session in the browser
+## Step 1: Chat with a live session in the browser
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:live-console
+bun run --filter @clayon/clayon-runner console:live-console
 ```
 
 Open `http://127.0.0.1:4180/` and press **Live console**. Work through the
@@ -160,10 +160,10 @@ state above from the eleven deterministic demo chats. Add
 `CLAYON_LIVE_CONSOLE_DRIVER=codex` to run the identical screens against a real
 Codex session.
 
-## Step 7: Run the reusable SDK consumers
+## Step 2: Run the reusable SDK consumers
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:sdk
+bun run --filter @clayon/clayon-runner console:sdk
 ```
 
 Open `http://127.0.0.1:4181/reference-console/` and

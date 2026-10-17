@@ -11,7 +11,7 @@ How to run OpenClaw in a Docker container for local development and testing the 
 Clayon ships an end-to-end join smoke harness:
 
 ```bash
-pnpm smoke:openclaw-join
+bun run smoke:openclaw-join
 ```
 
 The harness automates:
@@ -34,7 +34,7 @@ Permissions note:
 Spin up OpenClaw in Docker and print a host-browser dashboard URL in one command:
 
 ```bash
-pnpm smoke:openclaw-docker-ui
+bun run smoke:openclaw-docker-ui
 ```
 
 Default is zero-flag: run as-is, no pairing-related env vars.
@@ -73,9 +73,9 @@ Environment knobs:
 `authenticated` deployment: provide auth context:
 
 ```bash
-CLAYON_AUTH_HEADER="Bearer <token>" pnpm smoke:openclaw-join
+CLAYON_AUTH_HEADER="Bearer <token>" bun run smoke:openclaw-join
 # or
-CLAYON_COOKIE="your_session_cookie=..." pnpm smoke:openclaw-join
+CLAYON_COOKIE="your_session_cookie=..." bun run smoke:openclaw-join
 ```
 
 ### Network topology tips

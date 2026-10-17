@@ -4,11 +4,11 @@ id: antl:clayon/packages/clayon-runner/docs/runner-protocol-live-evals
 
 # Direct live Runner protocol evals
 
-For choosing between Runner Evals and full-stack Product E2E Evals, and for shared guidance on provenance, history, cost, and failure classification, see the Clayon evaluation guide `com.clayon/doc/evals.md`. This document remains the authoritative Runner Evals live protocol runbook.
+For choosing between Runner Evals and full-stack Product E2E Evals, and for shared guidance on provenance, history, cost, and failure classification, see the Clayon evaluation guide `doc/evals.md`. This document remains the authoritative Runner Evals live protocol runbook.
 
 ## One Evalbook presentation
 
-Every new report uses the canonical Evalbook grid and the existing Runner Lab chat viewer for attempt drill-downs. No plain-HTML attempt fallback. The grid, Latest, test-design, inventory, and server-gate pages load the same built stylesheet and fonts as the chat viewer. The long-term S3 history index references that stylesheet inside an immutable campaign, so every page keeps the same dark theme. Static site styles live in `devtools/issue-thread/src/evalbook-site.css`, scoped to `.evalbook-site`; colors and typography come from the Runner Lab token layer. Missing recordings show a notice in the same viewer; missing viewer builds fail generation. Build with `pnpm --filter @clayon/clayon-runner build:issue-thread` and provide `--viewer-root` or `CLAYON_EVAL_VIEWER_ROOT` to the canonical Python renderer.
+Every new report uses the canonical Evalbook grid and the existing Runner Lab chat viewer for attempt drill-downs. No plain-HTML attempt fallback. The grid, Latest, test-design, inventory, and server-gate pages load the same built stylesheet and fonts as the chat viewer. The long-term S3 history index references that stylesheet inside an immutable campaign, so every page keeps the same dark theme. Static site styles live in `devtools/issue-thread/src/evalbook-site.css`, scoped to `.evalbook-site`; colors and typography come from the Runner Lab token layer. Missing recordings show a notice in the same viewer; missing viewer builds fail generation. Build with `bun run --filter @clayon/clayon-runner build:issue-thread` and provide `--viewer-root` or `CLAYON_EVAL_VIEWER_ROOT` to the canonical Python renderer.
 
 The Actions artifact contains full evidence. S3 uses the same viewer with a closed public DTO: only isolated mock-run conversation text, scrubbed private references, named tool outcomes, and checks. Tool arguments/results, reasoning, provider identities, and company snapshots stay private. The public notice explains these redactions. An unverified isolation boundary yields no public conversation, not a guessed reconstruction.
 
@@ -72,7 +72,7 @@ For subscription qualification, pass `-f grok_authentication=subscription` when 
 
 The authorization job resolves the Clayon branch to a commit and verifies the supplied eval commit before any checkout. A short-lived bot token generated from `COMMITPERCLIP_KEY` authorizes each checkout of the private eval repository; the token is masked and never forwarded to a provider process. The workflow uses the same numeric actor allowlist, protected `runner-e2e-paid` environment, RunsOn fleet selector, and `RUNNER_E2E_MAX_PARALLEL` ceiling as the full-stack E2E workflow. Two balanced GitHub matrices keep each matrix below GitHub's 256-job limit while keeping their combined concurrency at or below that shared ceiling. Runner TypeScript, the native daemon, provider dependencies, and the attempt viewer are built once and reused by every cell. Because the complete suite requires two matrix shards, this workflow accepts a shared concurrency ceiling from 2 through 100.
 
-The reused provider runtime is created with `pnpm deploy --prod` from the frozen workspace lock. That preserves the repository's qualified dependency versions and patched ACP server bytes. Never replace this step with a fresh `npm install` of the packed Runner tarball: npm cannot apply the workspace's `patchedDependencies`, so the resulting ACPX executables no longer match their qualified digests.
+The reused provider runtime is created with `bun install --frozen-lockfile` against the workspace's frozen `bun.lock`. That preserves the repository's qualified dependency versions and patched ACP server bytes. Never replace this step with a fresh `npm install` of the packed Runner tarball: npm cannot apply the workspace's `patchedDependencies`, so the resulting ACPX executables no longer match their qualified digests.
 
 Candidate ACPX evals require both `--candidate-profile <agent>` and `--expected-acpx-profile <JSON>`. The eval program supplies the exact configured profile as the JSON argument. Before creating a runtime context or provider service, the built CLI compares every profile field, including model, version, and command digest, with its own resolved profile. Missing, extra, or mismatched fields fail admission. Older CLIs reject the new flag before execution; no retry without the check. The daemon's own profile admission and binary digest check remain independent gates. Post-run scoring still compares the retained profile as evidence but cannot replace this pre-launch check.
 
@@ -146,13 +146,13 @@ The publishing job uses dedicated `RUNNER_PROTOCOL_EVAL_HISTORY_*` variables whe
 These tests make no provider or AWS calls:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:runner-protocol-eval-publish
+bun run --filter @clayon/clayon-runner test:runner-protocol-eval-publish
 ```
 
 To inspect the catalog without executing it, point the command at a local evals checkout:
 
 ```sh
-pnpm --filter @clayon/clayon-runner \
+bun run --filter @clayon/clayon-runner \
   report:runner-protocol-eval:catalog -- \
   --evals-root /path/to/clayon-evals \
   --campaign-id gha-1-1 \

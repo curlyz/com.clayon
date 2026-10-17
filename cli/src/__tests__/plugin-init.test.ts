@@ -79,8 +79,8 @@ describe("plugin init", () => {
   it("builds exact next commands using the scaffold path", () => {
     expect(buildPluginInitNextCommands("/tmp/acme plugin")).toEqual([
       "cd '/tmp/acme plugin'",
-      "pnpm install",
-      "pnpm dev",
+      "bun install",
+      "bun run dev",
       "clayon plugin install '/tmp/acme plugin'",
     ]);
   });

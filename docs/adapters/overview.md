@@ -18,17 +18,20 @@ When a heartbeat fires, Clayon:
 ## Built-in Adapters
 
 ```text
-[12]{Adapter,Type Key,Description}:
+[15]{Adapter,Type Key,Description}:
   "Claude Code `antl:clayon/docs/adapters/claude-local`",`claude_local`,"Runs Claude Code CLI locally, with a native ACP engine when available"
   "Codex `antl:clayon/docs/adapters/codex-local`",`codex_local`,"Runs OpenAI Codex CLI locally, with a native ACP engine when available"
-  "Gemini CLI `antl:clayon/docs/adapters/gemini-local`",`gemini_local`,"Runs Gemini CLI locally (experimental — adapter package exists, not yet in stable type enum)"
+  "Gemini CLI `antl:clayon/docs/adapters/gemini-local`",`gemini_local`,Runs Gemini CLI locally
   "Kimi Code CLI `antl:clayon/docs/adapters/kimi-local`",`kimi_local`,"Runs Kimi Code CLI locally through ACP, with explicitly selectable headless `-p` mode"
   OpenCode,`opencode_local`,"Runs OpenCode CLI locally (multi-provider `provider/model`)"
-  Cursor,`cursor`,Runs Cursor in background mode
+  Cursor,`cursor`,"Runs Cursor in background mode (`cursor-local` package)"
+  Cursor Cloud,`cursor_cloud`,"Runs Cursor through the cloud adapter (`cursor-cloud` package)"
+  Grok Build,`grok_local`,"Runs Grok Build locally (default model `grok-build`, `grok-local` package)"
   Pi,`pi_local`,Runs an embedded Pi agent locally
   Hermes,`hermes_local`,"Runs the local Hermes CLI through `@clayon/hermes-clayon-adapter`"
   Hermes Gateway,`hermes_gateway`,"Calls an already-running Hermes API server through `@clayon/hermes-clayon-adapter/gateway`"
   OpenClaw Gateway,`openclaw_gateway`,Connects to an OpenClaw gateway endpoint
+  Clayon Runner,`clayon_runner`,Runs the native runner protocol (packages/clayon-runner)
   "Process `antl:clayon/docs/adapters/process`",`process`,Executes arbitrary shell commands
   "HTTP `antl:clayon/docs/adapters/http`",`http`,Sends webhooks to external agents
 ```

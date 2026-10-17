@@ -22,7 +22,7 @@ quarantine, resource filters, installs, and audit continue to use Apps v2.
 
 ## Deployment configuration
 
-Clayon pins `@vercel/connect` to `0.6.1`.
+Clayon pins `@vercel/connect` to `2.3.3`.
 
 | Setting | Meaning |
 | --- | --- |
@@ -49,8 +49,8 @@ For local development, link the checkout to the Vercel project and pull a fresh
 workload token:
 
 ```sh
-pnpm dlx vercel@latest link
-pnpm dlx vercel@latest env pull .env.local
+bun x vercel@latest link
+bun x vercel@latest env pull .env.local
 ```
 
 The downloaded OIDC token is intentionally short-lived. Pull it again when it

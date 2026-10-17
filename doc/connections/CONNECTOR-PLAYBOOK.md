@@ -800,16 +800,19 @@ no central instruction-template registry. See
 4. Regenerate definitions:
 
 ```sh
-pnpm connections:ingest-app-definitions
+bun run connections:ingest-app-definitions
 ```
 
 The default ingestion corpus is the Vercel research checkout at
-`../../clayon-content/research/connections/vercel/templates`. Override it
-when necessary:
+`../../clayon-content/research/connections/vercel/templates`. This path is an
+external checkout prerequisite: it lives outside this repository and resolves
+nowhere until you clone the `clayon-content` research corpus one level above
+the repo root. Without it, full ingestion fails; pass `--definitions-only` to
+regenerate provider definitions alone, or override the corpus:
 
 ```sh
 CLAYON_CONTENT_TEMPLATES=/absolute/path/to/templates \
-  pnpm connections:ingest-app-definitions
+  bun run connections:ingest-app-definitions
 ```
 
 Generation currently validates the 99-capture corpus and rewrites provider
@@ -1040,7 +1043,7 @@ At minimum, add or update tests in these layers:
 Useful focused command:
 
 ```sh
-pnpm exec vitest run \
+bun x vitest run \
   packages/shared/src/app-definitions.test.ts \
   server/src/__tests__/tool-access-service.test.ts \
   server/src/__tests__/generic-mcp-connection.test.ts \
@@ -1055,15 +1058,15 @@ without a test-name filter before handoff.
 Targeted type checks:
 
 ```sh
-pnpm --filter @clayon/shared typecheck
-pnpm --filter @clayon/server typecheck
-pnpm --filter @clayon/ui typecheck
+bun run --filter @clayon/shared typecheck
+bun run --filter @clayon/server typecheck
+bun run --filter @clayon/ui typecheck
 ```
 
 If UI code changed, also run:
 
 ```sh
-pnpm check:token-gates
+bun run check:token-gates
 ```
 
 ### Phase 8: Start an isolated instance and verify the setup UI
@@ -1073,10 +1076,10 @@ database.
 
 ```sh
 clayon worktree init
-pnpm dev
+bun run dev
 ```
 
-Confirm the actual port with `pnpm dev:list` and verify health:
+Confirm the actual port with `bun run dev:list` and verify health:
 
 ```sh
 curl -fsS http://localhost:<port>/api/health
@@ -1184,17 +1187,17 @@ Run the smallest relevant suite first, then the full ladder when the change is
 ready for review:
 
 ```sh
-pnpm check:token-gates
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run check:token-gates
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 Also run an affected Apps browser suite when routing, setup, OAuth popup,
 finish-setup, Test page, or branding behavior changed:
 
 ```sh
-pnpm test:e2e
+bun run test:e2e
 ```
 
 Do not hide failures. Classify each as introduced, pre-existing, environmental,
@@ -1222,7 +1225,7 @@ unrelated worktree change, or temporary evidence file is staged.
 
 1. Keep commits scoped. A typical split is definition/branding, generic runtime
    capability, and tests/docs. Do not split generated output from its source.
-2. Do not commit `pnpm-lock.yaml`; GitHub Actions owns it in this repository.
+2. Do not commit `bun.lock`; GitHub Actions owns it in this repository.
 3. Read `.github/PULL_REQUEST_TEMPLATE.md` immediately before writing the PR
    body.
 4. Fill every required section:
@@ -1247,11 +1250,11 @@ Suggested PR verification block:
 ```md
 ## Verification
 
-- `pnpm exec vitest run <focused files>` — passed
-- `pnpm check:token-gates` — passed
-- `pnpm -r typecheck` — passed
-- `pnpm test:run` — passed
-- `pnpm build` — passed
+- `bun x vitest run <focused files>` — passed
+- `bun run check:token-gates` — passed
+- `bun run --filter '*' typecheck` — passed
+- `bun run test:run` — passed
+- `bun run build` — passed
 - Live `<provider>/<method>` proof on `<date>`:
   connect ✓, list tools ✓, safe read ✓, refresh/reconnect ✓, revoke ✓,
   secret scan ✓
@@ -2061,7 +2064,7 @@ smoke pass should prove:
 - Audit rows include company, connection, run/issue, agent/user actor, tool, decision, reason code, and outcome.
 ### AppDefinition catalog authoring
 
-Connector proposals now target the versioned `AppDefinition` contract in `packages/shared/src/types/app-definition.ts`. Seed data is one JSON file per provider under `packages/shared/src/app-definitions/`; regenerate Wave 1 with `pnpm connections:ingest-app-definitions`. The generator parses all 99 captured templates, validates required placeholders, OAuth ownership modes, and API-key placement, and produces deterministic output for review. Review `riskTier` and `requiredResourceFilters` against the method capabilities and resource boundaries described above; managed ownership modes stay data-visible but runtime-hidden until availability is injected.
+Connector proposals now target the versioned `AppDefinition` contract in `packages/shared/src/types/app-definition.ts`. Seed data is one JSON file per provider under `packages/shared/src/app-definitions/`; regenerate Wave 1 with `bun run connections:ingest-app-definitions`. The generator parses all 99 captured templates, validates required placeholders, OAuth ownership modes, and API-key placement, and produces deterministic output for review. Review `riskTier` and `requiredResourceFilters` against the method capabilities and resource boundaries described above; managed ownership modes stay data-visible but runtime-hidden until availability is injected.
 
 ## Appendix: Notion Dry Run (MCP-Direct With DCR)
 
@@ -2245,7 +2248,7 @@ plain-HTTP non-loopback origins.
 ### Manifest Sketch
 
 The shipped `packages/shared/src/app-definitions/notion.json` (regenerate via
-`pnpm connections:ingest-app-definitions`):
+`bun run connections:ingest-app-definitions`):
 
 ```json
 {

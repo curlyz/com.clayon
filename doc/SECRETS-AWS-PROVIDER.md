@@ -76,7 +76,7 @@ CLAYON_SECRETS_PROVIDER=aws_secrets_manager \
 CLAYON_SECRETS_AWS_REGION=us-east-1 \
 CLAYON_SECRETS_AWS_DEPLOYMENT_ID=dev-local \
 CLAYON_SECRETS_AWS_KMS_KEY_ID=arn:aws:kms:us-east-1:123456789012:key/abcd-... \
-pnpm dev
+bun run dev
 ```
 
 Temporary `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` environment credentials

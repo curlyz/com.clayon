@@ -16,6 +16,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from "node:pat
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { z } from "zod";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const defaultManifestPath = join(repoRoot, "tests", "storybook-visual", "baseline-manifest.json");
@@ -29,6 +30,16 @@ const snapshotDir = resolvePath(process.env.STORYBOOK_VISUAL_SNAPSHOT_DIR ?? def
 
 const command = process.argv[2];
 const flags = parseFlags(process.argv.slice(3));
+
+// A caught error is unknown; extract its message without a type guard
+// (moe:typescript/no-type-guards): parse the { message } shape, else stringify.
+const errorMessageShape = z.object({ message: z.string().optional() });
+
+function caughtErrorMessage(error) {
+  const parsed = errorMessageShape.safeParse(error);
+  const message = parsed.success ? parsed.data.message : undefined;
+  return message ?? String(error);
+}
 
 try {
   if (command === "download") {
@@ -44,7 +55,7 @@ try {
     process.exit(command ? 1 : 0);
   }
 } catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  console.error(caughtErrorMessage(error));
   process.exit(1);
 }
 
@@ -136,7 +147,7 @@ async function verify() {
   const archivePath = archivePathFor(manifest);
   if (!existsSync(archivePath)) {
     throw new Error(
-      `Missing cached archive ${archivePath}. Run \`pnpm storybook-visual:baseline download\` first.`,
+      `Missing cached archive ${archivePath}. Run \`bun run storybook-visual:baseline download\` first.`,
     );
   }
   verifyArchiveFile(manifest, archivePath);
@@ -264,7 +275,7 @@ function assertConfiguredArchive(manifest) {
       `Baseline manifest ${relative(
         repoRoot,
         manifestPath,
-      )} does not point at a published archive yet. Run \`pnpm storybook-visual:baseline pack\`, upload the immutable archive, then update the manifest archive url/sha256/byteSize/snapshotCount.`,
+      )} does not point at a published archive yet. Run \`bun run storybook-visual:baseline pack\`, upload the immutable archive, then update the manifest archive url/sha256/byteSize/snapshotCount.`,
     );
   }
 }

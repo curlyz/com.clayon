@@ -186,12 +186,26 @@ function readRunnerState(path: string): Record<string, unknown> {
   return record(JSON.parse(readFileSync(path, "utf8")));
 }
 
+function identityField(
+  candidate: Record<string, unknown>,
+  field: keyof DurableRecoveryIdentity,
+): string {
+  const value = candidate[field];
+  return typeof value === "string" ? value : "";
+}
+
 function controlPlaneIdentity(
   state: Record<string, unknown>,
 ): DurableRecoveryIdentity {
-  return structuredClone(
-    record(state.identity) as unknown as DurableRecoveryIdentity,
-  );
+  const candidate = record(state.identity);
+  return {
+    runnerInstanceId: identityField(candidate, "runnerInstanceId"),
+    environmentLeaseId: identityField(candidate, "environmentLeaseId"),
+    runId: identityField(candidate, "runId"),
+    normalizedSessionId: identityField(candidate, "normalizedSessionId"),
+    turnId: identityField(candidate, "turnId"),
+    itemId: identityField(candidate, "itemId"),
+  };
 }
 
 function recoveryIdentityMatches(
@@ -1388,6 +1402,7 @@ export interface CapabilityRunnerdCodexTransportOptions {
   };
 }
 
+// Compatibility export: the release pin is not a runtime version gate.
 export type RunnerdCodexTransportOptions =
   CapabilityRunnerdCodexTransportOptions;
 
@@ -1398,6 +1413,7 @@ export interface CapabilityRunnerdCodexTransport {
   detachControllerForRestart(): Promise<void>;
 }
 
+// Compatibility export: the release pin is not a runtime version gate.
 export type RunnerdCodexTransport = CapabilityRunnerdCodexTransport;
 
 export function unwrapRunnerdProviderNotifications(
@@ -1491,29 +1507,28 @@ export function runnerdCanonicalNotificationMethod(
       ? "item/reasoning/textDelta"
       : "item/reasoning/summaryTextDelta";
   }
-  return (
-    {
-      "turn.started": "turn/started",
-      "item.started": "item/started",
-      "item.delta": "item/agentMessage/delta",
-      "item.completed": "item/completed",
-      "turn.completed": "turn/completed",
-      "turn.failed": "turn/completed",
-      "turn.interrupted": "turn/completed",
-      "turn.cancelled": "turn/completed",
-      "usage.reported": "thread/tokenUsage/updated",
-      "plan.updated": "turn/plan/updated",
-      "workspace.change.updated": "clayon/workspaceChange/updated",
-      "run.result.proposed": "clayon/runResult",
-      "session.goal.snapshot": "thread/goal/updated",
-      "session.goal.updated": "thread/goal/updated",
-      "session.goal.cleared": "thread/goal/cleared",
-      "session.updated":
-        payload.status === "budget_reached"
-          ? "provider/budgetReached"
-          : "provider/sessionUpdated",
-    } as Record<string, string>
-  )[eventType];
+  const canonicalMethodByEventType: Record<string, string> = {
+    "turn.started": "turn/started",
+    "item.started": "item/started",
+    "item.delta": "item/agentMessage/delta",
+    "item.completed": "item/completed",
+    "turn.completed": "turn/completed",
+    "turn.failed": "turn/completed",
+    "turn.interrupted": "turn/completed",
+    "turn.cancelled": "turn/completed",
+    "usage.reported": "thread/tokenUsage/updated",
+    "plan.updated": "turn/plan/updated",
+    "workspace.change.updated": "clayon/workspaceChange/updated",
+    "run.result.proposed": "clayon/runResult",
+    "session.goal.snapshot": "thread/goal/updated",
+    "session.goal.updated": "thread/goal/updated",
+    "session.goal.cleared": "thread/goal/cleared",
+    "session.updated":
+      payload.status === "budget_reached"
+        ? "provider/budgetReached"
+        : "provider/sessionUpdated",
+  };
+  return canonicalMethodByEventType[eventType];
 }
 
 export function resolveRunnerdSessionIdentity(input: unknown): {
@@ -3043,16 +3058,17 @@ function acpxProviderPackageAuthority(
   }
   const sidecarPackageRoot = resolve(cliDirectory, "../..");
   // A local source build lives at <workspace>/packages/clayon-runner and
-  // resolves dependencies from <workspace>/node_modules. `pnpm deploy` makes
-  // the package itself the deployment root and owns <deploy>/node_modules/.pnpm.
-  // The older npm-installed portable shape nests the scoped package at
+  // resolves dependencies from <workspace>/node_modules. The production graph
+  // deploy (scripts/deploy-runner-production-graph.mjs) makes the package itself
+  // the deployment root and owns a hoisted <deploy>/node_modules, with no
+  // workspace bun.lock two levels up. The older npm-installed portable shape nests the scoped package at
   // <deploy>/node_modules/@clayon/clayon-runner. The verifier always
   // receives the directory that owns node_modules, regardless of which
   // portable shape launched the already-authenticated sidecar.
   const sourceDependencyRoot = resolve(ownerPackageRoot, "../..");
-  const localDependencyRoot = existsSync(
-    resolve(ownerPackageRoot, "node_modules", ".pnpm"),
-  )
+  const localDependencyRoot =
+    existsSync(resolve(ownerPackageRoot, "node_modules")) &&
+    !existsSync(resolve(sourceDependencyRoot, "bun.lock"))
     ? ownerPackageRoot
     : basename(sourceDependencyRoot) === "node_modules"
       ? resolve(sourceDependencyRoot, "..")
@@ -3818,9 +3834,7 @@ class DurablePrpCodexTransport implements CodexAppServerTransport {
           : [{ id: activeProviderTurnId, status: "inProgress" }];
       if (activeProviderTurnId === null && this.#turnId.length > 0) {
         const recoveryDeadline = Date.now() + 5_000;
-        let terminal = (this.#core?.store.state.committedEvents ?? []).find(
-          () => false,
-        );
+        let terminal: DurableRecoveryCommittedEvent | undefined;
         while (Date.now() < recoveryDeadline) {
           this.#throwIfFailed();
           this.#pumpEvents();
@@ -7040,6 +7054,7 @@ export function createCapabilityRunnerdCodexTransport(
   };
 }
 
+// Compatibility export: the release pin is not a runtime version gate.
 export const createRunnerdCodexTransport =
   createCapabilityRunnerdCodexTransport;
 

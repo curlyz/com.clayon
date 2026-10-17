@@ -1,0 +1,8 @@
+type: object
+required:
+  - generatedAt
+properties:
+  generatedAt:
+    type: string
+    description: ISO timestamp of the response.
+additionalProperties: false

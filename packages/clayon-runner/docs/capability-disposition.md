@@ -39,15 +39,15 @@ Generation reads the live in-repo skill/reference sources, the legacy MCP tool s
 
 ```sh
 # Rewrite every generated file. Requires the external Clayon Evals corpus.
-pnpm --filter @clayon/clayon-runner generate:capability-inventory
+bun run --filter @clayon/clayon-runner generate:capability-inventory
 
 # Validate counts, uniqueness, normative dispositions, one-to-one MCP folds,
 # required fields, and generated-file drift. Offline; no external eval repo.
-pnpm --filter @clayon/clayon-runner check:capability-inventory
+bun run --filter @clayon/clayon-runner check:capability-inventory
 
 # Prove the validator rejects an independent MCP classification and rejects
 # missing, duplicate, or unknown MCP folds. Offline.
-pnpm --filter @clayon/clayon-runner test:capability-inventory
+bun run --filter @clayon/clayon-runner test:capability-inventory
 ```
 
 `check:capability-inventory` diffs the checked-in generated files against what the live in-repo sources imply and fails on any drift or stale anchor, so the contract cannot silently fall out of sync.

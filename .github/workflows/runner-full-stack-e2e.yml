@@ -159,7 +159,7 @@ jobs:
           fi
 
   target_lock:
-    name: Resolve target pnpm lockfile
+    name: Resolve target bun lockfile
     needs: authorize
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -178,34 +178,30 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - name: Resolve target lockfile without lifecycle scripts
         id: lock
         run: |
           set -euo pipefail
-          pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only
-          test -s pnpm-lock.yaml
-          unexpected="$(git status --short | awk '$2 != "pnpm-lock.yaml" { print }')"
+          bun install --ignore-scripts --lockfile-only
+          test -s bun.lock
+          unexpected="$(git status --short | awk '$2 != "bun.lock" { print }')"
           if [ -n "$unexpected" ]; then
-            echo "Lockfile resolution changed files other than pnpm-lock.yaml:" >&2
+            echo "Lockfile resolution changed files other than bun.lock:" >&2
             echo "$unexpected" >&2
             exit 1
           fi
-          echo "sha256=$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum bun.lock | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
 
       - name: Upload resolved target lockfile
         id: upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: runner-e2e-target-pnpm-lock-${{ github.run_id }}-${{ github.run_attempt }}
-          path: pnpm-lock.yaml
+          name: runner-e2e-target-bun-lock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: bun.lock
           retention-days: 30
           if-no-files-found: error
 
@@ -245,37 +241,28 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-e2e-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-e2e-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       # The v2 contract fails closed unless every Docker FROM is digest-pinned,
       # and hashes those exact base references into the immutable image tag.
       - name: Compute Daytona image content ID with pinned bases
         id: daytona_image_content
-        run: echo "content_id=$(pnpm --silent test:e2e:runner:image-id)" >> "$GITHUB_OUTPUT"
+        run: echo "content_id=$(bun run --silent test:e2e:runner:image-id)" >> "$GITHUB_OUTPUT"
 
       - name: Validate selectors and emit matrix
         id: catalog
@@ -334,7 +321,7 @@ jobs:
           if [ "$explicit" = false ] && { [ "$EVENT_NAME" = schedule ] || [ "${SELECT_ALL:-false}" = true ]; }; then
             args+=(--all)
           fi
-          catalog_json="$(pnpm --silent test:e2e:runner -- "${args[@]}")"
+          catalog_json="$(bun run --silent test:e2e:runner -- "${args[@]}")"
           {
             echo "matrix=$(jq -c '{include: .include}' <<< "$catalog_json")"
             echo "needs_daytona=$(jq -r '.needsDaytona' <<< "$catalog_json")"
@@ -396,12 +383,12 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-e2e-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-e2e-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
       - name: No Daytona image needed
         id: local_only
@@ -537,31 +524,22 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-e2e-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-e2e-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       # build:typescript also builds the eval-kernel dependency, so the two
       # TypeScript trees are compiled at most once in this campaign.
@@ -572,12 +550,12 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$NEEDS_RUNNER_TYPESCRIPT" = true ]; then
-            pnpm --filter @clayon/clayon-runner build:typescript
+            bun run --filter @clayon/clayon-runner build:typescript
           else
-            pnpm --filter @clayon/clayon-eval-kernel build
+            bun run --filter @clayon/clayon-eval-kernel build
           fi
           if [ "$NEEDS_NATIVE_BINARIES" = true ]; then
-            pnpm --filter @clayon/clayon-runner build:runner-binaries
+            bun run --filter @clayon/clayon-runner build:runner-binaries
           fi
 
       - name: Package immutable campaign outputs
@@ -666,12 +644,12 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-e2e-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-e2e-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
       - if: needs.catalog.outputs.needs_remote_provider_pack == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -679,22 +657,12 @@ jobs:
           node-version: 24
 
       - if: needs.catalog.outputs.needs_remote_provider_pack == 'true'
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       - if: needs.catalog.outputs.needs_remote_provider_pack == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - if: needs.catalog.outputs.needs_remote_provider_pack == 'true'
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Materialize verified pinned OpenCode executable
         if: needs.catalog.outputs.needs_remote_provider_pack == 'true'
@@ -796,6 +764,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REF: ${{ github.ref }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ACTOR: ${{ github.actor }}
           ACTOR_ID: ${{ github.actor_id }}
           TRIGGERING_ACTOR: ${{ github.triggering_actor }}
           ALLOWED_ACTOR_IDS: ${{ vars.RUNNER_E2E_ALLOWED_ACTOR_IDS }}
@@ -812,6 +781,10 @@ jobs:
             if [ "$attempt" = 3 ]; then exit 1; fi
             sleep "$((attempt * 2))"
           done
+          if [ "$triggering_actor_id" != "$ACTOR_ID" ] && [ "$TRIGGERING_ACTOR" = "$ACTOR" ]; then
+            echo "GitHub actor identity contexts disagree; refusing the paid run." >&2
+            exit 1
+          fi
           jq -e --argjson candidate "$triggering_actor_id" 'index($candidate) != null' <<< "$ALLOWED_ACTOR_IDS" >/dev/null
           jq -e --argjson candidate "$ACTOR_ID" 'index($candidate) != null' <<< "$ALLOWED_ACTOR_IDS" >/dev/null
 
@@ -833,29 +806,25 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          lock="$RUNNER_TEMP/runner-e2e-target-lock/pnpm-lock.yaml"
+          lock="$RUNNER_TEMP/runner-e2e-target-lock/bun.lock"
           test -f "$lock"
           test "$(find "$(dirname "$lock")" -type f | wc -l | tr -d ' ')" = 1
           test "$(sha256sum "$lock" | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
-          cp "$lock" pnpm-lock.yaml
-          test "$(sha256sum pnpm-lock.yaml | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
+          cp "$lock" bun.lock
+          test "$(sha256sum bun.lock | cut -d ' ' -f 1)" = "$EXPECTED_LOCK_SHA256"
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       # This job receives provider credentials only in the final paid-test
       # step. Keep target-selected dependency lifecycle code from running in
       # the protected environment during setup.
-      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       # Sandbox-provider plugins are intentionally excluded from the root
       # workspace. The ordinary root postinstall links the in-repo plugin SDK,
@@ -872,16 +841,16 @@ jobs:
           test -d "$sdk_root"
           test ! -L "$daytona_root"
           test ! -L "$sdk_root"
-          test -f "$daytona_root/pnpm-lock.yaml"
+          test -f "$daytona_root/bun.lock"
           test "$(jq -r .name "$daytona_root/package.json")" = "@clayon/plugin-daytona"
           test "$(jq -r .name "$sdk_root/package.json")" = "@clayon/plugin-sdk"
           (
             cd "$daytona_root"
-            pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts
+            bun install --frozen-lockfile --ignore-scripts
           )
           node scripts/link-plugin-dev-sdk.mjs
           test "$(realpath "$daytona_root/node_modules/@clayon/plugin-sdk")" = "$(realpath "$sdk_root")"
-          pnpm --dir "$daytona_root" build
+          bun run --cwd "$daytona_root" build
           test -f "$daytona_root/dist/manifest.js"
           test -f "$daytona_root/dist/worker.js"
           test -e "$daytona_root/node_modules/@daytonaio/sdk"
@@ -984,7 +953,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            if pnpm exec playwright install ffmpeg; then
+            if bun run playwright install ffmpeg; then
               exit 0
             fi
             if [ "$attempt" -eq 3 ]; then
@@ -999,7 +968,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            if pnpm exec playwright install --with-deps --only-shell chromium; then
+            if bun run playwright install --with-deps --only-shell chromium; then
               exit 0
             fi
             if [ "$attempt" -eq 3 ]; then
@@ -1034,7 +1003,7 @@ jobs:
           const triple = arch === "x64" ? "x86_64-unknown-linux-musl" : "aarch64-unknown-linux-musl";
           const suffix = `/vendor/${triple}/bin/codex`;
           const binary = realpathSync(path.join(path.dirname(platformPackage), suffix));
-          if (!binary.startsWith(root + "/node_modules/.pnpm/") || !binary.endsWith(suffix) || !/^[/A-Za-z0-9_.@+\-]+$/.test(binary)) {
+          if (!binary.startsWith(root + "/node_modules/.bun/") || !binary.endsWith(suffix) || !/^[/A-Za-z0-9_.@+\-]+$/.test(binary)) {
             throw new Error("Codex executable is outside the resolved dependency tree");
           }
           const name = `clayon-e2e-codex-${createHash("sha256").update(binary).digest("hex").slice(0,16)}`;
@@ -1066,7 +1035,7 @@ jobs:
           CLAYON_RUNNER_E2E_SOURCE_SHA: ${{ needs.authorize.outputs.target_sha }}
           CLAYON_RUNNER_E2E_SOURCE_REF: ${{ needs.authorize.outputs.target_ref }}
           CLAYON_PLAYWRIGHT_CHANNEL: ${{ needs.authorize.outputs.playwright_channel }}
-        run: pnpm test:e2e:runner -- --id "${{ matrix.executionId }}"
+        run: bun run test:e2e:runner -- --id "${{ matrix.executionId }}"
 
       - name: Upload access-controlled packaged cell evidence
         if: always()
@@ -1099,23 +1068,14 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: pnpm
+          bun-version: 1.4.3
 
       # Resolve from this trusted checkout only. Never use the target branch's
       # lockfile or install scripts in the publication job.
-      - run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --ignore-scripts --lockfile-only
+      - run: bun install --frozen-lockfile
 
       - name: Resolve workflow job attempts
         env:
@@ -1180,7 +1140,7 @@ jobs:
         if: always()
         env:
           CLAYON_RUNNER_E2E_MERGED_REPORT_DIR: ${{ github.workspace }}/runner-e2e-merged-report
-        run: pnpm exec playwright merge-reports --config tests/runner-e2e/merge.config.ts merged-blob-reports
+        run: bun run playwright merge-reports --config tests/runner-e2e/merge.config.ts merged-blob-reports
 
       - name: Aggregate normalized campaign results
         if: always()
@@ -1195,7 +1155,7 @@ jobs:
           CLAYON_RUNNER_E2E_HISTORY_PREFIX: ${{ vars.RUNNER_E2E_HISTORY_PREFIX || 'runner-e2e' }}
         run: |
           set +e
-          pnpm test:e2e:runner:report
+          bun run test:e2e:runner:report
           report_status=$?
           set -e
           cat runner-e2e-merged-report/normalized/summary.md >> "$GITHUB_STEP_SUMMARY"
@@ -1249,23 +1209,19 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
-        env:
-          NPM_CONFIG_AUDIT: "false"
-          NPM_CONFIG_FUND: "false"
-          NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
 
       # Resolve the trusted publication checkout's lockfile without lifecycle
       # scripts, then install the exact result. This matches the report job's
       # frozen-install preparation while keeping target-controlled code out of
       # the AWS credentialed publisher.
-      - run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --ignore-scripts --lockfile-only
+      - run: bun install --frozen-lockfile
 
       - name: Install publisher-only Chromium
-        run: pnpm exec playwright install --with-deps --only-shell chromium
+        run: bun run playwright install --with-deps --only-shell chromium
 
       - name: Download access-controlled normalized campaign
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -1285,7 +1241,7 @@ jobs:
           RUNNER_E2E_HISTORY_S3_BUCKET: ${{ vars.RUNNER_E2E_HISTORY_S3_BUCKET }}
           RUNNER_E2E_HISTORY_PREFIX: ${{ vars.RUNNER_E2E_HISTORY_PREFIX || 'runner-e2e' }}
           RUNNER_E2E_HISTORY_PUBLIC_BASE_URL: ${{ vars.RUNNER_E2E_HISTORY_PUBLIC_BASE_URL }}
-        run: pnpm test:e2e:runner:history:publish
+        run: bun run test:e2e:runner:history:publish
 
       - name: Resolve Pages artifact name
         id: pages_artifact_name

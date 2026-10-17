@@ -1,0 +1,32 @@
+openapi: 3.1.0
+info:
+  title: Paperclip gateway
+  version: 0.1.0
+  description: >-
+    The Paperclip control-plane API. Rung 1 carries the liveness door and the
+    read-only agent roster of one company; later rungs add auth, more slices and
+    the runner protocol. Every response carries Cache-Control no-store and
+    x-request-id.
+servers:
+  - url: http://127.0.0.1:8810/api
+paths:
+  /health:
+    $ref: paths/health.yaml
+  /agents:
+    $ref: paths/agents.yaml
+  /agents/{agentId}:
+    $ref: paths/agents_{agentId}.yaml
+components:
+  schemas:
+    Agent:
+      $ref: components/schemas/Agent.yaml
+    AgentEnvelope:
+      $ref: components/schemas/AgentEnvelope.yaml
+    AgentList:
+      $ref: components/schemas/AgentList.yaml
+    GeneratedMeta:
+      $ref: components/schemas/GeneratedMeta.yaml
+    Health:
+      $ref: components/schemas/Health.yaml
+    HealthData:
+      $ref: components/schemas/HealthData.yaml

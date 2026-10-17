@@ -98,6 +98,7 @@ function configWithSecretsProvider(provider: ClayonConfig["secrets"]["provider"]
       host: "127.0.0.1",
       port: 3100,
       allowedHostnames: [],
+      crossOriginApiOrigins: [],
       serveUi: true,
     },
     auth: {

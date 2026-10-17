@@ -22,11 +22,11 @@ export function runnerE2ETypeScriptProcessArgs(repositoryRoot: string, entry: st
   return ["--import", path.join(repositoryRoot, "cli/node_modules/tsx/dist/loader.mjs"), entry, ...args];
 }
 
-// pnpm's generated playwright bin shim adds NODE_PATH, even when the caller
+// A package-manager generated playwright bin shim can add NODE_PATH, even when the caller
 // rejected ambient injection. The installed lane invokes the public JS bin
 // with the current Node directly, keeping the WebServer environment closed.
 export function runnerE2EPlaywrightInvocation(repositoryRoot: string, args: string[], installed: boolean) {
   return installed
     ? { command: process.execPath, args: [path.join(repositoryRoot, "node_modules/@playwright/test/cli.js"), ...args] }
-    : { command: "pnpm", args: ["exec", "playwright", ...args] };
+    : { command: "bun", args: ["x", "playwright", ...args] };
 }

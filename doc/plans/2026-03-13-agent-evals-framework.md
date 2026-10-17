@@ -89,7 +89,7 @@ Those are control-plane behaviors. They require scenario setup, execution, and t
 
 The existing monorepo already uses:
 
-- `pnpm`
+- `bun`
 - `tsx`
 - `vitest`
 - TypeScript across server, UI, shared contracts, and adapters
@@ -498,9 +498,9 @@ Characteristics:
 Suggested commands:
 
 ```sh
-pnpm evals:smoke
-pnpm evals:compare --baseline baseline/codex-default --candidate experiments/codex-lean-skillset
-pnpm evals:nightly
+bun run evals:smoke
+bun run evals:compare --baseline baseline/codex-default --candidate experiments/codex-lean-skillset
+bun run evals:nightly
 ```
 
 PR behavior:

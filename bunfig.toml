@@ -1,0 +1,4 @@
+[install]
+linker = "isolated"
+# pnpm auto-install-peers=false parity (the former .npmrc).
+peer = false

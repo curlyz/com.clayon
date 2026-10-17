@@ -120,7 +120,7 @@ async function main() {
     const current = await readFile(outputPath, "utf8").catch(() => "");
     if (current !== encoded) {
       process.stderr.write(
-        "The generated PRP contract manifest is stale. Run pnpm generate:protocol-manifest.\n",
+        "The generated PRP contract manifest is stale. Run bun run generate:protocol-manifest.\n",
       );
       process.exitCode = 1;
     } else {

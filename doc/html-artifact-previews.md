@@ -34,7 +34,7 @@ workspace panel/file sheet, and a task-to-report journey. Run the browser securi
 checks with:
 
 ```sh
-pnpm exec playwright test --config tests/html-preview/playwright.config.ts
+bun x playwright test --config tests/html-preview/playwright.config.ts
 ```
 
 These checks use Chromium and simulated report data. They verify working report

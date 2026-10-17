@@ -343,7 +343,7 @@ old user turns remain in history until Hermes compresses them or the session res
 Run the credential-free capture-process regression tests with:
 
 ```sh
-pnpm --filter @clayon/hermes-clayon-adapter test -- src/server/execute.instructions.test.ts
+bun run --filter @clayon/hermes-clayon-adapter test -- src/server/execute.instructions.test.ts
 ```
 
 These tests verify actual child-process arguments and environment, not provider
@@ -364,8 +364,8 @@ Clayon UI can display both managed and native skills in one view.
 ```bash
 git clone https://github.com/clayon/clayon
 cd clayon/packages/adapters/hermes
-pnpm install
-pnpm build
+bun install
+bun run build
 ```
 
 ## License

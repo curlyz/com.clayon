@@ -12,7 +12,7 @@ Before you start the recording:
 
 - Clayon running in `local_trusted` or `authenticated/private` mode. Public mode is fine as long as the Clayon process can reach `http://127.0.0.1:8848` (we connect over `remote_http`, so no trusted runtime worker is required).
 - A company with at least one agent identity to act as the caller. That agent must have an **active heartbeat run** for the gateway-call steps (Steps 6, 7, 9, 11). The simplest way to keep one alive during recording is to assign a placeholder task to the agent before the demo starts; the agent's heartbeat run stays in `running` while it works.
-- The KV demo server package built (`pnpm --filter @clayon/kv-demo-mcp-server build`).
+- The KV demo server package built (`bun run --filter @clayon/kv-demo-mcp-server build`).
 - Board API key (`$BOARD_API_KEY`) exported. Company ID (`$COMPANY_ID`) exported. Agent ID (`$AGENT_ID`) for the caller exported.
 - Clayon URL (`$CLAYON_URL`) exported.
 - The Tools & Access UI open at `/<prefix>/companies/<companyId>/tools`.
@@ -37,7 +37,7 @@ Show the Tools & Access overview tab. Point at:
 In a side terminal, launch the server and leave it running for the rest of the demo:
 
 ```sh
-pnpm --filter @clayon/kv-demo-mcp-server start
+bun run --filter @clayon/kv-demo-mcp-server start
 ```
 
 Expected stderr:
@@ -331,7 +331,7 @@ The KV server keeps state in process memory. Restart the server to drop everythi
 
 ```sh
 # In the side terminal running the KV server, press Ctrl+C, then start it again.
-pnpm --filter @clayon/kv-demo-mcp-server start
+bun run --filter @clayon/kv-demo-mcp-server start
 ```
 
 The next `kv_list` call returns an empty `entries` array. The Values UI shows the empty table again. Clayon's audit history is untouched — it still records that the calls happened, just against a server that has since reset.

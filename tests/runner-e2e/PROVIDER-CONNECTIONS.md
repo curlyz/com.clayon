@@ -60,11 +60,11 @@ a current bearer token and region. The harness does not mint or refresh AWS
 tokens. Missing credentials/configuration produce a blocked result.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite provider-connections
-pnpm test:e2e:runner -- \
+bun run test:e2e:runner -- --list --suite provider-connections
+bun run test:e2e:runner -- \
   --id provider-connections.connection-codex-native.local.agent-api-key \
   --connection-config /absolute/private/path/connections.json
-pnpm test:e2e:runner -- \
+bun run test:e2e:runner -- \
   --id provider-connections.connection-claude-legacy.local.apps-subscription \
   --connection-config /absolute/private/path/connections.json
 ```
@@ -203,7 +203,7 @@ owned sign-in receipts. Concurrent campaigns' accounts are never adopted or
 revoked, even if both campaigns initially observed an empty QA company.
 UI probes may incur unreported spend, so billing is explicitly partial.
 Regenerate the report from retained results with
-`pnpm test:e2e:runner:dashboard -- /absolute/path/to/connections-campaign`.
+`bun run test:e2e:runner:dashboard -- /absolute/path/to/connections-campaign`.
 
 API-key cells can run headless (`browser.headed: false`, `channel: "chromium"`)
 on trusted CI once the target's board authentication is provided through a
@@ -213,14 +213,14 @@ runner are the next operational step; normal untrusted PR jobs never get these
 credentials. Credential-free support tests and catalog checks run separately:
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
 ```
 
 The opt-in cancellation smoke uses a synthetic loopback page and cookie, with
 no provider calls or credentials. It verifies that Ctrl-C, termination, and
 hangup leave the browser's authenticated API client usable until fixture cleanup
-finishes: `pnpm exec tsx tests/runner-e2e/connection-cancel.smoke.ts`.
+finishes: `bun x tsx tests/runner-e2e/connection-cancel.smoke.ts`.
 
 ## Initial verification (2026-10-03)
 
@@ -452,7 +452,7 @@ actual ACP file tools against the patched ACPX client, with a loopback model
 response and disposable home/workspace:
 
 ```sh
-pnpm exec tsx tests/runner-e2e/gemini-acp-filesystem.smoke.ts
+bun x tsx tests/runner-e2e/gemini-acp-filesystem.smoke.ts
 ```
 
 On the stock CLI, reading an existing file and rejecting an external write pass;

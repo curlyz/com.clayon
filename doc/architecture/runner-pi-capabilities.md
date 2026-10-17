@@ -674,12 +674,14 @@ dynamic-library dependencies and executes the copied interpreter after relocatio
 The initial Homebrew Node discovery failed this portability check and is not an
 admitted pack interpreter.
 
-The isolated `scripts/pi-distribution/package-lock.json` pins all 143 dependency
-packages and registry integrity, without changing the workspace pnpm graph. It
-preserves Pi's upstream nested shrinkwrap, and adds npm registry SHA-512 integrity
-for the six exact 0.84.2 Pi family packages whose published shrinkwrap omitted it.
-Installation uses `npm ci --ignore-scripts`, public registry access, private npm
-configuration and an environment without npm or provider credentials. The builder
+The isolated `scripts/pi-distribution` directory pins all dependency packages
+and registry integrity in its committed `bun.lock`, without changing the Bun
+workspace graph. The builder copies `package.json` and `bun.lock` into the
+runtime root and installs from the committed bun.lock with
+`bun install --frozen-lockfile --ignore-scripts --production --linker=hoisted
+--no-summary` against the public registry (`https://registry.npmjs.org`),
+in an environment without npm or provider credentials, and verifies the
+installed `bun.lock` bytes still equal the committed lock bytes. The builder
 checks every locked installed version and upstream shrinkwrap entry (with the
 exact security exception below), applies the
 owned ACP patch, verifies the helper matches its TypeScript source, and compiles

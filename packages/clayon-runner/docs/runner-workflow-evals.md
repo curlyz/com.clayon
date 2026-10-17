@@ -10,10 +10,10 @@ The workspace-private `@clayon/clayon-eval-kernel` package owns only structural 
 
 ## Lanes
 
-- `pnpm --filter @clayon/clayon-runner test:runner-workflow-evals` runs the credential-free PR gate over sanitized Codex, OpenCode, and ACPX normalization fixtures.
-- `pnpm --filter @clayon/clayon-runner report:runner-workflow-evals` validates the deterministic fail-closed fixture matrix and writes JSON, Markdown, JUnit, and GitHub-safe artifacts under `.clayon-local/evals/workflows/`. No network requests.
-- `pnpm --filter @clayon/clayon-runner report:runner-live-evals` runs the balanced forty-execution schedule against real provider sessions. Live candidate failures are trend-only; missing credentials, qualification failures, and provider outages remain unscored.
-- `pnpm --filter @clayon/clayon-runner report:runner-chaos-evals` writes the eight-scenario fault schedule consumed by weekly and pre-release restart, replay, trace, finalization, interaction, and wake-race suites.
+- `bun run --filter @clayon/clayon-runner test:runner-workflow-evals` runs the credential-free PR gate over sanitized Codex, OpenCode, and ACPX normalization fixtures.
+- `bun run --filter @clayon/clayon-runner report:runner-workflow-evals` validates the deterministic fail-closed fixture matrix and writes JSON, Markdown, JUnit, and GitHub-safe artifacts under `.clayon-local/evals/workflows/`. No network requests.
+- `bun run --filter @clayon/clayon-runner report:runner-live-evals` runs the balanced forty-execution schedule against real provider sessions. Live candidate failures are trend-only; missing credentials, qualification failures, and provider outages remain unscored.
+- `bun run --filter @clayon/clayon-runner report:runner-chaos-evals` writes the eight-scenario fault schedule consumed by weekly and pre-release restart, replay, trace, finalization, interaction, and wake-race suites.
 
 The checked-in live manifest contains only adapter/model settings, qualification variable names, and budgets. Credentials remain in the environment. `CLAYON_EVAL_MAX_CAMPAIGN_COST_USD` must be a positive finite number and defaults to 12 USD for scheduled runs.
 

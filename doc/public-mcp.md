@@ -386,7 +386,7 @@ local protocol and paid model tests do not establish store/UI readiness.
 
 ## Storybook previews
 
-Run `pnpm storybook` and open the **Assistant connections** group. The stories
+Run `bun run storybook` and open the **Assistant connections** group. The stories
 render the production consent, connection-management, and Experimental pages,
 including read-only roles, loading, empty, unavailable, pending, revoked, and
 failed-save states. Interactive stories verify organization-switch consent reset,
@@ -418,7 +418,7 @@ explicit overrides:
 
 ```sh
 # From the Clayon repository's ui/ directory:
-pnpm exec storybook dev --port 6106 --config-dir storybook/.storybook --no-open
+bun x storybook dev --port 6106 --config-dir storybook/.storybook --no-open
 
 # From the clayon-cloud repository's web/ directory:
 npm run storybook -- --port 6107

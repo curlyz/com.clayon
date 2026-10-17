@@ -52,6 +52,7 @@ function createTempConfig(serverPort: number): string {
       host: "127.0.0.1",
       port: serverPort,
       allowedHostnames: [],
+      crossOriginApiOrigins: [],
       serveUi: true,
     },
     auth: {

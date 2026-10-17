@@ -2,7 +2,7 @@
 id: antl:clayon/packages/clayon-runner/docs/tutorials/standalone-thin-clayon-adapter
 ---
 
-# Standalone Standalone Adapter Demo
+# Standalone Adapter Demo
 
 Exercises the Standalone tracer entirely inside
 `packages/clayon-runner/`. No runner install into Clayon,
@@ -14,7 +14,7 @@ Clayon task, no repository server/database integration.
 From the repository root:
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:standalone
+bun run --filter @clayon/clayon-runner trace:standalone
 ```
 
 JSON trace must report:
@@ -28,7 +28,7 @@ JSON trace must report:
 ## 2. Enable the native standalone path
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
 ```
 
 Trace must report `resolvedMode: "native"`. Both paths execute the same
@@ -39,7 +39,7 @@ inspectable.
 ## 3. Prove the kill switch
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
 ```
 
 Trace must return to `resolvedMode: "legacy"` with
@@ -49,7 +49,7 @@ allowed after the kill switch resolves the path.
 ## 4. Open the standalone demo page
 
 ```sh
-pnpm --filter @clayon/clayon-runner demo:standalone
+bun run --filter @clayon/clayon-runner demo:standalone
 ```
 
 Open `http://127.0.0.1:4182/standalone-demo/`. Page starts on legacy.
@@ -60,10 +60,10 @@ trace JSON for replay and idempotency details.
 ## 5. Run the package-local checks
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/standalone/standalone-demo.test.ts \
   src/conformance/control-plane-port.test.ts
-pnpm --filter @clayon/clayon-runner run build:standalone
+bun run --filter @clayon/clayon-runner build:standalone
 ```
 
 Checks need no running Clayon service or credentials.

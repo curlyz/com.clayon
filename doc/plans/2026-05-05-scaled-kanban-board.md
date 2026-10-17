@@ -48,7 +48,7 @@ expect(container.textContent).not.toContain("Issue 1");
 Run:
 
 ```bash
-pnpm exec vitest run ui/src/components/KanbanBoard.test.tsx
+bun x vitest run ui/src/components/KanbanBoard.test.tsx
 ```
 
 Expected: fail because `KanbanBoard.test.tsx` is new and the props/behavior do not exist.
@@ -86,7 +86,7 @@ Keep `DndContext`, `SortableContext`, and `handleDragEnd` status detection. Beca
 Run:
 
 ```bash
-pnpm exec vitest run ui/src/components/KanbanBoard.test.tsx
+bun x vitest run ui/src/components/KanbanBoard.test.tsx
 ```
 
 Expected: pass.
@@ -131,7 +131,7 @@ expect(mockKanbanBoard).toHaveBeenLastCalledWith(expect.objectContaining({
 Run:
 
 ```bash
-pnpm exec vitest run ui/src/components/IssuesList.test.tsx
+bun x vitest run ui/src/components/IssuesList.test.tsx
 ```
 
 Expected: fail because `IssuesList` does not pass the new props yet.
@@ -193,7 +193,7 @@ Update the `KanbanBoard` call:
 Run:
 
 ```bash
-pnpm exec vitest run ui/src/components/IssuesList.test.tsx ui/src/components/KanbanBoard.test.tsx
+bun x vitest run ui/src/components/IssuesList.test.tsx ui/src/components/KanbanBoard.test.tsx
 ```
 
 Expected: pass.
@@ -213,7 +213,7 @@ git commit -m "Wire issue board density controls"
 - [ ] **Step 1: Run targeted UI tests**
 
 ```bash
-pnpm exec vitest run ui/src/components/IssuesList.test.tsx ui/src/components/KanbanBoard.test.tsx
+bun x vitest run ui/src/components/IssuesList.test.tsx ui/src/components/KanbanBoard.test.tsx
 ```
 
 Expected: pass.
@@ -221,7 +221,7 @@ Expected: pass.
 - [ ] **Step 2: Run broader cheap test path**
 
 ```bash
-pnpm test
+bun run test
 ```
 
 Expected: pass.

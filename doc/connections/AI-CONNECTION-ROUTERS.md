@@ -87,22 +87,22 @@ Configuration and committed selection are recorded in activity records. Runs
 record the selected member/profile and override notes in the local run log and
 recovery context. These records stay in the instance database.
 
-Tests: `cd server && pnpm exec vitest run src/__tests__/ai-connection-router.test.ts`
+Tests: `cd server && bun x vitest run src/__tests__/ai-connection-router.test.ts`
 plus the existing AI connection, retry accounting, run-dispatch and UI suites.
 
 ## UI review in Storybook
 
-Run `pnpm --filter @clayon/ui storybook` from Core, then open
+Run `bun run --filter @clayon/ui storybook` from Core, then open
 **AI Connections / Connection pools**. The 16 stories use production components
 for pool selection, legacy-session adoption, unavailable/read-only selections,
 mixed-provider composer models and effort, mobile composer settings, usage waits,
 run selections and override notes, and scheduled retries.
 `AllCoreSurfaces` provides an overview; individual stories expose the expanded
-menus and adoption dialog. Run `pnpm --filter @clayon/ui build-storybook`
+menus and adoption dialog. Run `bun run --filter @clayon/ui build-storybook`
 to build the preview.
 
-Pool configuration stories belong to the private Cloud plugin's own Storybook
-in `extensions/plugin-connection-pool/storybook/`. Both previews use fictional
+Pool configuration stories belong to the private Cloud plugin's own Storybook,
+which lives in the Cloud plugin's sibling repository, not this tree. Both previews use fictional
 accounts; they do not call live providers or mutate a Clayon instance.
 Core also owns **Connectors / Pool host** stories for the generic native
 extension. The overview links to Cloud's **In Connectors** preview on port 6010;
@@ -120,7 +120,7 @@ with two saved, authorized AI accounts. Run:
 CLAYON_CONNECTION_POOL_E2E=1 \
 AI_CONNECTIONS_TEST_URL=http://127.0.0.1:3100 \
 AI_CONNECTIONS_TEST_COMPANY_ID=<test-company-id> \
-pnpm exec playwright test --config tests/ai-connections-app/playwright.config.ts connection-pools.spec.ts
+bun x playwright test --config tests/ai-connections-app/playwright.config.ts connection-pools.spec.ts
 ```
 
 These opt-in tests exercise the shipped app, installed plugin and database without

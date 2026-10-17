@@ -250,8 +250,6 @@ impl ProviderEventIdentity {
     }
 
     fn source_event_id(&self, executor_event_id: &str) -> String {
-        use sha2::{Digest, Sha256};
-
         let mut hasher = Sha256::new();
         hasher.update(b"clayon.executor-event.v1\0");
         hasher.update(self.runner_instance_id.as_bytes());
@@ -3842,10 +3840,7 @@ impl CodexCommandExecutor {
                 .as_ref()
                 .is_some_and(|(operation_id, _)| {
                     !result.is_error
-                        && matches!(
-                            operation_id.as_str(),
-                            "clayon_finish" | "clayon_block"
-                        )
+                        && matches!(operation_id.as_str(), "clayon_finish" | "clayon_block")
                 });
         if let Some((operation_id, input)) = terminal_tool_input {
             admit_terminal_tool_authority(&mut next_state, &operation_id, &input, result.is_error)?;
@@ -5252,13 +5247,8 @@ mod tests {
         state.config.driver = "codex_app_server".to_owned();
         state.config.provider_version = "test".to_owned();
 
-        admit_terminal_tool_authority(
-            &mut state,
-            "clayon_finish",
-            &valid_opencode_result(),
-            false,
-        )
-        .unwrap();
+        admit_terminal_tool_authority(&mut state, "clayon_finish", &valid_opencode_result(), false)
+            .unwrap();
 
         assert_eq!(
             state.active_provider_result_disposition.as_deref(),

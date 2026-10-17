@@ -2,6 +2,12 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
+
+const packageManifestSchema = z.object({
+  name: z.string().optional(),
+  version: z.string().optional(),
+});
 
 const VALID_TEMPLATES = ["default", "connector", "workspace", "environment"] as const;
 type PluginTemplate = (typeof VALID_TEMPLATES)[number];
@@ -93,18 +99,17 @@ function packLocalPackage(packagePath: string, outputDir: string): string {
     throw new Error(`Package package.json not found at ${packageJsonPath}`);
   }
 
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
-    name?: string;
-    version?: string;
-  };
+  const packageJson = packageManifestSchema.parse(
+    JSON.parse(fs.readFileSync(packageJsonPath, "utf8")),
+  );
   const packageName = packageJson.name ?? path.basename(packagePath);
   const packageVersion = packageJson.version ?? "0.0.0";
   const tarballFileName = `${packageName.replace(/^@/, "").replace("/", "-")}-${packageVersion}.tgz`;
   const sdkBundleDir = path.join(outputDir, ".clayon-sdk");
 
   fs.mkdirSync(sdkBundleDir, { recursive: true });
-  execFileSync("pnpm", ["build"], { cwd: packagePath, stdio: "pipe" });
-  execFileSync("pnpm", ["pack", "--pack-destination", sdkBundleDir], { cwd: packagePath, stdio: "pipe" });
+  execFileSync("bun", ["run", "build"], { cwd: packagePath, stdio: "pipe" });
+  execFileSync("bun", ["pm", "pack", "--destination", sdkBundleDir], { cwd: packagePath, stdio: "pipe" });
 
   const tarballPath = path.join(sdkBundleDir, tarballFileName);
   if (!fs.existsSync(tarballPath)) {
@@ -180,10 +185,8 @@ export function scaffoldPluginProject(options: ScaffoldPluginOptions): string {
     license: "MIT",
     ...(packedSharedTarball
       ? {
-        pnpm: {
-          overrides: {
-            "@clayon/shared": `file:${toPosixPath(path.relative(outputDir, packedSharedTarball))}`,
-          },
+        overrides: {
+          "@clayon/shared": `file:${toPosixPath(path.relative(outputDir, packedSharedTarball))}`,
         },
       }
       : {}),
@@ -666,13 +669,13 @@ ${description}
 ## Development
 
 \`\`\`bash
-pnpm install
-pnpm dev            # watch builds
-pnpm dev:ui         # local dev server with hot-reload events
-pnpm test
+bun install
+bun run dev         # watch builds
+bun run dev:ui      # local dev server with hot-reload events
+bun run test
 \`\`\`
 
-\`pnpm dev\` rebuilds the worker, manifest, and UI bundles into \`dist/\`.
+\`bun run dev\` rebuilds the worker, manifest, and UI bundles into \`dist/\`.
 When this package is installed from a local path, Clayon watches that rebuilt
 output and reloads the plugin worker. Local installs run trusted code from this
 folder on your machine.
@@ -689,8 +692,8 @@ clayon plugin install ${shellQuote(toPosixPath(outputDir))}
 
 ## Build Options
 
-- \`pnpm build\` uses esbuild presets from \`@clayon/plugin-sdk/bundlers\`.
-- \`pnpm build:rollup\` uses rollup presets from the same SDK.
+- \`bun run build\` uses esbuild presets from \`@clayon/plugin-sdk/bundlers\`.
+- \`bun run build:rollup\` uses rollup presets from the same SDK.
 `,
   );
 

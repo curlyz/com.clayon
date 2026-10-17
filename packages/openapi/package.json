@@ -1,0 +1,27 @@
+{
+  "name": "@clayon/openapi",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./generated/orpc.gen.ts",
+    "./zod": "./generated/zod.gen.ts",
+    "./spec.json": "./spec.json"
+  },
+  "scripts": {
+    "bundle": "redocly bundle openapi.yaml --output spec.json",
+    "lint": "redocly lint openapi.yaml",
+    "generate": "bun run bundle && openapi-ts",
+    "check": "node scripts/check.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/contract": "2.0.0-beta.43",
+    "@orpc/openapi": "2.0.0-beta.43",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.0.0-next-20260930190945",
+    "@redocly/cli": "2.63.0",
+    "typescript": "7.0.2"
+  }
+}

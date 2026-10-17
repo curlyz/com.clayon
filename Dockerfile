@@ -4,8 +4,9 @@ ARG USER_UID=1000
 ARG USER_GID=1000
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates gosu curl gh git wget ripgrep python3 tini \
-  && rm -rf /var/lib/apt/lists/* \
-  && corepack enable
+  && rm -rf /var/lib/apt/lists/*
+COPY --from=oven/bun:1.4.3 /usr/local/bin/bun /usr/local/bin/bun
+RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx
 
 # Modify the existing node user/group to have the specified UID/GID to match host user
 RUN usermod -u $USER_UID --non-unique node \
@@ -14,7 +15,7 @@ RUN usermod -u $USER_UID --non-unique node \
 
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY package.json bun.lock bunfig.toml ./
 COPY cli/package.json cli/
 COPY server/package.json server/
 COPY ui/package.json ui/
@@ -50,9 +51,10 @@ COPY packages/plugins/plugin-workspace-diff/package.json packages/plugins/plugin
 COPY patches/ patches/
 COPY scripts/link-plugin-dev-sdk.mjs scripts/
 
-# CI owns repository lock updates. Resolve manifest changes in the image's
-# private build tree, then install from that exact generated lock.
-RUN pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile && pnpm install --frozen-lockfile
+# CI owns repository lock updates. --frozen-lockfile installs the exact
+# committed lock verbatim; it resolves no manifest changes and fails the
+# build if the lock is stale against the copied manifests.
+RUN bun install --frozen-lockfile
 
 FROM base AS rust-toolchain
 WORKDIR /app
@@ -134,16 +136,16 @@ RUN find packages/clayon-runner/runner packages/clayon-runner/protocol -type f -
 # Both the browser bundle and server stamp need the source commit. Declare it
 # after the stable dependency layers, before either application build.
 ARG CLAYON_BUILD_COMMIT=""
-RUN pnpm --filter @clayon/ui build
-RUN pnpm --filter @clayon/plugin-sdk build
-# The server build runs scripts/write-build-stamp.mjs, which stamps the built
+RUN bun run --filter @clayon/ui build
+RUN bun run --filter @clayon/plugin-sdk build
+# The server build runs server/scripts/write-build-stamp.mjs, which stamps the built
 # commit into dist/build-info.json. The build context has no .git, so the
 # script reads CLAYON_BUILD_COMMIT instead. Docker exposes an ARG to the
 # next RUN as an environment variable. The production stage below declares the
 # same ARG again for the runtime fallback; an ARG goes out of scope at the
 # end of its stage. Empty for local `docker build`, which then writes no stamp.
 ENV NODE_OPTIONS=--max-old-space-size=4096
-RUN pnpm --filter @clayon/server build
+RUN bun run --filter @clayon/server build
 RUN test -f server/dist/index.js || (echo "ERROR: server build output missing" && exit 1)
 RUN rm -rf packages/clayon-runner/runner/target
 
@@ -175,7 +177,7 @@ WORKDIR /app
 # (the single most expensive layer: four CLI toolchains + apt, per arch) can
 # never hit the layer cache and rebuilds on every build.
 RUN echo "cli-tools-epoch: ${CLI_TOOLS_CACHE_EPOCH}" \
-  && npm install --global --omit=dev @anthropic-ai/claude-code@latest @openai/codex@latest opencode-ai @google/gemini-cli@latest @moonshot-ai/kimi-code@latest \
+  && npm install --global --omit=dev @anthropic-ai/claude-code@latest @openai/codex@latest opencode-ai@latest @google/gemini-cli@latest @moonshot-ai/kimi-code@latest \
   && apt-get update \
   && apt-get install -y --no-install-recommends openssh-client jq \
   && rm -rf /var/lib/apt/lists/* \
@@ -245,11 +247,12 @@ CMD ["node", "--import", "./server/node_modules/tsx/dist/loader.mjs", "server/di
 # lean; CI pins the default build to `--target production`. Both targets
 # inherit the build-owned remote provider pack from the standard image.
 #
-# The sandbox providers are intentionally excluded from the pnpm workspace
-# (see pnpm-workspace.yaml), so each installs standalone exactly as its
-# README prescribes. Installing in a `build`-based stage (not `production`)
-# keeps devDependencies available for tsc: `production` sets
-# NODE_ENV=production, which would make pnpm skip them.
+# The sandbox providers are intentionally excluded from the bun workspace
+# (see the root package.json workspaces), so each installs standalone exactly as its
+# README prescribes. The `bun install --no-save` below keeps
+# devDependencies available for tsc: bun skips devDependencies only on an
+# explicit `--production`/`--omit dev` (or bunfig `production`), none of
+# which the stage passes.
 #
 # CLOUD_BUNDLED_PLUGINS is the space-separated list of sandbox-provider
 # directory names to build into the variant. Only what managed deployments
@@ -261,8 +264,8 @@ RUN set -eu; \
   for name in $CLOUD_BUNDLED_PLUGINS; do \
     dir="packages/plugins/sandbox-providers/$name"; \
     test -d "$dir" || { echo "ERROR: unknown sandbox provider '$name'" >&2; exit 1; }; \
-    pnpm -C "$dir" install --ignore-workspace --no-lockfile; \
-    pnpm -C "$dir" build; \
+    bun install --cwd "$dir" --no-save; \
+    bun run --cwd "$dir" build; \
     test -f "$dir/dist/manifest.js" || { echo "ERROR: $dir is missing dist/manifest.js after build" >&2; exit 1; }; \
   done
 
@@ -290,17 +293,17 @@ RUN set -eu; \
 # The install happens in its own isolated directory, not inside
 # `server`'s own workspace install. The self-hosted target above never
 # gains these packages this way. The directory sits under `/app`, not
-# `server/`, and `--ignore-workspace` below excludes it from the pnpm
-# workspace. From that directory, pnpm still finds the `packageManager`
-# pin in the repo's own `package.json` by walking up — the same pnpm
-# version the rest of the build uses.
+# `server/`, and carries its own minimal `package.json` (written by the
+# RUN below), so `bun add --no-save` resolves and installs the named
+# packages into this directory's own `node_modules` without recording
+# them in any manifest.
 #
-# The install writes no lock file (`--no-lockfile`, the same flag the
-# `cloud-plugins` stage above uses). Two builds of the same commit can
-# therefore install different transitive versions of a named package.
-# Three facts make this an accepted trade-off:
+# The install writes no lock file (`--no-save` never records one). Two
+# builds of the same commit can therefore install different transitive
+# versions of a named package. Three facts make this an accepted
+# trade-off:
 # - the `cloud-plugins` stage above already has the same property, with
-#   the same flag
+#   the same `--no-save` flag
 # - the direct version of each named package comes from one exact,
 #   single-sourced place: the `peerDependencies` block of
 #   `server/package.json`
@@ -320,7 +323,7 @@ RUN set -eu; \
     specifiers="$specifiers ${name}@${version}"; \
   done; \
   test -n "$specifiers" || { echo "ERROR: CLOUD_BUNDLED_SERVER_DEPS names no package" >&2; exit 1; }; \
-  pnpm add --ignore-workspace --no-lockfile $specifiers
+  bun add --no-save $specifiers
 
 FROM production AS cloud
 COPY --chown=node:node --from=cloud-plugins /app/packages/plugins/sandbox-providers /app/packages/plugins/sandbox-providers

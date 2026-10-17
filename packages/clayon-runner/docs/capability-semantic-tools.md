@@ -6,7 +6,7 @@ id: antl:clayon/packages/clayon-runner/docs/capability-semantic-tools
 
 The semantic tool catalog is the transport-neutral surface an agent may call. A frozen set of JSON-schema descriptors — no HTTP method, path, or provider detail. Provider-specific shapes come only from *bindings*, so every provider sees the same operation set.
 
-Each protocol action is single-sourced in its own module under `src/protocol-actions/`. That module owns the action's policy metadata, documentation, examples, and its live and scenario JSON-schema presentations. `src/catalog/canonical-operations.ts`, `src/semantic-tools/catalog.ts`, and `src/tools/capability-semantic-tool-catalog.ts` are compatibility projections; do not add action definitions to them. See catalog reconciliation `com.clayon/packages/clayon-runner/spec/capability/catalog-reconciliation.md`.
+Each protocol action is single-sourced in its own module under `src/protocol-actions/`. That module owns the action's policy metadata, documentation, examples, and its live and scenario JSON-schema presentations. `src/catalog/canonical-operations.ts`, `src/semantic-tools/catalog.ts`, and `src/tools/capability-semantic-tool-catalog.ts` are compatibility projections; do not add action definitions to them. See catalog reconciliation `packages/clayon-runner/spec/capability/catalog-reconciliation.md`.
 
 Sources: `src/protocol-actions/`, `src/catalog/canonical-operations.ts`,
 `src/tools/capability-semantic-tool-catalog.ts`,
@@ -71,7 +71,7 @@ Both bindings derive from one array, so the fake-agent and Codex operation surfa
 ## Running the tests
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/tools/capability-semantic-tools.test.ts
 ```
 

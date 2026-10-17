@@ -252,5 +252,5 @@ Every implementation pull request must:
 - contain no unexplained failed, cancelled, or path-skipped verification; and
 - resolve actionable review and security findings before it is ready.
 
-Generated files land with their source and a drift check. `pnpm-lock.yaml` is
+Generated files land with their source and a drift check. `bun.lock` is
 owned by CI and is not part of these pull requests.

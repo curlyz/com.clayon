@@ -31,7 +31,7 @@ export {
   type LocalRunnerRunMetadata,
   type LocalRunnerRunTrace,
   type LocalRunnerScenario,
-} from "../contracts/local-runner.js";
+};
 
 const packageRoot = fileURLToPath(new URL("../..", import.meta.url));
 const executableSuffix = process.platform === "win32" ? ".exe" : "";
@@ -243,7 +243,7 @@ class LocalRunnerController implements LocalRunnerRunHandle {
     }
     await Promise.all([access(runnerBinary), access(fakeHarnessBinary)]).catch(() => {
       throw new Error(
-        `Local runner Rust binaries are missing. Run pnpm --filter @clayon/clayon-runner build:rust first. PATH entries: ${(process.env.PATH ?? "").split(delimiter).length}.`,
+        `Local runner Rust binaries are missing. Run bun run --filter @clayon/clayon-runner build:rust first. PATH entries: ${(process.env.PATH ?? "").split(delimiter).length}.`,
       );
     });
     const controller = new LocalRunnerController(options);

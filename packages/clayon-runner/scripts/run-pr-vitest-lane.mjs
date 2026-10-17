@@ -41,13 +41,14 @@ const isPrWorkflow = process.env.GITHUB_WORKFLOW === "PR";
 const runNativeRunnerGroup = isPrWorkflow && isFinalShard;
 
 const plannedCommands = [
-  { command: "pnpm", args: ["run", "ensure:eval-build-deps"], cwd: packageRoot },
-  { command: "pnpm", args: ["run", "build:rust"], cwd: packageRoot },
-  { command: "pnpm", args: ["exec", "vitest", "run", ...args], cwd: packageRoot },
+  { command: "bun", args: ["run", "ensure:eval-build-deps"], cwd: packageRoot },
+  { command: "bun", args: ["run", "build:rust"], cwd: packageRoot },
+  { command: "bun", args: ["x", "vitest", "run", ...args], cwd: packageRoot },
   ...(runNativeRunnerGroup
     ? [{
-        command: "pnpm",
-        args: ["test:run:general", "--", "--group", "general-server-native-runner"],
+        command: "bun",
+        // No `--` separator: bun forwards it literally to the script.
+        args: ["run", "test:run:general", "--group", "general-server-native-runner"],
         cwd: workspaceRoot,
       }]
     : []),

@@ -78,8 +78,8 @@ contracts are published in `CLAYON_RUNNER_COMPATIBILITY`:
 Run:
 
 ```sh
-pnpm --filter @clayon/clayon-runner check:package-boundaries
-pnpm --filter @clayon/clayon-runner check:clean-consumers
+bun run --filter @clayon/clayon-runner check:package-boundaries
+bun run --filter @clayon/clayon-runner check:clean-consumers
 ```
 
 The second command builds and packs the runner, installs its tarball into a clean consumer, imports only the root, `./evals`, and `./testing` exports, executes deterministic PRP, harness-driver, and semantic conformance, and verifies the separately staged runnerd artifact digest. The consumer uses no workspace protocol, source-relative import, or deep package path. This is the packaging gate; workspace tests alone are not proof.

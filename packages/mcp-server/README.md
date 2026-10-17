@@ -26,7 +26,7 @@ npx -y @clayon/mcp-server
 Or locally in this repo:
 
 ```sh
-pnpm --filter @clayon/mcp-server build
+bun run --filter @clayon/mcp-server build
 node packages/mcp-server/dist/stdio.js
 ```
 

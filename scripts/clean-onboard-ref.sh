@@ -74,7 +74,7 @@ echo "CLAYON_PORT: $CLAYON_PORT"
 git -C "$REPO_ROOT" worktree add --detach "$PC_REPO" "$TARGET_COMMIT"
 
 cd "$PC_REPO"
-pnpm install
+bun install
 
 env \
   HOME="$PC_HOME" \
@@ -83,4 +83,4 @@ env \
   HOST="$CLAYON_HOST" \
   PORT="$CLAYON_PORT" \
   CLAYON_OPEN_ON_LISTEN="$CLAYON_OPEN_ON_LISTEN" \
-  pnpm clayon onboard --yes --data-dir "$PC_DATA"
+  bun run clayon onboard --yes --data-dir "$PC_DATA"

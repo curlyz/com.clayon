@@ -46,7 +46,7 @@ not come from the default branch. A trusted dispatcher may name any branch in
 `clayon/clayon` as the code under test. The authorization job resolves
 that branch through the GitHub API and passes only its immutable commit SHA to a
 credential-free target-lock job. That job checks out the commit, regenerates
-`pnpm-lock.yaml` once with lifecycle scripts disabled and lockfile-only mode,
+`bun.lock` once with lifecycle scripts disabled and lockfile-only mode,
 then uploads the file under a run-attempt-scoped artifact ID. Catalog, image,
 shared-build, provider-pack, and paid test jobs download that exact artifact by
 ID, verify its recorded SHA-256, and restore it before setup or a frozen

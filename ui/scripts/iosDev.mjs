@@ -3,9 +3,27 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The sole allowed simulator for this app (workspace law): Clayon —
-// iPhone 17. Never point this app at another brand's simulator.
-const SIMULATOR_ID = "D19907FE-5D32-4548-91E3-66DF7DBDF44B";
+// The sole allowed simulator for this app (workspace law): Paperclip —
+// iPhone 17 (the simulator kept the workspace name through the Clayon
+// rename). Never point this app at another brand's simulator. The UDID is
+// resolved by name so a fresh machine works; the committed UDID is only
+// the fallback when no simulator carries that name.
+const SIMULATOR_NAME = "Paperclip — iPhone 17";
+const FALLBACK_SIMULATOR_ID = "D19907FE-5D32-4548-91E3-66DF7DBDF44B";
+
+function resolveSimulatorId() {
+  try {
+    const listing = execFileSync("xcrun", ["simctl", "list", "devices", "available"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    for (const line of listing.split("\n")) {
+      const match = line.match(/^\s*(.+?) \(([0-9A-Fa-f-]+)\)/);
+      if (match && match[1] === SIMULATOR_NAME) return match[2];
+    }
+  } catch {}
+  return FALLBACK_SIMULATOR_ID;
+}
 // Curlyz's iPhone (same UDID `cap run ios --list` reports). The dedicated
 // ios:device script passes --device; a flag on the simulator path was
 // previously silently ignored by `cap run --target`, so keep the paths
@@ -15,7 +33,7 @@ const port = 20010;
 
 const appRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const device = process.argv.includes("--device");
-const runTarget = device ? DEVICE_ID : SIMULATOR_ID;
+const runTarget = device ? DEVICE_ID : resolveSimulatorId();
 let host = process.env.CAP_DEV_HOST || (device ? "" : "127.0.0.1");
 if (!host) {
   for (const name of ["en0", "en1"]) {
@@ -32,7 +50,7 @@ if (!host) throw new Error("No LAN address found. Join the phone's Wi-Fi or set 
 
 if (!existsSync(join(appRoot, "dist/index.html"))) {
   console.log("Creating the first static bundle before native sync…");
-  execFileSync("pnpm", ["run", "ios:sync"], { cwd: appRoot, stdio: "inherit" });
+  execFileSync("bun", ["run", "ios:sync"], { cwd: appRoot, stdio: "inherit" });
 }
 
 let stopping = false;

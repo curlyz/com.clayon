@@ -105,7 +105,7 @@ if (process.argv.includes("--check")) {
   const current = await readFile(outputPath, "utf8").catch(() => "");
   const currentValidators = await readFile(validatorsOutputPath, "utf8").catch(() => "");
   if (current !== generated || currentValidators !== generatedValidators) {
-    process.stderr.write("Generated PRP schema modules are stale. Run pnpm generate:protocol-types.\n");
+    process.stderr.write("Generated PRP schema modules are stale. Run bun run generate:protocol-types.\n");
     process.exitCode = 1;
   } else {
     process.stdout.write("Generated PRP schema modules match the JSON Schema sources.\n");

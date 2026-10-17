@@ -16,8 +16,8 @@ Tutorial validates one fixture, reduces the events in the CLI, shows the same sn
 
 ## Prerequisites
 
-- Node.js 20 or newer
-- pnpm 9 or newer
+- Node.js 24.11 or newer
+- Bun 1.4 or newer
 - stable Rust toolchain with `cargo`
 - Chromium-compatible browser
 
@@ -26,23 +26,23 @@ repository root. Install only this workspace without writing
 the root lockfile:
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --ignore-scripts --dev
-pnpm --filter @clayon/clayon-runner exec playwright install chromium
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
+bun x playwright install chromium
 ```
 
 On a minimal Linux host, Playwright may also request system browser libraries:
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec playwright install-deps chromium
+bun x playwright install-deps chromium
 ```
 
 ## 1. Check the contract and golden corpus
 
 ```sh
-pnpm --filter @clayon/clayon-runner typecheck
-pnpm --filter @clayon/clayon-runner check:replay-goldens
-pnpm --filter @clayon/clayon-runner check:replay-parity
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner typecheck
+bun run --filter @clayon/clayon-runner check:replay-goldens
+bun run --filter @clayon/clayon-runner check:replay-parity
+bun run --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
 Expected: generated schema sources current, TypeScript and Rust accept the
@@ -51,7 +51,7 @@ same fixtures, all parity summaries match, standalone boundary passes.
 ## 2. Replay the happy path in the CLI
 
 ```sh
-pnpm --filter @clayon/clayon-runner replay:fixture
+bun run --filter @clayon/clayon-runner replay:fixture
 ```
 
 Expected JSON facts:
@@ -64,7 +64,7 @@ Expected JSON facts:
 Different fixture path inspects another case:
 
 ```sh
-pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/source-gap.json
+bun run --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/source-gap.json
 ```
 
 Expected: `snapshot.integrity` is `gap_detected` and the missing source sequence
@@ -73,7 +73,7 @@ is `3`.
 Unsupported required version exits non-zero, returns structured error:
 
 ```sh
-pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/unsupported-required-version.json
+bun run --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protocol/fixtures/replay/unsupported-required-version.json
 ```
 
 ## 3. Open the standalone replay page
@@ -81,7 +81,7 @@ pnpm --filter @clayon/clayon-runner replay:fixture packages/clayon-runner/protoc
 Start the package-local Vite server:
 
 ```sh
-pnpm --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
+bun run --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
 ```
 
 Open `http://127.0.0.1:4179`, then:
@@ -98,8 +98,8 @@ Stop Vite with `Ctrl+C`.
 ## 4. Run the browser regression path
 
 ```sh
-pnpm --filter @clayon/clayon-runner check:browser-tokens
-pnpm --filter @clayon/clayon-runner test:browser
+bun run --filter @clayon/clayon-runner check:browser-tokens
+bun run --filter @clayon/clayon-runner test:browser
 ```
 
 Expected: Playwright tests pass; temporary screenshots written under

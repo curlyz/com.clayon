@@ -27,11 +27,10 @@ const artifactsRoot = resolve(scratchRoot, "artifacts");
 const publicationRoot = process.env.CLAYON_CLEAN_CONSUMER_OUTPUT_DIR === undefined
   ? undefined
   : resolve(process.env.CLAYON_CLEAN_CONSUMER_OUTPUT_DIR);
-const pnpmInvocation = resolvePnpmInvocation();
 await mkdir(artifactsRoot, { recursive: true });
 
 try {
-  run("pnpm", ["run", "build:typescript"], runnerRoot);
+  run("bun", ["run", "build:typescript"], runnerRoot);
   run("cargo", [
     "build",
     "--release",
@@ -84,9 +83,9 @@ async function pack(packageRoot, destination, { runner = false } = {}) {
   // Keep their publisher devEngines intact without adopting their toolchain;
   // normal tarball contents and clean-consumer runtime engine checks still apply.
   if (runner) {
-    // Exercise the pinned release packer, including executableFiles normalization.
-    run("pnpm", ["pack", "--pack-destination", destination], packageRoot, {
-      quiet: true, env: { npm_config_ignore_scripts: "true" },
+    // Exercise the workspace packer (bun), as the release path does.
+    run("bun", ["pm", "pack", "--ignore-scripts", "--destination", destination], packageRoot, {
+      quiet: true,
     });
   } else {
     run("npm", ["pack", resolve(packageRoot), "--ignore-scripts", "--pack-destination", destination], destination, { quiet: true });
@@ -180,10 +179,25 @@ async function stageRunnerdArtifact(destination) {
   };
 }
 
+// Selectors are `name` (direct dependency) or `parent@version>dependency`.
+// bun overrides take a flat name, or a nested { parent: { dependency } } map.
 function localOverrides(tarballs) {
-  return Object.fromEntries(
-    Object.entries(tarballs).map(([selector, tarball]) => [selector, `file:${tarball}`]),
-  );
+  const overrides = {};
+  for (const [selector, tarball] of Object.entries(tarballs)) {
+    const specifier = `file:${tarball}`;
+    const separator = selector.indexOf(">");
+    if (separator === -1) {
+      overrides[selector] = specifier;
+      continue;
+    }
+    const parentIdentity = selector.slice(0, separator);
+    const parent = parentIdentity.slice(0, parentIdentity.lastIndexOf("@"));
+    if (typeof overrides[parent] === "string") {
+      throw new Error(`Override ${parent} is both a direct dependency and a parent of ${selector}`);
+    }
+    overrides[parent] = { ...overrides[parent], [selector.slice(separator + 1)]: specifier };
+  }
+  return overrides;
 }
 
 async function verifyRunnerConsumer({
@@ -199,12 +213,13 @@ async function verifyRunnerConsumer({
     name: "clayon-runner-clean-consumer",
     private: true,
     type: "module",
-    packageManager: "pnpm@9.15.4",
     dependencies: {
       "@clayon/clayon-runner": `file:${runnerTarball}`,
     },
-    pnpm: { overrides: localOverrides(runtimeDependencyTarballs) },
+    overrides: localOverrides(runtimeDependencyTarballs),
   }, null, 2)}\n`);
+  // Parity with the former pnpm auto-install-peers=false consumer setting.
+  await writeFile(resolve(consumerRoot, "bunfig.toml"), "[install]\npeer = false\n");
   await writeFile(resolve(consumerRoot, "verify-default-runnerd.mjs"), `
 import { execFileSync } from "node:child_process";
 import { constants } from "node:fs";
@@ -426,15 +441,14 @@ async function publishArtifacts({ publicationRoot, runnerTarball, runnerdArtifac
 }
 
 function installAndRun(consumerRoot, extraEnv = {}) {
-  run("pnpm", [
+  run("bun", [
     "install",
-    "--offline",
     "--ignore-scripts",
-    "--lockfile=false",
-    "--store-dir",
-    resolve(consumerRoot, ".pnpm-store"),
-    "--config.auto-install-peers=false",
-    "--reporter=append-only",
+    "--no-save",
+    "--linker",
+    "hoisted",
+    "--cache-dir",
+    resolve(consumerRoot, ".bun-cache"),
   ], consumerRoot, { env: { NODE_ENV: "development" } });
   run(process.execPath, ["verify-default-runnerd.mjs"], consumerRoot, {
     inheritEnv: false,
@@ -444,10 +458,7 @@ function installAndRun(consumerRoot, extraEnv = {}) {
 }
 
 function run(command, args, cwd, { quiet = false, env = {}, inheritEnv = true } = {}) {
-  const usesPnpm = command === "pnpm";
-  const executable = usesPnpm ? pnpmInvocation.executable : command;
-  const effectiveArgs = usesPnpm ? [...pnpmInvocation.prefixArgs, ...args] : args;
-  const result = spawnSync(executable, effectiveArgs, {
+  const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
     env: { ...(inheritEnv ? process.env : {}), CI: "true", ...env },
@@ -463,26 +474,6 @@ function run(command, args, cwd, { quiet = false, env = {}, inheritEnv = true } 
     if (result.signal !== null) process.stderr.write(`Terminated by signal ${result.signal}\n`);
     throw new Error(`${command} ${args.join(" ")} failed in ${cwd}`);
   }
-}
-
-function resolvePnpmInvocation() {
-  const corepack = process.platform === "win32" ? "corepack.cmd" : "corepack";
-  const corepackProbe = spawnSync(corepack, ["pnpm@9.15.4", "--version"], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  if (corepackProbe.status === 0 && corepackProbe.stdout.trim() === "9.15.4") {
-    return { executable: corepack, prefixArgs: ["pnpm@9.15.4"] };
-  }
-  const direct = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-  const directProbe = spawnSync(direct, ["--version"], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  if (directProbe.status === 0 && directProbe.stdout.trim() === "9.15.4") {
-    return { executable: direct, prefixArgs: [] };
-  }
-  throw new Error("Clean-consumer verification requires pnpm 9.15.4 via corepack or PATH");
 }
 
 function capture(command, args, cwd) {

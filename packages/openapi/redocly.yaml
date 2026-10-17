@@ -1,0 +1,9 @@
+extends:
+  - recommended
+rules:
+  info-license: off
+  no-server-example.com: off
+  operation-4xx-response: off
+  # Rung 1 is an unauthenticated local surface; auth arrives in a later rung
+  # and brings the security scheme with it.
+  security-defined: off

@@ -69,7 +69,7 @@ type FixturePlugin = {
 
 /**
  * Create a valid, already-built plugin package (dist written directly, so no
- * pnpm auto-build runs during install) at an arbitrary directory.
+ * bun auto-build runs during install) at an arbitrary directory.
  */
 async function createBuiltPluginFixture(parentDir: string, nameSuffix: string): Promise<FixturePlugin> {
   const slug = `plugin-install-guard-${nameSuffix}-${randomUUID().slice(0, 8)}`;

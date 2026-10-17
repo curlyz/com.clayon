@@ -25,7 +25,7 @@ for this tutorial. Default driver replays deterministic demo chats.
 ## Step 1: Run the deterministic checks
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/mock-core/live-console-scripted-driver.test.ts \
   src/mock-core/live-console-demo-server.test.ts \
   devtools/browser/src/live/transcript-model.test.ts
@@ -37,7 +37,7 @@ routes, and the pure transcript model the console renders.
 ## Step 2: Start the console
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:live-console
+bun run --filter @clayon/clayon-runner console:live-console
 ```
 
 Keep this terminal open. Open `http://127.0.0.1:4180/` in a browser and press
@@ -187,7 +187,7 @@ This step needs a working Codex login on the machine.
 
 ```sh
 CLAYON_LIVE_CONSOLE_DRIVER=codex \
-  pnpm --filter @clayon/clayon-runner console:live-console
+  bun run --filter @clayon/clayon-runner console:live-console
 ```
 
 Routes and screens are the same. Demo chat list still appears, but

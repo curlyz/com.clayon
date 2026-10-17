@@ -29,12 +29,12 @@ Clayon is a monorepo with four main layers.
 
 ```text
 [6]{Layer,Technology}:
-  Frontend,"React 19, Vite 6, React Router 7, Radix UI, Tailwind CSS 4, TanStack Query"
+  Frontend,"React 19, Vite 8, React Router 7, Radix UI, Tailwind CSS 4, TanStack Query"
   Backend,"Node.js 24.11+, Express.js 5, TypeScript"
-  Database,"PostgreSQL 17 (or embedded PGlite), Drizzle ORM"
+  Database,"Embedded PostgreSQL (pglite aliases are legacy config), Drizzle ORM"
   Auth,"Better Auth (sessions + API keys)"
   Adapters,"Claude Code CLI, Codex CLI, shell process, HTTP webhook"
-  Package manager,pnpm 9 with workspaces
+  Package manager,Bun with workspaces
 ```
 
 ## Repository Structure
@@ -89,7 +89,7 @@ Adapters are the bridge between Clayon and agent runtimes. Each adapter is a pac
 - **UI module** — stdout parser for the run viewer, config form fields for agent creation
 - **CLI module** — terminal formatter for `clayon run --watch`
 
-Built-in adapters: `claude_local`, `codex_local`, `process`, `http`. You can create custom adapters for any runtime.
+Built-in adapter type keys (corrected 2026-10-17 to match `docs/adapters/overview.md` and the 12 live packages under `packages/adapters/`): `claude_local`, `codex_local`, `cursor_local`, `cursor_cloud`, `grok_local`, `opencode_local`, `pi_local`, `process`, `http`, and the gateway adapters (hermes, hermes-gateway, openclaw-gateway). You can create custom adapters for any runtime.
 
 ## Key Design Decisions
 

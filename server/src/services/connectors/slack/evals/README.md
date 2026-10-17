@@ -40,9 +40,9 @@ surface covered by the existing setup and browser tests.
 From the repository root:
 
 ```sh
-pnpm test:slack-connector --list
-pnpm test:slack-connector --case choice-question
-pnpm test:slack-connector
+bun run test:slack-connector --list
+bun run test:slack-connector --case choice-question
+bun run test:slack-connector
 ```
 
 The selector runs existing Vitest files; it adds no grader or parallel eval
@@ -52,7 +52,7 @@ isolated migrated database. Never point that suite at a live test-drive database
 With a disposable database supplied, run the supplementary integration checks:
 
 ```sh
-CLAYON_TEST_DATABASE_URL=<disposable-database-url> pnpm exec vitest run server/src/__tests__/chat-channels.integration.test.ts -t 'refreshes Slack tool guidance|provides assigned Slack tools|binds Slack tools to the admitted linked request'
+CLAYON_TEST_DATABASE_URL=<disposable-database-url> bun x vitest run server/src/__tests__/chat-channels.integration.test.ts -t 'refreshes Slack tool guidance|provides assigned Slack tools|binds Slack tools to the admitted linked request'
 ```
 
 The catalog records additional large-suite fixture locations for write,

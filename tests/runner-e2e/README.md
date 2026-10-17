@@ -111,7 +111,7 @@ or workflow configuration is needed, including for Daytona cells.
 
 `--suite pi-controls` selects four candidate Pi cells: pending-permission Stop
 and browser same-turn steering, each local and Daytona. Discover without
-credentials using `pnpm test:e2e:runner -- --list --suite pi-controls`. For an
+credentials using `bun run test:e2e:runner -- --list --suite pi-controls`. For an
 authorized bounded attempt select, for example,
 `--id pi-controls.runner-acpx-pi.local.pending-permission-stop
 --max-automatic-retries 0 --max-parallel 1`.
@@ -128,7 +128,7 @@ remains pending; catalog presence is not live qualification.
 
 ## Provider-free browser bootstrap regression
 
-`pnpm test:e2e:runner:browser-support` includes a wide development-module graph
+`bun run test:e2e:runner:browser-support` includes a wide development-module graph
 loaded before and after the production service worker takes control. It keeps
 full traces and checks that Vite module loads do not create worker fetches or
 leave the page empty. This isolates browser loading; it does not create a
@@ -136,7 +136,7 @@ Clayon task, run an agent, or replace a Product E2E result.
 
 ## Conversational confirmation replies (explicit only)
 
-`--suite confirmation-replies` selects ten local native Claude/Codex cells:
+`--suite confirmation-replies` selects twelve local native Claude/Codex cells:
 conversational single-task approval, saved-plan approval, rejection, card-click
 acceptance as a control, and ambiguous approval with two independent pending
 proposals. The onboarding cells use the production wizard, runtime switch and
@@ -174,8 +174,8 @@ from `--all`; it does not qualify governed tool approvals, human-only policies,
 question-form extraction, or remote execution.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite confirmation-replies
-pnpm test:e2e:runner -- --suite confirmation-replies
+bun run test:e2e:runner -- --list --suite confirmation-replies
+bun run test:e2e:runner -- --suite confirmation-replies
 ```
 
 ## Completion-update probes (explicit only)
@@ -243,8 +243,8 @@ worker is a behavior failure; a failure before that boundary is not proof of
 the communication defect. Use the standard dashboard to compare the ten cells.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite completion-updates
-pnpm test:e2e:runner -- --suite completion-updates
+bun run test:e2e:runner -- --list --suite completion-updates
+bun run test:e2e:runner -- --suite completion-updates
 ```
 
 ## Credentials
@@ -293,36 +293,36 @@ Install dependencies and Chromium once. Native local cells also need the local
 runner binaries:
 
 ```bash
-pnpm install
-pnpm exec playwright install chromium
-pnpm --filter @clayon/clayon-runner build:runner-binaries
+bun install
+bun x playwright install chromium
+bun run --filter @clayon/clayon-runner build:runner-binaries
 ```
 
 List cells without loading credentials or starting Clayon:
 
 ```bash
-pnpm test:e2e:runner -- --list
+bun run test:e2e:runner -- --list
 ```
 
 Examples of explicit billable runs:
 
 ```bash
-pnpm test:e2e:runner -- --id core-compatibility.legacy-codex.local.message-marker --headed
-pnpm test:e2e:runner -- --suite openrouter-model-breadth --case hello-complete
-pnpm test:e2e:runner -- --group native --environment local
-pnpm test:e2e:runner -- --profile runner-codex --case message-marker
-pnpm test:e2e:runner -- --case plan-revise-accept --group local
-pnpm test:e2e:runner -- --case ask-question --group native
-pnpm test:e2e:runner -- --suite daytona-warm-continuity
-pnpm test:e2e:runner -- --all
+bun run test:e2e:runner -- --id core-compatibility.legacy-codex.local.message-marker --headed
+bun run test:e2e:runner -- --suite openrouter-model-breadth --case hello-complete
+bun run test:e2e:runner -- --group native --environment local
+bun run test:e2e:runner -- --profile runner-codex --case message-marker
+bun run test:e2e:runner -- --case plan-revise-accept --group local
+bun run test:e2e:runner -- --case ask-question --group native
+bun run test:e2e:runner -- --suite daytona-warm-continuity
+bun run test:e2e:runner -- --all
 ```
 
 The catalog contains the explicit-only suites alongside the standard suites. It also includes the explicit-only everyday and
 [lifecycle baseline](LIFECYCLE-BASELINE.md) suites. The latter adds 46 real-provider
 cells pairing narrative variants and exercising durable lifecycle boundaries;
 it is excluded from `--all`. `core-compatibility` (**Core Runner Compatibility**)
-is seven major runner profiles × local/Daytona × three
-workflows: 42 cells. Its cases are:
+is eight major runner profiles × local/Daytona × three
+workflows: 48 cells. Its cases are:
 
 - `message-marker`: one basic visible response and Done transition;
 - `plan-revise-accept`: an initial Plan, a browser-requested revision on the
@@ -348,9 +348,9 @@ Its cases are:
 - `plan-approve-complete`: one exact two-step Plan, browser approval of that
   revision, then a resumed completion on the same task.
 
-`local-session-integrity` (**Local Session Integrity**) is the seven supported
+`local-session-integrity` (**Local Session Integrity**) is the eight supported
 local native and direct-adapter profiles × two two-run structured-question
-workflows: 14 cells. Both prove that a required structured interaction is
+workflows: 16 cells. Both prove that a required structured interaction is
 rendered, answered in the browser, and resumed once on the same task without
 duplicating the final response. The second workflow restarts the isolated
 Clayon server while the interaction is waiting, reloads that state, and
@@ -376,7 +376,7 @@ a warning while full and clear it after cleanup. Rejected bytes must not replace
 the saved file. This adds at most one 256 MiB saved fixture per isolated agent.
 The deadline is twenty minutes per cell, with six expected provider runs;
 normal instance/Daytona cleanup, screenshots, evidence, and billing apply. Run with
-`pnpm test:e2e:runner -- --suite instruction-persistence`. Managed directories in per-turn sessions collect after provider stop. The separate
+`bun run test:e2e:runner -- --suite instruction-persistence`. Managed directories in per-turn sessions collect after provider stop. The separate
 `daytona-warm-continuity` suite covers incremental saves while retaining a live native process.
 
 `daytona-warm-continuity` (**Daytona Warm Continuity**) is exactly two paid
@@ -408,7 +408,7 @@ three-run, screenshot, timeout, billing, and cleanup assertions remain required;
 
 `daytona-git-streaming` is an explicit-only native Codex Daytona cell for
 large Git filename snapshots. Run
-`pnpm test:e2e:runner -- --id daytona-git-streaming.runner-codex.daytona.large-path-three-turn`.
+`bun run test:e2e:runner -- --id daytona-git-streaming.runner-codex.daytona.large-path-three-turn`.
 This heavy-file cell explicitly configures the environment's 20-minute native
 idle timeout and a 25-minute Daytona auto-stop interval. It checks the admitted
 runtime policy before each continuation; the environment policy takes precedence
@@ -520,8 +520,8 @@ one-run minimum only for these two interruption cases. Exactly one reply may
 consume the follow-up marker, and it must be attributed to the final provider run.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite agent-chat-hardening
-pnpm test:e2e:runner -- --id agent-chat-hardening.runner-codex.local.stop-startup-new-resume
+bun run test:e2e:runner -- --list --suite agent-chat-hardening
+bun run test:e2e:runner -- --id agent-chat-hardening.runner-codex.local.stop-startup-new-resume
 ```
 
 The independent, explicit-only `native-completion` suite qualifies native finish/block descriptions on unchanged master defaults. It preserves the original assigned-skill document journey and pairs it with whole-task blocking across three native profiles, with enforced single attempts. See [NATIVE-COMPLETION.md](NATIVE-COMPLETION.md) for admission, provenance and limits.
@@ -546,14 +546,14 @@ before task creation and records both limits in its evidence. Unknown provider
 billing or a budget incident is not admitted as a pass.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite context-integrity
-pnpm test:e2e:runner -- --id context-integrity.runner-codex.local.ordered-comment-continuation
+bun run test:e2e:runner -- --list --suite context-integrity
+bun run test:e2e:runner -- --id context-integrity.runner-codex.local.ordered-comment-continuation
 ```
 
 `stock-harness` reuses ordered continuation, assigned-skill invocation, and chat
 restart journeys with production-default hires instead of the custom QA manual.
-Its 24 explicit local cells cover eight legacy/native profiles and are excluded
-from `--all`. Run `pnpm test:e2e:runner:stock-harness` for the credential-free
+Its 26 explicit local cells cover eight legacy/native profiles and are excluded
+from `--all`. Run `bun run test:e2e:runner:stock-harness` for the credential-free
 instruction-layering, hire, and shared-prompt prerequisites. The
 [suite contract](STOCK-HARNESS.md) maps each change to its graders, budgets,
 evidence, and remaining qualification limits.
@@ -565,9 +565,9 @@ line, managed credentials, and real task execution; chat claims cannot pass it.
 
 ```bash
 # Run these after deterministic checks, with the required provider keys set.
-pnpm test:e2e:runner -- --id agent-chat.legacy-codex.local.continuity-restart
-pnpm test:e2e:runner -- --id agent-chat.legacy-claude.local.continuity-restart
-pnpm test:e2e:runner -- --suite agent-chat
+bun run test:e2e:runner -- --id agent-chat.legacy-codex.local.continuity-restart
+bun run test:e2e:runner -- --id agent-chat.legacy-claude.local.continuity-restart
+bun run test:e2e:runner -- --suite agent-chat
 ```
 
 The regular browser suite has deterministic process providers in
@@ -577,20 +577,20 @@ GitHub discovery is simulated, scoped to a fixture-only credential; repository
 permissions and mutations remain real. Run it with:
 
 ```bash
-pnpm --filter @clayon/ui build
-pnpm test:e2e tests/e2e/agent-chat.spec.ts
+bun run --filter @clayon/ui build
+bun run test:e2e tests/e2e/agent-chat-projects.spec.ts tests/e2e/agent-chat-sessions.spec.ts
 # Against a dedicated authenticated test instance configured per that suite:
-pnpm test:e2e:multiuser-authenticated --grep 'agent chats'
+bun run test:e2e:multiuser-authenticated --grep 'agent chats'
 ```
 
 Both suites save and restore experimental settings. Browser E2E always starts a
 throwaway instance; never point the authenticated suite at the running demo.
 Missing provider credentials fail paid preflight and are not passing coverage.
 
-The default `--all` selection is 171 cells (148 local and 23 Daytona) and 371
-expected paid agent turns. The explicit-only everyday suite adds 38 catalog cells
+The default `--all` selection is 179 cells (153 local and 26 Daytona) and 385
+expected paid agent turns. The explicit-only everyday suite adds 52 catalog cells
 and chat hardening adds 18; chat stories adds six. All three are excluded from
-`--all`. The full catalog has 239 cells.
+`--all`. The full catalog has 724 cells.
 Follow-up steps remain ordered within their cell; all other
 cells are independent. Narrow selectors are strongly recommended while
 developing fixtures.
@@ -618,8 +618,8 @@ memory.
 Credential-free checks are:
 
 ```bash
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner:typecheck
 ```
 
 The OpenRouter ranking snapshot is tracked in `openrouter-models.json`; nightly
@@ -627,7 +627,7 @@ runs never mutate it. Refresh it deliberately, review the source/capture/hash
 diff, and rerun credential-free checks:
 
 ```bash
-pnpm test:e2e:runner:models:update
+bun run test:e2e:runner:models:update
 ```
 
 ## Daytona image
@@ -636,7 +636,7 @@ Use the immutable digest printed by the `Publish verified Daytona image` job,
 or publish the current source locally:
 
 ```bash
-content_id="$(pnpm --silent test:e2e:runner:image-id)"
+content_id="$(bun run --silent test:e2e:runner:image-id)"
 source_revision="$(git rev-parse HEAD)"
 image="ghcr.io/clayon/clayon-daytona-runner:e2e-content-${content_id}"
 if ! docker buildx imagetools inspect "$image" >/dev/null 2>&1; then
@@ -850,9 +850,9 @@ visual and generated report evidence removed:
 gh run download <run-id> --repo clayon/clayon --name github-pages --dir /tmp/runner-e2e-pages
 mkdir /tmp/runner-e2e-site
 tar -xf /tmp/runner-e2e-pages/artifact.tar -C /tmp/runner-e2e-site
-pnpm test:e2e:runner:dashboard -- /tmp/runner-e2e-site
+bun run test:e2e:runner:dashboard -- /tmp/runner-e2e-site
 # Optionally use a downloaded history index:
-pnpm test:e2e:runner:dashboard -- /tmp/runner-e2e-site --history /tmp/history.json
+bun run test:e2e:runner:dashboard -- /tmp/runner-e2e-site --history /tmp/history.json
 ```
 
 Serve that directory with any static file server. This path does not start
@@ -890,8 +890,8 @@ never runs for a pull request or ordinary push. Start the trusted workflow from
 the default branch. A CODEOWNER can set the optional `target_branch` input to
 any branch in `clayon/clayon`. The authorization job resolves that
 branch to one immutable commit before any checkout. A separate credential-free
-job checks out the resolved commit and regenerates `pnpm-lock.yaml` once with
-`--ignore-scripts --no-frozen-lockfile --lockfile-only`. It uploads that exact
+job checks out the resolved commit and regenerates `bun.lock` once with
+`--ignore-scripts --lockfile-only`. It uploads that exact
 lockfile under a run-attempt-scoped artifact ID and records its SHA-256.
 Catalog, image, shared-build, provider-pack, and paid test jobs download the
 artifact by ID, verify its digest, and restore it before setup or a frozen
@@ -945,7 +945,7 @@ Set `RUNNER_E2E_AWS_ENABLED=true` to route paid cells to the repository-scoped
 ephemeral AWS RunsOn fleet selected by
 `runs-on/fleet=clayon-public-pr-x64/env=public-ci`. Any other value uses the
 proven GitHub-hosted `ubuntu-latest` target. Set `RUNNER_E2E_MAX_PARALLEL` to an
-integer from 1–100 on AWS (default 100). The 171-cell default selection takes more than
+integer from 1–100 on AWS (default 100). The 179-cell default selection takes more than
 one wave at that limit; use suite selectors for smaller campaigns. The fallback runner retains its 1–57 limit and
 default of 32. Multi-turn steps are sequential inside their cell while
 independent cells overlap. Artifacts and merged HTML/JUnit/normalized reports
@@ -1022,8 +1022,8 @@ claim that it renamed the task cannot pass. These cells require the dedicated
 native tool; they do not qualify legacy/API-fallback naming or planning mode.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite task-titles
-pnpm test:e2e:runner -- --id task-titles.runner-codex-mini.local.prompt-title-standard --max-automatic-retries 0
+bun run test:e2e:runner -- --list --suite task-titles
+bun run test:e2e:runner -- --id task-titles.runner-codex-mini.local.prompt-title-standard --max-automatic-retries 0
 ```
 
 Only `OPENAI_API_KEY` is required; no Docker artifact oracle or Daytona is used.
@@ -1068,7 +1068,7 @@ Revision delivery checks exclude preserved originals by their content hash, even
 ## First-task onboarding
 
 `first-task` is a suite in the main Runner E2E catalog. A full
-`pnpm test:e2e:runner -- --all` run (or an unfiltered full GitHub Actions campaign)
+`bun run test:e2e:runner -- --all` run (or an unfiltered full GitHub Actions campaign)
 includes its 52 executions alongside the other suites in one shared dashboard,
 campaign result bundle, and history entry. Suite/profile selectors narrow that
 same harness; they do not invoke a separate onboarding reporting program.
@@ -1158,13 +1158,13 @@ suite checks persisted Clayon effects; it does not claim to prove the absence
 of arbitrary external side effects from a provider process.
 
 ```bash
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner:typecheck
 # Two paid smoke cases, after keys are available:
-pnpm test:e2e:runner -- --suite first-task --profile legacy-codex --case clear-task-first-response
-pnpm test:e2e:runner -- --suite first-task --profile legacy-claude --case clear-task-first-response
+bun run test:e2e:runner -- --suite first-task --profile legacy-codex --case clear-task-first-response
+bun run test:e2e:runner -- --suite first-task --profile legacy-claude --case clear-task-first-response
 # Expand after reviewing the smoke evidence:
-pnpm test:e2e:runner -- --suite first-task
+bun run test:e2e:runner -- --suite first-task
 ```
 
 Default concurrency is one. Each case has a fifteen-minute attempt budget;
@@ -1194,7 +1194,7 @@ Run judging on each **upload-directory `result.json` before normalization and
 publication**, with `OPENAI_API_KEY` in the shell:
 
 ```bash
-pnpm test:e2e:runner:judge-first-task -- --result tests/runner-e2e/results/CAMPAIGN/EXECUTION/attempt-1/result.json --max-dollars 0.50
+bun run test:e2e:runner:judge-first-task -- --result tests/runner-e2e/results/CAMPAIGN/EXECUTION/attempt-1/result.json --max-dollars 0.50
 ```
 
 Use the actual upload path printed by the launcher. The judge uses the pinned
@@ -1221,7 +1221,7 @@ bundles remain immutable; judge them before publishing.
 ### Comparing skill revisions
 
 Use separate campaigns for each skill revision and three repetitions per
-case/provider (144 executions per revision), keeping source environment,
+case/provider (156 executions per revision), keeping source environment,
 provider/default model, credentials mode, case facts, and judge configuration
 matched. Set distinct `CLAYON_E2E_CAMPAIGN_ID` values such as
 `first-task-skill-a-r1` through `r3`, and repeat for skill B. Review actual model
@@ -1249,7 +1249,7 @@ scope revision preserving approval, untrusted handoff text read through a real
 tool, and completed child-task reuse across a server restart.
 
 ```sh
-pnpm test:e2e:runner -- --suite continuation --profile runner-acpx-claude
+bun run test:e2e:runner -- --suite continuation --profile runner-acpx-claude
 ```
 
 User requests and replies are fixed; the driver submits them through the task UI.
@@ -1320,9 +1320,9 @@ conversation before capture. A loading screen or wrong task fails capture.
 Browser-only regressions exercise delayed rendering without provider calls:
 
 ```sh
-pnpm test:e2e:runner:browser-support
+bun run test:e2e:runner:browser-support
 # To use an installed Chrome instead of Playwright's Chromium:
-CLAYON_PLAYWRIGHT_CHANNEL=chrome pnpm test:e2e:runner:browser-support
+CLAYON_PLAYWRIGHT_CHANNEL=chrome bun run test:e2e:runner:browser-support
 ```
 
 ### Native provider continuity
@@ -1410,7 +1410,7 @@ The native `agent-chat.create-backlog` case saves a plan and assigned backlog ta
 `agent-chat-qualification` is an explicit-only, local suite with six cells:
 `active-reassignment`, `worker-crash-retry`, and `grounded-answer-quality`, each
 on native Codex and native Claude. Run with
-`pnpm test:e2e:runner -- --suite agent-chat-qualification`.
+`bun run test:e2e:runner -- --suite agent-chat-qualification`.
 
 Active reassignment waits for a real worker to save a draft and enter a bounded
 file wait. The lead then transfers the same task through Agent Chat. The oracle
@@ -1484,7 +1484,7 @@ manual retry. Late successful startup removes the notice. It never reloads
 automatically, and the notice lives outside `#root`, so it cannot satisfy an
 app-readiness assertion. The saved-task regression interrupts the built bundle,
 clicks retry, and verifies the original task, persisted comment, and composer.
-`pnpm test:e2e:runner:browser-support` also tests failed and stalled imports,
+`bun run test:e2e:runner:browser-support` also tests failed and stalled imports,
 evaluation errors, service-worker-controlled retry, repeated offline retries, and
 cleanup after startup. The worker returns a static, uncached HTML retry screen
 when a navigation fails offline; it never embeds or caches task content.
@@ -1549,8 +1549,8 @@ provider-specific questions, plan decisions, restrictive permissions and steerin
 need their separate conformance/qualification evidence.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite extended-harnesses
-pnpm test:e2e:runner -- --id extended-harnesses.runner-acpx-pi.local.hello-complete
+bun run test:e2e:runner -- --list --suite extended-harnesses
+bun run test:e2e:runner -- --id extended-harnesses.runner-acpx-pi.local.hello-complete
 ```
 
 The suite is excluded from `--all`, and candidate cells never automatically
@@ -1608,7 +1608,7 @@ it on native Linux with pinned Node on PATH: `python3 tests/runner-e2e/pi-provid
 The calibration covers direct launch and the production bootstrap's held FD 3
 and FD 7 launches. Descriptor launch requires the held descriptor and wrapper
 executable to match the sealed snapshot Node inode; an argv alias alone grants
-no authority. Native suite definitions 6 retain the original live failures and
+no authority. Pi native definition version 23 retains the original live failures and
 require new provider-death qualification after this fixture correction.
 The fault helper validates the profile pin against canonical normalized closure
 entries, matching production admission. JSON formatting is not part of that pin.
@@ -1618,8 +1618,8 @@ This adds one cell to the pending Pi Product matrix (26: 13 local, 13 Daytona);
 no qualification or live success is implied by discovery or oracle tests.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite pi-native
-pnpm test:e2e:runner -- --id pi-native.runner-acpx-pi.local.native-questions
+bun run test:e2e:runner -- --list --suite pi-native
+bun run test:e2e:runner -- --id pi-native.runner-acpx-pi.local.native-questions
 ```
 
 Native questions exercise the runner-owned `clayon_native_question` tool and
@@ -1642,7 +1642,7 @@ See [the fixture contract](FIXTURES.md#pi-native-boundaries) for the exact oracl
 and the limits of reconnect evidence.
 
 The manual `copilot-protection` suite selects two Copilot candidate cases on
-each of local and Daytona (four cells). Discover them with `pnpm test:e2e:runner -- --list --suite copilot-protection`.
+each of local and Daytona (four cells). Discover them with `bun run test:e2e:runner -- --list --suite copilot-protection`.
 The denial case keeps provider-turn settlement separate from controller run Stop.
 A normal provider completion observed by API before Stop dispatch is not active-turn
 cancellation coverage; denial, no-effects, run cancellation and retirement remain
@@ -1671,7 +1671,7 @@ The explicit-only `cursor-native` suite has eight local/Daytona cells exercising
 the native Cursor
 question callback, plan rejection/revision/acceptance, plan cancellation, and
 permission denial across browser reload. List it with
-`pnpm test:e2e:runner -- --list --suite cursor-native`. The fixture configures
+`bun run test:e2e:runner -- --list --suite cursor-native`. The fixture configures
 `acpxSessionMode` before the run: Plan for question/plan callbacks, Agent for
 write denial. Native request origin, exact decision bytes and post-write
 response delivery are required; semantic-tool interactions do not satisfy these
@@ -1945,9 +1945,9 @@ Agent-requester scope routing, legitimate capability-based delegation, real
 connection setup, and issue-dependency resolution remain outside these cells.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite blocker-guidance
-pnpm test:e2e:runner -- --id blocker-guidance.legacy-codex.local.human-authority
-pnpm test:e2e:runner -- --suite blocker-guidance --max-parallel 2
+bun run test:e2e:runner -- --list --suite blocker-guidance
+bun run test:e2e:runner -- --id blocker-guidance.legacy-codex.local.human-authority
+bun run test:e2e:runner -- --suite blocker-guidance --max-parallel 2
 ```
 
 Each cell expects two provider turns, permits at most four recorded runs, and
@@ -2038,8 +2038,9 @@ inputs, skips local credential-file loading, and runs only health, browser UI,
 and zero-company checks. It retains separate private startup evidence and cannot
 produce a passing provider case. Existing process, IPC, and scratch cleanup stay
 in force. The installed lane invokes Playwright's public JavaScript bin directly
-with the current Node; pnpm's generated bin shim would inject `NODE_PATH` into
-the WebServer. Arbitrary ambient `NODE_OPTIONS` and `NODE_PATH` remain rejected.
+with the current Node; historically pnpm's generated bin shim injected
+`NODE_PATH` into the WebServer, and the direct-bin invocation is kept. Arbitrary
+ambient `NODE_OPTIONS` and `NODE_PATH` remain rejected.
 
 
 ## Production hiring templates
@@ -2120,10 +2121,10 @@ adapter event changes are part of this suite. Unit calibration and discovery do
 not qualify either live provider cell.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite hiring-templates
+bun run test:e2e:runner -- --list --suite hiring-templates
 # Only after separate approval for the bounded live run:
-pnpm test:e2e:runner -- --id hiring-templates.runner-codex.local.hire-coder-template-reuse --max-automatic-retries 0
-pnpm test:e2e:runner -- --id hiring-templates.runner-acpx-claude.local.hire-coder-template-reuse --max-automatic-retries 0
+bun run test:e2e:runner -- --id hiring-templates.runner-codex.local.hire-coder-template-reuse --max-automatic-retries 0
+bun run test:e2e:runner -- --id hiring-templates.runner-acpx-claude.local.hire-coder-template-reuse --max-automatic-retries 0
 ```
 
 The existing `first-task` suite uses the actual onboarding wizard and captures

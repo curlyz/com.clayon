@@ -8,7 +8,7 @@ Clayon companies export to portable markdown packages and import from local dire
 
 ## Package Format
 
-Exported packages follow the Agent Companies specification `antl:clayon/docs/companies/companies-spec`, markdown-first structure:
+Exported packages follow the Agent Companies specification (`doc/specs/companies-spec.md` in the repository), markdown-first structure:
 
 ```text
 my-company/

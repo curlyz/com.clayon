@@ -1,4 +1,5 @@
 import { URL } from "node:url";
+import { z } from "zod";
 
 export class ApiRequestError extends Error {
   status: number;
@@ -92,7 +93,7 @@ export class ClayonApiClient {
   putRaw<T>(path: string, body: Uint8Array, opts?: RequestOptions): Promise<T | null> {
     return this.request<T>(path, {
       method: "PUT",
-      body: body as unknown as BodyInit,
+      body: new Uint8Array(body),
       headers: { "content-type": "application/octet-stream" },
     }, opts);
   }
@@ -196,18 +197,25 @@ function safeParseJson(text: string): unknown {
   }
 }
 
+const ERROR_BODY_SCHEMA = z
+  .object({
+    error: z.string().optional(),
+    message: z.string().optional(),
+    details: z.unknown().optional(),
+  });
+
 async function toApiError(response: Response): Promise<ApiRequestError> {
   const text = await response.text();
   const parsed = safeParseJson(text);
+  const body = ERROR_BODY_SCHEMA.safeParse(parsed);
 
-  if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-    const body = parsed as Record<string, unknown>;
+  if (body.success) {
     const message =
-      (typeof body.error === "string" && body.error.trim()) ||
-      (typeof body.message === "string" && body.message.trim()) ||
+      body.data.error?.trim() ||
+      body.data.message?.trim() ||
       `Request failed with status ${response.status}`;
 
-    return new ApiRequestError(response.status, message, body.details, parsed);
+    return new ApiRequestError(response.status, message, body.data.details, parsed);
   }
 
   return new ApiRequestError(response.status, `Request failed with status ${response.status}`, undefined, parsed);
@@ -233,7 +241,7 @@ function buildConnectionErrorMessage(input: {
     "This usually means the Clayon server is not running, the configured URL is wrong, or the request is being blocked before it reaches Clayon.",
     "",
     "Try:",
-    "- Start Clayon with `pnpm dev` (from a source checkout) or `npx clayon run`.",
+    "- Start Clayon with `bun run dev` (from a source checkout) or `npx clayon run`.",
     `- Verify the server is reachable with \`curl ${healthUrl}\`.`,
     `- If Clayon is running elsewhere, pass \`--api-base ${input.apiBase.replace(/\/+$/, "")}\` or set \`CLAYON_API_URL\`.`,
   );

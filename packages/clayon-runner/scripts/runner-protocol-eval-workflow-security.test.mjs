@@ -62,7 +62,7 @@ test("pull request CI builds the canonical Evalbook viewer", async () => {
 
   assert.match(
     buildJob,
-    /name: Build Runner Evalbook viewer[\s\S]*pnpm --filter @clayon\/clayon-runner build:issue-thread/u,
+    /name: Build Runner Evalbook viewer[\s\S]*bun run --filter @clayon\/clayon-runner build:issue-thread/u,
   );
 });
 
@@ -73,7 +73,7 @@ test("resolves both repositories immutably and bounds total matrix concurrency",
     workflow.indexOf("  catalog:"),
   );
   assert.match(targetLock, /ref: \$\{\{ needs\.authorize\.outputs\.target_sha \}\}/u);
-  assert.match(targetLock, /pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only/u);
+  assert.match(targetLock, /bun install --ignore-scripts --lockfile-only/u);
   assert.match(targetLock, /Upload resolved target lockfile/u);
   const build = workflow.slice(
     workflow.indexOf("  build_runner:"),
@@ -137,7 +137,7 @@ test("resolves both repositories immutably and bounds total matrix concurrency",
   assert.match(workflow, /matrix_1/u);
   assert.match(
     workflow,
-    /pnpm --filter @clayon\/clayon-runner deploy --prod/u,
+    /node packages\/clayon-runner\/scripts\/deploy-runner-production-graph\.mjs/u,
   );
   assert.match(
     workflow,
@@ -229,8 +229,8 @@ test("report preparation stays on the trusted lock and install mode", async () =
   assert.doesNotMatch(report, /Download resolved target lockfile/u);
   assert.doesNotMatch(report, /Restore resolved target lockfile/u);
   assert.match(report, /Resolve trusted report lockfile without lifecycle scripts/u);
-  assert.match(report, /pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only/u);
-  assert.match(report, /pnpm install --frozen-lockfile --ignore-scripts\n/u);
+  assert.match(report, /bun install --ignore-scripts --lockfile-only/u);
+  assert.match(report, /bun install --frozen-lockfile\n/u);
 });
 
 test("trusted catalog, direct eval, and report orchestration stay on workflow revision", async () => {

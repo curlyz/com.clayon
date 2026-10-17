@@ -182,10 +182,10 @@ records contain safe IDs and outcome codes. This feature adds no telemetry.
 Focused checks:
 
 ```sh
-pnpm exec vitest run packages/shared/src/slack-app-manifest.test.ts ui/src/pages/apps/chat/SlackAutomaticSetup.test.tsx
-pnpm exec vitest run server/src/__tests__/chat-channels.integration.test.ts -t 'automatic Slack registration'
-pnpm exec playwright test --config tests/e2e/playwright.config.ts tests/e2e/chat-adapters-ui-providers.spec.ts
-pnpm check:token-gates
+bun x vitest run packages/shared/src/slack-app-manifest.test.ts ui/src/pages/apps/chat/SlackAutomaticSetup.test.tsx
+bun x vitest run server/src/__tests__/chat-channels.integration.test.ts -t 'automatic Slack registration'
+bun x playwright test --config tests/e2e/playwright.config.ts tests/e2e/chat-adapters-ui-providers.spec.ts
+bun run check:token-gates
 ```
 
 The Storybook stories under **Connections / Slack / Automatic setup** render the
@@ -234,7 +234,7 @@ re-enabling removed tools or changing their review ownership.
 
 The [connector probe catalog](../../server/src/services/connectors/slack/evals/README.md)
 keeps eleven manual acceptance probes next to that guidance, with related
-deterministic checks selectable through `pnpm test:slack-connector`. No automated
+deterministic checks selectable through `bun run test:slack-connector`. No automated
 model campaign is registered by that command. An attended legacy Codex test on
 2026-10-07 delivered real Slack choices, accepted an answer, resumed the same
 task, and returned a correct reply; other probes and runtimes remain unqualified

@@ -60,24 +60,26 @@ jobs:
           jq -e --argjson candidate "$ACTOR_ID" 'index($candidate) != null' <<< "$ALLOWED_ACTOR_IDS" >/dev/null
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
-          version: 9
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.3
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - run: bun install --frozen-lockfile
+      - run: bun run build
       - run: google-chrome --version
 
       - name: Run e2e tests
         env:
           CLAYON_PLAYWRIGHT_CHANNEL: "chrome"
           ANTHROPIC_API_KEY: ${{ !inputs.skip_llm && secrets.ANTHROPIC_API_KEY || '' }}
-        run: pnpm run test:e2e
+        run: bun run test:e2e
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()

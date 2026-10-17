@@ -6,7 +6,7 @@ id: antl:clayon/packages/clayon-runner/docs/protocol-compatibility
 
 ## Authority
 
-The JSON Schema files in `com.clayon/packages/clayon-runner/protocol/schemas/` are the language-neutral source of truth for the Replay and Local runner executable contract. The generated TypeScript schema module is checked against those files before every TypeScript typecheck. Rust consumes the same fixtures and must produce the same golden parity summaries.
+The JSON Schema files in `packages/clayon-runner/protocol/schemas/` are the language-neutral source of truth for the Replay and Local runner executable contract. The generated TypeScript schema module is checked against those files before every TypeScript typecheck. Rust consumes the same fixtures and must produce the same golden parity summaries.
 
 Reviewable architecture and trust boundaries: architecture `antl:clayon/packages/clayon-runner/docs/architecture`; durable transport and recovery: durable recovery `antl:clayon/packages/clayon-runner/docs/durable-recovery`. Local runner reuses the protocol contract for local live events. It adds package-local stdio and stream envelopes, not durable transport, persistence, or production control-plane behavior.
 

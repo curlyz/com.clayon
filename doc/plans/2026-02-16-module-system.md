@@ -1,6 +1,6 @@
 # Clayon Module System
 
-> Supersession note: the company-template/package-format direction in this document is no longer current. For the current markdown-first company import/export plan, see `doc/plans/2026-03-13-company-import-export-v2.md` and `docs/companies/companies-spec.md`.
+> Supersession note: the company-template/package-format direction in this document is no longer current. For the current markdown-first company import/export plan, see `doc/plans/2026-03-13-company-import-export-v2.md` and `doc/specs/companies-spec.md`.
 
 ## Overview
 
@@ -43,7 +43,7 @@ modules/
         TokenDashboard.tsx
 ```
 
-Modules live in a top-level `modules/` directory. Each module is a pnpm workspace package.
+Modules live in a top-level `modules/` directory. Each module is a Bun workspace package.
 
 ### Manifest (`clayon.module.json`)
 
@@ -302,7 +302,7 @@ Each module manages its own migrations in `src/migrations/`. The core migration 
 1. Core migrations run first (always)
 2. Module migrations run in dependency order
 3. Each module's migrations are tracked in a `mod_migrations` table with the module ID
-4. `pnpm db:migrate` runs everything. `pnpm db:migrate --module observability` runs one.
+4. `bun run db:migrate` runs everything. `bun run db:migrate --module observability` runs one.
 
 Modules can reference core tables via foreign keys (e.g., `agent_id → agents.id`) but core tables never reference module tables. This is a strict one-way dependency.
 
@@ -589,10 +589,10 @@ The Company Store is a registry for discovering and installing modules and templ
 ### CLI Commands
 
 ```bash
-pnpm clayon store list                    # browse available modules and templates
-pnpm clayon store install <module-id>     # install a module
-pnpm clayon store import <template-id>    # import a company template
-pnpm clayon store export                  # export current company as template
+bun run clayon store list                    # browse available modules and templates
+bun run clayon store install <module-id>     # install a module
+bun run clayon store import <template-id>    # import a company template
+bun run clayon store export                  # export current company as template
 ```
 
 ---

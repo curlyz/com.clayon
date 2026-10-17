@@ -2,7 +2,7 @@
 
 Published exe.dev sandbox provider plugin for Clayon.
 
-This package lives in the Clayon monorepo, but it is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn.
+This package lives in the Clayon monorepo, but it is intentionally excluded from the root Bun workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn.
 
 ## Install
 
@@ -44,10 +44,10 @@ Operational notes:
 
 ```bash
 cd packages/plugins/sandbox-providers/exe-dev
-pnpm install --ignore-workspace --no-lockfile
-pnpm build
-pnpm test
-pnpm typecheck
+bun install --no-save
+bun run build
+bun run test
+bun run typecheck
 ```
 
 These commands assume the repo root has already been installed once so the local `@clayon/plugin-sdk` workspace package is available to the compiler during development.

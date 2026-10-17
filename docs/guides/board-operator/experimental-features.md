@@ -26,7 +26,7 @@ controls keep their configured values.
 The CLI exposes the same surface:
 
 ```sh
-pnpm clayon instance settings:experimental
+bun run clayon instance settings:experimental
 npx clayon instance settings:experimental:update --payload-json '{...}'
 ```
 
@@ -69,4 +69,4 @@ Before enabling an experimental feature:
 
 - See Status Cards `antl:clayon/docs/guides/board-operator/status-cards` for the watched-query summary experiment, refresh policies, and cost model.
 - See the CLI caveat in Control-Plane Commands `antl:clayon/docs/cli/control-plane-commands`.
-- See the repo CLI reference in [`doc/CLI.md`](https://github.com/clayon/clayon/blob/master/doc/CLI.md) when working from the repository.
+- See the repo CLI reference in [`doc/CLI.md`](../../../doc/CLI.md) when working from the repository.

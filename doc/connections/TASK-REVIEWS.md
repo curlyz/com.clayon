@@ -75,7 +75,7 @@ outbox.
 Run the credential-free, isolated browser suite:
 
 ```sh
-CLAYON_E2E_PORT=3222 pnpm exec playwright test -c tests/e2e/connection-reviews.config.ts
+CLAYON_E2E_PORT=3222 bun x playwright test -c tests/e2e/connection-reviews.config.ts
 ```
 
 This starts a dedicated embedded database/server and local MCP fixture, configures
@@ -89,7 +89,7 @@ scripted process adapter; these results do not prove model-runner behavior.
 Run the opt-in, local model-runner matrix with the harness's normal credentials:
 
 ```sh
-CLAYON_RUNNER_E2E_CONNECTION_REVIEWS=1 pnpm test:e2e:runner -- --suite connection-reviews
+CLAYON_RUNNER_E2E_CONNECTION_REVIEWS=1 bun run test:e2e:runner -- --suite connection-reviews
 ```
 
 The 16 cells cover approve, decline, always allow, and restart/resume for native
@@ -108,7 +108,7 @@ credentials or account/provider access are untested dependencies, never a pass.
 ## Storybook
 
 ```sh
-pnpm --filter @clayon/ui exec storybook dev -p 6018 -c storybook/.storybook --no-open --ci
+cd ui && bun x storybook dev -p 6018 -c storybook/.storybook --no-open --ci
 ```
 
 Open **Chat & Comments / Connection Reviews**. The production task thread/card and

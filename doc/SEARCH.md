@@ -104,11 +104,11 @@ PostgreSQL documents the existing index support in
 ## Reproduce the evaluation
 
 ```sh
-pnpm exec vitest run server/src/__tests__/task-search-quality.test.ts
+bun x vitest run server/src/__tests__/task-search-quality.test.ts
 # Also write per-query rankings and metrics for inspection:
-SEARCH_EVAL_REPORT=/tmp/search-quality.json pnpm exec vitest run server/src/__tests__/task-search-quality.test.ts
+SEARCH_EVAL_REPORT=/tmp/search-quality.json bun x vitest run server/src/__tests__/task-search-quality.test.ts
 # Include the larger latency dataset and query plans:
-SEARCH_EVAL_SCALE=1 SEARCH_EVAL_REPORT=/tmp/search-scale.json pnpm exec vitest run server/src/__tests__/task-search-quality.test.ts
+SEARCH_EVAL_SCALE=1 SEARCH_EVAL_REPORT=/tmp/search-scale.json bun x vitest run server/src/__tests__/task-search-quality.test.ts
 ```
 
 The fixture is `server/src/__tests__/fixtures/task-search-corpus.ts`. Tests run

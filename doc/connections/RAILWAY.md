@@ -206,9 +206,9 @@ grant denial; enrolled SSH key, harmless command, wrong-target denial,
 timeout/cancellation, key removal and provider cleanup. The successful direct
 read diagnostic does not replace the required agent-through-gateway proof.
 
-Regenerate with `pnpm connections:ingest-app-definitions --definitions-only` when
+Regenerate with `bun run connections:ingest-app-definitions --definitions-only` when
 the external research corpus is unavailable. This preserves its ingestion report.
-Run targeted suites, shared definitions, `pnpm check:token-gates`, then the full
+Run targeted suites, shared definitions, `bun run check:token-gates`, then the full
 repository checks before release. See [the verification record](RAILWAY-REVIEW.md) for actual results.
 
 Rollback: remove Railway's curated slug/promotion and setup panel to stop new

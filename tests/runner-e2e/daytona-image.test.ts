@@ -179,7 +179,7 @@ describe("runner E2E Daytona image contract", () => {
       workflow.indexOf(`--format '{{json .Image}}'`),
     );
     const providerInstall = dockerfile.indexOf(
-      "pnpm install --frozen-lockfile --filter '@clayon/clayon-runner...'",
+      "bun install --frozen-lockfile --filter '@clayon/clayon-runner...'",
     );
     const runnerSourceCopy = dockerfile.indexOf(
       "COPY packages ./packages",
@@ -203,7 +203,7 @@ describe("runner E2E Daytona image contract", () => {
     for (const requiredPath of [
       ".dockerignore",
       "docker/daytona-runner/Dockerfile",
-      "pnpm-lock.yaml",
+      "bun.lock",
       "patches",
       "packages/clayon-eval-kernel/src",
       "packages/clayon-runner/package.json",
@@ -241,7 +241,7 @@ describe("runner E2E Daytona image contract", () => {
     const inputPaths = [
       "docker/daytona-runner/Dockerfile",
       "package.json",
-      "pnpm-lock.yaml",
+      "bun.lock",
       "packages/clayon-runner/package.json",
       "packages/clayon-runner/src",
       "packages/clayon-runner/runner/crates",
@@ -274,7 +274,7 @@ describe("runner E2E Daytona image contract", () => {
       );
       await writeFile(path.join(root, "package.json"), '{"private":true}\n');
       await writeFile(
-        path.join(root, "pnpm-lock.yaml"),
+        path.join(root, "bun.lock"),
         "lockfileVersion: 9\n",
       );
       await writeFile(
@@ -330,7 +330,7 @@ describe("runner E2E Daytona image contract", () => {
       for (const relativePath of [
         "docker/daytona-runner/Dockerfile",
         "package.json",
-        "pnpm-lock.yaml",
+        "bun.lock",
         "packages/clayon-runner/package.json",
         "packages/clayon-runner/src/runner.ts",
         "packages/clayon-runner/scripts/materialize-pi-distribution.mjs",

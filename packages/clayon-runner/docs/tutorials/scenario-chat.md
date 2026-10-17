@@ -16,19 +16,19 @@ the future binding boundary reference `antl:clayon/packages/clayon-runner/docs/c
 
 ## What you need
 
-- Node.js 20 or newer and pnpm 9 or newer. Verified with Node 22.22.2.
-- No Rust toolchain and no network access after `pnpm install`.
+- Node.js 24.11 or newer and Bun 1.4 or newer.
+- No Rust toolchain and no network access after `bun install`.
 
 Install the package workspace from the repository root:
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-scripts --dev
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
 ```
 
 ## 1. Open the chat (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner run demo:scenarios
+bun run --filter @clayon/clayon-runner demo:scenarios
 ```
 
 Open <http://127.0.0.1:4183/scenario-explorer/#/chat/ap-mcp-gate-01>.
@@ -111,15 +111,13 @@ confirmation: reproduces an identical timeline.
 ## 6. Run the tests and record the evidence
 
 ```sh
-pnpm --filter @clayon/clayon-runner run test:scenarios
-pnpm --filter @clayon/clayon-runner run test:browser:scenarios
-# Recorded evidence generation is deferred from this release.
+bun run --filter @clayon/clayon-runner test:scenarios
+bun run --filter @clayon/clayon-runner test:browser:scenarios
 ```
 
 First covers the session data contract and chat components; second
-drives the surface in a real browser at both viewports; third writes the
-ten acceptance screenshots to `.clayon-local/evidence/capability/` — failing if any
-route scrolls horizontally.
+drives the surface in a real browser at both viewports. Recorded
+evidence generation is deferred from this release.
 
 ## What this does not do
 

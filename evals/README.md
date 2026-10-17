@@ -9,7 +9,7 @@ See [the evals framework plan](../doc/plans/2026-03-13-agent-evals-framework.md)
 ### Prerequisites
 
 ```bash
-pnpm add -g promptfoo
+bun add -g promptfoo
 ```
 
 You need an API key for at least one provider. Set one of:
@@ -24,10 +24,10 @@ export OPENAI_API_KEY=sk-...            # OpenAI direct
 
 ```bash
 # Smoke test (default models)
-pnpm evals:smoke
+bun run evals:smoke
 
 # Validate config without provider credentials
-cd evals/promptfoo && npx promptfoo@latest validate -c promptfooconfig.yaml
+cd evals/promptfoo && npx promptfoo@0.103.3 validate -c promptfooconfig.yaml
 
 # Or run promptfoo directly
 cd evals/promptfoo

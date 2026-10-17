@@ -7,7 +7,7 @@ import { createApiProxy, createRemoteApiProxy } from "./src/lib/vite-api-proxy";
 import { serviceWorkerBuildIdPlugin } from "./src/lib/vite-sw-build-id";
 import { readBrowserBuildCommit } from "./src/lib/vite-build-commit";
 
-// CLAYON_DEV_API_TARGET=https://clayon.curly.ng pnpm --dir ui dev:remote
+// CLAYON_DEV_API_TARGET=https://clayon.curly.ng bun run --cwd ui dev:remote
 // serves the working-tree UI against the deployed backend.
 const remoteApiTarget = process.env.CLAYON_DEV_API_TARGET;
 const apiProxy = remoteApiTarget ? createRemoteApiProxy(remoteApiTarget) : createApiProxy();

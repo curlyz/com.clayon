@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 import type { Db } from "@clayon/db";
 import type {
   CatalogManifest,
@@ -28,8 +29,6 @@ import { companyPortabilityService } from "./company-portability.js";
 import { companySkillService } from "./company-skills.js";
 import { logActivity } from "./activity-log.js";
 import { normalizePortablePath } from "./portable-path.js";
-
-type CatalogManifestFile = CatalogManifest;
 
 export interface CatalogTeamListQuery {
   kind?: CatalogTeamKind;
@@ -135,7 +134,7 @@ const catalogPackageRootCandidates = buildCatalogPackageRootCandidates();
 let catalogPackageRoot = catalogPackageRootCandidates[0]!;
 let catalogManifestPath = path.join(catalogPackageRoot, "generated/catalog.json");
 let cachedCatalogManifest: {
-  manifest: CatalogManifestFile;
+  manifest: CatalogManifest;
   manifestPath: string;
   mtimeMs: number;
   size: number;
@@ -164,7 +163,7 @@ async function statCatalogManifest() {
     }
   }
   throw new Error(
-    `Teams catalog manifest not found. Checked: ${catalogPackageRootCandidates.map((root) => path.join(root, "generated/catalog.json")).join(", ")}. Run pnpm --filter @clayon/teams-catalog build:manifest.`,
+    `Teams catalog manifest not found. Checked: ${catalogPackageRootCandidates.map((root) => path.join(root, "generated/catalog.json")).join(", ")}. Run bun run --filter @clayon/teams-catalog build:manifest.`,
   );
 }
 
@@ -179,7 +178,7 @@ async function getCatalogManifest() {
     return cachedCatalogManifest.manifest;
   }
 
-  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")) as CatalogManifestFile;
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")) as CatalogManifest;
   cachedCatalogManifest = {
     manifest,
     manifestPath,
@@ -354,6 +353,8 @@ function yamlScalar(value: string | number | boolean | null) {
   return JSON.stringify(value);
 }
 
+const YAML_SCALAR_SCHEMA = z.union([z.null(), z.string(), z.number(), z.boolean()]);
+
 function renderStringArrayYaml(key: string, values: string[]) {
   if (values.length === 0) return [];
   return [
@@ -377,7 +378,13 @@ function renderYamlBlock(value: unknown, indentLevel = 0): string[] {
         (Array.isArray(entry) && entry.length === 0) ||
         (isPlainRecord(entry) && Object.keys(entry).length === 0)
       ) {
-        lines.push(`${indent}- ${yamlScalar(entry as string | number | boolean | null)}`);
+        // Empty arrays and empty records render as raw JSON text, matching the
+        // previous cast-based behaviour byte for byte.
+        const parsedScalar = YAML_SCALAR_SCHEMA.safeParse(entry);
+        const scalar = parsedScalar.success
+          ? yamlScalar(parsedScalar.data)
+          : JSON.stringify(entry);
+        lines.push(`${indent}- ${scalar}`);
         continue;
       }
       lines.push(`${indent}-`);
@@ -399,7 +406,13 @@ function renderYamlBlock(value: unknown, indentLevel = 0): string[] {
         (Array.isArray(entry) && entry.length === 0) ||
         (isPlainRecord(entry) && Object.keys(entry).length === 0)
       ) {
-        lines.push(`${indent}${key}: ${yamlScalar(entry as string | number | boolean | null)}`);
+        // Empty arrays and empty records render as raw JSON text, matching the
+        // previous cast-based behaviour byte for byte.
+        const parsedScalar = YAML_SCALAR_SCHEMA.safeParse(entry);
+        const scalar = parsedScalar.success
+          ? yamlScalar(parsedScalar.data)
+          : JSON.stringify(entry);
+        lines.push(`${indent}${key}: ${scalar}`);
         continue;
       }
       lines.push(`${indent}${key}:`);

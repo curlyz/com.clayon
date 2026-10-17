@@ -18,8 +18,7 @@ the seed, exposure profile, bounds, and route contract behind what you see here.
 
 ## What you need
 
-- Node.js 20 or newer and pnpm 9 or newer (verified with Node 22.22.2 and pnpm
-  9.15.4).
+- Node.js 20 or newer and Bun 1.4 or newer (verified with Node 22.22.2).
 - Rust toolchain: this path builds the real `clayon-runnerd`
   binary. No offline fallback: the clean room is live-only by design.
 - Locally authenticated Codex CLI. Package server owns that
@@ -28,17 +27,17 @@ the seed, exposure profile, bounds, and route contract behind what you see here.
 Install the workspace from the repository root:
 
 ```sh
-NODE_ENV=development pnpm install --filter @clayon/clayon-runner --frozen-lockfile --offline --ignore-scripts
+NODE_ENV=development bun install --filter @clayon/clayon-runner --frozen-lockfile --ignore-scripts
 ```
 
 `NODE_ENV=development` matters even if your shell already has
-`NODE_ENV=production`: pnpm silently skips devDependencies otherwise; the
+`NODE_ENV=production`: the package manager silently skips devDependencies otherwise; the
 build tooling lives there.
 
 ## 1. Prove the path without a browser (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner smoke:capability:cleanroom -- --json
+bun run --filter @clayon/clayon-runner smoke:capability:cleanroom -- --json
 ```
 
 Builds the TypeScript output and `clayon-runnerd`, starts the package
@@ -65,7 +64,7 @@ Every assertion must read `true`. The two issue identifiers differ:
 ## 2. Open the chat in a browser (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:issue-thread
+bun run --filter @clayon/clayon-runner console:issue-thread
 ```
 
 Open `http://127.0.0.1:4184/`. Landing surface is the scenario explorer.

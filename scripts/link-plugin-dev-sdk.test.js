@@ -35,7 +35,7 @@ test("readPluginsUnder finds first-level package directories", () => {
 });
 
 test("readPluginsUnder recurses into directories that are not themselves packages", () => {
-  // Mirrors the recursive pnpm-workspace exclusion glob: a provider nested
+  // Mirrors the recursive workspaces exclusion glob: a provider nested
   // deeper than one level must still be discovered.
   const parent = join(workDir, "nested");
   const nested = makePackage(join(parent, "vendor", "my-plugin"));

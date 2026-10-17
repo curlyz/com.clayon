@@ -38,6 +38,7 @@ function writeBaseConfig(configPath: string) {
       host: "0.0.0.0",
       port: 3100,
       allowedHostnames: [],
+      crossOriginApiOrigins: [],
       serveUi: true,
     },
     auth: {

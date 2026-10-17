@@ -5,7 +5,7 @@ import {
   scaffoldPluginProject,
   shellQuote,
   type ScaffoldPluginOptions,
-} from "../../../../packages/plugins/create-clayon-plugin/src/index.js";
+} from "@clayon/create-clayon-plugin";
 import pc from "picocolors";
 import {
   addCommonClientOptions,
@@ -95,7 +95,11 @@ interface PluginCompanyOptions extends PluginJsonOptions {
   companyId?: string;
 }
 
-function requireCompanyId(ctx: { companyId?: string }): string {
+interface CompanyIdContext {
+  companyId?: string;
+}
+
+function requireCompanyId(ctx: CompanyIdContext): string {
   if (!ctx.companyId) {
     throw new Error(
       "Company ID is required. Pass --company-id, set CLAYON_COMPANY_ID, or set context profile companyId via `clayon context set`.",
@@ -107,6 +111,15 @@ function requireCompanyId(ctx: { companyId?: string }): string {
 interface PluginInitResult {
   outputDir: string;
   nextCommands: string[];
+}
+
+interface PluginExample {
+  packageName: string;
+  pluginKey: string;
+  displayName: string;
+  description: string;
+  localPath: string;
+  tag: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -151,10 +164,15 @@ function resolvePackageArg(packageArg: string, isLocal: boolean, cwd = process.c
   return path.resolve(cwd, packageArg);
 }
 
+interface BuildPluginInstallRequestDeps {
+  cwd?: string;
+  existsSync?: (targetPath: string) => boolean;
+}
+
 export function buildPluginInstallRequest(
   packageArg: string,
   opts: Pick<PluginInstallOptions, "local" | "version"> = {},
-  deps: { cwd?: string; existsSync?: (targetPath: string) => boolean } = {},
+  deps: BuildPluginInstallRequestDeps = {},
 ): PluginInstallRequest {
   const cwd = deps.cwd ?? process.cwd();
   const pathExists = deps.existsSync ?? existsSync;
@@ -177,7 +195,7 @@ export function buildPluginInstallRequest(
 export function renderLocalPluginInstallHint(packagePath: string): string {
   return [
     pc.dim("Local plugin installs run trusted local code from your machine."),
-    pc.dim(`Keep ${pc.cyan("pnpm dev")} running in ${packagePath}; Clayon watches rebuilt dist output and reloads the plugin worker.`),
+    pc.dim(`Keep ${pc.cyan("bun run dev")} running in ${packagePath}; Clayon watches rebuilt dist output and reloads the plugin worker.`),
   ].join("\n");
 }
 
@@ -189,8 +207,13 @@ export function renderLocalPluginInstallHint(packagePath: string): string {
  * the API URL plus the server version/status catches that mismatch before the
  * plugin is exercised against the wrong runtime.
  */
+interface TargetHealthApi {
+  apiBase: string;
+  get(path: string): Promise<TargetHealth | null>;
+}
+
 export async function probeTargetDiagnostics(
-  api: { apiBase: string; get(path: string): Promise<TargetHealth | null> },
+  api: TargetHealthApi,
 ): Promise<TargetDiagnostics> {
   try {
     const health = await api.get("/api/health");
@@ -290,8 +313,8 @@ export function buildPluginInitNextCommands(outputDir: string): string[] {
   const quotedOutputDir = shellQuote(outputDir);
   return [
     `cd ${quotedOutputDir}`,
-    "pnpm install",
-    "pnpm dev",
+    "bun install",
+    "bun run dev",
     `clayon plugin install ${quotedOutputDir}`,
   ];
 }
@@ -641,16 +664,7 @@ export function registerPluginCommands(program: Command): void {
       .action(async (opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
-          const examples = await ctx.api.get<
-            Array<{
-              packageName: string;
-              pluginKey: string;
-              displayName: string;
-              description: string;
-              localPath: string;
-              tag: string;
-            }>
-          >("/api/plugins/examples");
+          const examples = await ctx.api.get<PluginExample[]>("/api/plugins/examples");
 
           if (ctx.json) {
             printOutput(examples, { json: true });
@@ -794,12 +808,9 @@ function addPluginConfigPost(parent: Command, name: string, description: string,
       .action(async (pluginId: string, opts: PluginCompanyOptions) => {
         try {
           const ctx = resolveCommandContext(opts, { requireCompany: true });
-          const payload = parseJson(opts.payloadJson ?? "{}") as Record<string, unknown>;
+          const payload: unknown = parseJson(opts.payloadJson ?? "{}");
           printOutput(
-            await ctx.api.post(`/api/plugins/${encodeURIComponent(pluginId)}/${suffix}`, {
-              ...payload,
-              companyId: ctx.companyId,
-            }),
+            await ctx.api.post(`/api/plugins/${encodeURIComponent(pluginId)}/${suffix}`, Object.assign({}, payload, { companyId: ctx.companyId })),
             { json: ctx.json },
           );
         } catch (err) {
@@ -940,7 +951,7 @@ function addPluginLocalFolderKeyPut(parent: Command, name: string, description: 
 }
 
 function parseJson(value: string): unknown {
-  return JSON.parse(value) as unknown;
+  return JSON.parse(value);
 }
 
 function parseOptionalInt(value: string | undefined): number | undefined {

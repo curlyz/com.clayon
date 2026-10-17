@@ -27,17 +27,17 @@ echo "==> Building clayon for npm"
 
 # ── Step 1: Forbidden token check ──────────────────────────────────────────────
 if [ "$skip_checks" = false ]; then
-  echo "  [1/5] Running forbidden token check..."
+  echo "  [1/6] Running forbidden token check..."
   node "$REPO_ROOT/scripts/check-forbidden-tokens.mjs"
 else
-  echo "  [1/5] Skipping forbidden token check (--skip-checks)"
+  echo "  [1/6] Skipping forbidden token check (--skip-checks)"
 fi
 
 # ── Step 2: TypeScript type-check ──────────────────────────────────────────────
 if [ "$skip_typecheck" = false ]; then
   echo "  [2/6] Type-checking..."
   cd "$REPO_ROOT"
-  corepack pnpm -r typecheck
+  bun run --filter '*' typecheck
 else
   echo "  [2/6] Skipping type-check (--skip-typecheck)"
 fi

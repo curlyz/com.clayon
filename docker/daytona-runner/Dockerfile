@@ -13,14 +13,15 @@ RUN cargo build --locked --release -j 2 -p clayon-runner-core --bin clayon-runne
     && strip /workspace/packages/clayon-runner/runner/target/release/clayon-runnerd
 
 FROM node:24.21.0-bookworm@sha256:5a750d3be5e5c80275f8c9a5367c3aed99c2875656590c8d0701c7ee687f5f0a AS provider-pack-build
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+COPY --from=oven/bun:1.4.3 /usr/local/bin/bun /usr/local/bin/bun
+RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx
 # Bound build-time memory on hosts that expose many CPUs but little RAM.
 # These settings belong only to this build stage, never the runtime image.
 ENV NODE_OPTIONS=--max-old-space-size=1024 \
     npm_config_child_concurrency=1 \
     npm_config_network_concurrency=4
 WORKDIR /workspace
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+COPY package.json bun.lock bunfig.toml tsconfig.base.json ./
 COPY patches ./patches
 COPY scripts/link-plugin-dev-sdk.mjs ./scripts/link-plugin-dev-sdk.mjs
 # Include the complete workspace manifest graph so source-owned patches apply.
@@ -33,19 +34,15 @@ COPY cli/package.json ./cli/package.json
 # The complete resolved lock (including transitive integrity hashes) is reviewed.
 # Reject registry-time drift BEFORE installing packages or running lifecycle code.
 # Refresh this digest together with source/provider dependency changes.
-ARG CLAYON_RUNNER_LOCK_SHA256=440f0ccd8a383b32a576dc53b4191d73bb03a91ba0dabfa1c3d79c3039e01aa5
-# pnpm 9 subtracts PNPM_WORKERS from available CPUs; it is not a worker count.
-# Subtract all available CPUs to select its minimum (one tarball worker).
-RUN export PNPM_WORKERS="$(node -p 'require("node:os").availableParallelism()')" \
-    && printf '%s  pnpm-lock.yaml\n' "${CLAYON_RUNNER_LOCK_SHA256}" > /tmp/provider-lock.sha256 \
+ARG CLAYON_RUNNER_LOCK_SHA256=10af5371fbcb495cd3e80139a2c2d88c5102aa1fa80279b5c27174d9e5751027
+RUN printf '%s  bun.lock\n' "${CLAYON_RUNNER_LOCK_SHA256}" > /tmp/provider-lock.sha256 \
     && sha256sum -c /tmp/provider-lock.sha256 \
-    && pnpm install --frozen-lockfile --filter '@clayon/clayon-runner...'
+    && bun install --frozen-lockfile --filter '@clayon/clayon-runner...'
 ARG CLAYON_RUNNER_SOURCE_REVISION
 # Optional qualification assets; this never promotes candidate profiles.
 ARG CLAYON_RUNNER_CANDIDATE_PROVIDERS=
 RUN test -n "${CLAYON_RUNNER_SOURCE_REVISION}"
-RUN export PNPM_WORKERS="$(node -p 'require("node:os").availableParallelism()')" \
-    && pnpm --filter @clayon/clayon-runner build:typescript \
+RUN bun run --filter @clayon/clayon-runner build:typescript \
     && CLAYON_RUNNER_SOURCE_REVISION="${CLAYON_RUNNER_SOURCE_REVISION}" \
       node packages/clayon-runner/scripts/build-provider-pack.mjs /provider-pack \
         "--candidate-providers=${CLAYON_RUNNER_CANDIDATE_PROVIDERS}" \

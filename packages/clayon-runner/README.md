@@ -52,7 +52,7 @@ authentication repairs retain their existing fresh-session recovery behavior.
 
 `acpx-profiles.json` owns the package versions, command/profile digests, and
 required execution policies used by TypeScript and Rust. It contains no models.
-After changing it, run `pnpm --filter @clayon/clayon-runner generate:acpx-profiles`.
+After changing it, run `bun run --filter @clayon/clayon-runner generate:acpx-profiles`.
 Normal build and typecheck reject stale generated declarations. Generation also
 checks installed dependency pins and agreement with Cursor's distribution manifest
 and immutable release attestation (`cursor-contract.json`). Cursor's per-platform
@@ -390,19 +390,19 @@ prospective session configuration exactly.
 Run the complete contract gate with:
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-scripts --dev
-pnpm --filter @clayon/clayon-runner verify
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
+bun run --filter @clayon/clayon-runner verify
 ```
 
 The verification command requires a stable Rust toolchain with `cargo` on
-`PATH`, in addition to Node.js 24.11+ and pnpm 9+.
+`PATH`, in addition to Node.js 24.11+ and Bun 1.4+.
 
 Minimal Debian/Ubuntu hosts without root access can extract the required
 Playwright browser libraries into a user-owned cache and run the same acceptance
 sequence with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify:rootless
+bun run --filter @clayon/clayon-runner verify:rootless
 ```
 
 The tracer's final line is stable:
@@ -424,30 +424,30 @@ The tracer's final line is stable:
 Run only the tracer with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:conformance
+bun run --filter @clayon/clayon-runner trace:conformance
 ```
 
 Replay the Replay happy path, run a Local session, or open the browser
 devtool:
 
 ```sh
-pnpm --filter @clayon/clayon-runner replay:fixture
-pnpm --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path
-pnpm --filter @clayon/clayon-runner trace:codex
-pnpm --filter @clayon/clayon-runner demo:live-console -- --host 127.0.0.1 --port 4174
+bun run --filter @clayon/clayon-runner replay:fixture
+bun run --filter @clayon/clayon-runner trace:local-runner -- --scenario happy-path
+bun run --filter @clayon/clayon-runner trace:codex
+bun run --filter @clayon/clayon-runner demo:live-console -- --host 127.0.0.1 --port 4174
 
 # Live console: chat with a live session in the browser.
-pnpm --filter @clayon/clayon-runner console:live-console
-pnpm --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
+bun run --filter @clayon/clayon-runner console:live-console
+bun run --filter @clayon/clayon-runner browser:dev --host 127.0.0.1 --port 4179
 
 # SDK: open the public-SDK reference console and mini consumer.
-pnpm --filter @clayon/clayon-runner console:sdk
+bun run --filter @clayon/clayon-runner console:sdk
 
 # Standalone: run the standalone legacy/native/kill-switch tracer and page.
-pnpm --filter @clayon/clayon-runner trace:standalone
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
-pnpm --filter @clayon/clayon-runner demo:standalone
+bun run --filter @clayon/clayon-runner trace:standalone
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
+bun run --filter @clayon/clayon-runner demo:standalone
 
 ```
 
@@ -479,8 +479,8 @@ The deterministic workflow scorer and the chaos schedule do not require
 provider credentials:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:runner-workflow-evals
-pnpm --filter @clayon/clayon-runner report:runner-chaos-evals
+bun run --filter @clayon/clayon-runner test:runner-workflow-evals
+bun run --filter @clayon/clayon-runner report:runner-chaos-evals
 ```
 
 `report:runner-live-evals` is a paid, provider-backed command. Native Codex
@@ -497,11 +497,11 @@ additional scheduling after the observed campaign total reaches that value:
 ```sh
 CLAYON_EVAL_MAX_CAMPAIGN_COST_USD=12 \
   CLAYON_EVALS_ROOT=/path/to/clayon-evals \
-  pnpm --filter @clayon/clayon-runner report:runner-live-evals
+  bun run --filter @clayon/clayon-runner report:runner-live-evals
 
 # Run two scheduled native Codex executions only.
 CLAYON_EVALS_ROOT=/path/to/clayon-evals \
-  pnpm --filter @clayon/clayon-runner report:runner-live-evals -- \
+  bun run --filter @clayon/clayon-runner report:runner-live-evals -- \
   --candidate codex-luna --limit 2
 ```
 
@@ -521,13 +521,13 @@ clear them after use. Validate locally, provision or inspect the stack, run the
 bounded lab/smoke, and tear it down explicitly with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:aws-agentcore-provisioning
-pnpm --filter @clayon/clayon-runner aws-agentcore:provision -- --dry-run
-pnpm --filter @clayon/clayon-runner aws-agentcore:provision
-pnpm --filter @clayon/clayon-runner aws-agentcore:probe
-pnpm --filter @clayon/clayon-runner aws-agentcore:lab
-pnpm --filter @clayon/clayon-runner smoke:capability:aws-agentcore
-pnpm --filter @clayon/clayon-runner aws-agentcore:destroy -- --yes
+bun run --filter @clayon/clayon-runner test:aws-agentcore-provisioning
+bun run --filter @clayon/clayon-runner aws-agentcore:provision -- --dry-run
+bun run --filter @clayon/clayon-runner aws-agentcore:provision
+bun run --filter @clayon/clayon-runner aws-agentcore:probe
+bun run --filter @clayon/clayon-runner aws-agentcore:lab
+bun run --filter @clayon/clayon-runner smoke:capability:aws-agentcore
+bun run --filter @clayon/clayon-runner aws-agentcore:destroy -- --yes
 ```
 
 To admit the hosted direct-eval workflow, provision with the account-local
@@ -535,7 +535,7 @@ GitHub Actions OIDC provider and keep the default exact repository and protected
 environment binding:
 
 ```sh
-pnpm --filter @clayon/clayon-runner aws-agentcore:provision -- \
+bun run --filter @clayon/clayon-runner aws-agentcore:provision -- \
   --aws-profile clayon-dev \
   --github-oidc-provider-arn arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com
 ```

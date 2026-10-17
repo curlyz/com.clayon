@@ -272,9 +272,9 @@ if [ "$skip_verify" = false ]; then
   release_info ""
   release_info "==> Step 1/7: Verification gate..."
   cd "$REPO_ROOT"
-  pnpm -r typecheck
-  pnpm test:run
-  pnpm build
+  bun run --filter '*' typecheck
+  bun run test:run
+  bun run build
 else
   release_info ""
   release_info "==> Step 1/7: Verification gate skipped (--skip-verify)"
@@ -283,7 +283,7 @@ fi
 release_info ""
 release_info "==> Step 2/7: Building workspace artifacts..."
 cd "$REPO_ROOT"
-pnpm build
+bun run build
 node "$REPO_ROOT/scripts/build-standalone-public-packages.mjs"
 bash "$REPO_ROOT/scripts/prepare-server-ui-dist.sh"
 for pkg_dir in server packages/adapters/claude-local packages/adapters/codex-local; do
@@ -303,12 +303,12 @@ release_info "==> Step 4/7: Building publishable CLI bundle..."
 release_info "  ✓ CLI bundle ready"
 
 VERSIONED_PACKAGE_INFO="$(list_public_package_info)"
-VERSION_IN_CLI_PACKAGE="$(node -e "console.log(require('$CLI_DIR/package.json').version)")"
+VERSION_IN_CLI_PACKAGE="$(node -e "console.log(require(process.argv[1]).version)" "$CLI_DIR/package.json")"
 if [ "$VERSION_IN_CLI_PACKAGE" != "$TARGET_PUBLISH_VERSION" ]; then
   release_fail "versioning drift detected. Expected $TARGET_PUBLISH_VERSION but found $VERSION_IN_CLI_PACKAGE."
 fi
 
-VERIFY_ATTEMPTS="${NPM_PUBLISH_VERIFY_ATTEMPTS:-12}"
+VERIFY_ATTEMPTS="${NPM_PUBLISH_VERIFY_ATTEMPTS:-185}"
 VERIFY_DELAY_SECONDS="${NPM_PUBLISH_VERIFY_DELAY_SECONDS:-5}"
 
 release_info ""
@@ -355,7 +355,7 @@ if [ "$dry_run" = true ]; then
         run_bundled_npm_pack pack --pack-destination "$publish_dir" 2>&1 | tail -3
         rm -rf "$publish_dir"
       else
-        pnpm publish --dry-run --no-git-checks --tag "$DIST_TAG" 2>&1 | tail -3
+        bun publish --dry-run --tag "$DIST_TAG" 2>&1 | tail -3
       fi
     ) > "$preview_log" 2>&1 &
     preview_pids+=($!)
@@ -421,7 +421,6 @@ else
   release_info "==> Step 6/7: Confirming npm package availability and dist-tag integrity..."
   REGISTRY_STATE_VERIFY_ATTEMPTS="${NPM_REGISTRY_STATE_VERIFY_ATTEMPTS:-12}"
   REGISTRY_STATE_VERIFY_DELAY_SECONDS="${NPM_REGISTRY_STATE_VERIFY_DELAY_SECONDS:-5}"
-  release_info "  ✓ Every version was registry-visible before tagging began"
 
   verify_args=(
     --channel "$channel"
@@ -438,7 +437,7 @@ else
     "$REGISTRY_STATE_VERIFY_ATTEMPTS" \
     "$REGISTRY_STATE_VERIFY_DELAY_SECONDS" \
     "${verify_args[@]}"; then
-    :
+    release_info "  ✓ Every version was registry-visible before tagging began"
   else
     verify_status=$?
     if [ "$verify_status" -eq 2 ]; then

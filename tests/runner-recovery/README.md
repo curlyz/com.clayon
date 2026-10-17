@@ -3,7 +3,7 @@
 Run from the Clayon repository after installing and building dependencies:
 
 ```sh
-pnpm test:runner-recovery
+bun run test:runner-recovery
 ```
 
 This command runs provider-free tests with a disposable embedded Postgres database.

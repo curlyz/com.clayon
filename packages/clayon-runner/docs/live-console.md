@@ -13,7 +13,7 @@ Every file lives under `packages/clayon-runner/`. The console does not import or
 ## Start it
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:live-console
+bun run --filter @clayon/clayon-runner console:live-console
 ```
 
 Then open `http://127.0.0.1:4180/` and choose **Live console**.
@@ -101,13 +101,13 @@ package's local idiom, with zero new runtime dependencies:
 ## Verification
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/mock-core/live-console-scripted-driver.test.ts \
   src/mock-core/live-console-demo-server.test.ts \
   devtools/browser/src/live/transcript-model.test.ts
-pnpm --filter @clayon/clayon-runner test:browser
-pnpm --filter @clayon/clayon-runner check:browser-tokens
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner test:browser
+bun run --filter @clayon/clayon-runner check:browser-tokens
+bun run --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
 See the tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/live-console`.

@@ -2,7 +2,7 @@
 
 The [Slack connector probe catalog](../server/src/services/connectors/slack/evals/README.md)
 organizes eleven manual model acceptance probes and a selector for existing
-deterministic regressions (`pnpm test:slack-connector`). It is not a registered
+deterministic regressions (`bun run test:slack-connector`). It is not a registered
 model campaign; transport fixtures do not prove that an agent chooses a tool
 or that a real Slack interaction completes.
 
@@ -167,16 +167,16 @@ two complete model matrices, provenance, costs and the earlier failure history.
 Start with credential-free checks and a catalog listing. For Product E2E:
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list
 ```
 
 For one explicitly selected local cell, configure only the credentials named
 by that cell in `.env.runner-e2e.local`, then run a narrow ID:
 
 ```sh
-pnpm test:e2e:runner -- --id core-compatibility.runner-codex.local.message-marker
+bun run test:e2e:runner -- --id core-compatibility.runner-codex.local.message-marker
 ```
 
 Use the selectors documented in the [runner E2E README](../tests/runner-e2e/README.md)
@@ -340,14 +340,14 @@ fresh attempt for a retryable failure.
 
 The reviewable sources live in this repository's `.agents/skills`. For a
 multi-repository workspace, install the three skills at
-`~/clayon/.agents/skills` (not `~/clayon/skills`). From the Clayon
-checkout, run:
+`~/usr/antl/com.paperclip/.agents/skills` (not
+`~/usr/antl/com.paperclip/skills`). From the repository checkout, run:
 
 ```sh
 for skill in clayon-evals add-runner-eval add-product-e2e-eval; do
-  install -d "$HOME/clayon/.agents/skills/$skill"
+  install -d "$HOME/usr/antl/com.paperclip/.agents/skills/$skill"
   install -m 644 ".agents/skills/$skill/SKILL.md" \
-    "$HOME/clayon/.agents/skills/$skill/SKILL.md"
+    "$HOME/usr/antl/com.paperclip/.agents/skills/$skill/SKILL.md"
 done
 ```
 
@@ -413,14 +413,14 @@ binding for each answer and preserves prior grades when the definition changes.
 The credential-free [lifecycle baseline](../tests/lifecycle-baseline/README.md)
 joins unit, scripted-runner, and database integration assertions to a scenario
 inventory before changing narrative-based lifecycle policy. Run
-`pnpm test:lifecycle-baseline` to retain current passes and failures. Its Product
+`bun run test:lifecycle-baseline` to retain current passes and failures. Its Product
 E2E matcher calibration is separate from live execution; unrun live coverage
 remains explicitly unmeasured.
 
 The separate [live lifecycle baseline](../tests/runner-e2e/LIFECYCLE-BASELINE.md)
 defines 46 real-provider Product E2E cells, including paired narrative probes and
 named existing controls on legacy and native Codex. Discover it with
-`pnpm test:e2e:runner -- --list --suite lifecycle-baseline`. Historical execution
+`bun run test:e2e:runner -- --list --suite lifecycle-baseline`. Historical execution
 results and follow-up coverage are recorded in that suite's guide.
 
 Continuation accounting has an explicit-only eight-cell Product E2E [baseline suite](../tests/runner-e2e/CONTINUATION-ACCOUNTING.md), complementing the deterministic lifecycle inventory.

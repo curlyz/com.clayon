@@ -5,6 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { z } from "zod";
 import { isSupportedNodeVersion, MINIMUM_NODE_VERSION } from "@clayon/shared/node-version";
 import {
   addManagedPathBlock,
@@ -37,6 +38,33 @@ export type CommandRunner = (
 
 type ReleasePackageEntry = { dir: string; name: string };
 
+const RELEASE_PACKAGE_MANIFEST_SCHEMA = z.array(
+  z.object({ dir: z.string(), name: z.string() }),
+);
+
+const UNKNOWN_RECORD_SCHEMA = z.record(z.string(), z.unknown());
+
+const EXEC_FILE_STDERR_SCHEMA = z.object({ stderr: z.string() });
+
+const GITHUB_COMMIT_RESPONSE_SCHEMA = z.object({
+  sha: z.string().regex(/^[0-9a-f]{40}$/i),
+});
+
+const PACKAGE_VERSION_SCHEMA = z.object({ version: z.string() });
+
+const BUNDLED_DEPENDENCIES_SCHEMA = z.object({
+  bundleDependencies: z.array(z.string()).optional(),
+  bundledDependencies: z.array(z.string()).optional(),
+});
+
+type BundledDependencies = z.infer<typeof BUNDLED_DEPENDENCIES_SCHEMA>;
+
+type NpmInstallRequest = { spec: string; channel: InstallChannel };
+
+type GitInstallRequest = { repo: string; ref: string; pinned: boolean };
+
+type Dependencies = { runCommand?: CommandRunner; now?: () => Date };
+
 export async function runCommandWithDiagnostics(
   file: string,
   args: string[],
@@ -45,9 +73,8 @@ export async function runCommandWithDiagnostics(
   try {
     return await execFileAsync(file, args, { ...options, encoding: "utf8" });
   } catch (error) {
-    const stderr = error && typeof error === "object" && "stderr" in error && typeof error.stderr === "string"
-      ? error.stderr.trim()
-      : "";
+    const parsedStderr = EXEC_FILE_STDERR_SCHEMA.safeParse(error);
+    const stderr = parsedStderr.success ? parsedStderr.data.stderr.trim() : "";
     if (!stderr || (error instanceof Error && error.message.includes(stderr))) throw error;
     throw new Error(`${error instanceof Error ? error.message : String(error)}\n${stderr}`, { cause: error });
   }
@@ -55,7 +82,7 @@ export async function runCommandWithDiagnostics(
 
 export function resolveGitInstallWorkspacePackages(checkoutPath: string): ReleasePackageEntry[] {
   const manifestPath = path.join(checkoutPath, "scripts", "release-package-manifest.json");
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as ReleasePackageEntry[];
+  const manifest = RELEASE_PACKAGE_MANIFEST_SCHEMA.parse(JSON.parse(fs.readFileSync(manifestPath, "utf8")));
   const packageByName = new Map(manifest.map((entry) => [entry.name, entry]));
   const visiting = new Set<string>();
   const visited = new Set<string>();
@@ -67,7 +94,7 @@ export function resolveGitInstallWorkspacePackages(checkoutPath: string): Releas
     const entry = packageByName.get(packageName);
     if (!entry) throw new Error(`Git install cannot stage workspace dependency ${packageName}; it is missing from scripts/release-package-manifest.json.`);
     visiting.add(packageName);
-    const packageJson = JSON.parse(fs.readFileSync(path.join(checkoutPath, entry.dir, "package.json"), "utf8")) as Record<string, unknown>;
+    const packageJson = UNKNOWN_RECORD_SCHEMA.parse(JSON.parse(fs.readFileSync(path.join(checkoutPath, entry.dir, "package.json"), "utf8")));
     for (const section of ["dependencies", "optionalDependencies", "peerDependencies"] as const) {
       const dependencies = packageJson[section];
       if (!dependencies || typeof dependencies !== "object") continue;
@@ -90,10 +117,7 @@ export function assertSupportedNodeVersion(): void {
   }
 }
 
-export function resolveNpmInstallRequest(options: InstallOptions): {
-  spec: string;
-  channel: InstallChannel;
-} {
+export function resolveNpmInstallRequest(options: InstallOptions): NpmInstallRequest {
   if (options.canary && options.version) throw new Error("Choose either --canary or --version, not both.");
   if (options.version) {
     const version = options.version.trim();
@@ -126,7 +150,7 @@ export async function resolvePublishedVersion(spec: string, runCommand: CommandR
   return parseResolvedVersion(result.stdout);
 }
 
-export function resolveGitInstallRequest(options: InstallOptions): { repo: string; ref: string; pinned: boolean } | null {
+export function resolveGitInstallRequest(options: InstallOptions): GitInstallRequest | null {
   if (!options.ref && !options.repo) return null;
   if (!options.ref) throw new Error("--repo requires --ref.");
   if (options.canary || options.version) throw new Error("--ref cannot be combined with --canary or --version.");
@@ -159,10 +183,11 @@ async function runGitHubCurl(
 
 export async function resolveGitHubRef(repo: string, ref: string, runCommand: CommandRunner): Promise<string> {
   const result = await runGitHubCurl(["--fail", "--silent", "--show-error", "--location", "--header", "Accept: application/vnd.github+json", "--header", "User-Agent: clayon-install", `https://api.github.com/repos/${repo}/commits/${encodeURIComponent(ref)}`], runCommand, { maxBuffer: 4 * 1024 * 1024 });
-  let sha: unknown;
-  try { sha = (JSON.parse(result.stdout) as { sha?: unknown }).sha; } catch { throw new Error(`GitHub returned an invalid response while resolving ${repo}@${ref}.`); }
-  if (typeof sha !== "string" || !/^[0-9a-f]{40}$/i.test(sha)) throw new Error(`GitHub did not return a full commit SHA for ${repo}@${ref}.`);
-  return sha.toLowerCase();
+  let raw: unknown;
+  try { raw = JSON.parse(result.stdout); } catch { throw new Error(`GitHub returned an invalid response while resolving ${repo}@${ref}.`); }
+  const parsed = GITHUB_COMMIT_RESPONSE_SCHEMA.safeParse(raw);
+  if (!parsed.success) throw new Error(`GitHub did not return a full commit SHA for ${repo}@${ref}.`);
+  return parsed.data.sha.toLowerCase();
 }
 
 function payloadEntrypoint(payloadPath: string): string {
@@ -237,7 +262,7 @@ export async function installNpmPayload(
 function gitBuildEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   const env = { ...process.env, ...extra };
   // Source builds need devDependencies (esbuild, typescript); ambient NODE_ENV=production
-  // makes pnpm/npm omit them, so the checkout build must not inherit it.
+  // makes bun/npm omit them, so the checkout build must not inherit it.
   delete env.NODE_ENV;
   return env;
 }
@@ -246,7 +271,7 @@ export async function installGitPayload(repo: string, sha: string, runCommand: C
   const identifier = sha.slice(0, 12);
   const payloadPath = payloadPathFor(paths, "git", identifier);
   if (fs.existsSync(payloadPath)) {
-    const metadata = JSON.parse(fs.readFileSync(path.join(payloadPath, "node_modules", "clayon", "package.json"), "utf8")) as { version: string };
+    const metadata = PACKAGE_VERSION_SCHEMA.parse(JSON.parse(fs.readFileSync(path.join(payloadPath, "node_modules", "clayon", "package.json"), "utf8")));
     await smokePayload(payloadPath, metadata.version, runCommand);
     return { payloadPath, reused: true, version: metadata.version };
   }
@@ -265,34 +290,30 @@ export async function installGitPayload(repo: string, sha: string, runCommand: C
   const stagedPayload = path.join(stagingRoot, "payload");
   fs.rmSync(stagingRoot, { recursive: true, force: true });
   fs.mkdirSync(checkoutPath, { recursive: true, mode: 0o700 });
-  // Workspace build scripts invoke bare `pnpm`; on a machine where pnpm exists only
-  // through corepack, nothing puts it on PATH, so provision a shim into the staging dir.
-  const pnpmShimDir = path.join(stagingRoot, "pnpm-bin");
-  fs.mkdirSync(pnpmShimDir, { recursive: true, mode: 0o700 });
-  const buildEnv = (extra: NodeJS.ProcessEnv = {}) =>
-    gitBuildEnv({ PATH: [pnpmShimDir, process.env.PATH].filter(Boolean).join(path.delimiter), ...extra });
   try {
     await runGitHubCurl(["--fail", "--silent", "--show-error", "--location", "--output", archivePath, `https://codeload.github.com/${repo}/tar.gz/${sha}`], runCommand, { maxBuffer: 4 * 1024 * 1024 });
     await runCommand("tar", ["-xzf", archivePath, "--strip-components=1", "-C", checkoutPath], { maxBuffer: 4 * 1024 * 1024 });
-    await runCommand("corepack", ["enable", "pnpm", "--install-directory", pnpmShimDir], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 4 * 1024 * 1024 });
-    await runCommand("corepack", ["pnpm", "install", "--frozen-lockfile"], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 32 * 1024 * 1024 });
-    await runCommand("bash", ["scripts/build-npm.sh", "--skip-checks", "--skip-typecheck"], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 32 * 1024 * 1024 });
-    await runCommand("corepack", ["pnpm", "-r", "--filter", "@clayon/server...", "--if-present", "run", "build"], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 32 * 1024 * 1024 });
-    const metadata = JSON.parse(fs.readFileSync(path.join(checkoutPath, "cli", "package.json"), "utf8")) as { version: string };
+    if (!fs.existsSync(path.join(checkoutPath, "bun.lock"))) {
+      throw new Error(`The checked-out ref ${sha.slice(0, 12)} predates bun.lock; pin a post-migration sha.`);
+    }
+    await runCommand("bun", ["install", "--frozen-lockfile"], { cwd: checkoutPath, env: gitBuildEnv(), maxBuffer: 32 * 1024 * 1024 });
+    await runCommand("bash", ["scripts/build-npm.sh", "--skip-checks", "--skip-typecheck"], { cwd: checkoutPath, env: gitBuildEnv(), maxBuffer: 32 * 1024 * 1024 });
+    const metadata = PACKAGE_VERSION_SCHEMA.parse(JSON.parse(fs.readFileSync(path.join(checkoutPath, "cli", "package.json"), "utf8")));
     const workspacePackages = resolveGitInstallWorkspacePackages(checkoutPath);
+    await runCommand("bun", ["run", ...workspacePackages.flatMap((workspacePackage) => ["--filter", workspacePackage.name]), "build"], { cwd: checkoutPath, env: gitBuildEnv(), maxBuffer: 32 * 1024 * 1024 });
     for (const [index, workspacePackage] of workspacePackages.entries()) {
       const packageDir = path.join(checkoutPath, workspacePackage.dir);
-      const packageJson = JSON.parse(fs.readFileSync(path.join(packageDir, "package.json"), "utf8")) as { bundleDependencies?: string[]; bundledDependencies?: string[] };
+      const packageJson: BundledDependencies = BUNDLED_DEPENDENCIES_SCHEMA.parse(JSON.parse(fs.readFileSync(path.join(packageDir, "package.json"), "utf8")));
       const bundledDependencies = packageJson.bundleDependencies ?? packageJson.bundledDependencies ?? [];
       if (bundledDependencies.length > 0) {
         const stagedPackage = path.join(stagingRoot, `workspace-package-${index}`);
-        await runCommand(process.execPath, [path.join(checkoutPath, "scripts", "prepare-bundled-package.mjs"), packageDir, stagedPackage], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 32 * 1024 * 1024 });
-        await runCommand("npm", ["pack", stagedPackage, "--pack-destination", stagingRoot], { cwd: checkoutPath, env: buildEnv(), maxBuffer: 16 * 1024 * 1024 });
+        await runCommand(process.execPath, [path.join(checkoutPath, "scripts", "prepare-bundled-package.mjs"), packageDir, stagedPackage], { cwd: checkoutPath, env: gitBuildEnv(), maxBuffer: 32 * 1024 * 1024 });
+        await runCommand("npm", ["pack", stagedPackage, "--pack-destination", stagingRoot], { cwd: checkoutPath, env: gitBuildEnv(), maxBuffer: 16 * 1024 * 1024 });
       } else {
-        await runCommand("corepack", ["pnpm", "--dir", workspacePackage.dir, "pack", "--pack-destination", stagingRoot], { cwd: checkoutPath, env: buildEnv({ CLAYON_RELEASE_REUSE_UI_DIST: "1" }), maxBuffer: 32 * 1024 * 1024 });
+        await runCommand("bun", ["pm", "pack", "--destination", stagingRoot], { cwd: packageDir, env: gitBuildEnv({ CLAYON_RELEASE_REUSE_UI_DIST: "1" }), maxBuffer: 32 * 1024 * 1024 });
       }
     }
-    await runCommand("npm", ["pack", "--pack-destination", stagingRoot], { cwd: path.join(checkoutPath, "cli"), env: buildEnv(), maxBuffer: 16 * 1024 * 1024 });
+    await runCommand("npm", ["pack", "--pack-destination", stagingRoot], { cwd: path.join(checkoutPath, "cli"), env: gitBuildEnv(), maxBuffer: 16 * 1024 * 1024 });
     const tarballs = fs.readdirSync(stagingRoot).filter((entry) => entry.endsWith(".tgz"));
     const cliTarball = tarballs.find((entry) => entry === `clayon-${metadata.version}.tgz`);
     const workspaceTarballs = tarballs.filter((entry) => entry !== cliTarball);
@@ -357,7 +378,7 @@ async function confirmGitInstall(options: InstallOptions, repo: string, ref: str
 
 export async function installCommand(
   options: InstallOptions,
-  dependencies: { runCommand?: CommandRunner; now?: () => Date } = {},
+  dependencies: Dependencies = {},
 ): Promise<void> {
   assertSupportedNodeVersion();
   const runCommand = dependencies.runCommand ?? runCommandWithDiagnostics;

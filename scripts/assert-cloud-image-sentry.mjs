@@ -3,7 +3,7 @@
 //
 // 1. The production `CMD` can still find its ECMAScript module loader,
 //    `server/node_modules/tsx/dist/loader.mjs`. That path is a symbolic
-//    link into the workspace pnpm store, and the `cloud` stage's Sentry
+//    link into the workspace bun install, and the `cloud` stage's Sentry
 //    copy writes into the same `server/node_modules` directory. A copy
 //    that removes or shadows the link stops the container from booting.
 // 2. The installed `@sentry/node` package resolves, the same way the

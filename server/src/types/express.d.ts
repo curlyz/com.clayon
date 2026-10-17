@@ -5,6 +5,8 @@ import type { AgentApiKeyScope } from "@clayon/shared";
 declare global {
   namespace Express {
     interface Request {
+      /** Raw request body captured by body-parser's `verify` callback. */
+      rawBody?: Buffer;
       actor: {
         type: "board" | "agent" | "none";
         userId?: string;

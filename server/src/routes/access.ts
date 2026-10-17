@@ -49,7 +49,7 @@ import {
   PERMISSION_KEYS,
   isUuidLike,
 } from "@clayon/shared";
-import type { DeploymentExposure, DeploymentMode, HumanCompanyMembershipRole } from "@clayon/shared";
+import type { DeploymentExposure, DeploymentMode, HumanCompanyMembershipRole, PermissionKey } from "@clayon/shared";
 import {
   forbidden,
   conflict,
@@ -95,7 +95,7 @@ import {
   normalizeHumanRole,
   resolveHumanInviteRole,
 } from "../services/company-member-roles.js";
-import { agentJoinGrantsFromDefaults as standardAgentJoinGrantsFromDefaults, humanJoinGrantsFromDefaults } from "../services/invite-grants.js";
+import { agentJoinGrantsFromDefaults, humanJoinGrantsFromDefaults } from "../services/invite-grants.js";
 import {
   collapseDuplicatePendingHumanJoinRequests,
   findReusableHumanJoinRequest,
@@ -1651,7 +1651,7 @@ function buildOnboardingDiscoveryDiagnostics(input: {
       code: "openclaw_onboarding_private_loopback_bind",
       level: "warn",
       message: "Clayon is bound to loopback in authenticated/private mode.",
-      hint: "Use a reachable private bind mode such as `pnpm dev --bind lan` or `pnpm dev --bind tailnet` for private-network onboarding."
+      hint: "Use a reachable private bind mode such as `bun run dev --bind lan` or `bun run dev --bind tailnet` for private-network onboarding."
     });
   }
 
@@ -1825,6 +1825,9 @@ function buildInviteOnboardingManifest(
   };
 }
 
+type InviteOnboardingManifest = ReturnType<typeof buildInviteOnboardingManifest>;
+type InviteOnboardingSection = InviteOnboardingManifest["onboarding"];
+
 export function buildInviteOnboardingTextDocument(
   req: Request,
   token: string,
@@ -1839,19 +1842,7 @@ export function buildInviteOnboardingTextDocument(
   }
 ) {
   const manifest = buildInviteOnboardingManifest(req, token, invite, opts);
-  const onboarding = manifest.onboarding as {
-    inviteMessage?: string | null;
-    registrationEndpoint: { method: string; path: string; url: string };
-    claimEndpointTemplate: { method: string; path: string };
-    textInstructions: { path: string; url: string };
-    skill: { path: string; url: string; installPath: string };
-    connectivity: {
-      diagnostics?: JoinDiagnostic[];
-      guidance?: string;
-      connectionCandidates?: string[];
-      testResolutionEndpoint?: { method?: string; path?: string; url?: string };
-    };
-  };
+  const onboarding = manifest.onboarding;
   const diagnostics = Array.isArray(onboarding.connectivity?.diagnostics)
     ? onboarding.connectivity.diagnostics
     : [];
@@ -2248,16 +2239,6 @@ function grantsFromDefaults(
     });
   }
   return result;
-}
-
-export function agentJoinGrantsFromDefaults(
-  defaultsPayload: Record<string, unknown> | null | undefined,
-  agentId: string,
-): Array<{
-  permissionKey: (typeof PERMISSION_KEYS)[number];
-  scope: Record<string, unknown> | null;
-}> {
-  return standardAgentJoinGrantsFromDefaults(defaultsPayload, agentId);
 }
 
 type JoinRequestManagerCandidate = {
@@ -3017,7 +2998,7 @@ export function accessRoutes(
   async function assertCompanyPermission(
     req: Request,
     companyId: string,
-    permissionKey: any
+    permissionKey: PermissionKey
   ) {
     assertCompanyAccess(req, companyId);
     if (req.actor.type === "agent") {
@@ -4346,7 +4327,17 @@ export function accessRoutes(
           source: "join_request",
           sourceId: requestId,
           approvedAt: new Date()
-        }).catch(() => {});
+        }).catch((err) => {
+          logger.warn(
+            {
+              err,
+              companyId,
+              agentId: createdAgentId,
+              joinRequestId: requestId,
+            },
+            "hire-approved agent notification failed",
+          );
+        });
       }
 
       res.json(toJoinRequestResponse(approved));

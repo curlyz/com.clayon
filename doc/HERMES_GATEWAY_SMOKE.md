@@ -14,10 +14,10 @@ Run these from the repo root:
 
 ```sh
 bash -n scripts/smoke/hermes-gateway-join.sh scripts/smoke/hermes-gateway-e2e.sh
-pnpm test:hermes-gateway-smoke
+bun run test:hermes-gateway-smoke
 ```
 
-`pnpm test:hermes-gateway-smoke` does not start Docker, Hermes, or Clayon. It
+`bun run test:hermes-gateway-smoke` does not start Docker, Hermes, or Clayon. It
 checks script help output, shell syntax, redaction helpers, URL slash handling,
 and the non-loopback HTTP guard.
 
@@ -38,7 +38,7 @@ and the non-loopback HTTP guard.
   HERMES_SMOKE_MODEL_PROVIDER=openrouter \
   HERMES_SMOKE_MODEL_DEFAULT=z-ai/glm-5.2 \
   HERMES_SMOKE_MODEL_BASE_URL=https://openrouter.ai/api/v1 \
-  pnpm smoke:hermes-gateway-e2e
+  bun run smoke:hermes-gateway-e2e
   ```
 
   This writes only `model`, `providers: {}`, and
@@ -82,7 +82,7 @@ reach the host through `host.docker.internal`.
 ```sh
 CLAYON_API_URL=http://127.0.0.1:3100 \
 CLAYON_AUTH_HEADER='Bearer <board-token>' \
-pnpm smoke:hermes-gateway-e2e
+bun run smoke:hermes-gateway-e2e
 ```
 
 Linux uses `--add-host=host.docker.internal:host-gateway` by default through
@@ -105,7 +105,7 @@ HERMES_GATEWAY_API_BASE_URL=http://clayon-hermes-gateway-smoke:8642 \
 HERMES_GATEWAY_PROBE_URL=http://127.0.0.1:8642 \
 CLAYON_API_URL_FOR_HERMES=http://clayon:3100 \
 HERMES_GATEWAY_ALLOW_INSECURE_HTTP=1 \
-pnpm smoke:hermes-gateway-e2e
+bun run smoke:hermes-gateway-e2e
 ```
 
 Change `clayon_default` and `clayon` to your Compose network and service
@@ -124,7 +124,7 @@ CLAYON_API_URL_FOR_HERMES=http://192.168.1.20:3100 \
 HERMES_GATEWAY_API_BASE_URL=http://192.168.1.20:8642 \
 HERMES_GATEWAY_PROBE_URL=http://127.0.0.1:8642 \
 HERMES_GATEWAY_ALLOW_INSECURE_HTTP=1 \
-pnpm smoke:hermes-gateway-e2e
+bun run smoke:hermes-gateway-e2e
 ```
 
 Only use this on a trusted private network. For anything beyond local/private
@@ -142,7 +142,7 @@ CLAYON_AUTH_HEADER='Bearer <board-token>' \
 CLAYON_API_URL_FOR_HERMES=https://clayon.example.com \
 HERMES_GATEWAY_API_BASE_URL=https://hermes-gateway.example.com \
 HERMES_GATEWAY_PROBE_URL=http://127.0.0.1:8642 \
-pnpm smoke:hermes-gateway-e2e
+bun run smoke:hermes-gateway-e2e
 ```
 
 No unsafe HTTP escape hatch is needed because the adapter URL is HTTPS.
@@ -159,7 +159,7 @@ CLAYON_API_URL=http://127.0.0.1:3100 \
 CLAYON_AUTH_HEADER='Bearer <board-token>' \
 HERMES_GATEWAY_API_BASE_URL=http://127.0.0.1:8642 \
 HERMES_GATEWAY_API_KEY='<gateway-key>' \
-pnpm smoke:hermes-gateway-join
+bun run smoke:hermes-gateway-join
 ```
 
 For non-loopback private HTTP join-only runs, set

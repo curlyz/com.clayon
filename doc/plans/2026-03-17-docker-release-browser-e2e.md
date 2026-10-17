@@ -1,5 +1,7 @@
 # Docker Release Browser E2E Plan
 
+> **Superseded paths (2026-10-17):** `.github/workflows/release.yml`, `doc/RELEASING.md` and `.github/workflows/release-smoke.yml`, cited below, no longer exist (release-smoke.yml was never created in this tree). Current release automation is `scripts/release.sh` + `scripts/release-lib.sh`.
+
 ## Context
 
 Today release smoke testing for published Clayon packages is manual and shell-driven:
@@ -224,7 +226,7 @@ Recommended inputs:
 ### Job outline
 
 1. checkout repo
-2. install Node/pnpm
+2. install Node/Bun
 3. install Playwright browser dependencies
 4. launch Docker smoke harness in detached mode with the chosen dist-tag
 5. run the release-smoke Playwright suite against the returned base URL

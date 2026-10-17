@@ -1,7 +1,7 @@
 # `@clayon/plugin-createos`
 
 CreateOS sandbox provider for Clayon. This package lives alongside Daytona
-and E2B, outside the root pnpm workspace, and uses CreateOS's public HTTP API.
+and E2B, outside the root Bun workspace, and uses CreateOS's public HTTP API.
 No CreateOS SDK dependency is required; the `tar` library handles local archives. The package has not been published as
 part of this change; use a local-path install for development. Its release
 manifest entry has `publishFromCi: false` until a maintainer bootstraps the first
@@ -9,14 +9,14 @@ npm publish and enables CI publishing.
 
 ## Build and install locally
 
-Requires Node 24.11+, pnpm, and an installed Clayon checkout.
+Requires Node 24.11+, Bun, and an installed Clayon checkout.
 
 ```sh
 cd packages/plugins/sandbox-providers/createos
-pnpm install --ignore-workspace --no-lockfile
-pnpm typecheck
-pnpm test
-pnpm build
+bun install --no-save
+bun run typecheck
+bun run test
+bun run build
 ```
 
 From the Clayon checkout, with your instance running:
@@ -130,7 +130,7 @@ chosen endpoint, export `CREATEOS_API_URL`, `CREATEOS_API_KEY`, `CREATEOS_SHAPE`
 and optionally `CREATEOS_ROOTFS`, then run:
 
 ```sh
-CREATEOS_LIVE_TEST=1 pnpm test
+CREATEOS_LIVE_TEST=1 bun run test
 ```
 
 The live test creates a sandbox, round-trips a 5 MiB binary file through native

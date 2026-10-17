@@ -222,32 +222,32 @@ describe("ACPX installation integrity", () => {
 
     const runnerPackage = join(root, "packages", "clayon-runner");
     const runnerManifest = join(runnerPackage, "package.json");
-    const pnpmProviderDirectory = join(
+    const bunProviderDirectory = join(
       root,
       "node_modules",
-      ".pnpm",
+      ".bun",
       "qualified-provider@1.0.0",
       "node_modules",
-      "pnpm-provider",
+      "bun-provider",
     );
     await Promise.all([
       mkdir(join(runnerPackage, "node_modules"), { recursive: true }),
-      mkdir(pnpmProviderDirectory, { recursive: true }),
+      mkdir(bunProviderDirectory, { recursive: true }),
     ]);
     await Promise.all([
       writeFile(runnerManifest, JSON.stringify({ private: true })),
       writeFile(
-        join(pnpmProviderDirectory, "package.json"),
-        JSON.stringify({ name: "pnpm-provider", version: "1.0.0" }),
+        join(bunProviderDirectory, "package.json"),
+        JSON.stringify({ name: "bun-provider", version: "1.0.0" }),
       ),
     ]);
     await symlink(
-      pnpmProviderDirectory,
-      join(runnerPackage, "node_modules", "pnpm-provider"),
+      bunProviderDirectory,
+      join(runnerPackage, "node_modules", "bun-provider"),
     );
     expect(
-      createAcpxPackageJsonResolver(root, runnerManifest)("pnpm-provider"),
-    ).toBe(await realpath(join(pnpmProviderDirectory, "package.json")));
+      createAcpxPackageJsonResolver(root, runnerManifest)("bun-provider"),
+    ).toBe(await realpath(join(bunProviderDirectory, "package.json")));
 
     const outsideManifest = join(parent, "outside-package.json");
     await writeFile(outsideManifest, JSON.stringify({ private: true }));
@@ -552,7 +552,7 @@ describe("ACPX installation integrity", () => {
       },
       {
         name: "zod",
-        version: "4.4.3",
+        version: "4.6.7",
         directory: join(dependencyRoot, "zod"),
       },
     ] as const;

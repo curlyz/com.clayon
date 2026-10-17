@@ -30,13 +30,13 @@ adapter can start a provider session.
 Run the isolated unit suite:
 
 ```sh
-pnpm test:runner-acceptance
+bun run test:runner-acceptance
 ```
 
 Check the standalone TypeScript boundary:
 
 ```sh
-pnpm test:runner-acceptance:typecheck
+bun run test:runner-acceptance:typecheck
 ```
 
 These commands are credential-free. They validate the catalog and pure support

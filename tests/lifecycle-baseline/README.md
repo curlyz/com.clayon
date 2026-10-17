@@ -40,14 +40,14 @@ videos, and browser reports stay in existing campaign artifact storage.
 From an installed Clayon checkout:
 
 ```sh
-pnpm test:lifecycle-baseline --list
-pnpm test:lifecycle-baseline unit
-pnpm test:lifecycle-baseline runner
-pnpm test:lifecycle-baseline integration
-pnpm test:lifecycle-baseline grading
-pnpm test:lifecycle-baseline
-pnpm test:lifecycle-baseline:support
-pnpm exec tsc -p tests/lifecycle-baseline/tsconfig.json
+bun run test:lifecycle-baseline --list
+bun run test:lifecycle-baseline unit
+bun run test:lifecycle-baseline runner
+bun run test:lifecycle-baseline integration
+bun run test:lifecycle-baseline grading
+bun run test:lifecycle-baseline
+bun run test:lifecycle-baseline:support
+bun x tsc -p tests/lifecycle-baseline/tsconfig.json
 ```
 
 All four lanes are credential-free. The integration lane uses disposable embedded
@@ -138,7 +138,7 @@ The dedicated [live lifecycle suite](../runner-e2e/LIFECYCLE-BASELINE.md) adds
 40 explicitly selected real-LLM/browser cells on both runtime generations.
 It was authored after the initial scripted baseline and has now run on GitHub
 Actions; see the separate live record for measured outcomes. Use
-`pnpm test:e2e:runner -- --list --suite lifecycle-baseline` to inspect it.
+`bun run test:e2e:runner -- --list --suite lifecycle-baseline` to inspect it.
 
 Product E2E uses the existing `continuation`, `agent-chat`, and
 `everyday-workflows` catalogs. Continuation now retains an explicit lifecycle
@@ -150,11 +150,11 @@ The continuation definition version advances so measurements are distinguishable
 Validate/discover without spending:
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite continuation
-pnpm test:e2e:runner -- --list --suite agent-chat
-pnpm test:e2e:runner -- --list --suite everyday-workflows
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite continuation
+bun run test:e2e:runner -- --list --suite agent-chat
+bun run test:e2e:runner -- --list --suite everyday-workflows
 ```
 
 The sibling `clayon-evals` change adds the opt-in
@@ -183,7 +183,7 @@ Clayon instance. They check screenshot readiness and development service-worker
 module revalidation across repeated reloads:
 
 ```sh
-pnpm exec playwright test --config tests/runner-e2e/playwright-support.config.ts
+bun x playwright test --config tests/runner-e2e/playwright-support.config.ts
 ```
 
 Set `CLAYON_PLAYWRIGHT_CHANNEL=chrome` to use an installed Chrome browser.

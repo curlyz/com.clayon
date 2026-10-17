@@ -1,6 +1,6 @@
 # Docker Quickstart
 
-Run Clayon in Docker without installing Node or pnpm locally.
+Run Clayon in Docker without installing Node or Bun locally.
 
 All commands below assume you are in the **project root** (the directory containing `package.json`), not inside `docker/`.
 
@@ -60,12 +60,12 @@ release-channel aliases no longer advance. This change deletes no images,
 cache tags, or migrator artifacts.
 
 The `cloud` Dockerfile target remains available for explicit
-[preview builds](preview-release-artifacts.md). Those requests still publish a
+preview builds. Those requests still publish a
 full-SHA `-cloud` tag when needed. They do not advance a release channel or
 replace downstream private composition.
 
 A published image alone does not prove source tests or migration compatibility.
-Downstream deployment tooling must verify [source proof](cloud-build-readiness.md),
+Downstream deployment tooling must verify source proof,
 the standard image attestation, the exact-source migrator, and its own composed
 image before rollout. Resolve immutable digests instead of deploying mutable tags.
 
@@ -96,7 +96,7 @@ All persisted under your bind mount (`./data/docker-clayon` in the example above
 
 ## Docker Compose
 
-### Quickstart (embedded SQLite)
+### Quickstart (embedded PostgreSQL)
 
 Single container, no external database. Data persists via a bind mount.
 
@@ -171,7 +171,7 @@ on the setup screen. This browser claim is disabled for `authenticated/public`;
 public deployments should run the high-entropy CLI invite fallback instead:
 
 ```sh
-pnpm clayon auth bootstrap-ceo
+bun run clayon auth bootstrap-ceo
 ```
 
 Granular overrides remain available if needed (`CLAYON_AUTH_PUBLIC_BASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_TRUSTED_ORIGINS`, `CLAYON_ALLOWED_HOSTNAMES`).

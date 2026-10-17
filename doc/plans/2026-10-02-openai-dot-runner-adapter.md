@@ -711,7 +711,7 @@ mailbox/operation records and event-source support. Retain personal MCP behavior
 **Files:**
 
 - `packages/db/src/schema/public_mcp.ts`, new Dot schema module and exports
-- Generated migration via `pnpm db:generate`
+- Generated migration via `bun run db:generate`
 - `packages/shared/src/types/` and `validators/` for public configuration/status
 - `server/src/routes/public-mcp.ts`, agent-binding management routes
 - `server/src/services/public-mcp/{oauth,events,event-webhooks,dot-runner}.ts`
@@ -865,11 +865,11 @@ consumer checks for changed public Runner contracts.
 Before a PR-ready handoff, run:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
-pnpm check:token-gates # when UI changes are present
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
+bun run check:token-gates # when UI changes are present
+bun run --filter @clayon/clayon-runner verify
 ```
 
 Browser/product suites are opt-in and required for the onboarding/live acceptance

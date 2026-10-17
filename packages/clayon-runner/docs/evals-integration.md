@@ -65,12 +65,12 @@ The input fixture is `protocol/fixtures/evals/harness-driver-conformance.json`. 
 Run it with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner check:clean-consumers
+bun run --filter @clayon/clayon-runner check:clean-consumers
 ```
 
 Set `CLAYON_CLEAN_CONSUMER_OUTPUT_DIR` to retain the qualifying inputs and machine-readable proof outside the temporary consumer. The output contains the package tarball, platform-named release runnerd, `SHA256SUMS`, and `clayon-runner-consumer-conformance.json`. That record is produced by the clean consumer after it imports only the packed package, resolves the explicit binary and digest, and completes deterministic conformance without provider calls.
 
 ```sh
 CLAYON_CLEAN_CONSUMER_OUTPUT_DIR=/absolute/release/directory \
-  pnpm --filter @clayon/clayon-runner check:clean-consumers
+  bun run --filter @clayon/clayon-runner check:clean-consumers
 ```

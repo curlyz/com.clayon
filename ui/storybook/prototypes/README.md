@@ -3,7 +3,7 @@
 Run Storybook:
 
 ```sh
-pnpm --filter @clayon/ui exec storybook dev --port 6010 --host 127.0.0.1 --no-open -c storybook/.storybook
+cd ui && bun x storybook dev --port 6010 --host 127.0.0.1 --no-open -c storybook/.storybook
 ```
 
 ## Connector catalog chips
@@ -83,7 +83,7 @@ lives in `ui/src/components/new-agent/`, with real hiring, subscription login,
 secret storage, provider probes, and task assignment. OpenCode and Pi support
 provider environment variables, including saved OpenRouter secrets. The real
 configuration page uses the same compact test card and shared settings styles.
-See `docs/specs/agent-config-ui.md` for the current workflow. Environment choices
+See `doc/specs/agent-config-ui.md` for the current workflow. Environment choices
 in Storybook remain fixtures.
 
 ## Configuration checks and task assignment

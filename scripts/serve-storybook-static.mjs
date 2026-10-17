@@ -31,7 +31,7 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535) {
 }
 
 if (!existsSync(join(root, "index.html"))) {
-  console.error(`No built Storybook at ${root}. Run \`pnpm build-storybook\` first.`);
+  console.error(`No built Storybook at ${root}. Run \`bun run build-storybook\` first.`);
   process.exit(1);
 }
 

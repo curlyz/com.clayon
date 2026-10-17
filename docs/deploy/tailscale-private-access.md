@@ -9,7 +9,7 @@ Use this to access Clayon over Tailscale (or a private LAN/VPN) instead of only 
 ## 1. Start Clayon in private authenticated mode
 
 ```sh
-pnpm dev --bind tailnet
+bun run dev --bind tailnet
 ```
 
 Recommended behavior:
@@ -21,13 +21,14 @@ Recommended behavior:
 If you want the old broad private-network behavior instead, use:
 
 ```sh
-pnpm dev --bind lan
+bun run dev --bind lan
 ```
 
 Legacy aliases still map to `authenticated/private + bind=lan`:
 
-pnpm dev --authenticated-private
-pnpm dev --tailscale-auth
+```sh
+bun run dev --authenticated-private
+bun run dev --tailscale-auth
 ```
 
 ## 2. Find your reachable Tailscale address
@@ -79,5 +80,5 @@ Expected result:
 ## Troubleshooting
 
 - Login or redirect errors on a private hostname: add it with `clayon allowed-hostname`.
-- App only works on `localhost`: make sure you started with `--bind lan` or `--bind tailnet` instead of plain `pnpm dev`.
+- App only works on `localhost`: make sure you started with `--bind lan` or `--bind tailnet` instead of plain `bun run dev`.
 - Can connect locally but not remotely: verify both devices are on the same Tailscale network and port `3100` is reachable.

@@ -63,6 +63,7 @@ export function buildPresetServerConfig(
       host,
       port: input.port,
       allowedHostnames: input.allowedHostnames,
+      crossOriginApiOrigins: [],
       serveUi: input.serveUi,
     },
     auth: {
@@ -94,6 +95,7 @@ export function buildCustomServerConfig(input: BaseServerInput & {
       host: normalizedHost,
       port: input.port,
       allowedHostnames: input.allowedHostnames,
+      crossOriginApiOrigins: [],
       serveUi: input.serveUi,
     },
     auth:

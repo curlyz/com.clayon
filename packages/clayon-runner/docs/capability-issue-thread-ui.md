@@ -65,9 +65,9 @@ The two surfaces use separate cookie names (`clayon_capability_issue`, `clayon_c
   `Control plane (not exposed to the agent)` list, because what the model
   *cannot* call is first-class evidence. Every strip, denial, and card deep-links
   into the matching record, and each record links back to its thread anchor.
-  Live sessions additionally put a six-tab DevTools inspector above these
+  Live sessions additionally put a seven-tab DevTools inspector above these
   sections: revision timeline, complete browser-safe company state, structural
-  diff, protocol records, runtime, and authority. The inspector can pause live
+  diff, documents, protocol records, runtime, and authority. The inspector can pause live
   following, export redacted JSON, and fork a retained revision.
 
 The panel is collapsed by default, resizable between 320px and 640px with a keyboard-operable splitter. Below 1100px it becomes an Escape-dismissible overlay sheet; below 768px the page switches to a `Thread` / `Evidence` segmented control, with Stop kept outside the `⋯` menu while a turn is active. Closing the panel by either route returns focus to the visible control that owns it.
@@ -89,26 +89,23 @@ The panel is collapsed by default, resizable between 320px and 640px with a keyb
 
 ```sh
 # Deterministic fake-mode app (no provider process)
-pnpm --filter @clayon/clayon-runner console:issue-thread
+bun run --filter @clayon/clayon-runner console:issue-thread
 
 # Focused browser suite, including the axe gate on all 12 slugs × 2 viewports
-pnpm --filter @clayon/clayon-runner test:browser:scenarios
+bun run --filter @clayon/clayon-runner test:browser:scenarios
 
 # View-model and live-projection unit tests
-pnpm --filter @clayon/clayon-runner exec vitest run src/issue-thread
+bun x vitest run src/issue-thread
 
-# Screenshot matrix (12 slugs × 2 viewports) and its byte-stability check
-# Recorded evidence generation is deferred from this release.
-pnpm --filter @clayon/clayon-runner check:capability:ui
+Recorded evidence generation is deferred from this release.
 
 # Real runnerd + real Codex through the same HTTP routes the browser uses
-pnpm --filter @clayon/clayon-runner smoke:capability:ui
-# Recorded evidence generation is deferred from this release.
+bun run --filter @clayon/clayon-runner smoke:capability:ui
 ```
 
-Hosts without the Playwright chromium system libraries can run `pnpm --filter @clayon/clayon-runner verify:rootless` or set `CLAYON_RUNNER_CHROMIUM_PATH` to a preinstalled Chromium.
+Hosts without the Playwright chromium system libraries can run `bun run --filter @clayon/clayon-runner verify:rootless` or set `CLAYON_RUNNER_CHROMIUM_PATH` to a preinstalled Chromium.
 
-The committed PNGs are pinned to the Chromium build listed in `.clayon-local/evidence/capability/ui/index.md`, so `check:capability:ui` needs that same browser. Point `CLAYON_RUNNER_CHROMIUM_PATH` at the recorded browser before comparing — and when that path is the agent-browser wrapper, also set `CLAYON_CHROMIUM_BIN` to the exact binary, because the wrapper otherwise picks the newest installed Playwright Chromium. The issue-thread bundle self-hosts its Latin Inter and DejaVu Sans Mono WOFF2 faces plus tiny status-glyph subsets, so host fontconfig directories do not participate in capture. The recorder probes the package-specific bundled families and refuses to record or compare when either face is absent or fails to load; the drift report prints the Chromium version and bundled-font probe it recorded with.
+The committed PNGs are pinned to the Chromium build recorded in the generated (uncommitted) evidence index at `.clayon-local/evidence/capability/ui/index.md`, so `check:capability:ui` needs that same browser. Point `CLAYON_RUNNER_CHROMIUM_PATH` at the recorded browser before comparing — and when that path is the agent-browser wrapper, also set `CLAYON_CHROMIUM_BIN` to the exact binary, because the wrapper otherwise picks the newest installed Playwright Chromium. The issue-thread bundle self-hosts its Latin Inter and DejaVu Sans Mono WOFF2 faces plus tiny status-glyph subsets, so host fontconfig directories do not participate in capture. The recorder probes the package-specific bundled families and refuses to record or compare when either face is absent or fails to load; the drift report prints the Chromium version and bundled-font probe it recorded with.
 
 ## Accessibility
 

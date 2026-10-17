@@ -2,7 +2,7 @@
 
 This document records the migration state of the initial bundled and optional teams shipped in `@clayon/teams-catalog`. It exists so future contributors know what was intentionally deferred, what is safe to delete from legacy sources, and which compatibility tests must land before the legacy onboarding assets can be removed.
 
-The approved plan for this package lives at [PAP-10206 plan document](/PAP/issues/PAP-10206#document-plan).
+The approved plan for this package lives at PAP-10206.
 
 ## Status
 
@@ -10,9 +10,9 @@ The approved plan for this package lives at [PAP-10206 plan document](/PAP/issue
 | --- | --- |
 | `server/src/onboarding-assets/ceo/` | **Keep compatibility assets.** New default CEO hires receive only the short `AGENTS.md`. The legacy `HEARTBEAT.md`, `SOUL.md`, and `TOOLS.md` remain on disk but are not selected into new default bundles. Existing managed/custom bundles are not rewritten. The directory can be removed when onboarding switches to the teams-catalog service (post-Phase E/G). |
 | `server/src/onboarding-assets/default/` | **Keep as-is.** Generic `AGENTS.md` fallback used outside the catalog path. |
-| `skills/clayon-create-agent/references/agents/coder.md` | **Short role description mirrored** in `bundled/software-development/product-engineering/agents/senior-coder/AGENTS.md` (runtime procedures come from the harness, repository instructions, and installed skills). Keep the template as a reference for ad-hoc hiring until onboarding switches. |
-| `skills/clayon-create-agent/references/agents/qa.md` | **Short role description mirrored** in both `bundled/company-defaults/core-exec-team/agents/qa/AGENTS.md` and `bundled/software-development/product-engineering/agents/qa/AGENTS.md`. Keep the template. |
-| `skills/clayon-create-agent/references/agents/uxdesigner.md` | **Short role description mirrored** in `bundled/product/product-design/agents/ux-designer/AGENTS.md`. Both copies describe role responsibility without a default lens dictionary. |
+| `skills/clayon-create-agent/references/agents/coder.md` | **Short role description mirrored** in `packages/teams-catalog/catalog/bundled/software-development/product-engineering/agents/senior-coder/AGENTS.md` (runtime procedures come from the harness, repository instructions, and installed skills). Keep the template as a reference for ad-hoc hiring until onboarding switches. |
+| `skills/clayon-create-agent/references/agents/qa.md` | **Short role description mirrored** in both `packages/teams-catalog/catalog/bundled/company-defaults/core-exec-team/agents/qa/AGENTS.md` and `packages/teams-catalog/catalog/bundled/software-development/product-engineering/agents/qa/AGENTS.md`. Keep the template. |
+| `skills/clayon-create-agent/references/agents/uxdesigner.md` | **Short role description mirrored** in `packages/teams-catalog/catalog/bundled/product/product-design/agents/ux-designer/AGENTS.md`. Both copies describe role responsibility without a default lens dictionary. |
 | `skills/clayon-create-agent/references/agents/securityengineer.md` | **Not migrated.** No `SecurityEngineer` team ships in Phase H — see deferred entries below. |
 
 ## Bundled entries shipped in Phase H
@@ -27,7 +27,7 @@ The approved plan for this package lives at [PAP-10206 plan document](/PAP/issue
 
 ## Intentionally deferred
 
-The plan in [PAP-10206](/PAP/issues/PAP-10206#document-plan) lists additional recommended entry classes that are **not** part of the Phase H catalog. They wait on:
+The plan in PAP-10206 lists additional recommended entry classes that are **not** part of the Phase H catalog. They wait on:
 
 - `optional/ops/cloud-operations` — needs a `CloudOpsEngineer` role template under `skills/clayon-create-agent/references/agents/` first, plus an explicit security review of the deployment/secrets routines it implies. Defer until a follow-up curation pass.
 - `optional/research/benchmark-quality` — needs a benchmark/evals/forensics role template and concrete starter routines from a real benchmark engagement. Defer until that engagement exists.
@@ -48,6 +48,6 @@ Before removing `server/src/onboarding-assets/ceo/` or the `skills/clayon-create
 
 ## Coordination
 
-- Packaging-level changes (adding new manifest fields, changing the validation rules, or extending the import service) belong to the coding owner of [PAP-10236](/PAP/issues/PAP-10236) and the integration service in [PAP-10238](/PAP/issues/PAP-10238).
-- Content-only updates (new bundled or optional teams, copy edits, skill requirement tweaks) can land directly in this package after `pnpm --filter @clayon/teams-catalog validate` and `pnpm --filter @clayon/teams-catalog test` both pass.
+- Packaging-level changes (adding new manifest fields, changing the validation rules, or extending the import service) belong to the coding owner of PAP-10236 and the integration service in PAP-10238.
+- Content-only updates (new bundled or optional teams, copy edits, skill requirement tweaks) can land directly in this package after `bun run --filter @clayon/teams-catalog validate` and `bun run --filter @clayon/teams-catalog test` both pass.
 - Removing any file under `server/src/onboarding-assets/` requires the compatibility tests above to land first and is gated by the onboarding-service switchover task tracked under the same parent goal.

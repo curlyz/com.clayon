@@ -16,4 +16,4 @@ Design Lead, sending a message, switching to CodexCoder, and returning. Star a
 conversation to keep it above recents. Story-scoped recent visits are restored
 on unmount.
 
-Run `pnpm storybook` from the repository root.
+Run `bun run storybook` from the repository root.

@@ -1,0 +1,12 @@
+type: object
+required:
+  - data
+  - meta
+properties:
+  data:
+    type: array
+    items:
+      $ref: ./Agent.yaml
+  meta:
+    $ref: ./GeneratedMeta.yaml
+additionalProperties: false

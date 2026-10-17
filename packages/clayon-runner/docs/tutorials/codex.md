@@ -22,7 +22,7 @@ keep clear session identities and safe diagnostics.
 ## Before you start
 
 - Run commands from the repository root.
-- Install Node.js 20+, pnpm 9+, Rust, and the `codex` CLI.
+- Install Node.js 20+, Bun 1.4+, Rust, and the `codex` CLI.
 - Sign in to Codex with the normal local Codex setup.
 - Add no Clayon or OpenAI API key for this tutorial.
 
@@ -43,11 +43,11 @@ use a separate clean operator workspace, never bypass that guard.
 ## Step 1: Run the focused conformance checks
 
 ```sh
-pnpm --filter @clayon/clayon-runner typecheck:typescript
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun run --filter @clayon/clayon-runner typecheck:typescript
+bun x vitest run \
   src/drivers/codex/app-server-transport.test.ts \
   src/drivers/codex/codex-app-server-driver.test.ts
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
 Confirm driver tests pass and the package boundary check prints
@@ -60,7 +60,7 @@ Choose a temporary directory and trace file:
 ```sh
 codex_workspace="$(mktemp -d)"
 codex_trace="$codex_workspace/trace.json"
-pnpm --filter @clayon/clayon-runner trace:codex -- \
+bun run --filter @clayon/clayon-runner trace:codex -- \
   --working-directory "$codex_workspace" \
   --output "$codex_trace"
 ```
@@ -158,7 +158,7 @@ Use a new directory:
 
 ```sh
 codex_steer_workspace="$(mktemp -d)"
-pnpm --filter @clayon/clayon-runner trace:codex -- \
+bun run --filter @clayon/clayon-runner trace:codex -- \
   --working-directory "$codex_steer_workspace" \
   --steer "Keep the answer short and verify the exact file text."
 ```
@@ -172,7 +172,7 @@ Use a new directory:
 
 ```sh
 codex_interrupt_workspace="$(mktemp -d)"
-pnpm --filter @clayon/clayon-runner trace:codex -- \
+bun run --filter @clayon/clayon-runner trace:codex -- \
   --working-directory "$codex_interrupt_workspace" \
   --interrupt
 ```
@@ -184,7 +184,7 @@ event. Never create a replacement session.
 ## Step 7: Run the package verification path
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter @clayon/clayon-runner verify
 ```
 
 Package acceptance path. Real Codex example stays a separate command:

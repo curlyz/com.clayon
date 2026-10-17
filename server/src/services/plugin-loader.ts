@@ -693,7 +693,7 @@ async function readPackageJson(
 function buildLocalPluginBuildCommand(pkgJson: Record<string, unknown>): string | null {
   const packageName = pkgJson["name"];
   if (typeof packageName !== "string" || packageName.trim().length === 0) return null;
-  return `pnpm --filter ${packageName} build`;
+  return `bun run --filter ${packageName} build`;
 }
 
 function readPackageDependencyNames(
@@ -803,18 +803,18 @@ function formatLocalPluginManualBuildHint(
 function buildStandaloneBundledPluginInstallArgs(
   packageRoot: string,
 ): string[] {
-  const packageLockfilePath = path.join(packageRoot, "pnpm-lock.yaml");
-  // Never let plugin-supplied workspace settings broaden dependency resolution
-  // or script execution. When a plugin declares a local install policy, disable
-  // dependency lifecycle scripts instead of loading that workspace configuration.
-  const scriptArgs = existsSync(path.join(packageRoot, "pnpm-workspace.yaml")) ? ["--ignore-scripts"] : [];
-  return ["install", "--ignore-workspace", ...scriptArgs, existsSync(packageLockfilePath) ? "--frozen-lockfile" : "--no-lockfile"];
+  const packageLockfilePath = path.join(packageRoot, "bun.lock");
+  // Never let plugin-supplied install settings broaden dependency resolution
+  // or script execution. When a plugin declares a local bunfig.toml, disable
+  // dependency lifecycle scripts instead of trusting that configuration.
+  const scriptArgs = existsSync(path.join(packageRoot, "bunfig.toml")) ? ["--ignore-scripts"] : [];
+  return ["install", ...scriptArgs, existsSync(packageLockfilePath) ? "--frozen-lockfile" : "--no-save"];
 }
 
 function buildStandaloneBundledPluginInstallCommand(
   packageRoot: string,
 ): string {
-  return `pnpm ${buildStandaloneBundledPluginInstallArgs(packageRoot).join(" ")}`;
+  return `bun ${buildStandaloneBundledPluginInstallArgs(packageRoot).join(" ")}`;
 }
 
 function buildLocalPluginRecoveryCommand(
@@ -826,7 +826,7 @@ function buildLocalPluginRecoveryCommand(
     const repoRoot = options.repoRoot ?? REPO_ROOT;
     const relativePath = path.relative(repoRoot, packageRoot) || ".";
     const installCommand = buildStandaloneBundledPluginInstallCommand(packageRoot);
-    return `cd ${relativePath} && ${installCommand} && pnpm build`;
+    return `cd ${relativePath} && ${installCommand} && bun run build`;
   }
 
   return buildLocalPluginBuildCommand(pkgJson);
@@ -849,7 +849,7 @@ function buildLocalPluginBuildCommands(
 
     if (shouldInstallStandaloneRuntime) {
       commands.push({
-        file: "pnpm",
+        file: "bun",
         args: buildStandaloneBundledPluginInstallArgs(packageRoot),
         cwd: packageRoot,
       });
@@ -857,8 +857,8 @@ function buildLocalPluginBuildCommands(
 
     if (options.needsBuild !== false) {
       commands.push({
-        file: "pnpm",
-        args: ["build"],
+        file: "bun",
+        args: ["run", "build"],
         cwd: packageRoot,
       });
     }
@@ -868,8 +868,8 @@ function buildLocalPluginBuildCommands(
   const packageName = pkgJson["name"];
   if (typeof packageName !== "string" || packageName.trim().length === 0) return [];
   return [{
-    file: "pnpm",
-    args: ["--filter", packageName, "build"],
+    file: "bun",
+    args: ["run", "--filter", packageName, "build"],
     cwd: options.repoRoot ?? REPO_ROOT,
   }];
 }
@@ -1801,12 +1801,7 @@ export function pluginLoader(
       newManifest: ClayonPluginManifestV1;
       discovered: DiscoveredPlugin;
     }> {
-      const plugin = (await registry.getById(pluginId)) as {
-        id: string;
-        packageName: string;
-        packagePath: string | null;
-        manifestJson: ClayonPluginManifestV1;
-      } | null;
+      const plugin = await registry.getById(pluginId);
       if (!plugin) throw new Error(`Plugin not found: ${pluginId}`);
 
       const oldManifest = plugin.manifestJson;
@@ -1965,7 +1960,7 @@ export function pluginLoader(
       log.info("plugin-loader: loading all ready plugins");
 
       // Fetch all plugins in ready status, ordered by installOrder
-      const readyPlugins = (await registry.listByStatus("ready")) as PluginRecord[];
+      const readyPlugins = await registry.listByStatus("ready");
 
       // Retry plugins stranded in error status. An activation failure is often
       // environmental — missing package dependencies, a stale build output, a
@@ -1977,11 +1972,11 @@ export function pluginLoader(
       // activation: the error status only legally transitions to ready or
       // uninstalled, so a retry that failed while still in error status could
       // not re-mark itself as errored.
-      const erroredPlugins = (await registry.listByStatus("error")) as PluginRecord[];
+      const erroredPlugins = await registry.listByStatus("error");
       const retriedPlugins: PluginRecord[] = [];
       for (const plugin of erroredPlugins) {
         try {
-          const flipped = (await registry.updateStatus(plugin.id, { status: "ready" })) as PluginRecord | null;
+          const flipped = await registry.updateStatus(plugin.id, { status: "ready" });
           if (flipped) retriedPlugins.push(flipped);
         } catch (err) {
           log.warn(
@@ -2071,7 +2066,7 @@ export function pluginLoader(
         );
       }
 
-      const plugin = (await registry.getById(pluginId)) as PluginRecord | null;
+      const plugin = await registry.getById(pluginId);
       if (!plugin) {
         throw new Error(`Plugin not found: ${pluginId}`);
       }
@@ -2432,16 +2427,11 @@ export function pluginLoader(
       //
       // Note: Event subscriptions are declared at runtime by the plugin
       // worker via the SDK's ctx.events.on() calls. The event bus manages
-      // per-plugin subscription scoping. Here we ensure the event bus has
-      // a scoped handle ready for this plugin — the actual subscriptions
-      // are registered by the host handler layer when the worker calls
-      // events.subscribe via RPC.
-      //
-      // The bus.forPlugin() call creates the scoped handle if needed;
-      // any previous subscriptions for this plugin are preserved if the
-      // worker is restarting.
+      // per-plugin subscription scoping — a scoped handle is created
+      // lazily by bus.forPlugin() when the host handler layer calls
+      // events.subscribe via RPC; any previous subscriptions for this
+      // plugin are preserved if the worker is restarting.
       // ------------------------------------------------------------------
-      const _scopedBus = eventBus.forPlugin(pluginKey);
       registered.eventSubscriptions = eventBus.subscriptionCount(pluginKey);
 
       log.debug(
@@ -2574,7 +2564,7 @@ function resolveWorkerEntrypoint(
   // For local-path installs we persist the resolved package path; use it first
   if (plugin.packagePath && existsSync(plugin.packagePath)) {
     const entrypoint = path.resolve(plugin.packagePath, workerRelPath);
-    if (entrypoint.startsWith(path.resolve(plugin.packagePath)) && existsSync(entrypoint)) {
+    if (isPathWithin(path.resolve(plugin.packagePath), entrypoint) && existsSync(entrypoint)) {
       return entrypoint;
     }
   }
@@ -2600,7 +2590,7 @@ function resolveWorkerEntrypoint(
     const entrypoint = path.resolve(dir, workerRelPath);
 
     // Security: ensure entrypoint is actually inside the directory (prevent path traversal)
-    if (!entrypoint.startsWith(path.resolve(dir))) {
+    if (!isPathWithin(path.resolve(dir), entrypoint)) {
       continue;
     }
 

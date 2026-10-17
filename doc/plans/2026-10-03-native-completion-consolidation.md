@@ -21,7 +21,7 @@ Both variants start from master `2a8a99e4a5f69aa803b3f10b982f583e75a87042`. The 
 Run from `packages/clayon-runner`:
 
 ```sh
-CLAYON_NATIVE_INSTRUCTION_REPORT=/absolute/path/measurement.json pnpm exec vitest run src/backends/native-instruction-measurement.test.ts
+CLAYON_NATIVE_INSTRUCTION_REPORT=/absolute/path/measurement.json bun x vitest run src/backends/native-instruction-measurement.test.ts
 ```
 
 The receipt declares its source SHA, source file hashes, fixture hash and dirty state. A dirty overlay can aid diagnosis but is rejected for live admission. Temporary workspace paths are normalized to a fixed path for comparison. This is the complete declared Clayon projection at that boundary, not the production server's full granted catalog or a capture of provider-owned stock prompts. Token counts, billing, provider preprocessing and cognitive consumption remain unknown. The capture distinguishes a resumed full task from the compact user-follow-up continuation envelope. Input v5 sends only new events and contract references for that continuation; its projection must remain identical between variants. Input v4 still wraps the compact message in a task envelope. Scripted resume and continuation capture do not qualify live resume behavior.
@@ -31,7 +31,7 @@ The receipt declares its source SHA, source file hashes, fixture hash and dirty 
 The explicit-only Product E2E suite is `native-instruction-consolidation`. Discovery requires no credentials:
 
 ```sh
-pnpm test:e2e:runner -- --list --suite native-instruction-consolidation
+bun run test:e2e:runner -- --list --suite native-instruction-consolidation
 ```
 
 Each source variant declares these original tasks on the same local native profiles:

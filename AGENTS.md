@@ -15,7 +15,7 @@ Implementation target: V1, defined in `doc/SPEC-implementation.md`.
 (project `server`, composeId `CSdiym07Up7Q1AjvEop7j`) on `contabo-eu-vps6`,
 live at https://clayon.app, own Postgres 17 service.
 Runbook, compose file, bootstrap gotchas:
-`servers/contabo-eu-vps6/README.md` § Clayon.
+`~/.servers/contabo-eu-vps6/README.md` § Clayon.
 Deploy through Dokploy (panel or authenticated API) — never SSH into the host.
 
 ## 2. Read This First
@@ -49,33 +49,75 @@ branding, implementation, testing, live proof, and PR submission.
 - `packages/teams-catalog/`: app-shipped teams catalog (`@clayon/teams-catalog`)
 - `cli/`: `clayon` CLI package (published bin, agent-facing commands)
 - `skills/`: Clayon runtime/operational skills (not part of the app catalog)
-- `doc/`: operational and product docs (`doc/logs/` holds dated implementation reports)
+- `doc/`: operational and product docs; table whitepapers in `doc/database/tables.md`
 - `docs/`: the published Mintlify docs site (`docs.json`)
 - `tests/`: unit, e2e and runner-e2e suites
 - `evals/`: agent-behaviour eval framework
-- `feature-map/`: user-capability recipes for reproducing and verifying bugs
 - `integrations/`: assistant plugin bundles (Claude, Codex)
 - `docker/`: agent-runtime and onboarding images
 - `skills-releases/`: published Clayon skill releases
+- `gateway/` + `packages/openapi/`: the Cloudflare port surface (see § Gateway)
 - `tools/`: standalone helper binaries (`agent-shim`)
-- `design/` · `announcements/`: one-off design pages and announcement examples
-- `patches/`: pnpm `patchedDependencies` sources (see the deviation below)
+- `announcements/`: announcement examples served by the announcements routes
+- `patches/`: bun `patchedDependencies` sources (see the deviation below)
+
+## Gateway (Cloudflare port, rung 1 — 2026-10-16)
+
+`gateway/` is the new control-plane surface on the antl one stack
+(`com.agents/docs/convention/stack.md` at the antl root): Hono Worker + one oRPC
+router, OpenAPI-first through `packages/openapi` (`@clayon/openapi`)
+(recipes `moe:orpc/recipe-openapi-first-heygen`, `moe:orpc/openapi-package-convention`), drizzle schema truth
+(`@clayon/db` pgTables, `Kyselify` bridge) with kysely queries, InferDI
+composition root (`src/container.ts`, operator 2026-10-16). The legacy
+Express `server/` keeps running untouched; rungs and open decisions:
+`doc/plans/2026-10-16-cloudflare-port-rung-1-gateway.md`.
+
+- Local proof: Homebrew postgresql@18 role/db `paperclip` on 127.0.0.1:5433
+  (docker daemon was unresponsive 2026-10-16),
+  `bun run --cwd gateway db:migrate` (applies all `@clayon/db` drizzle
+  migrations) `&& bun run --cwd gateway seed`,
+  `bun run --cwd gateway dev` (port 8810).
+- Spec edits: edit `packages/openapi/openapi.yaml` (split into `paths/` and
+  `components/schemas/`; register every new schema in the root
+  `components.schemas`), then `bun run --cwd packages/openapi generate`, then
+  `bun run check:openapi` (project root, alias of the package `check`) must
+  pass before commit.
+- Not deployed: no Cloudflare account resource exists for this worker yet
+  (rung 2 decision — PlanetScale database, real Hyperdrive, API domain).
+- This surface has no unit tests by choice (`antl:convention/stack` tests
+  row); proof is tsc + oxlint + wrangler dev live curls + dry-run deploy.
 
 **Structure deviation from the antl brand shape (operator, 2026-10-13: "pls
 clayon app stay with its express app. no convex"):** Clayon is its own
-Express and pnpm product, not an `apps/` + `packages/` brand. It keeps its
-upstream tree, its test suites and its `patches/` folder, which
-`pnpm-workspace.yaml` `patchedDependencies` reads; the antl bans on tests and
+Express and bun product (moved from pnpm 2026-10-16, operator: every
+project uses only bun), not an `apps/` + `packages/` brand. It keeps its
+upstream tree, its test suites and its `patches/` folder, which the project's
+own `package.json` `patchedDependencies` reads; the antl bans on tests and
 `patches/` apply to the brand workspaces only. Removing a patch breaks
-`pnpm install`.
+`bun install`.
+
+**Open after the bun move (2026-10-16):** the Pi distribution now installs
+from `packages/clayon-runner/scripts/pi-distribution/bun.lock` with
+`bun install --frozen-lockfile` (bun 1.4.3 on PATH), and the attested lock
+bytes are the `bun.lock` bytes. Not yet re-recorded: `PI_DISTRIBUTION_CLOSURE_SHA256`
+(flat bun tree), the acpx profile `commandDigest` and
+`dependencySecurityPatchSha256`. Pins already stale at commit `87056eb61`
+(verified with `git show HEAD:` hashes, 2026-10-17): the Pi wrapper patch
+hashes `ace0513b…` against the `a7c63900…` pin in `pi-installation.test.ts`,
+and `launcher.cjs` hashes `24da2dd1…` against the grok `commandDigest`
+`f0b69839…`; neither file is modified, so these failures do not come from bun. The codex-acp patch
+applies to different bytes under bun than under strict `patch -F0`, so the
+`acpx-profiles.json` codex `commandDigest` is also not re-recorded.
 
 ## 4. Dev Setup (Auto DB)
 
-Use embedded PGlite in dev by leaving `DATABASE_URL` unset.
+Use embedded PostgreSQL 18 (`embedded-postgres@^18.1.0-beta.16`, data at
+`~/.clayon/instances/default/db`) in dev by leaving `DATABASE_URL` unset.
+`pglite` survives only as a legacy config alias; the server has no PGlite.
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -93,18 +135,19 @@ curl http://localhost:3100/api/companies
 Reset local dev DB:
 
 ```sh
-rm -rf data/pglite
-pnpm dev
+rm -rf ~/.clayon/instances/default/db
+bun run dev
 ```
 
 ### Dev UI against the production backend (operator, 2026-10-11)
 
 "Dev clayon" is the working-tree UI served by Vite on **http://localhost:2009**,
-`/api` proxied to production `https://clayon.app`.
+`/api` proxied to the designated production origin `https://clayon.curly.ng`
+(not currently deployed — no DNS record yet).
 No local server, database or native runner build runs.
 
 ```sh
-pnpm --dir ui dev:remote   # from com.clayon; strict port 2009
+bun run --cwd ui dev:remote   # from com.paperclip; strict port 2009
 ```
 
 - Proxy: `ui/src/lib/vite-api-proxy.ts` (`createRemoteApiProxy`), chosen in `ui/vite.config.ts` when `CLAYON_DEV_API_TARGET` is set. Sends the production origin upstream (the server's origin guard expects it) and strips the cookie `Domain` so the session sticks to localhost.
@@ -182,36 +225,36 @@ When changing data model:
 3. Generate migration:
 
 ```sh
-pnpm db:generate
+bun run db:generate
 ```
 
 4. Validate compile:
 
 ```sh
-pnpm -r typecheck
+bun run --filter '*' typecheck
 ```
 
 Notes:
 - `packages/db/drizzle.config.ts` reads compiled schema from `dist/schema/*.js`
-- `pnpm db:generate` compiles `packages/db` first
+- `bun run db:generate` compiles `packages/db` first
 
 ## 7. Verification Before Hand-off
 
-`feature-map/README.md`: optional reference for user
-entry points, verification recipes, coverage gaps. Records coverage
-scope, not proof a live journey passed.
+(Pruned 2026-10-16: the former `feature-map/` reference is gone with the
+directory; user-capability recipes are regenerable via
+`bun run build:feature-catalog` when needed.)
 
 Default local/agent test path:
 
 ```sh
-pnpm test
+bun run test
 ```
 
 Cheap default; runs the Vitest suite only. Browser suites stay opt-in:
 
 ```sh
-pnpm test:e2e
-pnpm test:release-smoke
+bun run test:e2e
+bun run test:release-smoke
 ```
 
 Run browser suites only when your change touches them or you explicitly verify CI/release flows.
@@ -221,9 +264,9 @@ For normal issue work, run the smallest relevant verification first. Do not defa
 Run this full check before a PR-ready hand-off, or when the change scope is too broad for targeted checks:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 If anything cannot be run, report what was not run and why.
@@ -268,10 +311,10 @@ A change is done when all are true:
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
-5. PR description follows the PR template `com.clayon/.github/PULL_REQUEST_TEMPLATE.md` with all sections filled in (including Model Used)
+5. PR description follows the PR template `.github/PULL_REQUEST_TEMPLATE.md` with all sections filled in (including Model Used)
 
 ## Design system
 
-`DESIGN.md` at repo root is the source of truth for UI design decisions. Token-only rule for all `ui/` changes: every color, spacing, radius, type, shadow, and motion value in `ui/src/components/**` and `ui/src/pages/**` comes from the token layer in `ui/src/index.css` — no hex, raw px, arbitrary Tailwind bracket values, or raw `font-size`/`fontSize` in components, outside the documented allowlist in `ui/src/index.css`. Run `pnpm check:token-gates` (`scripts/check-token-gates.mjs`) before committing UI changes — fails on any violation not covered by that allowlist.
+`DESIGN.md` at repo root is the source of truth for UI design decisions. Token-only rule for all `ui/` changes: every color, spacing, radius, type, shadow, and motion value in `ui/src/components/**` and `ui/src/pages/**` comes from the token layer in `ui/src/index.css` — no hex, raw px, arbitrary Tailwind bracket values, or raw `font-size`/`fontSize` in components, outside the documented allowlist in `ui/src/index.css`. Run `bun run check:token-gates` (`scripts/check-token-gates.mjs`) before committing UI changes — fails on any violation not covered by that allowlist.
 
 The portal carries no decorative scene (removed 2026-10-11, leader ruling): the emblem remains only as the logo, luminance-masked for transparency on both themes; the surface is flat and theme-aware (light and dark tokens). No further decorative elements.

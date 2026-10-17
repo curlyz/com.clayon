@@ -11,7 +11,7 @@ Instance setup and diagnostics commands.
 One-command bootstrap and start:
 
 ```sh
-pnpm clayon run
+bun run clayon run
 ```
 
 Does:
@@ -31,7 +31,7 @@ npx clayon run --instance dev
 Interactive first-time setup:
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 ```
 
 If Clayon is already configured, rerunning `onboard` keeps the existing config in place. Use `clayon configure` to change settings on an existing install.
@@ -44,13 +44,13 @@ First prompt:
 Start immediately after onboarding:
 
 ```sh
-pnpm clayon onboard --run
+bun run clayon onboard --run
 ```
 
 Quickstart defaults + immediate start:
 
 ```sh
-pnpm clayon onboard --yes
+bun run clayon onboard --yes
 ```
 
 When onboarding starts Clayon from an interactive terminal, it opens the
@@ -59,8 +59,8 @@ Suppress browser opening explicitly for headless or automated runs with either
 environment variable:
 
 ```sh
-CLAYON_NO_BROWSER=1 pnpm clayon onboard --yes
-CLAYON_OPEN_ON_LISTEN=false pnpm clayon onboard --yes
+CLAYON_NO_BROWSER=1 bun run clayon onboard --yes
+CLAYON_OPEN_ON_LISTEN=false bun run clayon onboard --yes
 ```
 
 On an existing install, `--yes` now preserves the current config and just starts Clayon with that setup.
@@ -70,8 +70,8 @@ On an existing install, `--yes` now preserves the current config and just starts
 Health checks with optional auto-repair:
 
 ```sh
-pnpm clayon doctor
-pnpm clayon doctor --repair
+bun run clayon doctor
+bun run clayon doctor --repair
 ```
 
 Validates:
@@ -88,9 +88,9 @@ Validates:
 Update configuration sections:
 
 ```sh
-pnpm clayon configure --section server
-pnpm clayon configure --section secrets
-pnpm clayon configure --section storage
+bun run clayon configure --section server
+bun run clayon configure --section secrets
+bun run clayon configure --section storage
 ```
 
 `--section secrets` updates the deployment-level provider used as the fallback
@@ -105,7 +105,7 @@ coming-soon GCP/Vault) live in the board UI under
 Show resolved environment configuration:
 
 ```sh
-pnpm clayon env
+bun run clayon env
 ```
 
 This now includes bind-oriented deployment settings such as `CLAYON_BIND` and `CLAYON_BIND_HOST` when configured.
@@ -132,7 +132,7 @@ npx clayon allowed-hostname my-tailscale-host
 Override with:
 
 ```sh
-CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev pnpm clayon run
+CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev bun run clayon run
 ```
 
 Or pass `--data-dir` directly on any command:

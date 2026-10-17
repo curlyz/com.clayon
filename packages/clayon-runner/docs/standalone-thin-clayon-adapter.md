@@ -17,13 +17,13 @@ Default path is legacy. Native mode is selected only when the demo flag is enabl
 
 ```sh
 # Default legacy path
-pnpm --filter @clayon/clayon-runner trace:standalone
+bun run --filter @clayon/clayon-runner trace:standalone
 
 # Native standalone path
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled
 
 # Kill-switch rollback
-pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
+bun run --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled --kill-switch enabled
 ```
 
 ## Standalone page
@@ -31,7 +31,7 @@ pnpm --filter @clayon/clayon-runner trace:standalone -- --feature-flag enabled -
 Run:
 
 ```sh
-pnpm --filter @clayon/clayon-runner demo:standalone
+bun run --filter @clayon/clayon-runner demo:standalone
 ```
 
 Then open `http://127.0.0.1:4182/standalone-demo/`. The page exposes mode selection, contract conformance, reducer projection, replay, finalization, and native/legacy invocation counters. It makes no network call to Clayon.

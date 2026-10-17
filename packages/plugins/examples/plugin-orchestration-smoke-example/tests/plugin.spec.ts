@@ -8,7 +8,9 @@ import plugin from "../src/worker.js";
 function issue(input: Partial<Issue> & Pick<Issue, "id" | "companyId" | "title">): Issue {
   const now = new Date();
   const { id, companyId, title, ...rest } = input;
-  return {
+  // Partial spread leaves optional fields as `T | undefined`; Object.assign keeps
+  // base's required types for any field the caller did not pass.
+  const base: Issue = {
     id,
     companyId,
     projectId: null,
@@ -21,6 +23,9 @@ function issue(input: Partial<Issue> & Pick<Issue, "id" | "companyId" | "title">
     description: null,
     status: "todo",
     priority: "medium",
+    workMode: "standard",
+    reviewPolicy: null,
+    responsibleUserId: null,
     assigneeAgentId: null,
     assigneeUserId: null,
     checkoutRunId: null,
@@ -46,8 +51,8 @@ function issue(input: Partial<Issue> & Pick<Issue, "id" | "companyId" | "title">
     hiddenAt: null,
     createdAt: now,
     updatedAt: now,
-    ...rest,
   };
+  return Object.assign(base, rest);
 }
 
 describe("orchestration smoke plugin", () => {

@@ -20,10 +20,10 @@
     "convex"
   ],
   "scripts": {
-    "prebuild": "pnpm --filter @clayon/plugin-sdk ensure-build-deps",
+    "prebuild": "bun run --filter @clayon/plugin-sdk ensure-build-deps",
     "build": "tsc && node ./scripts/build-ui.mjs",
     "clean": "rm -rf dist",
-    "typecheck": "pnpm --filter @clayon/plugin-sdk ensure-build-deps && tsc --noEmit"
+    "typecheck": "bun run --filter @clayon/plugin-sdk ensure-build-deps && tsc --noEmit"
   },
   "dependencies": {
     "@clayon/plugin-sdk": "workspace:*",

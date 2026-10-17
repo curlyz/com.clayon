@@ -11,22 +11,22 @@ pause controls, and consistent audits instead of hidden daemon behavior.
 
 ## Prerequisites
 
-- Node.js 24.11+ and `pnpm`.
+- Node.js 24.11+ and `bun`.
 - A local Clayon checkout you can run from source. Local plugin installs read source from disk, so the running server must be able to see the path you give it.
 
 ## The five steps
 
 ```bash
 # 1. Start Clayon locally
-pnpm clayon run
+bun run clayon run
 
 # 2. Scaffold a plugin outside the Clayon repo
 clayon plugin init @acme/hello-plugin --output ~/dev/clayon-plugins
 
 # 3. Install dependencies and start the watch build
 cd ~/dev/clayon-plugins/hello-plugin
-pnpm install
-pnpm dev
+bun install
+bun run dev
 
 # 4. In another terminal, install the plugin from its absolute path
 clayon plugin install ~/dev/clayon-plugins/hello-plugin
@@ -41,7 +41,7 @@ That's the loop. The rest of this page explains what each step does and what to 
 ### 1. Start Clayon
 
 ```bash
-pnpm clayon run
+bun run clayon run
 ```
 
 Clayon listens on `http://127.0.0.1:3100` by default. The CLI talks to that server, so leave it running.
@@ -75,13 +75,13 @@ When `plugin init` finishes, it prints the next four commands literally. You can
 
 ```bash
 cd ~/dev/clayon-plugins/hello-plugin
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
-`pnpm dev` runs `esbuild --watch` against the plugin source and emits `dist/manifest.js`, `dist/worker.js`, and `dist/ui/`. Leave it running. Every time you save, esbuild rebuilds the affected output file.
+`bun run dev` runs `esbuild --watch` against the plugin source and emits `dist/manifest.js`, `dist/worker.js`, and `dist/ui/`. Leave it running. Every time you save, esbuild rebuilds the affected output file.
 
-If your plugin has UI and you want a browser-side dev server with hot module replacement during local UI iteration, run `pnpm dev:ui` in a second terminal. It serves `dist/ui/` on `http://127.0.0.1:4177`. This is optional; Clayon can load the built UI directly from `dist/ui/` without it.
+If your plugin has UI and you want a browser-side dev server with hot module replacement during local UI iteration, run `bun run dev:ui` in a second terminal. It serves `dist/ui/` on `http://127.0.0.1:4177`. This is optional; Clayon can load the built UI directly from `dist/ui/` without it.
 
 ### 4. Install from the absolute path
 
@@ -99,7 +99,7 @@ Target Clayon: http://127.0.0.1:3100
 Installing plugin from local path: /Users/you/dev/clayon-plugins/hello-plugin
 ✓ Installed acme.hello-plugin v0.1.0 (ready)
 Local plugin installs run trusted local code from your machine.
-Keep `pnpm dev` running in /Users/you/dev/clayon-plugins/hello-plugin;
+Keep `bun run dev` running in /Users/you/dev/clayon-plugins/hello-plugin;
 Clayon watches rebuilt dist output and reloads the plugin worker.
 ```
 
@@ -142,7 +142,7 @@ So the API URL is explicit and overridable — the gap was never that you *could
 ```bash
 # 1. From the branch checkout (e.g. an issue worktree), run that branch's server.
 #    Pick a port that does not collide with any control-plane instance.
-CLAYON_SERVER_PORT=3120 pnpm dev          # or: pnpm clayon run
+CLAYON_SERVER_PORT=3120 bun run dev          # or: bun run clayon run
 
 # 2. Confirm the CLI will talk to that exact branch service before installing.
 clayon plugin target --api-base http://127.0.0.1:3120
@@ -185,11 +185,11 @@ What that means in practice:
 
 - **Worker code:** save a `.ts` file → esbuild rewrites `dist/worker.js` → Clayon debounces ~500ms and restarts the plugin worker. The next worker call uses the new code. There is no in-process hot module replacement for worker code; it is a worker restart.
 - **Manifest:** save `src/manifest.ts` → `dist/manifest.js` rewrites → the worker restarts and the host re-reads the manifest.
-- **Plugin UI:** save a `.tsx` file → esbuild rewrites `dist/ui/` → Clayon reloads the UI bundle on its next mount. To get HMR during UI iteration, run `pnpm dev:ui` and point at the dev server with `devUiUrl` in your manifest while developing.
-- **Without `pnpm dev`:** the watcher only fires on `dist/*` changes. If you stop the watch build, source edits do not reach Clayon. Restart `pnpm dev` (or run `pnpm build` once) before expecting changes.
+- **Plugin UI:** save a `.tsx` file → esbuild rewrites `dist/ui/` → Clayon reloads the UI bundle on its next mount. To get HMR during UI iteration, run `bun run dev:ui` and point at the dev server with `devUiUrl` in your manifest while developing.
+- **Without `bun run dev`:** the watcher only fires on `dist/*` changes. If you stop the watch build, source edits do not reach Clayon. Restart `bun run dev` (or run `bun run build` once) before expecting changes.
 - **`node_modules`, `.git`, `.clayon-sdk`, and other dotfolders are ignored.** Adding a dependency requires the new code to actually be imported and rebuilt before the worker sees it.
 
-The package's own build scripts still own compilation. Clayon does not compile arbitrary local-path plugins for you. The exceptions are bundled plugins inside the Clayon repo under `packages/plugins/`: workspace packages auto-build once with `pnpm --filter <package> build`, and standalone sandbox-provider packages under `packages/plugins/sandbox-providers/` first bootstrap package-local dependencies with `pnpm install --ignore-workspace ...` and then run `pnpm build` in place. Set `CLAYON_DISABLE_PLUGIN_AUTOBUILD=1` in the server environment to disable those fallbacks.
+The package's own build scripts still own compilation. Clayon does not compile arbitrary local-path plugins for you. The exceptions are bundled plugins inside the Clayon repo under `packages/plugins/`: workspace packages auto-build once with `bun run --filter <package> build`, and standalone sandbox-provider packages under `packages/plugins/sandbox-providers/` first bootstrap package-local dependencies with `bun install ...` and then run `bun run build` in place. Set `CLAYON_DISABLE_PLUGIN_AUTOBUILD=1` in the server environment to disable those fallbacks.
 
 ## Local path plugins vs npm packages
 
@@ -209,8 +209,8 @@ When you are done iterating locally, publish the package and reinstall the npm-p
 
 ## Troubleshooting
 
-- **`Plugin install returned no plugin record` or `error` status.** Run `clayon plugin inspect <key>` for the last error. The most common causes are (1) the plugin has not built yet — run `pnpm dev` or `pnpm build` first, (2) the `clayonPlugin` entries in `package.json` point at files that do not exist on disk, or (3) the manifest failed validation. Bundled repo plugins may auto-build once during install, but external local-path plugins still require you to build them yourself. The Clayon server log has the full validation error.
-- **Edits do not seem to reload.** Confirm `pnpm dev` is still running and writing to `dist/`. If you renamed entry files, update the `clayonPlugin.manifest` / `clayonPlugin.worker` / `clayonPlugin.ui` fields in `package.json` so the watcher targets them.
-- **Worker restarts but UI is stale.** Hard-reload the page. If you want HMR, run `pnpm dev:ui` and set `devUiUrl` in your manifest to `http://127.0.0.1:4177` during development.
+- **`Plugin install returned no plugin record` or `error` status.** Run `clayon plugin inspect <key>` for the last error. The most common causes are (1) the plugin has not built yet — run `bun run dev` or `bun run build` first, (2) the `clayonPlugin` entries in `package.json` point at files that do not exist on disk, or (3) the manifest failed validation. Bundled repo plugins may auto-build once during install, but external local-path plugins still require you to build them yourself. The Clayon server log has the full validation error.
+- **Edits do not seem to reload.** Confirm `bun run dev` is still running and writing to `dist/`. If you renamed entry files, update the `clayonPlugin.manifest` / `clayonPlugin.worker` / `clayonPlugin.ui` fields in `package.json` so the watcher targets them.
+- **Worker restarts but UI is stale.** Hard-reload the page. If you want HMR, run `bun run dev:ui` and set `devUiUrl` in your manifest to `http://127.0.0.1:4177` during development.
 - **Path arguments fail on Windows.** Quote paths that contain spaces, and prefer absolute paths over `~`-prefixed paths in non-bash shells.
 - **Plugin behaves as if a route or field is missing (e.g. `API route not found`, empty data, or a fallback path triggering unexpectedly).** You are probably installed into a Clayon instance that does not run your branch code. Run `clayon plugin target` and compare the reported API URL and `version` against the branch service you meant to test. See [Targeting a branch / issue-workspace runtime](#targeting-a-branch--issue-workspace-runtime) to run the branch server and point the CLI at it explicitly.

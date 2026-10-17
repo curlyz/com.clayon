@@ -108,7 +108,7 @@ temporarily stale. Self-hosted deployments continue to use their configured
 Default onboarding remains interactive and flagless:
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 ```
 
 Server prompt behavior:
@@ -125,7 +125,7 @@ Server prompt behavior:
 Examples:
 
 ```sh
-pnpm clayon onboard --yes
+bun run clayon onboard --yes
 npx clayon onboard --yes --bind lan
 npx clayon run --bind tailnet
 ```
@@ -137,7 +137,7 @@ npx clayon run --bind tailnet
 Default doctor remains flagless:
 
 ```sh
-pnpm clayon doctor
+bun run clayon doctor
 ```
 
 Doctor reads configured mode/exposure and applies mode-aware checks. Optional override flags are secondary.
@@ -193,7 +193,7 @@ not an account-recovery or public-deployment mechanism.
 The CLI fallback remains supported in all authenticated setup states:
 
 ```sh
-pnpm clayon auth bootstrap-ceo
+bun run clayon auth bootstrap-ceo
 ```
 
 That command prints a one-time first-admin invite URL. Browser claim and

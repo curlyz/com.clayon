@@ -46,11 +46,11 @@ Clayon supports three deployment configurations: zero-friction local to internet
 Set the mode during onboarding:
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 ```
 
 Or update it later:
 
 ```sh
-pnpm clayon configure --section server
+bun run clayon configure --section server
 ```

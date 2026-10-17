@@ -276,6 +276,7 @@ function quickstartDefaultsFromEnv(opts?: { preferTrustedLocal?: boolean }): {
       host: resolvedBind.host,
       port: Number(process.env.PORT) || 3100,
       allowedHostnames: Array.from(new Set([...allowedHostnamesFromEnv, ...(hostnameFromPublicUrl ? [hostnameFromPublicUrl] : [])])),
+      crossOriginApiOrigins: [],
       serveUi: parseBooleanFromEnv(process.env.SERVE_UI) ?? true,
     },
     auth: {
@@ -381,7 +382,7 @@ function printManagedInstallHint(): void {
 }
 
 export async function onboard(opts: OnboardOptions): Promise<void> {
-  if (opts.bind && !["loopback", "lan", "tailnet"].includes(opts.bind)) {
+  if (opts.bind && (opts.bind === "custom" || !BIND_MODES.includes(opts.bind))) {
     throw new Error(`Unsupported bind preset for onboard: ${opts.bind}. Use loopback, lan, or tailnet.`);
   }
 

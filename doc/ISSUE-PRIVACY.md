@@ -158,7 +158,7 @@ keyset batch commits before advancing, releasing schema and row locks. The
 migration journal is written only after all batches succeed; an interruption
 leaves the migration pending and its idempotent statements can be replayed.
 Bootstrap uses the same executor, and other migrations retain a transaction per
-file. Apply these migrations with `pnpm db:migrate`, before enabling the new
+file. Apply these migrations with `bun run db:migrate`, before enabling the new
 server or private-task UI.
 
 Private output uses the same predicate on native tool searches and task context,

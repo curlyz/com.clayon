@@ -18,10 +18,10 @@ product plugin.
 ## Development
 
 ```bash
-pnpm install
-pnpm typecheck
-pnpm test
-pnpm build
+bun install
+bun run typecheck
+bun run test
+bun run build
 ```
 
 ## Install Into Clayon

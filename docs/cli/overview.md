@@ -9,7 +9,7 @@ The Clayon CLI handles instance setup, diagnostics, and control-plane operations
 ## Usage
 
 ```sh
-pnpm clayon --help
+bun run clayon --help
 ```
 
 ## Global Options
@@ -43,10 +43,10 @@ Store defaults to avoid repeating flags:
 npx clayon context set --api-base http://localhost:3100 --company-id <id>
 
 # View current context
-pnpm clayon context show
+bun run clayon context show
 
 # List profiles
-pnpm clayon context list
+bun run clayon context list
 
 # Switch profile
 npx clayon context use default

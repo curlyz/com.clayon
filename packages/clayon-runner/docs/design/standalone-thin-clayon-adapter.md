@@ -974,7 +974,7 @@ packages/clayon-runner/spec/fixtures/status-authority-sdk.json
 packages/clayon-runner/src/backends/codex-native-backend.ts
 packages/clayon-runner/src/backends/harness-driver-backend.test.ts
 packages/clayon-runner/src/backends/harness-driver-backend.ts
-packages/clayon-runner/src/cli/standalone-clayon.ts
+packages/clayon-runner/src/cli/clayon-adapter.ts
 packages/clayon-runner/src/conformance/control-plane-port.test.ts
 packages/clayon-runner/src/conformance/control-plane-port.ts
 packages/clayon-runner/src/contracts/control-plane-port.ts
@@ -993,7 +993,7 @@ packages/shared/src/types/native-finalization.ts
 packages/shared/src/validators/index.ts
 packages/shared/src/validators/instance.ts
 packages/shared/src/validators/native-finalization.ts
-scripts/check-runner-sdk-spec.mjs
+scripts/check-module-boundaries.mjs
 server/package.json
 server/src/__tests__/heartbeat-native-runner-cancellation.test.ts
 server/src/__tests__/heartbeat-native-runner-selection.test.ts
@@ -1043,13 +1043,11 @@ do not exist yet in this design-only task.
 Deterministic package/mock proof:
 
 ```sh
-pnpm check:runner-sdk-spec
-
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/conformance/control-plane-port.test.ts \
   src/backends/harness-driver-backend.test.ts
 
-pnpm --filter @clayon/clayon-runner trace:standalone -- \
+bun run --filter @clayon/clayon-runner trace:standalone -- \
   --target mock --scenario happy-path
 ```
 
@@ -1057,7 +1055,7 @@ First real Clayon tracer and inspection (against an isolated local dev
 instance with the five `CLAYON_*` identifiers/auth variables already set):
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:standalone -- \
+bun run --filter @clayon/clayon-runner trace:standalone -- \
   --target clayon --scenario happy-path
 
 CLAYON_API_BASE="${CLAYON_API_URL%/}"
@@ -1071,7 +1069,7 @@ curl -fsS \
 Targeted real integration proof:
 
 ```sh
-pnpm --filter @clayon/server exec vitest run \
+bun x vitest run \
   src/__tests__/native-runner-standalone.integration.test.ts \
   src/__tests__/heartbeat-native-runner-selection.test.ts \
   src/__tests__/heartbeat-native-runner-cancellation.test.ts \
@@ -1083,11 +1081,11 @@ pnpm --filter @clayon/server exec vitest run \
   src/__tests__/native-finalization-migration.test.ts \
   src/__tests__/legacy-finalization-regression.test.ts
 
-pnpm --filter @clayon/server exec vitest run \
+bun x vitest run \
   src/__tests__/heartbeat-run-event-sequencing.test.ts \
   -t "serializes concurrent lifecycle cancel native and log writers"
 
-pnpm --filter @clayon/server exec vitest run \
+bun x vitest run \
   src/__tests__/native-status-arbiter-corpus.test.ts \
   -t "executes all 52 fixtures in their production consumers"
 ```
@@ -1095,10 +1093,10 @@ pnpm --filter @clayon/server exec vitest run \
 Legacy fallback proof after disabling the flag:
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:standalone -- \
+bun run --filter @clayon/clayon-runner trace:standalone -- \
   --target clayon --scenario legacy-fallback
 
-pnpm --filter @clayon/server exec vitest run \
+bun x vitest run \
   src/__tests__/native-runner-standalone.integration.test.ts \
   -t "uses the unchanged legacy path when the kill switch is off"
 ```

@@ -682,6 +682,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "clayon-runner-core"
+version = "0.0.0"
+dependencies = [
+ "aes-gcm",
+ "aws-config",
+ "aws-sdk-bedrockagentcore",
+ "aws-sdk-s3",
+ "aws-sdk-sts",
+ "aws-smithy-types",
+ "aws-types",
+ "base64",
+ "getrandom 0.3.4",
+ "hmac 0.12.1",
+ "jsonschema",
+ "num-bigint",
+ "num-traits",
+ "reqwest",
+ "rustix",
+ "rustls",
+ "rustls-native-certs",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "sha1 0.10.7",
+ "sha2 0.10.9",
+ "tokio",
+ "toml_edit",
+ "tungstenite",
+ "uuid",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1741,38 +1773,6 @@ dependencies = [
  "elliptic-curve",
  "primeorder",
  "sha2 0.10.9",
-]
-
-[[package]]
-name = "clayon-runner-core"
-version = "0.0.0"
-dependencies = [
- "aes-gcm",
- "aws-config",
- "aws-sdk-bedrockagentcore",
- "aws-sdk-s3",
- "aws-sdk-sts",
- "aws-smithy-types",
- "aws-types",
- "base64",
- "getrandom 0.3.4",
- "hmac 0.12.1",
- "jsonschema",
- "num-bigint",
- "num-traits",
- "reqwest",
- "rustix",
- "rustls",
- "rustls-native-certs",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "sha1 0.10.7",
- "sha2 0.10.9",
- "tokio",
- "toml_edit",
- "tungstenite",
- "uuid",
 ]
 
 [[package]]

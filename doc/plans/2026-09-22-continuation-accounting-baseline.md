@@ -48,8 +48,8 @@ new paid productive cases use public questions and responses instead.
 - Grader: `tests/runner-e2e/accounting.test.ts`, positive recordings and adverse
   mutations; missing evidence cannot pass.
 
-`pnpm test:lifecycle-baseline` records all deterministic lanes and the inventory.
-`pnpm test:e2e:runner -- --list --suite continuation-accounting` discovers the
+`bun run test:lifecycle-baseline` records all deterministic lanes and the inventory.
+`bun run test:e2e:runner -- --list --suite continuation-accounting` discovers the
 paid cells. Run their typecheck and support tests before the existing trusted
 GitHub Actions workflow, targeting this branch by immutable resolved revision.
 Provider failures retain their original grade; fixture corrections are new

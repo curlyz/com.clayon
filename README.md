@@ -33,13 +33,13 @@ RBAC, cost controls). Full inventory: [ROADMAP.md](ROADMAP.md).
 
 ## Quickstart
 
-With **Node.js 24.11+** and **pnpm 9.15+**:
+With **Node.js 24.11+** and **Bun 1.4.3+**:
 
 ```bash
-git clone git@github.com:anatalab/com.clayon.git
-cd com.clayon
-pnpm install
-pnpm dev
+git clone git@github.com:anatalab/antl.git && cd antl
+cd com.paperclip        # Clayon lives inside the antl workspace
+bun install
+bun run dev
 ```
 
 This starts the UI and API at `http://localhost:3100` with an embedded
@@ -48,7 +48,7 @@ PostgreSQL database created automatically.
 Dev UI against the production backend (writes hit production data):
 
 ```bash
-pnpm --dir ui dev:remote   # http://localhost:10000, /api proxied to clayon.app
+bun run --cwd ui dev:remote   # http://localhost:2009, /api proxied to clayon.curly.ng (designated origin, not currently deployed — no DNS record yet)
 ```
 
 For an isolated test instance with a CEO agent already initialized:
@@ -64,21 +64,21 @@ to a compatible prebuilt runner.
 ## Development
 
 ```bash
-pnpm dev              # Full dev (API + UI, watch mode)
-pnpm dev:once         # Full dev without file watching
-pnpm dev:server       # Server only
-pnpm dev:mobile       # Serve prebuilt UI on :3101 for phones/tablets (proxies /api → :3100)
-pnpm dev:both         # Run `pnpm dev` and `pnpm dev:mobile` together
-pnpm build            # Build all
-pnpm typecheck        # Type checking
-pnpm test             # Cheap default test run (Vitest only)
-pnpm test:watch       # Vitest watch mode
-pnpm test:e2e         # Playwright browser suite
-pnpm db:generate      # Generate DB migration
-pnpm db:migrate       # Apply migrations
+bun run dev              # Full dev (API + UI, watch mode)
+bun run dev:once         # Full dev without file watching
+bun run dev:server       # Server only
+bun run dev:mobile       # Serve prebuilt UI on :3101 for phones/tablets (proxies /api → :3100)
+bun run dev:both         # Run `bun run dev` and `bun run dev:mobile` together
+bun run build            # Build all
+bun run typecheck        # Type checking
+bun run test             # Cheap default test run (Vitest only)
+bun run test:watch       # Vitest watch mode
+bun run test:e2e         # Playwright browser suite
+bun run db:generate      # Generate DB migration
+bun run db:migrate       # Apply migrations
 ```
 
-`pnpm test` does not run Playwright. Browser suites stay separate and are
+`bun run test` does not run Playwright. Browser suites stay separate and are
 typically run only when working on those flows or in CI. See
 [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full guide.
 

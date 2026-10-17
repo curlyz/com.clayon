@@ -14,21 +14,12 @@ const execFileAsync = promisify(execFile);
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
-const workspacePath = path.join(repoRoot, "pnpm-workspace.yaml");
+const workspacePath = path.join(repoRoot, "package.json");
 const releasePackageMapPath = path.join(repoRoot, "scripts", "release-package-map.mjs");
 
-function parseWorkspaceEntries(workspaceText) {
-  // Keep this aligned with the repo's block-sequence `packages:` format in
-  // pnpm-workspace.yaml. If that file moves to a more complex YAML shape,
-  // switch this parser to a real YAML parser instead of line matching.
-  return workspaceText
-    .split("\n")
-    .map((line) => line.match(/^\s*-\s+(.+)\s*$/)?.[1]?.trim() ?? null)
-    .map((entry) => {
-      if (!entry) return entry;
-      return entry.replace(/^(['"])(.*)\1$/, "$2");
-    })
-    .filter(Boolean)
+function parseWorkspaceEntries(workspaceEntries) {
+  // The entries are the root package.json `workspaces` array.
+  return workspaceEntries
     .map((entry) => ({
       pattern: entry.startsWith("!") ? entry.slice(1) : entry,
       negated: entry.startsWith("!"),
@@ -115,10 +106,10 @@ async function runCaptured(command, args, cwd, log) {
   }
 }
 
-// Each standalone package installs into its own directory (`--ignore-workspace`)
-// and builds into its own `dist`, so there is no shared mutable state between
-// packages beyond pnpm's content-addressable global store, which is safe for
-// concurrent access. Buffer each package's output and flush it as one block so
+// Each standalone package installs into its own directory (it is excluded from
+// the root `workspaces`) and builds into its own `dist`, so there is no shared
+// mutable state between packages beyond bun's global install cache, which is
+// safe for concurrent access. Buffer each package's output and flush it as one block so
 // interleaved parallel logs stay readable.
 async function prepareAndBuildPackage(pkg) {
   const logs = [];
@@ -127,7 +118,7 @@ async function prepareAndBuildPackage(pkg) {
   const pkgDir = path.join(repoRoot, pkg.dir);
   const pkgJson = readPackageJson(pkg.dir);
   const nodeModulesDir = path.join(pkgDir, "node_modules");
-  const packageLockfilePath = path.join(pkgDir, "pnpm-lock.yaml");
+  const packageLockfilePath = path.join(pkgDir, "bun.lock");
 
   log(`  Preparing standalone package ${pkg.name} (${pkg.dir})`);
   try {
@@ -136,15 +127,14 @@ async function prepareAndBuildPackage(pkg) {
     }
 
     const installArgs = existsSync(packageLockfilePath)
-      ? ["install", "--ignore-workspace", "--frozen-lockfile"]
+      ? ["install", "--frozen-lockfile"]
       : [
         "install",
-        "--ignore-workspace",
-        "--no-lockfile",
+        "--no-save",
         // Standalone packages intentionally avoid committed lockfile churn in the repo.
       ];
 
-    await runCaptured("pnpm", installArgs, pkgDir, log);
+    await runCaptured("bun", installArgs, pkgDir, log);
 
     // The fresh install above wipes node_modules and no longer fires a
     // per-plugin postinstall (removed for supply-chain safety), so link the
@@ -152,7 +142,7 @@ async function prepareAndBuildPackage(pkg) {
     linkSdkInto(pkgDir);
 
     if (pkgJson.scripts?.build) {
-      await runCaptured("pnpm", ["run", "build"], pkgDir, log);
+      await runCaptured("bun", ["run", "build"], pkgDir, log);
     } else {
       log("    i No build script; skipped build");
     }
@@ -185,6 +175,16 @@ export function resolveConcurrency(packageCount) {
 // than `limit` tasks run at once. Every task is awaited even if an earlier one
 // fails, and failures are aggregated (sorted by original index) so a single bad
 // package neither aborts the others mid-flight nor hides which one broke.
+// Aggregated failure from runWithConcurrency: carries one entry per failed
+// item, sorted by original index.
+class AggregateBuildError extends Error {
+  constructor(message, failures) {
+    super(message);
+    this.name = "AggregateBuildError";
+    this.failures = failures;
+  }
+}
+
 export async function runWithConcurrency(items, limit, worker) {
   const results = new Array(items.length);
   const failures = [];
@@ -210,23 +210,22 @@ export async function runWithConcurrency(items, limit, worker) {
 
   if (failures.length > 0) {
     failures.sort((a, b) => a.index - b.index);
-    const aggregate = new Error(
+    throw new AggregateBuildError(
       `${failures.length} standalone package build(s) failed`,
+      failures,
     );
-    aggregate.failures = failures;
-    throw aggregate;
   }
 
   return results;
 }
 
 async function main() {
-  const workspaceEntries = parseWorkspaceEntries(readFileSync(workspacePath, "utf8"));
+  const workspaceEntries = parseWorkspaceEntries(JSON.parse(readFileSync(workspacePath, "utf8")).workspaces ?? []);
   const standalonePackages = listPublicPackages()
     .filter(({ dir }) => !isWorkspacePackage(dir, workspaceEntries));
 
   if (standalonePackages.length === 0) {
-    console.log("  i No standalone public packages detected outside the pnpm workspace");
+    console.log("  i No standalone public packages detected outside the bun workspace");
     return;
   }
 
@@ -242,7 +241,7 @@ async function main() {
       prepareAndBuildPackage,
     );
   } catch (error) {
-    if (Array.isArray(error.failures)) {
+    if (error.name === AggregateBuildError.name) {
       const names = error.failures
         .map(({ index }) => standalonePackages[index]?.name)
         .filter(Boolean)

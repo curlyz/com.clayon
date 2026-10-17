@@ -9,6 +9,6 @@ echo "PC_HOME: $PC_HOME"
 cd $PC_TEST_ROOT
 git clone https://github.com/clayon/clayon.git repo
 cd repo
-pnpm install
+bun install
 env HOME="$PC_HOME" npm_config_cache="$PC_CACHE" npm_config_userconfig="$PC_HOME/.npmrc" \
-  pnpm clayon onboard --yes --data-dir "$PC_DATA"
+  bun run clayon onboard --yes --data-dir "$PC_DATA"

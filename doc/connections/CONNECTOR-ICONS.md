@@ -21,7 +21,7 @@ Before submitting artwork, run:
 ```sh
 node scripts/check-app-brand-assets.mjs
 node --test scripts/app-brand-validation.test.mjs
-pnpm exec vitest run ui/src/lib/app-brand-assets.test.ts ui/src/pages/apps/AppLogo.brand-assets.test.tsx packages/shared/src/app-definitions.test.ts
+bun x vitest run ui/src/lib/app-brand-assets.test.ts ui/src/pages/apps/AppLogo.brand-assets.test.tsx packages/shared/src/app-definitions.test.ts
 ```
 
 Run the structural artwork check locally. Review the Storybook canonical icon registry

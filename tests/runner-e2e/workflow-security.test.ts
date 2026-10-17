@@ -11,6 +11,7 @@ const buildRunnerNeeds =
   /needs:\s*\[\s*authorize,\s*target_lock,\s*catalog,?\s*\]/u;
 const buildRemoteProviderPackNeeds =
   /needs:\s*\[\s*authorize,\s*target_lock,\s*catalog,\s*daytona_image,\s*build_runner_artifacts,?\s*\]/u;
+const pinnedSetupBunSha = "0c5077e51419868618aeaa5fe8019c62421857d6";
 const everydayOracleImage =
   "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285";
 
@@ -25,7 +26,7 @@ describe("public repository paid workflow security", () => {
     expect(manual).toContain('ref: ${{ needs.authorize_manual.outputs.target_sha }}');
     expect(manual).toContain('SOURCE_SHA: ${{ needs.authorize_manual.outputs.target_sha }}');
     expect([...manual.matchAll(/secrets\.([A-Z_]+)/gu)].map(match => match[1])).toEqual(["GITHUB_TOKEN"]);
-    expect(manual).toContain('pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile');
+    expect(manual).toContain('bun install --ignore-scripts --lockfile-only');
     expect(manual).toContain('CLAYON_RUNNER_LOCK_SHA256=$lock_sha');
     expect(manual).toContain('docker logout ghcr.io');
   });
@@ -50,7 +51,7 @@ describe("public repository paid workflow security", () => {
     );
   });
 
-  it("keeps pnpm bootstrap registry telemetry out of trusted workflow setup", async () => {
+  it("pins setup-bun and keeps pnpm bootstrap and registry telemetry env out of trusted workflow setup", async () => {
     for (const workflowName of [
       "runner-full-stack-e2e.yml",
       "pr-trusted.yml",
@@ -59,64 +60,54 @@ describe("public repository paid workflow security", () => {
         path.join(repositoryRoot, ".github/workflows", workflowName),
         "utf8",
       );
-      const pnpmSetupSteps = workflow
+      const bunSetupSteps = workflow
         .split(/\n(?= {6}- )/u)
-        .filter((step) => step.includes("uses: pnpm/action-setup@"));
+        .filter((step) => step.includes("uses: oven-sh/setup-bun@"));
 
-      expect(pnpmSetupSteps, workflowName).toHaveLength(
+      expect(bunSetupSteps, workflowName).toHaveLength(
         workflowName === "pr-trusted.yml" ? 8 : 7,
       );
-      for (const step of pnpmSetupSteps) {
-        expect(step, workflowName).toContain('NPM_CONFIG_AUDIT: "false"');
-        expect(step, workflowName).toContain('NPM_CONFIG_FUND: "false"');
+      for (const step of bunSetupSteps) {
         expect(step, workflowName).toContain(
-          'NPM_CONFIG_UPDATE_NOTIFIER: "false"',
+          `uses: oven-sh/setup-bun@${pinnedSetupBunSha}`,
         );
+        expect(step, workflowName).toMatch(/^\s+bun-version:\s*1\.4\.3$/mu);
       }
-      for (const variable of [
-        "NPM_CONFIG_AUDIT",
-        "NPM_CONFIG_FUND",
-        "NPM_CONFIG_UPDATE_NOTIFIER",
-      ]) {
-        expect(
-          workflow.match(new RegExp(`${variable}:`, "gu")),
-          workflowName,
-        ).toHaveLength(pnpmSetupSteps.length);
-      }
+      expect(
+        workflow.match(/uses:\s*oven-sh\/setup-bun@/gu),
+        workflowName,
+      ).toHaveLength(bunSetupSteps.length);
+      expect(workflow, workflowName).not.toContain("pnpm/action-setup");
+      expect(workflow, workflowName).not.toContain("NPM_CONFIG_");
+      expect(workflow, workflowName).not.toMatch(/\bpnpm\b/u);
+      expect(workflow, workflowName).not.toContain("pnpm-lock.yaml");
     }
   });
 
-  it("installs a modern Node runtime before every trusted pnpm bootstrap", async () => {
+  it("installs a modern Node runtime before every trusted bun bootstrap", async () => {
     const workflows = [
-      {
-        name: "runner-full-stack-e2e.yml",
-        expectedCachedSetupNodeSteps: 4,
-      },
-      {
-        name: "pr-trusted.yml",
-        // PR #13300 restores shared stores directly without setup-node cache writes.
-        expectedCachedSetupNodeSteps: 0,
-      },
+      { name: "runner-full-stack-e2e.yml" },
+      { name: "pr-trusted.yml" },
     ];
 
-    for (const { name, expectedCachedSetupNodeSteps } of workflows) {
+    for (const { name } of workflows) {
       const workflow = await readFile(
         path.join(repositoryRoot, ".github/workflows", name),
         "utf8",
       );
       const steps = workflow.split(/\n(?= {6}- )/u);
-      const pnpmSetupStepIndexes = steps.flatMap((step, index) =>
-        step.includes("uses: pnpm/action-setup@") ? [index] : [],
+      const bunSetupStepIndexes = steps.flatMap((step, index) =>
+        step.includes("uses: oven-sh/setup-bun@") ? [index] : [],
       );
 
-      expect(pnpmSetupStepIndexes, name).toHaveLength(
+      expect(bunSetupStepIndexes, name).toHaveLength(
         name === "pr-trusted.yml" ? 8 : 7,
       );
-      for (const pnpmSetupStepIndex of pnpmSetupStepIndexes) {
-        const pnpmSetupStep = steps[pnpmSetupStepIndex]!;
-        const nodeBootstrapStep = steps[pnpmSetupStepIndex - 1]!;
+      for (const bunSetupStepIndex of bunSetupStepIndexes) {
+        const bunSetupStep = steps[bunSetupStepIndex]!;
+        const nodeBootstrapStep = steps[bunSetupStepIndex - 1]!;
         expect(nodeBootstrapStep, name).toContain("uses: actions/setup-node@");
-        expect(nodeBootstrapStep, name).not.toContain("cache: pnpm");
+        expect(nodeBootstrapStep, name).not.toMatch(/cache:\s*(?:pnpm|bun)/u);
 
         const nodeVersionMatch = nodeBootstrapStep.match(
           /^\s*node-version:\s*["']?(\d+)(?:\.(\d+))?/mu,
@@ -126,18 +117,16 @@ describe("public repository paid workflow security", () => {
         const nodeMinor = Number(nodeVersionMatch![2] ?? 0);
         expect(
           nodeMajor > 22 || (nodeMajor === 22 && nodeMinor >= 13),
-          `${name} must install Node >=22.13 before pnpm/action-setup`,
+          `${name} must install Node >=22.13 before oven-sh/setup-bun`,
         ).toBe(true);
 
         const conditionPattern = /^ {6}- if:\s*(.+)$/mu;
         expect(nodeBootstrapStep.match(conditionPattern)?.[1] ?? null).toBe(
-          pnpmSetupStep.match(conditionPattern)?.[1] ?? null,
+          bunSetupStep.match(conditionPattern)?.[1] ?? null,
         );
       }
 
-      expect(workflow.match(/^\s+cache: pnpm$/gmu) ?? [], name).toHaveLength(
-        expectedCachedSetupNodeSteps,
-      );
+      expect(workflow.match(/^\s+cache: (?:pnpm|bun)$/gmu) ?? [], name).toHaveLength(0);
     }
   });
 
@@ -247,22 +236,23 @@ describe("public repository paid workflow security", () => {
     );
     expect(authorizeJob).toContain('echo "ref=refs/heads/$TARGET_BRANCH"');
     expect(authorizeJob).not.toContain("actions/checkout@");
+    expect(authorizeJob).not.toContain("bun install");
     expect(authorizeJob).not.toContain("pnpm install");
-    expect(targetLockJob).toContain("name: Resolve target pnpm lockfile");
+    expect(targetLockJob).toContain("name: Resolve target bun lockfile");
     expect(targetLockJob).toContain("needs: authorize");
     expect(targetLockJob).toContain(
       "ref: ${{ needs.authorize.outputs.target_sha }}",
     );
     expect(targetLockJob).toContain("persist-credentials: false");
     expect(targetLockJob).toContain(
-      "pnpm install --ignore-scripts --no-frozen-lockfile --lockfile-only",
+      "bun install --ignore-scripts --lockfile-only",
     );
     expect(targetLockJob).toContain(
       "artifact_id: ${{ steps.upload.outputs.artifact-id }}",
     );
     expect(targetLockJob).toContain("lock_sha256:");
     expect(targetLockJob).toContain(
-      "runner-e2e-target-pnpm-lock-${{ github.run_id }}-${{ github.run_attempt }}",
+      "runner-e2e-target-bun-lock-${{ github.run_id }}-${{ github.run_attempt }}",
     );
     expect(targetLockJob).not.toContain("name: runner-e2e-paid");
     expect(targetLockJob).not.toMatch(
@@ -277,7 +267,7 @@ describe("public repository paid workflow security", () => {
       /Reauthorize paid execution before provider access[\s\S]*actions\/checkout@[0-9a-f]{40}[\s\S]*persist-credentials: false[\s\S]*Download resolved target lockfile/,
     );
     expect(paidJob).toContain(
-      "pnpm exec playwright install --with-deps --only-shell chromium",
+      "bun run playwright install --with-deps --only-shell chromium",
     );
     expect(paidJob).toContain("name: Qualify preinstalled Chrome");
     expect(paidJob).toContain(
@@ -291,10 +281,10 @@ describe("public repository paid workflow security", () => {
       "CLAYON_PLAYWRIGHT_CHANNEL: ${{ needs.authorize.outputs.playwright_channel }}",
     );
     expect(paidJob).not.toContain(
-      "pnpm exec playwright install --with-deps chromium",
+      "bun run playwright install --with-deps chromium",
     );
     const paidInstall = paidJob.indexOf(
-      "pnpm install --frozen-lockfile --ignore-scripts",
+      "bun install --frozen-lockfile --ignore-scripts",
     );
     const daytonaPluginPreparation = paidJob.indexOf(
       "Prepare bundled Daytona plugin without dependency lifecycle scripts",
@@ -358,7 +348,7 @@ describe("public repository paid workflow security", () => {
     expect(awsFfmpegStep).toContain(
       "if: needs.authorize.outputs.playwright_channel == 'chrome'",
     );
-    expect(awsFfmpegStep).toContain("pnpm exec playwright install ffmpeg");
+    expect(awsFfmpegStep).toContain("bun run playwright install ffmpeg");
     expect(awsFfmpegStep).not.toMatch(
       /(?:OPENAI|ANTHROPIC|OPENROUTER|DAYTONA)_API_KEY/,
     );
@@ -370,10 +360,10 @@ describe("public repository paid workflow security", () => {
       "if: matrix.environmentId == 'daytona'",
     );
     expect(preparedBeforeProviderAccess).toContain(
-      'test -f "$daytona_root/pnpm-lock.yaml"',
+      'test -f "$daytona_root/bun.lock"',
     );
     expect(preparedBeforeProviderAccess).toContain(
-      "pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts",
+      "bun install --frozen-lockfile --ignore-scripts",
     );
     expect(preparedBeforeProviderAccess).not.toContain("--no-lockfile");
     expect(preparedBeforeProviderAccess).toContain(
@@ -387,10 +377,10 @@ describe("public repository paid workflow security", () => {
       'realpath "$daytona_root/node_modules/@clayon/plugin-sdk"',
     );
     expect(preparedBeforeProviderAccess).toContain(
-      'pnpm --dir "$daytona_root" build',
+      'bun run --cwd "$daytona_root" build',
     );
     expect(preparedBeforeProviderAccess).not.toContain("secrets.");
-    expect(preparedBeforeProviderAccess).not.toContain("pnpm rebuild");
+    expect(preparedBeforeProviderAccess).not.toContain("rebuild");
     expect(paidJob.slice(0, paidExecution)).not.toMatch(
       /secrets\.(?:OPENAI|ANTHROPIC|OPENROUTER|DAYTONA)_API_KEY/,
     );
@@ -480,7 +470,7 @@ describe("public repository paid workflow security", () => {
         "Restore resolved target lockfile",
       );
       const setupNode = targetCodeJob.indexOf("actions/setup-node@");
-      const install = targetCodeJob.indexOf("pnpm install --frozen-lockfile");
+      const install = targetCodeJob.indexOf("bun install --frozen-lockfile");
       expect(checkout).toBeGreaterThan(0);
       expect(downloadLock).toBeGreaterThan(checkout);
       expect(restoreLock).toBeGreaterThan(downloadLock);
@@ -623,13 +613,13 @@ describe("public repository paid workflow security", () => {
     expect(buildJob).not.toContain("environment:");
     expect(buildJob).not.toContain("secrets.");
     expect(
-      buildJob.match(/pnpm install --frozen-lockfile --ignore-scripts/g),
+      buildJob.match(/bun install --frozen-lockfile --ignore-scripts/g),
     ).toHaveLength(2);
     expect(buildJob).toContain(
-      "pnpm --filter @clayon/clayon-runner build:typescript",
+      "bun run --filter @clayon/clayon-runner build:typescript",
     );
     expect(buildJob).toContain(
-      "pnpm --filter @clayon/clayon-runner build:runner-binaries",
+      "bun run --filter @clayon/clayon-runner build:runner-binaries",
     );
     expect(buildJob).toContain(
       "node packages/clayon-runner/scripts/build-provider-pack.mjs",
@@ -693,7 +683,7 @@ describe("public repository paid workflow security", () => {
       "node packages/clayon-runner/scripts/materialize-opencode-binary.mjs",
     );
     expect(testJob).not.toContain("postinstall.mjs");
-    expect(testJob).not.toContain("pnpm rebuild");
+    expect(testJob).not.toContain("rebuild");
     expect(testJob).not.toContain("build:typescript");
     expect(testJob).not.toContain("build:runner-binaries");
     expect(testJob).not.toContain("build-provider-pack.mjs");
@@ -723,8 +713,8 @@ describe("public repository paid workflow security", () => {
     );
     for (const jobName of ["report", "publish_history"]) {
       const job = workflow.split(`\n  ${jobName}:`)[1]!.split(/\n  [a-z_]+:/u)[0]!;
-      const resolve = job.indexOf("pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile");
-      const install = job.indexOf("pnpm install --frozen-lockfile");
+      const resolve = job.indexOf("bun install --ignore-scripts --lockfile-only");
+      const install = job.indexOf("bun install --frozen-lockfile");
       expect(job).toContain("ref: ${{ github.sha }}");
       expect(job).not.toContain("resolved-target-lockfile");
       expect(resolve, jobName).toBeGreaterThan(-1);
@@ -796,7 +786,7 @@ describe("public repository paid workflow security", () => {
     expect(publisher).toContain("name: runner-e2e-history");
     expect(publisher).toContain("aws-actions/configure-aws-credentials@");
     expect(publisher).toContain("RUNNER_E2E_HISTORY_AWS_ROLE_ARN");
-    expect(publisher).not.toContain("cache: pnpm");
+    expect(publisher).not.toMatch(/cache: (?:pnpm|bun)/u);
     expect(publisher).not.toMatch(/AWS_(?:ACCESS|SECRET)_KEY/);
     expect(publisher).not.toMatch(/aws s3 (?:rm|sync .*--delete)/);
     expect(workflow).toContain("history_source_ready");
@@ -809,7 +799,7 @@ describe("public repository paid workflow security", () => {
       "Publish trusted summary and declared screenshots to public bundles",
     );
     expect(publisher).toContain(
-      "pnpm exec playwright install --with-deps --only-shell chromium",
+      "bun run playwright install --with-deps --only-shell chromium",
     );
     expect(workflow).toContain(
       "Package pruned dashboard with declared screenshots for GitHub Pages",
@@ -821,7 +811,7 @@ describe("public repository paid workflow security", () => {
     expect(workflow).not.toContain("dashboard_ready");
     expect(workflow).not.toContain("Publish latest screenshot dashboard");
     expect(
-      workflow.indexOf("pnpm test:e2e:runner:history:publish"),
+      workflow.indexOf("bun run test:e2e:runner:history:publish"),
     ).toBeLessThan(workflow.indexOf("actions/upload-pages-artifact@"));
   });
 });

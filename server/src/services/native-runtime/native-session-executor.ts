@@ -115,7 +115,6 @@ import {
 import type { AdapterExecutionTarget } from "@clayon/adapter-utils/execution-target";
 import { createNativeSshCommandRunner } from "./native-ssh-command-runner.js";
 import { discoverRemoteExecutable, parseRemoteExecutableCandidate } from "./codex-model-fallback.js";
-export { parseRemoteExecutableCandidate } from "./codex-model-fallback.js";
 import type { CommandManagedRuntimeRunner } from "@clayon/adapter-utils/command-managed-runtime";
 import {
   resolveClayonRunnerTransport,
@@ -9895,7 +9894,7 @@ const REMOTE_PROVIDER_PACK_PROFILE_DIGESTS = {
 const REMOTE_PROVIDER_PACK_ARTIFACT_PATHS = {
   grokLauncher: "dist/providers/grok/launcher.cjs",
   nodeCommand: "node_modules/node/bin/node",
-  productionLock: "pnpm-lock.yaml",
+  productionLock: "bun.lock",
   opencodeCommand: "node_modules/.bin/opencode",
   opencodeExecutable: "node_modules/opencode-ai/bin/opencode.exe",
   opencodeProxy: "dist/cli/opencode-app-server-proxy.cjs",

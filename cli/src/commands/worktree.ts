@@ -21,6 +21,7 @@ import { createServer } from "node:net";
 import { Readable } from "node:stream";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { z } from "zod";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   resolveCanonicalWorktreeSeedSource,
@@ -80,6 +81,7 @@ import {
   formatShellExports,
   generateWorktreeColor,
   isWorktreeSeedMode,
+  WORKTREE_SEED_MODES,
   WORKTREE_SEED_PHASES,
   resolveSuggestedWorktreeName,
   resolveWorktreeSeedPlan,
@@ -349,6 +351,20 @@ function resolveLocalStoragePath(baseDir: string, objectKey: string): string {
   return resolved;
 }
 
+const FUNCTION_CHECK_SCHEMA = z.function();
+
+const S3_WEB_STREAM_BODY_SCHEMA = z.object({
+  transformToWebStream: z.custom<() => ReadableStream<Uint8Array>>(
+    (value) => FUNCTION_CHECK_SCHEMA.safeParse(value).success,
+  ),
+});
+
+const S3_ARRAY_BUFFER_BODY_SCHEMA = z.object({
+  arrayBuffer: z.custom<() => Promise<ArrayBuffer>>(
+    (value) => FUNCTION_CHECK_SCHEMA.safeParse(value).success,
+  ),
+});
+
 async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
   if (!body) {
     throw new Error("Object not found.");
@@ -359,14 +375,9 @@ async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
   if (body instanceof Readable) {
     return await streamToBuffer(body);
   }
-
-  const candidate = body as {
-    transformToWebStream?: () => ReadableStream<Uint8Array>;
-    arrayBuffer?: () => Promise<ArrayBuffer>;
-  };
-  if (typeof candidate.transformToWebStream === "function") {
-    const webStream = candidate.transformToWebStream();
-    const reader = webStream.getReader();
+  const webStreamBody = S3_WEB_STREAM_BODY_SCHEMA.safeParse(body);
+  if (webStreamBody.success) {
+    const reader = webStreamBody.data.transformToWebStream().getReader();
     const chunks: Uint8Array[] = [];
     while (true) {
       const { done, value } = await reader.read();
@@ -375,8 +386,9 @@ async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
     }
     return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
   }
-  if (typeof candidate.arrayBuffer === "function") {
-    return Buffer.from(await candidate.arrayBuffer());
+  const arrayBufferBody = S3_ARRAY_BUFFER_BODY_SCHEMA.safeParse(body);
+  if (arrayBufferBody.success) {
+    return Buffer.from(await arrayBufferBody.data.arrayBuffer());
   }
 
   throw new Error("Unsupported storage response body.");
@@ -391,7 +403,35 @@ function buildS3ObjectKey(prefix: string, objectKey: string): string {
   return prefix ? `${prefix}/${objectKey}` : objectKey;
 }
 
-const dynamicImport = new Function("specifier", "return import(specifier);") as (specifier: string) => Promise<any>;
+const dynamicImport = new Function("specifier", "return import(specifier);") as (specifier: string) => Promise<unknown>;
+
+type MinimalS3Client = {
+  send(command: unknown): Promise<{ Body: unknown }>;
+};
+
+type MinimalS3Sdk = {
+  S3Client: new (config: {
+    region: string;
+    endpoint?: string | null;
+    forcePathStyle?: boolean;
+  }) => MinimalS3Client;
+  GetObjectCommand: new (input: { Bucket: string; Key: string }) => unknown;
+  PutObjectCommand: new (input: {
+    Bucket: string;
+    Key: string;
+    Body: Buffer;
+    ContentType: string;
+    ContentLength: number;
+  }) => unknown;
+};
+
+type MinimalS3Module = { sdk: MinimalS3Sdk; client: MinimalS3Client };
+
+const MINIMAL_S3_SDK_SCHEMA = z.object({
+  S3Client: z.custom<MinimalS3Sdk["S3Client"]>((value) => FUNCTION_CHECK_SCHEMA.safeParse(value).success),
+  GetObjectCommand: z.custom<MinimalS3Sdk["GetObjectCommand"]>((value) => FUNCTION_CHECK_SCHEMA.safeParse(value).success),
+  PutObjectCommand: z.custom<MinimalS3Sdk["PutObjectCommand"]>((value) => FUNCTION_CHECK_SCHEMA.safeParse(value).success),
+});
 
 function createConfiguredStorageFromClayonConfig(config: ClayonConfig): ConfiguredStorage {
   if (config.storage.provider === "local_disk") {
@@ -411,11 +451,11 @@ function createConfiguredStorageFromClayonConfig(config: ClayonConfig): Configur
   }
 
   const prefix = normalizeS3Prefix(config.storage.s3.prefix);
-  let s3ClientPromise: Promise<any> | null = null;
-  async function getS3Client() {
+  let s3ClientPromise: Promise<MinimalS3Module> | null = null;
+  async function getS3Client(): Promise<MinimalS3Module> {
     if (!s3ClientPromise) {
       s3ClientPromise = (async () => {
-        const sdk = await dynamicImport("@aws-sdk/client-s3");
+        const sdk = MINIMAL_S3_SDK_SCHEMA.parse(await dynamicImport("@aws-sdk/client-s3"));
         return {
           sdk,
           client: new sdk.S3Client({
@@ -473,14 +513,21 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
+const STORAGE_ERROR_SCHEMA = z.object({
+  code: z.string().optional(),
+  status: z.number().optional(),
+  name: z.string().optional(),
+  message: z.string().optional(),
+});
+
 export function isMissingStorageObjectError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const candidate = error as { code?: unknown; status?: unknown; name?: unknown; message?: unknown };
-  return candidate.code === "ENOENT"
-    || candidate.status === 404
-    || candidate.name === "NoSuchKey"
-    || candidate.name === "NotFound"
-    || candidate.message === "Object not found.";
+  const parsed = STORAGE_ERROR_SCHEMA.safeParse(error);
+  if (!parsed.success) return false;
+  return parsed.data.code === "ENOENT"
+    || parsed.data.status === 404
+    || parsed.data.name === "NoSuchKey"
+    || parsed.data.name === "NotFound"
+    || parsed.data.message === "Object not found.";
 }
 
 export async function readSourceAttachmentBody(
@@ -505,17 +552,27 @@ export function resolveWorktreeMakeTargetPath(name: string): string {
   return path.resolve(os.homedir(), resolveWorktreeMakeName(name));
 }
 
+const STRING_STDERR_SCHEMA = z.object({
+  stderr: z.string(),
+});
+
+const BUFFER_STDERR_SCHEMA = z.object({
+  stderr: z.instanceof(Buffer),
+});
+
 function extractExecSyncErrorMessage(error: unknown): string | null {
   if (!error || typeof error !== "object") {
     return error instanceof Error ? error.message : null;
   }
 
-  const stderr = "stderr" in error ? error.stderr : null;
-  if (typeof stderr === "string") {
-    return nonEmpty(stderr);
+  const stringStderr = STRING_STDERR_SCHEMA.safeParse(error);
+  if (stringStderr.success) {
+    return nonEmpty(stringStderr.data.stderr);
   }
-  if (stderr instanceof Buffer) {
-    return nonEmpty(stderr.toString("utf8"));
+
+  const bufferStderr = BUFFER_STDERR_SCHEMA.safeParse(error);
+  if (bufferStderr.success) {
+    return nonEmpty(bufferStderr.data.stderr.toString("utf8"));
   }
 
   return error instanceof Error ? nonEmpty(error.message) : null;
@@ -799,10 +856,7 @@ async function rebindSeededProjectWorkspaces(input: {
   const targetRepo = detectGitWorkspaceInfo(input.currentCwd);
   if (!targetRepo) return [];
 
-  const db = createDb(input.targetConnectionString);
-  const closableDb = db as typeof db & {
-    $client?: { end?: (opts?: { timeout?: number }) => Promise<void> };
-  };
+  const db: ClosableDb = createDb(input.targetConnectionString);
 
   try {
     const rows = await db
@@ -850,7 +904,7 @@ async function rebindSeededProjectWorkspaces(input: {
 
     return rebound;
   } finally {
-    await closableDb.$client?.end?.({ timeout: 5 }).catch(() => undefined);
+    await db.$client?.end?.({ timeout: 5 }).catch(() => undefined);
   }
 }
 
@@ -1220,9 +1274,7 @@ const EMPTY_SEEDED_WORKTREE_EXECUTION_QUARANTINE_SUMMARY: SeededWorktreeExecutio
   stoppedRuntimeServices: 0,
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
+const UNKNOWN_RECORD_SCHEMA = z.record(z.string(), z.unknown());
 
 function isEnabledValue(value: unknown): boolean {
   return value === true || value === "true" || value === 1 || value === "1";
@@ -1233,8 +1285,10 @@ function normalizeWorktreeRuntimeConfig(runtimeConfig: unknown): {
   disabledTimerHeartbeat: boolean;
   changed: boolean;
 } {
-  const nextRuntimeConfig = isRecord(runtimeConfig) ? { ...runtimeConfig } : {};
-  const heartbeat = isRecord(nextRuntimeConfig.heartbeat) ? { ...nextRuntimeConfig.heartbeat } : null;
+  const parsedRuntimeConfig = UNKNOWN_RECORD_SCHEMA.safeParse(runtimeConfig);
+  const nextRuntimeConfig = parsedRuntimeConfig.success ? { ...parsedRuntimeConfig.data } : {};
+  const parsedHeartbeat = UNKNOWN_RECORD_SCHEMA.safeParse(nextRuntimeConfig.heartbeat);
+  const heartbeat = parsedHeartbeat.success ? { ...parsedHeartbeat.data } : null;
   if (!heartbeat) {
     return { runtimeConfig: nextRuntimeConfig, disabledTimerHeartbeat: false, changed: false };
   }
@@ -1253,10 +1307,10 @@ function stopSeededWorkspaceRuntime(
   metadata: unknown,
   configKey: "config" | "runtimeConfig",
 ): { metadata: Record<string, unknown>; changed: boolean } {
-  const nextMetadata = isRecord(metadata) ? { ...metadata } : {};
-  const currentConfig = isRecord(nextMetadata[configKey])
-    ? { ...(nextMetadata[configKey] as Record<string, unknown>) }
-    : null;
+  const parsedMetadata = UNKNOWN_RECORD_SCHEMA.safeParse(metadata);
+  const nextMetadata = parsedMetadata.success ? { ...parsedMetadata.data } : {};
+  const parsedCurrentConfig = UNKNOWN_RECORD_SCHEMA.safeParse(nextMetadata[configKey]);
+  const currentConfig = parsedCurrentConfig.success ? { ...parsedCurrentConfig.data } : null;
   if (!currentConfig) return { metadata: nextMetadata, changed: false };
 
   let changed = false;
@@ -1265,8 +1319,9 @@ function stopSeededWorkspaceRuntime(
     changed = true;
   }
 
-  if (isRecord(currentConfig.serviceStates)) {
-    const nextServiceStates = { ...currentConfig.serviceStates };
+  const parsedServiceStates = UNKNOWN_RECORD_SCHEMA.safeParse(currentConfig.serviceStates);
+  if (parsedServiceStates.success) {
+    const nextServiceStates = { ...parsedServiceStates.data };
     for (const [serviceIndex, state] of Object.entries(nextServiceStates)) {
       if (state !== "running") continue;
       nextServiceStates[serviceIndex] = "stopped";
@@ -1855,58 +1910,61 @@ function writeWorktreeSeedManifest(filePath: string, manifest: WorktreeSeedManif
   renameSync(temporaryPath, filePath);
 }
 
+const WORKTREE_SEED_DIAGNOSTIC_SCHEMA = z.object({
+  phase: z.enum(WORKTREE_SEED_PHASES),
+  status: z.enum(["started", "succeeded", "failed"]),
+  at: z.string(),
+  message: z.string().optional(),
+});
+
+const WORKTREE_SEED_MANIFEST_SCHEMA = z
+  .object({
+    version: z.literal(2),
+    source: z.object({
+      instanceId: z.string(),
+      configPath: z.string(),
+    }),
+    snapshotAt: z.string().nullable(),
+    seedMode: z.enum(WORKTREE_SEED_MODES),
+    migrationRevision: z.string().nullable(),
+    targetInstanceId: z.string().min(1),
+    phase: z.enum(WORKTREE_SEED_PHASES),
+    state: z.enum(["pending", "running", "verified", "failed"]),
+    attemptId: z.string().min(1),
+    startedAt: z.string().nullable(),
+    finishedAt: z.string().nullable(),
+    diagnostics: z.array(WORKTREE_SEED_DIAGNOSTIC_SCHEMA),
+  })
+  .refine(
+    (value) =>
+      value.state !== "verified"
+      || (value.phase === "complete"
+        && value.snapshotAt !== null
+        && value.snapshotAt.length > 0
+        && value.migrationRevision !== null
+        && value.migrationRevision.length > 0
+        && value.startedAt !== null
+        && value.finishedAt !== null
+        && value.diagnostics.some((diagnostic) => diagnostic.phase === "complete" && diagnostic.status === "succeeded")),
+    { message: "A verified manifest requires completion evidence." },
+  );
+
 export function readWorktreeSeedManifest(configPath: string): WorktreeSeedManifest | null {
   const manifestPath = resolveWorktreeSeedMarkerPaths(configPath).manifest;
   if (!existsSync(manifestPath)) return null;
-  let parsed: unknown;
+  let raw: unknown;
   try {
-    parsed = JSON.parse(readFileSync(manifestPath, "utf8"));
+    raw = JSON.parse(readFileSync(manifestPath, "utf8"));
   } catch (error) {
     throw new Error(
       `Invalid worktree seed manifest at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  const value = parsed as Partial<WorktreeSeedManifest>;
-  const diagnosticsValid = Array.isArray(value.diagnostics) && value.diagnostics.every((diagnostic) => (
-    diagnostic
-    && typeof diagnostic === "object"
-    && WORKTREE_SEED_PHASES.includes(diagnostic.phase)
-    && ["started", "succeeded", "failed"].includes(diagnostic.status)
-    && typeof diagnostic.at === "string"
-    && (diagnostic.message === undefined || typeof diagnostic.message === "string")
-  ));
-  const verifiedTerminalValid = value.state !== "verified" || (
-    value.phase === "complete"
-    && typeof value.snapshotAt === "string"
-    && value.snapshotAt.length > 0
-    && typeof value.migrationRevision === "string"
-    && value.migrationRevision.length > 0
-    && typeof value.startedAt === "string"
-    && typeof value.finishedAt === "string"
-    && value.diagnostics?.some((diagnostic) => (
-      diagnostic.phase === "complete" && diagnostic.status === "succeeded"
-    )) === true
-  );
-  if (
-    !value
-    || typeof value !== "object"
-    || value.version !== 2
-    || !value.source
-    || typeof value.source.instanceId !== "string"
-    || typeof value.source.configPath !== "string"
-    || typeof value.targetInstanceId !== "string"
-    || value.targetInstanceId.length === 0
-    || !isWorktreeSeedMode(String(value.seedMode ?? ""))
-    || !WORKTREE_SEED_PHASES.includes(value.phase as WorktreeSeedPhase)
-    || !["pending", "running", "verified", "failed"].includes(String(value.state ?? ""))
-    || typeof value.attemptId !== "string"
-    || value.attemptId.length === 0
-    || !diagnosticsValid
-    || !verifiedTerminalValid
-  ) {
+  const parsed = WORKTREE_SEED_MANIFEST_SCHEMA.safeParse(raw);
+  if (!parsed.success) {
     throw new Error(`Invalid worktree seed manifest at ${manifestPath}.`);
   }
-  return value as WorktreeSeedManifest;
+  return parsed.data;
 }
 
 export function markWorktreeSeedPending(input: {
@@ -1987,28 +2045,28 @@ function updateWorktreeSeedManifest(input: {
   return next;
 }
 
+const LEGACY_WORKTREE_SEED_PENDING_MARKER_SCHEMA = z.object({
+  version: z.literal(1),
+  state: z.literal("pending"),
+  sourceConfigPath: z.string().trim().min(1),
+});
+
 function readLegacyWorktreeSeedPendingMarker(filePath: string): LegacyWorktreeSeedPendingMarker {
-  let parsed: unknown;
+  let raw: unknown;
   try {
-    parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    raw = JSON.parse(readFileSync(filePath, "utf8"));
   } catch (error) {
     throw new Error(
       `Invalid worktree seed-pending marker at ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
-  if (
-    !parsed
-    || typeof parsed !== "object"
-    || (parsed as { version?: unknown }).version !== 1
-    || (parsed as { state?: unknown }).state !== "pending"
-    || typeof (parsed as { sourceConfigPath?: unknown }).sourceConfigPath !== "string"
-    || !(parsed as { sourceConfigPath: string }).sourceConfigPath.trim()
-  ) {
+  const parsed = LEGACY_WORKTREE_SEED_PENDING_MARKER_SCHEMA.safeParse(raw);
+  if (!parsed.success) {
     throw new Error(`Invalid worktree seed-pending marker at ${filePath}.`);
   }
 
-  return parsed as LegacyWorktreeSeedPendingMarker;
+  return parsed.data;
 }
 
 const WORKTREE_SEED_LOCK_POLL_MS = 50;
@@ -2021,12 +2079,15 @@ type WorktreeSeedLockOwner = {
   createdAt: string;
 };
 
+const ERRNO_CODE_SCHEMA = z.object({ code: z.string() });
+
 function processIsAlive(pid: number): boolean {
   try {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return (error as NodeJS.ErrnoException).code === "EPERM";
+    const parsedCode = ERRNO_CODE_SCHEMA.safeParse(error);
+    return parsedCode.success && parsedCode.data.code === "EPERM";
   }
 }
 
@@ -2075,7 +2136,8 @@ async function acquireWorktreeSeedLock(lockPath: string): Promise<() => Promise<
         }
       };
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      const parsedCode = ERRNO_CODE_SCHEMA.safeParse(error);
+      if (!parsedCode.success || parsedCode.data.code !== "EEXIST") throw error;
     }
 
     const [rawOwner, lockStat] = await Promise.all([
@@ -2360,7 +2422,11 @@ export async function ensureWorktreeSeeded(
         seedMode: manifest.seedMode,
         diagnosticMessage: "Re-derived seed source diagnostics from the registered canonical source.",
       });
-      manifest = readWorktreeSeedManifest(configPath)!;
+      const rederivedManifest = readWorktreeSeedManifest(configPath);
+      if (!rederivedManifest) {
+        throw new Error("Failed to create a pending worktree seed manifest.");
+      }
+      manifest = rederivedManifest;
     }
     canonicalSource = resolveCanonicalWorktreeSeedSource({
       registeredBaseWorkspaceCwd,
@@ -2704,38 +2770,16 @@ export async function worktreeMakeCommand(nameArg: string, opts: WorktreeMakeOpt
       name,
       sourceConfigPathOverride: sourceConfigPath,
     });
-  } catch (error) {
-    throw error;
   } finally {
     process.chdir(originalCwd);
   }
 }
 
-type PnpmInstallInvocation = {
-  command: string;
-  argsPrefix: string[];
-};
-
-export function resolvePnpmInstallInvocation(
-  env: NodeJS.ProcessEnv = process.env,
-  nodeExecPath = process.execPath,
-): PnpmInstallInvocation {
-  const npmExecPath = nonEmpty(env.npm_execpath);
-  if (npmExecPath && npmExecPath.toLowerCase().includes("pnpm")) {
-    if (/\.(cjs|mjs|js)$/i.test(npmExecPath)) {
-      return { command: nodeExecPath, argsPrefix: [npmExecPath] };
-    }
-    return { command: npmExecPath, argsPrefix: [] };
-  }
-  return { command: "pnpm", argsPrefix: [] };
-}
-
 function installDependenciesBestEffort(targetPath: string): void {
   const installSpinner = p.spinner();
   installSpinner.start("Installing dependencies...");
-  const pnpm = resolvePnpmInstallInvocation();
   try {
-    execFileSync(pnpm.command, [...pnpm.argsPrefix, "install"], {
+    execFileSync("bun", ["install"], {
       cwd: targetPath,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -3112,10 +3156,10 @@ async function openConfiguredDb(configPath: string): Promise<OpenDbHandle> {
           ? ` Pending migrations: ${migrationState.pendingMigrations.join(", ")}.`
           : "";
       throw new Error(
-        `Database for ${configPath} is not up to date.${pending} Run \`pnpm db:migrate\` (or start Clayon once) before using worktree merge history.`,
+        `Database for ${configPath} is not up to date.${pending} Run \`bun run db:migrate\` (or start Clayon once) before using worktree merge history.`,
       );
     }
-    const db = createDb(connectionString) as ClosableDb;
+    const db: ClosableDb = createDb(connectionString);
     return {
       db,
       stop: async () => {
@@ -3290,6 +3334,80 @@ function resolveRunningEmbeddedPostgresPid(config: ClayonConfig): number | null 
   return readRunningPostmasterPid(path.resolve(config.database.embeddedPostgresDataDir, "postmaster.pid"));
 }
 
+function selectIssueDocumentRows(db: ClosableDb, companyId: string): Promise<IssueDocumentRow[]> {
+  return db
+    .select({
+      id: issueDocuments.id,
+      companyId: issueDocuments.companyId,
+      issueId: issueDocuments.issueId,
+      documentId: issueDocuments.documentId,
+      key: issueDocuments.key,
+      linkCreatedAt: issueDocuments.createdAt,
+      linkUpdatedAt: issueDocuments.updatedAt,
+      title: documents.title,
+      format: documents.format,
+      latestBody: documents.latestBody,
+      latestRevisionId: documents.latestRevisionId,
+      latestRevisionNumber: documents.latestRevisionNumber,
+      createdByAgentId: documents.createdByAgentId,
+      createdByUserId: documents.createdByUserId,
+      updatedByAgentId: documents.updatedByAgentId,
+      updatedByUserId: documents.updatedByUserId,
+      documentCreatedAt: documents.createdAt,
+      documentUpdatedAt: documents.updatedAt,
+    })
+    .from(issueDocuments)
+    .innerJoin(documents, eq(issueDocuments.documentId, documents.id))
+    .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
+    .where(eq(issues.companyId, companyId));
+}
+
+function selectDocumentRevisionRows(db: ClosableDb, companyId: string): Promise<DocumentRevisionRow[]> {
+  return db
+    .select({
+      id: documentRevisions.id,
+      companyId: documentRevisions.companyId,
+      documentId: documentRevisions.documentId,
+      revisionNumber: documentRevisions.revisionNumber,
+      body: documentRevisions.body,
+      changeSummary: documentRevisions.changeSummary,
+      createdByAgentId: documentRevisions.createdByAgentId,
+      createdByUserId: documentRevisions.createdByUserId,
+      createdAt: documentRevisions.createdAt,
+    })
+    .from(documentRevisions)
+    .innerJoin(issueDocuments, eq(documentRevisions.documentId, issueDocuments.documentId))
+    .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
+    .where(eq(issues.companyId, companyId));
+}
+
+function selectIssueAttachmentRows(db: ClosableDb, companyId: string): Promise<IssueAttachmentRow[]> {
+  return db
+    .select({
+      id: issueAttachments.id,
+      companyId: issueAttachments.companyId,
+      issueId: issueAttachments.issueId,
+      issueCommentId: issueAttachments.issueCommentId,
+      assetId: issueAttachments.assetId,
+      provider: assets.provider,
+      objectKey: assets.objectKey,
+      contentType: assets.contentType,
+      byteSize: assets.byteSize,
+      sha256: assets.sha256,
+      originalFilename: assets.originalFilename,
+      createdByAgentId: assets.createdByAgentId,
+      createdByUserId: assets.createdByUserId,
+      assetCreatedAt: assets.createdAt,
+      assetUpdatedAt: assets.updatedAt,
+      attachmentCreatedAt: issueAttachments.createdAt,
+      attachmentUpdatedAt: issueAttachments.updatedAt,
+    })
+    .from(issueAttachments)
+    .innerJoin(assets, eq(issueAttachments.assetId, assets.id))
+    .innerJoin(issues, eq(issueAttachments.issueId, issues.id))
+    .where(eq(issues.companyId, companyId));
+}
+
 async function collectMergePlan(input: {
   sourceDb: ClosableDb;
   targetDb: ClosableDb;
@@ -3344,136 +3462,12 @@ async function collectMergePlan(input: {
       .select()
       .from(issueComments)
       .where(eq(issueComments.companyId, companyId)),
-    input.sourceDb
-      .select({
-        id: issueDocuments.id,
-        companyId: issueDocuments.companyId,
-        issueId: issueDocuments.issueId,
-        documentId: issueDocuments.documentId,
-        key: issueDocuments.key,
-        linkCreatedAt: issueDocuments.createdAt,
-        linkUpdatedAt: issueDocuments.updatedAt,
-        title: documents.title,
-        format: documents.format,
-        latestBody: documents.latestBody,
-        latestRevisionId: documents.latestRevisionId,
-        latestRevisionNumber: documents.latestRevisionNumber,
-        createdByAgentId: documents.createdByAgentId,
-        createdByUserId: documents.createdByUserId,
-        updatedByAgentId: documents.updatedByAgentId,
-        updatedByUserId: documents.updatedByUserId,
-        documentCreatedAt: documents.createdAt,
-        documentUpdatedAt: documents.updatedAt,
-      })
-      .from(issueDocuments)
-      .innerJoin(documents, eq(issueDocuments.documentId, documents.id))
-      .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
-    input.targetDb
-      .select({
-        id: issueDocuments.id,
-        companyId: issueDocuments.companyId,
-        issueId: issueDocuments.issueId,
-        documentId: issueDocuments.documentId,
-        key: issueDocuments.key,
-        linkCreatedAt: issueDocuments.createdAt,
-        linkUpdatedAt: issueDocuments.updatedAt,
-        title: documents.title,
-        format: documents.format,
-        latestBody: documents.latestBody,
-        latestRevisionId: documents.latestRevisionId,
-        latestRevisionNumber: documents.latestRevisionNumber,
-        createdByAgentId: documents.createdByAgentId,
-        createdByUserId: documents.createdByUserId,
-        updatedByAgentId: documents.updatedByAgentId,
-        updatedByUserId: documents.updatedByUserId,
-        documentCreatedAt: documents.createdAt,
-        documentUpdatedAt: documents.updatedAt,
-      })
-      .from(issueDocuments)
-      .innerJoin(documents, eq(issueDocuments.documentId, documents.id))
-      .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
-    input.sourceDb
-      .select({
-        id: documentRevisions.id,
-        companyId: documentRevisions.companyId,
-        documentId: documentRevisions.documentId,
-        revisionNumber: documentRevisions.revisionNumber,
-        body: documentRevisions.body,
-        changeSummary: documentRevisions.changeSummary,
-        createdByAgentId: documentRevisions.createdByAgentId,
-        createdByUserId: documentRevisions.createdByUserId,
-        createdAt: documentRevisions.createdAt,
-      })
-      .from(documentRevisions)
-      .innerJoin(issueDocuments, eq(documentRevisions.documentId, issueDocuments.documentId))
-      .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
-    input.targetDb
-      .select({
-        id: documentRevisions.id,
-        companyId: documentRevisions.companyId,
-        documentId: documentRevisions.documentId,
-        revisionNumber: documentRevisions.revisionNumber,
-        body: documentRevisions.body,
-        changeSummary: documentRevisions.changeSummary,
-        createdByAgentId: documentRevisions.createdByAgentId,
-        createdByUserId: documentRevisions.createdByUserId,
-        createdAt: documentRevisions.createdAt,
-      })
-      .from(documentRevisions)
-      .innerJoin(issueDocuments, eq(documentRevisions.documentId, issueDocuments.documentId))
-      .innerJoin(issues, eq(issueDocuments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
-    input.sourceDb
-      .select({
-        id: issueAttachments.id,
-        companyId: issueAttachments.companyId,
-        issueId: issueAttachments.issueId,
-        issueCommentId: issueAttachments.issueCommentId,
-        assetId: issueAttachments.assetId,
-        provider: assets.provider,
-        objectKey: assets.objectKey,
-        contentType: assets.contentType,
-        byteSize: assets.byteSize,
-        sha256: assets.sha256,
-        originalFilename: assets.originalFilename,
-        createdByAgentId: assets.createdByAgentId,
-        createdByUserId: assets.createdByUserId,
-        assetCreatedAt: assets.createdAt,
-        assetUpdatedAt: assets.updatedAt,
-        attachmentCreatedAt: issueAttachments.createdAt,
-        attachmentUpdatedAt: issueAttachments.updatedAt,
-      })
-      .from(issueAttachments)
-      .innerJoin(assets, eq(issueAttachments.assetId, assets.id))
-      .innerJoin(issues, eq(issueAttachments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
-    input.targetDb
-      .select({
-        id: issueAttachments.id,
-        companyId: issueAttachments.companyId,
-        issueId: issueAttachments.issueId,
-        issueCommentId: issueAttachments.issueCommentId,
-        assetId: issueAttachments.assetId,
-        provider: assets.provider,
-        objectKey: assets.objectKey,
-        contentType: assets.contentType,
-        byteSize: assets.byteSize,
-        sha256: assets.sha256,
-        originalFilename: assets.originalFilename,
-        createdByAgentId: assets.createdByAgentId,
-        createdByUserId: assets.createdByUserId,
-        assetCreatedAt: assets.createdAt,
-        assetUpdatedAt: assets.updatedAt,
-        attachmentCreatedAt: issueAttachments.createdAt,
-        attachmentUpdatedAt: issueAttachments.updatedAt,
-      })
-      .from(issueAttachments)
-      .innerJoin(assets, eq(issueAttachments.assetId, assets.id))
-      .innerJoin(issues, eq(issueAttachments.issueId, issues.id))
-      .where(eq(issues.companyId, companyId)),
+    selectIssueDocumentRows(input.sourceDb, companyId),
+    selectIssueDocumentRows(input.targetDb, companyId),
+    selectDocumentRevisionRows(input.sourceDb, companyId),
+    selectDocumentRevisionRows(input.targetDb, companyId),
+    selectIssueAttachmentRows(input.sourceDb, companyId),
+    selectIssueAttachmentRows(input.targetDb, companyId),
     input.sourceDb
       .select()
       .from(projects)
@@ -3520,12 +3514,12 @@ async function collectMergePlan(input: {
     targetComments: targetCommentsRows,
     sourceProjects: sourceProjectsRows,
     sourceProjectWorkspaces: sourceProjectWorkspaceRows,
-    sourceDocuments: sourceIssueDocumentsRows as IssueDocumentRow[],
-    targetDocuments: targetIssueDocumentsRows as IssueDocumentRow[],
-    sourceDocumentRevisions: sourceDocumentRevisionRows as DocumentRevisionRow[],
-    targetDocumentRevisions: targetDocumentRevisionRows as DocumentRevisionRow[],
-    sourceAttachments: sourceAttachmentRows as IssueAttachmentRow[],
-    targetAttachments: targetAttachmentRows as IssueAttachmentRow[],
+    sourceDocuments: sourceIssueDocumentsRows,
+    targetDocuments: targetIssueDocumentsRows,
+    sourceDocumentRevisions: sourceDocumentRevisionRows,
+    targetDocumentRevisions: targetDocumentRevisionRows,
+    sourceAttachments: sourceAttachmentRows,
+    targetAttachments: targetAttachmentRows,
     targetAgents: targetAgentsRows,
     targetProjects: targetProjectsRows,
     targetProjectWorkspaces: targetProjectWorkspaceRows,

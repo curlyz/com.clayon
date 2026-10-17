@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 // Dev-only: link the in-repo @clayon/plugin-sdk into plugin packages that
-// are excluded from the pnpm workspace (see pnpm-workspace.yaml). Workspace
-// members get their SDK link from pnpm automatically; excluded packages do not.
+// are excluded from the bun workspace (the "!" entries of `workspaces` in the
+// root package.json). Workspace members get their SDK link from bun
+// automatically; excluded packages do not.
 //
 // Invoked from the root postinstall. Intentionally NOT referenced from any
 // plugin's own package.json so the published tarballs cannot carry a lifecycle
@@ -17,7 +18,7 @@ const repoRoot = resolve(__dirname, "..");
 const sdkDir = join(repoRoot, "packages", "plugins", "sdk");
 
 // Plugin packages excluded from the workspace that still need @clayon/plugin-sdk
-// linked in for local dev. Keep in sync with pnpm-workspace.yaml exclusions.
+// linked in for local dev. Keep in sync with the root package.json `workspaces` exclusions.
 function excludedPluginDirs() {
   return [
     ...readPluginsUnder(join(repoRoot, "packages", "plugins", "sandbox-providers")),
@@ -48,7 +49,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 }
 
 // Recursively collect package directories (those containing a package.json)
-// under parentDir. The matching pnpm-workspace.yaml exclusion uses a recursive
+// under parentDir. The matching root `workspaces` exclusion uses a recursive
 // glob (e.g. "!packages/plugins/sandbox-providers/**"), so a provider nested
 // deeper than one level must still be discovered here.
 export function readPluginsUnder(parentDir) {

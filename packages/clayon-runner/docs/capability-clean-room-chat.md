@@ -94,11 +94,11 @@ Fetch Metadata is defense in depth: any supplied `Sec-Fetch-Site`, `Sec-Fetch-Mo
 
 ```text
 [5]{Surface,Command}:
-  "Seed, exposure profile, and identity rotation",`pnpm --filter @clayon/clayon-runner test:scenarios`
+  "Seed, exposure profile, and identity rotation",`bun run --filter @clayon/clayon-runner test:scenarios`
   Clean-room HTTP routes end to end (stub provider),included in `test:scenarios`
-  "Browser entry, blank state, evidence-on-demand, narrow layout, axe",`pnpm --filter @clayon/clayon-runner test:browser:issue-thread`
-  Real Codex through real runnerd,`pnpm --filter @clayon/clayon-runner smoke:capability:cleanroom`
-  Live screenshots,`pnpm --filter @clayon/clayon-runner recorded-evidence campaign (deferred)`
+  "Browser entry, blank state, evidence-on-demand, narrow layout, axe",`bun run --filter @clayon/clayon-runner test:browser:issue-thread`
+  Real Codex through real runnerd,`bun run --filter @clayon/clayon-runner smoke:capability:cleanroom`
+  Live screenshots,`bun run --filter @clayon/clayon-runner recorded-evidence campaign (deferred)`
 ```
 
 See the clean-room chat tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/capability-clean-room-chat` for the clean-start walkthrough, execution modes and identity `antl:clayon/packages/clayon-runner/docs/capability-execution-modes` for the fake/live eligibility rules, and the issue-thread UI reference `antl:clayon/packages/clayon-runner/docs/capability-issue-thread-ui` for the thread, composer, and Evidence panel this surface reuses.

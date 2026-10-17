@@ -320,12 +320,7 @@ clears the cached binding before refetch so that failure cannot restore it.
 Visual review uses the production `DotRunnerConnection` component in the
 `Assistant connections/Dot Runner` Storybook stories. Pairing, event-test
 waiting and revocation were exercised in the browser with synthetic API
-responses. These screenshots show preview data, not a qualified Dot account:
-
-![Synthetic pairing preview](screenshots/openai-dot-runner/pairing.jpg)
-
-![Synthetic connected preview](screenshots/openai-dot-runner/connected.jpg)
-
+responses with preview data, not a qualified Dot account.
 
 ## Starting work from a Dot conversation
 
@@ -456,7 +451,7 @@ A normal task comment for an accepted Dot assignment is recorded once in its dur
 To run the live test, install/build the bundled Daytona plugin dependencies, supply `DAYTONA_API_KEY`, set `CLAYON_DOT_DAYTONA_LIVE=1`, and set `CLAYON_DOT_DAYTONA_IMAGE` to an immutable image digest. Optionally set `CLAYON_DOT_DAYTONA_RUNNER_BINARY` to a current Linux Runner artifact and `CLAYON_DOT_DAYTONA_EVIDENCE` to a local evidence output path. Then run:
 
 ```sh
-pnpm exec vitest run server/src/__tests__/dot-runner.test.ts -t 'private Daytona Rust'
+bun x vitest run server/src/__tests__/dot-runner.test.ts -t 'private Daytona Rust'
 ```
 
 The fixture creates a private, bounded sandbox and deletes it in `finally`. Default tests do not contact Daytona. This test uses a scripted MCP client; a separate real OpenAI Dot walkthrough is required to qualify provider behavior.

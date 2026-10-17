@@ -207,8 +207,8 @@ bar, but any provider-reported reset time remains visible.
 Verification:
 
 ```sh
-pnpm exec vitest run server/src/services/ai-connection-usage.test.ts server/src/__tests__/ai-connections.test.ts ui/src/components/ai-connections/AiConnectionUsagePanel.test.tsx server/src/__tests__/openapi-routes.test.ts
-pnpm check:token-gates
+bun x vitest run server/src/services/ai-connection-usage.test.ts server/src/__tests__/ai-connections.test.ts ui/src/components/ai-connections/AiConnectionUsagePanel.test.tsx server/src/__tests__/openapi-routes.test.ts
+bun run check:token-gates
 ```
 
 Fixtures prove normalization, credential isolation and manual UI behavior. Live
@@ -440,8 +440,8 @@ successfully connected account after failed agent creation.
 
 The [Storybook review index](http://localhost:6116/?path=/story/ai-connections-review--review-index)
 retains deterministic authentication states and interaction checks. Run
-`pnpm build-storybook`, then
-`pnpm exec playwright test --config tests/ai-connections-review/playwright.config.ts`.
+`bun run build-storybook`, then
+`bun x playwright test --config tests/ai-connections-review/playwright.config.ts`.
 Also run token gates, repository typecheck, tests, and build before handoff.
 Live connect → reuse → run → reconnect verification still requires valid provider
 credentials and a supported login/runtime environment; fixtures do not prove it.
@@ -449,7 +449,7 @@ credentials and a supported login/runtime environment; fixtures do not prove it.
 For an isolated running test drive, also run:
 
 ```sh
-AI_CONNECTIONS_TEST_COMPANY_ID=<company-id> pnpm exec playwright test --config tests/ai-connections-app/playwright.config.ts
+AI_CONNECTIONS_TEST_COMPANY_ID=<company-id> bun x playwright test --config tests/ai-connections-app/playwright.config.ts
 ```
 
 Set `AI_CONNECTIONS_TEST_URL` when the test drive uses a port other than 3100.
@@ -822,11 +822,11 @@ interactive fixtures for normal estimates, unknown prices, provider failures,
 and mobile layouts. Its edits affect fixture data only. Focused verification:
 
 ```sh
-pnpm exec vitest run server/src/__tests__/subscriptions.test.ts \
+bun x vitest run server/src/__tests__/subscriptions.test.ts \
   server/src/__tests__/subscription-routes.test.ts \
   ui/src/components/SubscriptionCostCard.test.tsx ui/src/pages/Costs.test.tsx
-pnpm check:token-gates
-pnpm storybook
+bun run check:token-gates
+bun run storybook
 ```
 
 These tests include real PostgreSQL persistence, migration replay, concurrent

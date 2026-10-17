@@ -49,8 +49,7 @@ Legacy `request_confirmation.payload.connectionAuthorization` interactions remai
 
 ## Model evaluations
 
-The companion `clayon-evals` repository owns the connection cases in
-`evals/runner-api-tools/connection-cases.json`. They use the existing real-server
+The connection cases live in `tests/runner-e2e/connection-cases.ts`. They use the existing real-server
 API-tool eval controller and `scripts/runner-api-eval-worker.ts`, with this
 checkout's production tool definitions, connection guidance, and authority.
 Natural prompts measure discovery and request selection; explicit contract probes
@@ -75,6 +74,6 @@ Task setup defaults to personal identity when supported and the requesting agent
 
 ## Verification
 
-Service and native-authority tests cover discovery, current identity, company boundaries, cross-run deduplication, additive grants and installs, permission denial, resolution atomicity, restart delivery and stale assignment. `tests/e2e/in-feed-native/playwright.config.ts` starts source `test-drive` instances with fresh data directories and a deterministic fake Codex provider plus MCP server. It exercises the real native runner and gateway; it is fixture proof, not live Notion or GitHub proof. Run with `pnpm exec playwright test -c tests/e2e/in-feed-native/playwright.config.ts`.
+Service and native-authority tests cover discovery, current identity, company boundaries, cross-run deduplication, additive grants and installs, permission denial, resolution atomicity, restart delivery and stale assignment. `tests/e2e/in-feed-native/playwright.config.ts` starts source `test-drive` instances with fresh data directories and a deterministic fake Codex provider plus MCP server. It exercises the real native runner and gateway; it is fixture proof, not live Notion or GitHub proof. Run with `bun x playwright test -c tests/e2e/in-feed-native/playwright.config.ts`.
 
-Offline Storybook examples live in `ui/storybook/stories/in-feed-connections.stories.tsx`. Build with `pnpm --filter @clayon/ui build-storybook`, then run `pnpm exec playwright test -c tests/storybook-visual/in-feed-connections.config.ts`. The suite checks every independently addressable story in both themes, catches play-function failures, and saves screenshots. Live provider acceptance additionally requires a model credential and a test workspace/account; do not describe fixture results or local-trusted testing as authenticated/cloud acceptance.
+Offline Storybook examples live in `ui/storybook/stories/in-feed-connections.stories.tsx`. Build with `bun run --filter @clayon/ui build-storybook`, then run `bun x playwright test -c tests/storybook-visual/in-feed-connections.config.ts`. The suite checks every independently addressable story in both themes, catches play-function failures, and saves screenshots. Live provider acceptance additionally requires a model credential and a test workspace/account; do not describe fixture results or local-trusted testing as authenticated/cloud acceptance.

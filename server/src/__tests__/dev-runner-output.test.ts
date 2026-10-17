@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCapturedOutputBuffer, parseJsonResponseWithLimit } from "../../../scripts/dev-runner-output.mjs";
+import { createCapturedOutputBuffer, parseJsonResponseWithLimit } from "../../../scripts/dev-runner-output.ts";
 
 describe("createCapturedOutputBuffer", () => {
   it("keeps small output unchanged", () => {

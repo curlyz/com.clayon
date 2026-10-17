@@ -150,6 +150,7 @@ const KNOWN_COMMAND_LABELS: ReadonlySet<string> = new Set([
   "git",
   "node",
   "npm",
+  "bun",
   "pnpm",
   "sudo",
   "bwrap",
@@ -292,14 +293,12 @@ export const NOOP_STARTUP_SPAN: StartupSpan = {
   end() {},
 };
 
-const NOOP_SPAN = NOOP_STARTUP_SPAN;
-
 /**
  * The default tracer. It opens no real span, so `measureStartupStep` behaves
  * exactly as before when the caller injects no tracer.
  */
 const NOOP_TRACER: StartupTracer = {
-  startSpan: () => NOOP_SPAN,
+  startSpan: () => NOOP_STARTUP_SPAN,
 };
 
 /**
@@ -403,7 +402,7 @@ export function runWithRuntimeParent<T>(
   if (parentContext === undefined) {
     return activeStepContextStorage.run(undefined, work);
   }
-  const activeStep = buildActiveStepContext(NOOP_SPAN, parentContext, false);
+  const activeStep = buildActiveStepContext(NOOP_STARTUP_SPAN, parentContext, false);
   return activeStepContextStorage.run(activeStep, work);
 }
 
@@ -471,7 +470,7 @@ export function createRuntimeSpanRunner(
  * Set a numeric span attribute only when the value is a finite number. A reader
  * that returns `undefined` (the counter is unavailable) yields no attribute,
  * never `NaN` and never a misleading `0`. This mirrors the host counter guard
- * at `environment-execution-target.ts`.
+ * at `com.paperclip/server/src/services/environment-execution-target.ts`.
  */
 function setFiniteNumberAttr(
   span: StartupSpan,
@@ -548,9 +547,14 @@ export interface StartupStepMeasureOptions {
   spanWallTimes?: () => Partial<Record<"createRuntime" | "ensureSession", number>>;
 }
 
-function buildStepEvent(payload: Record<string, unknown>): AdapterRuntimeEvent {
+type StartupStepEventPayload = Record<string, unknown> & {
+  step: string;
+  durationMs: number;
+};
+
+function buildStepEvent(payload: StartupStepEventPayload): AdapterRuntimeEvent {
   const step = String(payload.step);
-  const durationMs = payload.durationMs as number;
+  const durationMs = payload.durationMs;
   return {
     eventType: RUN_STARTUP_STEP_EVENT_TYPE,
     stream: "system",
@@ -606,7 +610,7 @@ export async function measureStartupStep<T>(
     span = tracer.startSpan(step, { attributes: startAttributes }, options.parentContext);
   } catch {
     // A throwing tracer must not change startup control flow.
-    span = NOOP_SPAN;
+    span = NOOP_STARTUP_SPAN;
   }
 
   // Publish the active step context while `fn` runs. Inner code (the host→
@@ -646,7 +650,7 @@ export async function measureStartupStep<T>(
     // The payload carries only the high-level fields. The detailed per-step
     // round-trip and provider-duration numbers ride the OTel spans now, so the
     // run-log copy is gone.
-    const payload: Record<string, unknown> = { step, durationMs, outcome };
+    const payload: StartupStepEventPayload = { step, durationMs, outcome };
 
     try {
       if (stepFailed) span.setStatus({ code: SPAN_STATUS_CODE_ERROR });
@@ -774,7 +778,7 @@ export async function emitSkippedStartupStep(
   try {
     span = tracer.startSpan(step, { attributes: startAttributes }, options.parentContext);
   } catch {
-    span = NOOP_SPAN;
+    span = NOOP_STARTUP_SPAN;
   }
   try {
     span.setAttribute(SANDBOX_STARTUP_SPAN_ATTRS.stepWallMs, 0);

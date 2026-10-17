@@ -1652,7 +1652,7 @@ is required.
 
 - Drizzle migrations are source of truth
 - local/dev startup applies pending migrations automatically where supported
-- `pnpm db:migrate` applies pending migrations manually
+- `bun run db:migrate` applies pending migrations manually
 - no destructive migration in-place for V1 upgrade path
 
 ## 15.3 Logging and Audit
@@ -1780,7 +1780,7 @@ V1 supports company import/export using a portable package contract:
 - markdown-first package rooted at `COMPANY.md`
 - implicit folder discovery by convention
 - `.clayon.yaml` sidecar for Clayon-specific fidelity
-- canonical base package is vendor-neutral and aligned with `docs/companies/companies-spec.md`
+- canonical base package is vendor-neutral and aligned with `doc/specs/companies-spec.md`
 - common conventions:
   - `agents/<slug>/AGENTS.md`
   - `teams/<slug>/TEAM.md`
@@ -1945,7 +1945,6 @@ preference follows one account across companies on the instance. A separate
 instance-level registry retains validated publication IDs, allowing offline
 dismissal retries after withdrawal while rejecting caller-invented IDs. It
 stores no announcement content, account data or interaction events.
-See [Announcements](ANNOUNCEMENTS.md) for API and publishing details.
 
 ### Keyboard shortcuts
 
@@ -2106,12 +2105,8 @@ their existing operator recovery requirements.
 
 ## Internal agent commentary
 
-`agent_commentary` stores company-scoped, attributed complaints and suggestions
-as free-form text in the instance database. Legacy agents use the default
-`complain` and `suggestion-box` runtime skills; native runs use dedicated tools
-in standard, ask, and planning modes. Submission never changes task disposition
-or routes feedback externally. See [Agent commentary](agent-commentary.md) for
-authentication, replay, document-sized limits, inspection, and deletion semantics.
+`agent_commentary` is the table whitepaper in `doc/DATABASE.md` § Internal agent
+commentary; see that section for its semantics.
 
 ## Company decision-model service
 

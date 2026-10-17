@@ -26,7 +26,7 @@ env \
   npm_config_cache="$PC_CACHE" \
   npm_config_userconfig="$PC_HOME/.npmrc" \
   PATH="$PC_HOME/.local/bin:$PATH" \
-  pnpm --dir "$REPO_ROOT" clayon install --yes
+  bun run --cwd "$REPO_ROOT" clayon install --yes
 
 test -x "$PC_HOME/.local/bin/clayon"
 test -L "$PC_HOME/.clayon/cli/current"
@@ -40,7 +40,7 @@ env \
   HOME="$PC_HOME" \
   CLAYON_HOME="$PC_HOME/.clayon" \
   PATH="$PC_HOME/.local/bin:$PATH" \
-  pnpm --dir "$REPO_ROOT" clayon uninstall
+  bun run --cwd "$REPO_ROOT" clayon uninstall
 
 test ! -e "$PC_HOME/.clayon/cli"
 test ! -e "$PC_HOME/.local/bin/clayon"

@@ -12,7 +12,7 @@ async function createClayonRepoSkill(root: string, skillName: string) {
   await fs.mkdir(path.join(root, "server"), { recursive: true });
   await fs.mkdir(path.join(root, "packages", "adapter-utils"), { recursive: true });
   await fs.mkdir(path.join(root, "skills", skillName), { recursive: true });
-  await fs.writeFile(path.join(root, "pnpm-workspace.yaml"), "packages:\n  - packages/*\n", "utf8");
+  await fs.writeFile(path.join(root, "bun.lock"), "{}\n", "utf8");
   await fs.writeFile(path.join(root, "package.json"), '{"name":"clayon"}\n', "utf8");
   await fs.writeFile(
     path.join(root, "skills", skillName, "SKILL.md"),

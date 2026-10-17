@@ -156,10 +156,10 @@ journey establishes provider-account consent or live provider read/write proof.
 
 ### Automated verification
 
-- Run `pnpm -r typecheck`, `pnpm build`, and `pnpm check:token-gates`.
+- Run `bun run --filter '*' typecheck`, `bun run build`, and `bun run check:token-gates`.
 - The affected Apps browser suites passed 10 tests, with one existing restart
   case skipped. These used clean, isolated fixture databases.
-- Run `pnpm test:run` for the full suite. Current-head CI and local results are
+- Run `bun run test:run` for the full suite. Current-head CI and local results are
   recorded in the pull request; fixture coverage is distinct from provider proof.
 - New gateway fixtures execute both read and write calls through real run-scoped
   gateway sessions. They also verify that invalid ownership requires reconnect

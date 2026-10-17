@@ -17,8 +17,8 @@ npx @clayon/create-clayon-plugin @acme/my-plugin \
   --author "Acme Inc"
 ```
 
-Supported templates: `default`, `connector`, `workspace`  
-Supported categories: `connector`, `workspace`, `automation`, `ui`
+Supported templates: `default`, `connector`, `workspace`, `environment`  
+Supported categories: `connector`, `workspace`, `automation`, `ui`, `environment`
 
 Generates:
 - typed manifest + worker entrypoint
@@ -45,8 +45,8 @@ That gives you an outside-repo local development path before the SDK is publishe
 
 ```bash
 cd my-plugin
-pnpm install
-pnpm dev       # watch worker + manifest + ui bundles
-pnpm dev:ui    # local UI preview server with hot-reload events
-pnpm test
+bun install
+bun run dev       # watch worker + manifest + ui bundles
+bun run dev:ui    # local UI preview server with hot-reload events
+bun run test
 ```

@@ -219,7 +219,7 @@ async function runCliJson<T>(
   opts: TestClayonEnv & { apiBase?: string; includeConfigArg?: boolean },
 ) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-  const cliArgs = ["--silent", "clayon", ...args];
+  const cliArgs = ["run", "--silent", "clayon", ...args];
   if (opts.apiBase) {
     cliArgs.push("--api-base", opts.apiBase);
   }
@@ -228,7 +228,7 @@ async function runCliJson<T>(
   }
   cliArgs.push("--json");
   const result = await execFileAsync(
-    "pnpm",
+    "bun",
     cliArgs,
     {
       cwd: repoRoot,
@@ -302,8 +302,8 @@ describeEmbeddedPostgres("clayon company import/export e2e", () => {
     const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
     const output = { stdout: [] as string[], stderr: [] as string[] };
     const child = spawn(
-      "pnpm",
-      ["clayon", "run", "--config", configPath],
+      "bun",
+      ["run", "clayon", "run", "--config", configPath],
       {
         cwd: repoRoot,
         env: createServerEnv(configPath, port, tempDb.connectionString, {

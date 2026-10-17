@@ -4,10 +4,12 @@ const path = require("path");
 const fs = require("fs");
 
 const repoRoot = path.resolve(__dirname, "..");
-const playwright = require(path.join(
-  repoRoot,
-  "node_modules/.pnpm/playwright@1.58.2/node_modules/playwright/index.js",
-));
+// bun installs @playwright/test at the repo root; resolve playwright through it.
+const playwright = require(
+  require.resolve("playwright", {
+    paths: [path.dirname(require.resolve("@playwright/test/package.json", { paths: [repoRoot] }))],
+  }),
+);
 
 const STORYBOOK_BASE = process.env.STORYBOOK_URL ?? "http://localhost:6006";
 const OUT_DIR = path.resolve(repoRoot, "tmp/pap-9134-recovery-screens");
@@ -37,8 +39,8 @@ const STORIES = [
 ];
 
 const THEMES = [
-  { name: "light", apply: () => document.documentElement.classList.remove("dark") },
-  { name: "dark", apply: () => document.documentElement.classList.add("dark") },
+  { name: "light" },
+  { name: "dark" },
 ];
 
 (async () => {

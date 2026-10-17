@@ -85,7 +85,7 @@ function buildFallbackRedirect(input: {
 }
 
 // The declared return type keeps the emitted declaration portable: inferred,
-// it names better-call's StrictEndpoint through a pnpm-store path (TS2883 in
+// it names better-call's StrictEndpoint through a node_modules store path (TS2883 in
 // the production image build).
 export function workspaceLoginHandoffPlugin(deps: {
   db: Db;

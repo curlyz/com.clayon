@@ -38,11 +38,12 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "pnpm -w exec vitest run --root packages/plugins/create-clayon-plugin --config vitest.config.ts",
+    "test": "bun run --cwd ../../.. vitest run --root packages/plugins/create-clayon-plugin --config vitest.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clayon/plugin-sdk": "workspace:*"
+    "@clayon/plugin-sdk": "workspace:*",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

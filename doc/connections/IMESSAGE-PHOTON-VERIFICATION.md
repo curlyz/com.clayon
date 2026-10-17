@@ -64,7 +64,8 @@ participant response fields, and the unchanged credential binding after rejected
 replacement. All 39 Photon/OpenAPI tests and the server build passed after the
 review fix separating provider outages from invalid setup input.
 
-The Photon browser cases in `tests/e2e/chat-adapters-ui.spec.ts` cover catalog
+The Photon browser cases in
+`tests/e2e/chat-adapters-ui-providers.spec.ts` cover catalog
 discovery, multiple-line selection, password input, keyboard selection, vaulted
 credential payload shape, setup completion, group enablement, light/dark themes,
 mobile navigation/layout, and pause/resume. The surrounding suite covers existing
@@ -88,7 +89,7 @@ Slack, Discord, GitHub, Teams, and Telegram surfaces.
 
 ### Local test prerequisites
 
-The standard `pnpm test:run` launcher isolates `CLAYON_CONFIG`, `CLAYON_HOME`,
+The standard `bun run test:run` launcher isolates `CLAYON_CONFIG`, `CLAYON_HOME`,
 and temporary files. Direct heartbeat/continuation tests must use equivalent
 isolation; otherwise the worktree preview configuration suppresses execution.
 The actual runner-driver fixture also requires:
@@ -99,7 +100,7 @@ cargo build --manifest-path packages/clayon-runner/runner/Cargo.toml --bin fake-
 
 A run without that binary failed at provider startup; the complete 37-case native
 session-resume suite passed after building it. Catalog assertions were updated
-for the 42nd visible app, and the focused catalog/Browse/board-gallery tests pass.
+for the 42nd visible app, and the focused catalog tests pass.
 Some broad package runs encountered host embedded-Postgres startup limits during
 concurrent local development. These startup failures are not provider proof;
 inspect the linked PR for the current complete gate results.
@@ -281,6 +282,6 @@ All 26 light/dark Playwright cases passed, including the 390px mobile layout.
 The credential and mobile screenshots were inspected. Run with:
 
 ```sh
-pnpm build-storybook
-pnpm exec playwright test --config tests/storybook-visual/imessage-photon.config.ts
+bun run build-storybook
+bun x playwright test --config tests/storybook-visual/imessage-photon.config.ts
 ```

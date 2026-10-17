@@ -21,7 +21,7 @@ if [ "$should_reuse_existing_ui_dist" = true ] && [ -f "$UI_DIST/index.html" ]; 
   echo "  -> Reusing existing @clayon/ui dist output"
 else
   echo "  -> Building @clayon/ui..."
-  pnpm --dir "$REPO_ROOT" --filter @clayon/ui build
+  bun run --cwd "$REPO_ROOT" --filter @clayon/ui build
 fi
 
 if [ ! -f "$UI_DIST/index.html" ]; then

@@ -424,7 +424,7 @@ test("the PR vitest lane wrapper runs the native-runner group exactly on the fin
     assert.equal(plan.runNativeRunnerGroup, expected,
       `args ${JSON.stringify(args)} env ${JSON.stringify(envOverrides)}`);
     const commands = plan.plannedCommands.map((planned) => planned.args.join(" "));
-    assert.ok(commands.some((command) => command.startsWith(`exec vitest run${args.length ? ` ${args.join(" ")}` : ""}`)),
+    assert.ok(commands.some((command) => command.startsWith(`x vitest run${args.length ? ` ${args.join(" ")}` : ""}`)),
       "the wrapper must pass shard flags through to vitest");
     assert.equal(
       commands.some((command) => command.includes("--group general-server-native-runner")),

@@ -68,10 +68,11 @@ The shell reports `data-chat-state` (`seeding` / `pending` / `streaming` / `sett
 ## Commands
 
 ```sh
-pnpm --filter @clayon/clayon-runner run demo:scenarios       # open the surface
-pnpm --filter @clayon/clayon-runner run test:scenarios       # runtime + component tests
-pnpm --filter @clayon/clayon-runner run test:browser:scenarios
-# Recorded evidence generation is deferred from this release.
+bun run --filter @clayon/clayon-runner demo:scenarios       # open the surface
+bun run --filter @clayon/clayon-runner test:scenarios       # runtime + component tests
+bun run --filter @clayon/clayon-runner test:browser:scenarios
 ```
+
+Recorded evidence generation is deferred from this release.
 
 Walkthrough: Scenario chat scenario chat tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/scenario-chat`.

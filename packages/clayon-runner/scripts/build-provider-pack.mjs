@@ -4,6 +4,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import {
   chmodSync,
   copyFileSync,
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -22,6 +23,7 @@ import { fileURLToPath } from "node:url";
 import { parseProviderPackArguments, materializeCandidateProviderPack, providerPackProviders, providerPackManifestFields } from "./candidate-provider-pack.mjs";
 import { buildNodeStartupTimeout } from "./build-node-startup-timeout.mjs";
 import { writePortableExecutableShim, writePortableCopilotShims } from "./provider-pack-executable-shims.mjs";
+import { deployRunnerProductionGraph } from "./deploy-runner-production-graph.mjs";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = resolve(packageRoot, "../..");
@@ -103,23 +105,10 @@ function writePortableNodeShim(name, entrypoint) {
 }
 
 try {
-  const deployed = spawnSync(
-    "pnpm",
-    [
-      "--filter",
-      "@clayon/clayon-runner",
-      "deploy",
-      "--prod",
-      temporaryRoot,
-    ],
-    { cwd: workspaceRoot, encoding: "utf8", stdio: "inherit" },
-  );
-  if (deployed.status !== 0) {
-    throw new Error(`pnpm deploy failed with exit code ${deployed.status}`);
-  }
+  deployRunnerProductionGraph(temporaryRoot, temporaryParent);
 
   // Fail the image build if a bridge silently brings back an older/private
-  // provider CLI. A direct dependency alone does not deduplicate pnpm's graph.
+  // provider CLI. A direct dependency alone does not deduplicate the graph.
   const packRequire = createRequire(join(temporaryRoot, "package.json"));
   const codexAcpRequire = createRequire(packRequire.resolve("@agentclientprotocol/codex-acp/package.json"));
   if (realpathSync(codexAcpRequire.resolve("@openai/codex/package.json")) !==
@@ -171,8 +160,8 @@ try {
       sha256: sha256Tree(join(temporaryRoot, assetPath)) };
   }
 
-  // pnpm's generated .bin shims embed the temporary deployment directory in
-  // NODE_PATH. That makes an otherwise identical provider pack hash differ on
+  // Package-manager generated .bin entries can embed the temporary deployment
+  // directory. That makes an otherwise identical provider pack hash differ on
   // every build and leaks a nonexistent host path after relocation. Replace
   // every provider-facing shim with a pack-relative launcher that always uses
   // the pinned Node executable owned by this pack.
@@ -207,21 +196,6 @@ try {
     "@agentclientprotocol/codex-acp/dist/index.js",
   );
 
-  // pnpm deploy may retain a workspace self-link under its virtual store. It
-  // points outside the immutable pack and is not needed by the deployed
-  // package, so it must not be staged or captured.
-  rmSync(
-    join(
-      temporaryRoot,
-      "node_modules",
-      ".pnpm",
-      "node_modules",
-      "@clayon",
-      "clayon-runner",
-    ),
-    { recursive: true, force: true },
-  );
-
   for (const shimName of readdirSync(
     join(temporaryRoot, "node_modules", ".bin"),
   )) {
@@ -235,7 +209,7 @@ try {
   }
 
   // Exercise a clean import from the deployed dependency graph. This catches
-  // malformed patch hunks that can look correct in an existing pnpm store but
+  // malformed patch hunks that can look correct in an existing package cache but
   // land inside the wrong function when applied to a fresh acpx tarball.
   const acpxImport = spawnSync(
     join(temporaryRoot, "node_modules", "node", "bin", "node"),
@@ -259,9 +233,9 @@ try {
   const opencodeCommand = "node_modules/.bin/opencode";
   const opencodeExecutable = "node_modules/opencode-ai/bin/opencode.exe";
   const nodeCommand = "node_modules/node/bin/node";
-  const productionLock = "pnpm-lock.yaml";
+  const productionLock = "bun.lock";
   copyFileSync(
-    join(workspaceRoot, "pnpm-lock.yaml"),
+    join(workspaceRoot, "bun.lock"),
     join(temporaryRoot, productionLock),
   );
   for (const relativePath of [

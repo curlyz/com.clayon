@@ -82,5 +82,5 @@ printf 'Running verification with rootless browser libraries from %s.\n' "$rootl
 if [[ $# -gt 0 ]]; then
   LD_LIBRARY_PATH="$rootless_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" "$@"
 else
-  LD_LIBRARY_PATH="$rootless_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" pnpm run verify
+  LD_LIBRARY_PATH="$rootless_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" bun run verify
 fi

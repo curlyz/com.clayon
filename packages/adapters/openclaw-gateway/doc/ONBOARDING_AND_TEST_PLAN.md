@@ -66,7 +66,7 @@ OPENCLAW_RESET_STATE=1 OPENCLAW_BUILD=1 ./scripts/smoke/openclaw-docker-ui.sh
 
 ### 1) Start Clayon
 ```bash
-pnpm dev --bind lan
+bun run dev --bind lan
 curl -fsS http://127.0.0.1:3100/api/health
 ```
 
@@ -95,15 +95,15 @@ Use [doc/OPENCLAW_ONBOARDING.md](../../../../doc/OPENCLAW_ONBOARDING.md) as the 
 ## Regression Gates
 Required before merge:
 ```bash
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
-If full suite is too heavy locally, run at least:
+If full suite is too heavy locally, run at least (from the `com.paperclip` root — `@clayon/server` has no `test:run` script; only the root does):
 ```bash
-pnpm --filter @clayon/server test:run -- openclaw-gateway
-pnpm --filter @clayon/server typecheck
-pnpm --filter @clayon/ui typecheck
-pnpm --filter clayon typecheck
+bun run test:run -- openclaw-gateway
+bun run --filter @clayon/server typecheck
+bun run --filter @clayon/ui typecheck
+bun run --filter clayon typecheck
 ```

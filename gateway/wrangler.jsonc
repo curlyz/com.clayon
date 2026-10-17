@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The Paperclip gateway: Hono + one oRPC router on Postgres through Kysely
+  // (the antl one-stack shape, com.vintageui/apps/gateway as reference).
+  // Rung 1 is local-only: the "local-only" Hyperdrive id plus
+  // localConnectionString make wrangler dev run against local Postgres with
+  // no Cloudflare account — Homebrew postgresql@18 on 5433 (docker was
+  // unresponsive 2026-10-16; role/db `paperclip` created there, same as the
+  // vintageui Homebrew proof). Before any deploy (rung 2): create the
+  // PlanetScale Postgres database and the real Hyperdrive, put its id here.
+  "name": "paperclip-gateway",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // The spec is served byte-equal to the checked-in spec.json (stack law):
+  // import it as TEXT, not parsed JSON, so the response bytes are the file's.
+  "rules": [{ "type": "Text", "globs": ["**/spec.json"] }],
+  "compatibility_flags": ["nodejs_compat"],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "local-only",
+      "localConnectionString": "postgres://paperclip:paperclip@127.0.0.1:5433/paperclip",
+    },
+  ],
+}

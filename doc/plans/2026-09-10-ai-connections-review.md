@@ -12,7 +12,7 @@ Status: UI review approved. The app integration is implemented; see [AI Connecti
 
 The old `provider-catalog` URL is retained so links still work. It now renders the real `Browse` page, with AI accounts alongside GitHub and Gmail. It is not another product screen or another provider catalog.
 
-Build and serve with `pnpm build-storybook` and `node scripts/serve-storybook-static.mjs --port 6116`. Alternatively run `pnpm storybook` on its normal development port.
+Build and serve with `bun run build-storybook` and `node scripts/serve-storybook-static.mjs --port 6116`. Alternatively run `bun run storybook` on its normal development port.
 
 The agent picker omits the personal-account inventory and its default/authorization actions. It retains the responsible-user default preview and compatible shared or already-authorized selections. **Change Personal Default** now exercises the existing account detail page; **Authorize Personal** isolates the owner-consent dialog.
 
@@ -57,11 +57,11 @@ No fixture contains credential material. Input values are cleared after submissi
 Review the Connectors list first, then open an account, add one, reconnect, reuse it in a task, and exercise the AI binding picker. Theme and viewport controls cover desktop/narrow and light/dark. Keyboard coverage includes the shared chooser buttons, dialogs, and return focus after cancellation/completion. Harness/model values are asserted unchanged by connection selection.
 
 ```sh
-pnpm --filter @clayon/ui typecheck
-pnpm check:token-gates
-pnpm --filter @clayon/ui exec vitest run src/pages/apps/Browse.test.tsx src/pages/apps/AppDetail.test.tsx src/pages/apps/AppsConnect.test.tsx src/features/connections/ConnectionIntentInteractionBody.test.tsx src/components/ai-connections src/components/AdapterLoginChrome.test.tsx src/components/OnboardingWizard.adapters.test.tsx src/components/OnboardingWizard.test.tsx
-pnpm build-storybook
-pnpm exec playwright test --config tests/ai-connections-review/playwright.config.ts
+bun run --filter @clayon/ui typecheck
+bun run check:token-gates
+cd ui && bun x vitest run src/pages/apps/Browse.test.tsx src/pages/apps/AppDetail.test.tsx src/pages/apps/AppsConnect.test.tsx src/features/connections/ConnectionIntentInteractionBody.test.tsx src/components/ai-connections src/components/AdapterLoginChrome.test.tsx src/components/OnboardingWizard.adapters.test.tsx src/components/OnboardingWizard.test.tsx
+bun run build-storybook
+bun x playwright test --config tests/ai-connections-review/playwright.config.ts
 ```
 
 Verified: 277 focused Vitest checks, 53 browser checks across 48 stories, UI typecheck, token gates, and Storybook build. Desktop and narrow screenshots were inspected in light/dark themes.

@@ -86,13 +86,13 @@ Every snapshot includes bounded transcript/evidence, serialized mock state, sema
 Deterministic contract suite:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:scenarios
+bun run --filter @clayon/clayon-runner test:scenarios
 ```
 
 Real runnerd and Codex app-server smoke:
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:live-runner -- --json
+bun run --filter @clayon/clayon-runner trace:live-runner -- --json
 ```
 
 The smoke requires an authenticated local Codex installation. It checks a real semantic tool mutation, typed-result response, same-thread second turn, process ownership/cleanup, cleared authority, and zero Clayon network/child-env exposure.

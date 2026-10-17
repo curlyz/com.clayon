@@ -102,10 +102,10 @@ not presented as shipped integrations.
 ## Validation
 
 ```sh
-pnpm --filter @clayon/ui exec storybook dev --port 6143 --host 127.0.0.1 --no-open --ci -c storybook/.storybook
-pnpm --filter @clayon/ui typecheck
-pnpm check:token-gates
-pnpm build-storybook
+cd ui && bun x storybook dev --port 6143 --host 127.0.0.1 --no-open --ci -c storybook/.storybook
+bun run --filter @clayon/ui typecheck
+bun run check:token-gates
+bun run build-storybook
 ```
 
 The walkthrough stories include interaction assertions. Review all story renders,

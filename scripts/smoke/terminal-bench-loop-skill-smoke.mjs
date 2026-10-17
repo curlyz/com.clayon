@@ -53,7 +53,7 @@ Usage:
   CLAYON_API_URL=http://localhost:3100 \\
   CLAYON_API_KEY=... \\
   CLAYON_COMPANY_ID=... \\
-  pnpm smoke:terminal-bench-loop-skill
+  bun run smoke:terminal-bench-loop-skill
 
 Options:
   --source-issue-id <uuid>  Attach smoke issues under an existing Clayon issue.

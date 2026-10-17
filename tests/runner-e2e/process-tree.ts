@@ -153,6 +153,7 @@ const diagnosticProcessKinds = new Set([
   "node",
   "clayon-runnerd",
   "playwright",
+  "bun",
   "pnpm",
   "postgres",
   "sh",

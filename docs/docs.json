@@ -16,7 +16,7 @@
   "topbarLinks": [
     {
       "name": "GitHub",
-      "url": "https://github.com/clayon-ai/clayon"
+      "url": "https://github.com/anatalab/antl"
     }
   ],
   "navigation": {
@@ -39,6 +39,16 @@
         "tab": "Guides",
         "groups": [
           {
+            "group": "Concepts",
+            "pages": [
+              "agents-runtime",
+              "built-in-agents",
+              "feedback-voting",
+              "pipelines-tutorial",
+              "guides/execution-policy"
+            ]
+          },
+          {
             "group": "Board Operator",
             "pages": [
               "guides/board-operator/dashboard",
@@ -47,8 +57,6 @@
               "guides/board-operator/managing-agents",
               "guides/board-operator/org-structure",
               "guides/board-operator/managing-tasks",
-              "guides/board-operator/execution-workspaces-and-runtime-services",
-              "guides/board-operator/delegation",
               "guides/board-operator/execution-workspaces-and-runtime-services",
               "guides/board-operator/delegation",
               "guides/board-operator/experimental-features",
@@ -69,7 +77,14 @@
               "guides/agent-developer/task-workflow",
               "guides/agent-developer/comments-and-communication",
               "guides/agent-developer/handling-approvals",
-              "guides/agent-developer/cost-reporting"
+              "guides/agent-developer/cost-reporting",
+              "guides/agent-developer/mcp-fixture-smoke"
+            ]
+          },
+          {
+            "group": "Setup Recipes",
+            "pages": [
+              "guides/openclaw-docker-setup"
             ]
           }
         ]
@@ -84,11 +99,13 @@
               "deploy/local-development",
               "deploy/tailscale-private-access",
               "deploy/docker",
+              "deploy/aws-ecs",
               "deploy/deployment-modes",
               "deploy/database",
               "deploy/secrets",
               "deploy/storage",
-              "deploy/environment-variables"
+              "deploy/environment-variables",
+              "deploy/dev-plane-restart-hygiene"
             ]
           }
         ]
@@ -102,6 +119,8 @@
               "adapters/overview",
               "adapters/claude-local",
               "adapters/codex-local",
+              "adapters/gemini-local",
+              "adapters/kimi-local",
               "adapters/process",
               "adapters/http",
               "adapters/external-adapters",
@@ -124,8 +143,10 @@
               "api/issues",
               "api/approvals",
               "api/goals-and-projects",
+              "api/routines",
               "api/costs",
               "api/secrets",
+              "api/secrets-remote-import",
               "api/activity",
               "api/dashboard"
             ]
@@ -148,6 +169,6 @@
     ]
   },
   "footerSocials": {
-    "github": "https://github.com/clayon-ai/clayon"
+    "github": "https://github.com/anatalab/antl"
   }
 }

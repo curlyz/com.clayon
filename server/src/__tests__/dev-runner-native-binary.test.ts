@@ -45,7 +45,7 @@ describe("clayon runner native dev prerequisite", () => {
     expect(
       resolveNativeRunnerRequirement({
         exitCode: 0,
-        stdout: "pnpm warning\n{\"nativeRunnerRequired\":false}\n",
+        stdout: "bun warning\n{\"nativeRunnerRequired\":false}\n",
       }),
     ).toEqual({ nativeRunnerRequired: false, valid: true });
     expect(

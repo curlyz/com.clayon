@@ -265,7 +265,7 @@ Run the normal database migration process before starting the new server.
 Stop older server processes during the change.
 An older process can write the legacy status without the new lifecycle checks.
 
-`pnpm check:module-boundaries` checks the module imports and agent writes.
+`bun run check:module-boundaries` checks the module imports and agent writes.
 Tests and migration fixtures can write records directly.
 Production creation and lifecycle state writes must use the lifecycle module.
 Production record deletion must also use the lifecycle module.
@@ -278,5 +278,5 @@ Add a lifecycle command to the module entry point. Put state transition rules in
 `domain/policy.ts`. Put database operations in the module adapters.
 Keep harness and provider rules in services. Supply external work through the
 worker driver. Report completion only after that work is complete.
-Add a test for a failed or repeated operation. Run `pnpm check:module-boundaries`
+Add a test for a failed or repeated operation. Run `bun run check:module-boundaries`
 to check the import and write boundaries.

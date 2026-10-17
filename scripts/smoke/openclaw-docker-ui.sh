@@ -127,15 +127,7 @@ fi
 log "writing OpenClaw config under $OPENCLAW_CONFIG_DIR"
 if [[ "$OPENCLAW_RESET_STATE" == "1" ]]; then
   # Ensure deterministic smoke behavior across reruns by restarting with a clean state dir.
-  OPENCLAW_CONFIG_DIR="$OPENCLAW_CONFIG_DIR" \
-    OPENCLAW_WORKSPACE_DIR="$OPENCLAW_WORKSPACE_DIR" \
-    OPENCLAW_GATEWAY_PORT="$OPENCLAW_GATEWAY_PORT" \
-    OPENCLAW_BRIDGE_PORT="$OPENCLAW_BRIDGE_PORT" \
-    OPENCLAW_GATEWAY_BIND="$OPENCLAW_GATEWAY_BIND" \
-    OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
-    OPENCLAW_IMAGE="$OPENCLAW_IMAGE" \
-    OPENAI_API_KEY="$OPENAI_API_KEY" \
-    docker compose -f "$OPENCLAW_DOCKER_DIR/docker-compose.yml" down --remove-orphans >/dev/null 2>&1 || true
+  docker compose -f "$OPENCLAW_DOCKER_DIR/docker-compose.yml" down --remove-orphans >/dev/null 2>&1 || true
   reset_openclaw_state_dir "$OPENCLAW_CONFIG_DIR"
 fi
 mkdir -p "$OPENCLAW_WORKSPACE_DIR" "$OPENCLAW_CONFIG_DIR/identity" "$OPENCLAW_CONFIG_DIR/credentials"
@@ -278,7 +270,7 @@ EOF
   Auto-detect failed. Try: http://host.docker.internal:${CLAYON_HOST_PORT}
   (Do not use http://127.0.0.1:${CLAYON_HOST_PORT} inside the container.)
   If Clayon rejects the host, run on host machine:
-    pnpm clayon allowed-hostname host.docker.internal
+    bun run clayon allowed-hostname host.docker.internal
   Then restart Clayon and re-run this script.
 EOF
   fi
@@ -311,7 +303,7 @@ EOF
   Auto-detect failed. Try: http://host.docker.internal:${CLAYON_HOST_PORT}
   (Do not use http://127.0.0.1:${CLAYON_HOST_PORT} inside the container.)
   If Clayon rejects the host, run on host machine:
-    pnpm clayon allowed-hostname host.docker.internal
+    bun run clayon allowed-hostname host.docker.internal
   Then restart Clayon and re-run this script.
 EOF
   fi

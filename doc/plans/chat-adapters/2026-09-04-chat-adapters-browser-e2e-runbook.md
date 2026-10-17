@@ -151,7 +151,7 @@ A mock pass cannot replace the live-provider pass. A live-provider pass also doe
 Before opening a real provider, I run the deterministic Clayon-side browser case for that provider:
 
 ```sh
-pnpm exec playwright test \
+bun x playwright test \
   --config tests/e2e/playwright.config.ts \
   tests/e2e/chat-adapters-ui-providers.spec.ts \
   --grep '^Slack:'

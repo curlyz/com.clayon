@@ -1,6 +1,13 @@
 import { accessSync, constants, readFileSync, realpathSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { delimiter, dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { z } from "zod";
+
+const codexPackageManifestSchema = z.object({
+  name: z.string().optional(),
+  version: z.string().optional(),
+  bin: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
+});
 
 /** Prefer the installed dependency; compatibility is established by the CLI protocol. */
 export function resolveCodexCommand(
@@ -16,25 +23,26 @@ export function resolveCodexCommand(
       try {
         bridgeManifest = runnerRequire.resolve("@agentclientprotocol/codex-acp/package.json");
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "MODULE_NOT_FOUND") throw error;
-        // pnpm can retain the bridge inside its declared adapter dependency.
+        const parsedErrorCode = z.object({ code: z.string() }).safeParse(error);
+        if (!parsedErrorCode.success || parsedErrorCode.data.code !== "MODULE_NOT_FOUND") throw error;
+        // The package manager can retain the bridge inside its declared adapter dependency.
         const adapter = runnerRequire.resolve("@clayon/adapter-codex-local/server");
         bridgeManifest = createRequire(adapter).resolve("@agentclientprotocol/codex-acp/package.json");
       }
       manifestPath = createRequire(bridgeManifest).resolve("@openai/codex/package.json");
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "MODULE_NOT_FOUND") throw error;
+      const parsedErrorCode = z.object({ code: z.string() }).safeParse(error);
+      if (!parsedErrorCode.success || parsedErrorCode.data.code !== "MODULE_NOT_FOUND") throw error;
       try {
         manifestPath = runnerRequire.resolve("@openai/codex/package.json");
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "MODULE_NOT_FOUND") throw error;
+        const parsedErrorCode = z.object({ code: z.string() }).safeParse(error);
+        if (!parsedErrorCode.success || parsedErrorCode.data.code !== "MODULE_NOT_FOUND") throw error;
         return resolveCodexOnPath(environment, workingDirectory);
       }
     }
     manifestPath = realpathSync(manifestPath);
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
-      name?: unknown; version?: unknown; bin?: string | Record<string, unknown>;
-    };
+    const manifest = codexPackageManifestSchema.parse(readFileSync(manifestPath, "utf8"));
     if (manifest.name !== "@openai/codex") throw new Error("Installed Codex dependency has an unexpected package identity");
     const bin = typeof manifest.bin === "string" ? manifest.bin : manifest.bin?.codex;
     if (typeof bin !== "string" || !bin || bin.includes("\0") || isAbsolute(bin)) {

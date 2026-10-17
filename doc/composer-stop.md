@@ -49,7 +49,7 @@ when the interrupted checkpoint cannot be restored.
 The credential-free ACP regression journey uses an actual ACP child process:
 
 ```sh
-pnpm exec playwright test --config tests/e2e/playwright.config.ts tests/e2e/acp-stop-continuation.spec.ts
+bun x playwright test --config tests/e2e/playwright.config.ts tests/e2e/acp-stop-continuation.spec.ts
 ```
 
 It covers the queued-follow-up sequence (queue a second request, stop, then send “go”),
@@ -107,7 +107,7 @@ stories were inspected in the browser.
 Run from the worktree:
 
 ```sh
-pnpm --filter @clayon/ui exec storybook dev -p 6016 -c storybook/.storybook --no-open
+cd ui && bun x storybook dev -p 6016 -c storybook/.storybook --no-open
 ```
 
 Open `http://localhost:6016/?path=/story/composer-execution-controls--running-empty`.
@@ -120,13 +120,13 @@ verification belongs to the isolated browser suite below.
 ## Automated verification
 
 ```sh
-pnpm exec vitest run --project @clayon/ui ui/src/components/task-chat/TaskChatComposer.test.tsx ui/src/components/TaskChatThread.test.tsx ui/src/pages/IssueDetail.test.tsx ui/src/lib/wait-for-stopped-runs.test.ts
-pnpm exec vitest run --project @clayon/server server/src/__tests__/issue-tree-control-routes.test.ts
-pnpm check:token-gates
-pnpm build-storybook
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun x vitest run --project @clayon/ui ui/src/components/task-chat/TaskChatComposer.test.tsx ui/src/components/TaskChatThread.test.tsx ui/src/pages/IssueDetail.test.tsx ui/src/lib/wait-for-stopped-runs.test.ts
+bun x vitest run --project @clayon/server server/src/__tests__/issue-tree-control-routes.test.ts
+bun run check:token-gates
+bun run build-storybook
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 The component/page tests cover whitespace, attachments and upload restrictions,
@@ -142,7 +142,7 @@ exclusions.
 Legacy process coverage needs no provider credentials:
 
 ```sh
-pnpm exec playwright test --config tests/e2e/playwright-composer-stop.config.ts
+bun x playwright test --config tests/e2e/playwright-composer-stop.config.ts
 ```
 
 To include native execution, build the real runner and deterministic Codex
@@ -153,7 +153,7 @@ paths:
 cargo build --manifest-path packages/clayon-runner/runner/Cargo.toml --bin clayon-runnerd --bin fake-codex-app-server
 CLAYON_STOP_FAKE_CODEX="$PWD/packages/clayon-runner/runner/target/debug/fake-codex-app-server" \
 CLAYON_RUNNER_BINARY="$PWD/packages/clayon-runner/runner/target/debug/clayon-runnerd" \
-pnpm exec playwright test --config tests/e2e/playwright-composer-stop.config.ts
+bun x playwright test --config tests/e2e/playwright-composer-stop.config.ts
 ```
 
 The suite boots a disposable local-trusted instance on port 3199 (override with

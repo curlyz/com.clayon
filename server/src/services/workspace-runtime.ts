@@ -36,6 +36,7 @@ import { and, desc, eq, gte, inArray, isNull, lte, ne, or } from "drizzle-orm";
 import { asNumber, asString, parseObject, renderTemplate } from "../adapters/utils.js";
 import { conflict } from "../errors.js";
 import { resolveHomeAwarePath } from "../home-paths.js";
+import { logger } from "../middleware/logger.js";
 import { hasVerifiedWorktreeSeedManifest, isVerifiedWorktreeSeedManifest } from "../worktree-seed-manifest.js";
 import {
   buildManagedWorkspaceGuestEnv,
@@ -561,7 +562,7 @@ function readJsonFile(filePath: string): Record<string, unknown> {
 function findWorkspaceRoot(startCwd: string) {
   let current = path.resolve(startCwd);
   while (true) {
-    if (existsSync(path.join(current, "pnpm-workspace.yaml"))) {
+    if (existsSync(path.join(current, "bun.lock"))) {
       return current;
     }
     const parent = path.dirname(current);
@@ -7285,7 +7286,7 @@ function registerRuntimeService(db: Db | undefined, record: RuntimeServiceRecord
         await persistRuntimeServiceRecord(db, current);
       } catch (err) {
         const detail = err instanceof Error ? err.message : String(err);
-        console.warn(
+        logger.warn(
           `[workspace-runtime] runtime service exit cleanup failed for ${current.id}: ${detail}`,
         );
       }
@@ -8423,7 +8424,7 @@ export async function reconcilePersistedRuntimeServicesOnStartup(db: Db) {
   const companyIdByRowId = new Map(rows.map((row) => [row.id, row.companyId] as const));
   for (const entry of exposureReservationDrift) {
     const description = describeExposureReservationDrift(entry);
-    console.warn(`[workspace-runtime] exposure reservation drift: ${description}`);
+    logger.warn({ description }, `[workspace-runtime] exposure reservation drift: ${description}`);
     const companyId = companyIdByRowId.get(entry.runtimeServiceId);
     if (!companyId) continue;
     await logActivity(db, {

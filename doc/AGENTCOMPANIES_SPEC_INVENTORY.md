@@ -1,6 +1,6 @@
 # Agent Companies Spec Inventory
 
-This document indexes every part of the Clayon codebase that touches the [Agent Companies Specification](docs/companies/companies-spec.md) (`agentcompanies/v1-draft`).
+This document indexes every part of the Clayon codebase that touches the [Agent Companies Specification](doc/specs/companies-spec.md) (`agentcompanies/v1-draft`).
 
 Use it when you need to:
 
@@ -14,10 +14,10 @@ Use it when you need to:
 
 | File | Role |
 |---|---|
-| `docs/companies/companies-spec.md` | **Normative spec** — defines the markdown-first package format (COMPANY.md, TEAM.md, AGENTS.md, PROJECT.md, TASK.md, SKILL.md), reserved files, frontmatter schemas, and vendor extension conventions (`.clayon.yaml`). |
+| `doc/specs/companies-spec.md` | **Normative spec** — defines the markdown-first package format (COMPANY.md, TEAM.md, AGENTS.md, PROJECT.md, TASK.md, SKILL.md), reserved files, frontmatter schemas, and vendor extension conventions (`.clayon.yaml`). |
 | `doc/plans/2026-03-13-company-import-export-v2.md` | Implementation plan for the markdown-first package model cutover — phases, API changes, UI plan, and rollout strategy. |
 | `doc/SPEC-implementation.md` | V1 implementation contract; references the portability system and `.clayon.yaml` sidecar format. |
-| `docs/specs/cliphub-plan.md` | Earlier blueprint bundle plan; partially superseded by the markdown-first spec (noted in the v2 plan). |
+| `doc/specs/cliphub-plan.md` | Earlier blueprint bundle plan; partially superseded by the markdown-first spec (noted in the v2 plan). |
 | `doc/plans/2026-02-16-module-system.md` | Module system plan; JSON-only company template sections superseded by the markdown-first model. |
 | `doc/plans/2026-03-14-skills-ui-product-plan.md` | Skills UI plan; references portable skill files and `.clayon.yaml`. |
 | `doc/plans/2026-03-14-adapter-skill-sync-rollout.md` | Adapter skill sync rollout; companion to the v2 import/export plan. |

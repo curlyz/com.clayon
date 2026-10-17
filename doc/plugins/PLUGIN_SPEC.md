@@ -244,7 +244,7 @@ This on-disk model is the reason the current implementation expects a persistent
 
 Clayon should add CLI commands:
 
-- `pnpm clayon plugin list`
+- `bun run clayon plugin list`
 - `npx clayon plugin install <package[@version]>`
 - `npx clayon plugin uninstall <plugin-id>`
 - `npx clayon plugin upgrade <plugin-id> [version]`

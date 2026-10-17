@@ -47,9 +47,9 @@ Focused coverage includes provider event identity, structured failure propagatio
 Finish the runner build before browser acceptance. Do not rebuild generated provider artifacts while a fixture consumes them.
 
 ```sh
-pnpm exec playwright test --config tests/e2e/execution-recovery/playwright.config.ts recovery.spec.ts
-pnpm --filter @clayon/ui build-storybook
-RECOVERY_STORYBOOK_URL=http://127.0.0.1:6108 pnpm exec playwright test --config tests/e2e/execution-recovery/playwright.config.ts storybook.spec.ts
+bun x playwright test --config tests/e2e/execution-recovery/playwright.config.ts recovery.spec.ts
+bun run --filter @clayon/ui build-storybook
+RECOVERY_STORYBOOK_URL=http://127.0.0.1:6108 bun x playwright test --config tests/e2e/execution-recovery/playwright.config.ts storybook.spec.ts
 ```
 
 Serve the built Storybook at the configured URL before the second browser command. The recovery suite creates and stops fresh test-drive instances itself. Each journey records its actual URL, data directory, checkout, task/run identifiers, provider calls, and screenshots in the Playwright output directory.

@@ -22,7 +22,7 @@ If `currentExecutionWorkspace` is `null`, the issue does not currently have a re
 
 ## Control Services
 
-Prefer Clayon-managed runtime service controls over manual `pnpm dev &` or ad-hoc background processes. These endpoints keep service state, URLs, logs, and ownership visible to other agents and the board.
+Prefer Clayon-managed runtime service controls over manual `bun run dev &` or ad-hoc background processes. These endpoints keep service state, URLs, logs, and ownership visible to other agents and the board.
 
 ```sh
 # Start all configured services; waits for configured readiness checks.

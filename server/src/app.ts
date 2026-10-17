@@ -553,7 +553,7 @@ export async function createApp(
     _res: express.Response,
     buf: Buffer,
   ) => {
-    (req as unknown as { rawBody: Buffer }).rawBody = buf;
+    req.rawBody = buf;
   };
 
   // Respect the operator's `TRUST_PROXY` env var (see middleware/trust-proxy.ts).
@@ -1126,7 +1126,7 @@ export async function createApp(
           .end(readBrandedStaticIndexHtml(uiDist));
       });
     } else {
-      console.warn("[clayon] UI dist not found; running in API-only mode");
+      logger.warn("[clayon] UI dist not found; running in API-only mode");
     }
     if (process.env.CLAYON_MANAGED_RUNTIME_EXPOSURE === "tailscale_https") {
       // The managed-runtime supervisor waits for the app port AND its derived
@@ -1339,7 +1339,7 @@ export async function createApp(
       (await pluginRegistry.getById(pluginId))?.packagePath ?? null,
   );
   // Auto-provision bundled plugins so their providers are registered for
-  // agent runs. Bundles are excluded from the pnpm
+  // agent runs. Bundles are excluded from the bun
   // workspace and built standalone into the image (see Dockerfile), then
   // installed here from their local paths. This runs BEFORE loadAll() so
   // loadAll() can activate them in the same startup pass.

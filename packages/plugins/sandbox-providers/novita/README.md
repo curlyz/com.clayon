@@ -2,7 +2,7 @@
 
 Published Novita Agent Sandbox provider plugin for Clayon.
 
-This package lives in the Clayon monorepo, but it is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. That means operators can install it from the Plugins page by package name, and the host will fetch its transitive dependencies at install time without adding lockfile churn to the Clayon repo.
+This package lives in the Clayon monorepo, but it is intentionally excluded from the root Bun workspace and shaped to publish and install like a standalone npm package. That means operators can install it from the Plugins page by package name, and the host will fetch its transitive dependencies at install time without adding lockfile churn to the Clayon repo.
 
 ## Install
 
@@ -26,10 +26,10 @@ Configure Novita from `Instance Settings -> Environments`, not from the plugin's
 
 ```bash
 cd packages/plugins/sandbox-providers/novita
-pnpm install --ignore-workspace --no-lockfile
-pnpm build
-pnpm test
-pnpm typecheck
+bun install --no-save
+bun run build
+bun run test
+bun run typecheck
 ```
 
 These commands assume the repo root has already been installed once so the local `@clayon/plugin-sdk` workspace package is available to the compiler during development.

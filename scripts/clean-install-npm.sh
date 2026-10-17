@@ -19,7 +19,7 @@ export PATH="$PC_HOME/.local/bin:$PATH"
 if [ "$PC_INSTALL_DRIVER" = "published" ]; then
   (cd "$PC_TEST_ROOT" && npx --yes --registry https://registry.npmjs.org clayon install)
 else
-  (cd "$REPO_ROOT" && pnpm clayon install --yes)
+  (cd "$REPO_ROOT" && bun run clayon install --yes)
 fi
 
 test -x "$PC_HOME/.local/bin/clayon"
@@ -29,7 +29,7 @@ clayon --version
 
 mkdir -p "$CLAYON_HOME/instances/default"
 touch "$CLAYON_HOME/instances/default/user-data-marker"
-(cd "$REPO_ROOT" && pnpm clayon uninstall)
+(cd "$REPO_ROOT" && bun run clayon uninstall)
 
 test ! -e "$CLAYON_HOME/cli"
 test ! -e "$PC_HOME/.local/bin/clayon"

@@ -26,16 +26,16 @@ npx wrangler secret put BRIDGE_AUTH_TOKEN
 
 ```bash
 cd bridge-template
-pnpm install --ignore-workspace --no-lockfile
-pnpm test
-pnpm typecheck
-pnpm dev
+bun install --no-save
+bun run test
+bun run typecheck
+bun run dev
 ```
 
 ## Deploy
 
 ```bash
-pnpm deploy
+bun run deploy
 ```
 
 After deploy, configure Clayon with:

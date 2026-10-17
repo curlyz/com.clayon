@@ -15,7 +15,7 @@ The package-local eval slice provides deterministic, credential-free scoring for
 Run the offline slice with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:eval-slice
+bun run --filter @clayon/clayon-runner test:eval-slice
 ```
 
 Provider-backed campaigns and recorded evidence are intentionally outside this package boundary.

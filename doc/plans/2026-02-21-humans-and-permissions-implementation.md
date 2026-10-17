@@ -3,7 +3,7 @@
 Status: Draft
 Date: 2026-02-21
 Owners: Server + UI + CLI + DB + Shared
-Companion plan: `doc/plan/humans-and-permissions.md`
+Companion plan: `doc/plans/2026-02-21-humans-and-permissions.md`
 
 ## 1. Document role
 
@@ -625,16 +625,16 @@ Required UX:
 Before handoff:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 If any command is skipped, record exactly what was skipped and why.
 
 ## 15. Done criteria
 
-1. Behavior matches locked V1 decisions in this doc and `doc/plan/humans-and-permissions.md`.
+1. Behavior matches locked V1 decisions in this doc and `doc/plans/2026-02-21-humans-and-permissions.md`.
 2. Cloud mode requires auth; local mode has no login UX.
 3. Unified invite + pending approval flow works for both humans and agents.
 4. Shared principal membership + permission system is live for users and agents.

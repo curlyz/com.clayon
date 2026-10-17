@@ -287,17 +287,17 @@ test("the stacked PR scope selector runs full CI only where intended", () => {
 });
 
 test("the trusted PR workflow passes the shard's spec filter to Playwright without a literal --", () => {
-  // `pnpm run test:e2e -- $specs` forwards the literal separator to Playwright,
+  // `bun run test:e2e -- $specs` forwards the literal separator to Playwright,
   // so the specs after it are not applied as file filters.
   const workflow = readTrustedPrWorkflow();
   assert.ok(
-    !/pnpm run test:e2e --\s/.test(workflow),
-    "pr-trusted.yml must not insert a literal `--` between `pnpm run test:e2e` and the spec filter",
+    !/bun run test:e2e --\s/.test(workflow),
+    "pr-trusted.yml must not insert a literal `--` between `bun run test:e2e` and the spec filter",
   );
   assert.match(
     workflow,
-    /pnpm run test:e2e \$specs/,
-    "pr-trusted.yml e2e_shards must invoke `pnpm run test:e2e $specs`",
+    /bun run test:e2e \$specs/,
+    "pr-trusted.yml e2e_shards must invoke `bun run test:e2e $specs`",
   );
 });
 
@@ -313,12 +313,12 @@ test("the trusted PR workflow regenerates stale stacked lockfiles", () => {
   const policy = workflow.split("  policy:\n")[1].split("  typecheck_release_registry:\n")[0];
   assert.doesNotMatch(
     policy,
-    /cache: pnpm|uses: actions\/cache/,
+    /cache: bun|uses: actions\/cache/,
     "resolution-only policy must not restore or save a dependency store",
   );
   assert.match(
     policy,
-    /pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile/,
+    /bun install --ignore-scripts --lockfile-only/,
     "the policy job must resolve the complete merge tree without rewriting platform metadata",
   );
 
@@ -326,7 +326,7 @@ test("the trusted PR workflow regenerates stale stacked lockfiles", () => {
   // resolves a stale lockfile inline, so a manifest-changing or stacked PR
   // still installs while the policy job validates resolution in parallel.
   const fallbackInstalls = workflow.match(
-    /if ! pnpm install --frozen-lockfile; then\n[\s\S]{0,240}?pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile\n\s+pnpm install --frozen-lockfile\n\s+fi/g,
+    /if ! bun install --frozen-lockfile; then\n[\s\S]{0,240}?bun install --ignore-scripts --lockfile-only\n\s+bun install --frozen-lockfile\n\s+fi/g,
   ) ?? [];
   assert.equal(
     fallbackInstalls.length,

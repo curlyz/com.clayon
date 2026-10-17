@@ -59,7 +59,7 @@ describe("docker build-stamp wiring", () => {
   it("declares CLAYON_BUILD_COMMIT in the build stage before the server build", () => {
     const build = stageBody(dockerfile, "build");
     const argIdx = build.search(/^ARG CLAYON_BUILD_COMMIT\b/m);
-    const serverBuildIdx = build.search(/^RUN pnpm --filter @clayon\/server build\b/m);
+    const serverBuildIdx = build.search(/^RUN bun run --filter @clayon\/server build\b/m);
     expect(argIdx, "build stage must declare ARG CLAYON_BUILD_COMMIT").toBeGreaterThanOrEqual(0);
     expect(serverBuildIdx, "build stage must run the server build").toBeGreaterThanOrEqual(0);
     expect(

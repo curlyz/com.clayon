@@ -1,0 +1,255 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Paperclip gateway",
+    "version": "0.1.0",
+    "description": "The Paperclip control-plane API. Rung 1 carries the liveness door and the read-only agent roster of one company; later rungs add auth, more slices and the runner protocol. Every response carries Cache-Control no-store and x-request-id."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8810/api"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Liveness of the gateway",
+        "description": "Answers 200 with the service name and a generatedAt stamp.",
+        "responses": {
+          "200": {
+            "description": "The gateway is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents": {
+      "get": {
+        "operationId": "listAgents",
+        "summary": "The agent roster of one company",
+        "description": "Agents of the given company, newest first, at most the limit. The read model is the stable roster subset of the agents table; no config or secret field ever reaches the wire.",
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": true,
+            "description": "The company whose agents are listed.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum agents returned, 1 to 100, default 20.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The agent roster, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agents/{agentId}": {
+      "get": {
+        "operationId": "readAgent",
+        "summary": "One agent of the roster",
+        "description": "The roster subset of one agent by id. An unknown id answers 404.",
+        "parameters": [
+          {
+            "name": "agentId",
+            "in": "path",
+            "required": true,
+            "description": "The agent id.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The agent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No agent with that id"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Agent": {
+        "type": "object",
+        "required": [
+          "id",
+          "companyId",
+          "name",
+          "role",
+          "title",
+          "status",
+          "lifecycleState",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The agent id."
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The owning company id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the agent."
+          },
+          "role": {
+            "type": "string",
+            "description": "Functional role, default general."
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional human job title."
+          },
+          "status": {
+            "type": "string",
+            "description": "Runtime status, default idle."
+          },
+          "lifecycleState": {
+            "type": "string",
+            "description": "Lifecycle state, default ready."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation."
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of the last update."
+          }
+        },
+        "additionalProperties": false
+      },
+      "AgentEnvelope": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Agent"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/GeneratedMeta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AgentList": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Agent"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/GeneratedMeta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "GeneratedMeta": {
+        "type": "object",
+        "required": [
+          "generatedAt"
+        ],
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of the response."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/HealthData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/GeneratedMeta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "HealthData": {
+        "type": "object",
+        "required": [
+          "status",
+          "service"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Always ok when this response is served."
+          },
+          "service": {
+            "type": "string",
+            "description": "The service name, paperclip-api."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

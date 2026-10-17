@@ -241,7 +241,7 @@ Run the fixture controls and Clayon integration regressions:
 
 ```sh
 node --test scripts/mcp-fixtures/servers/oauth-refresh-fixture.test.mjs
-pnpm exec vitest run server/src/__tests__/generic-mcp-connection.test.ts
+bun x vitest run server/src/__tests__/generic-mcp-connection.test.ts
 ```
 
 The integration tests use actual loopback HTTP and a disposable PostgreSQL
@@ -276,7 +276,7 @@ QA but is not required for deterministic verification.
 
 ### Opt-in generic Notion live smoke
 
-`pnpm smoke:notion-generic-live` exercises the generic **Advanced → Paste a
+`bun run smoke:notion-generic-live` exercises the generic **Advanced → Paste a
 config** route against `https://mcp.notion.com/mcp`. It is intentionally outside
 the normal unit, browser, and CI-required suites. Run it only against an
 already-running, browser-reachable HTTPS Clayon instance with these bindings
@@ -301,7 +301,7 @@ Check the URL, health endpoint, and binding metadata without retrieving the
 credential value or opening a browser:
 
 ```sh
-pnpm smoke:notion-generic-live -- --dry-run
+bun run smoke:notion-generic-live -- --dry-run
 ```
 
 The live command retrieves the credential only after the safe preflight and

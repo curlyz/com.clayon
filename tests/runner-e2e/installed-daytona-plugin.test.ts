@@ -17,7 +17,8 @@ const hash = (v: string) => createHash("sha256").update(v).digest("hex");
 afterEach(async () => { vi.unstubAllEnvs(); await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 async function fixture() {
   const root = await realpath(await mkdtemp(join(tmpdir(), "e2e-installed-plugin-"))); roots.push(root);
-  async function pkg(name: string, version: string, dependencies: Record<string,string> = {}, extra = {}) {
+  type FixturePackageExtra = { clayonPlugin?: { manifest: string; worker: string } };
+  async function pkg(name: string, version: string, dependencies: Record<string,string> = {}, extra: FixturePackageExtra = {}) {
     const dir = join(root, "node_modules", name); const entry = name === "@daytonaio/sdk" ? "./esm/index.js" : "./dist/index.js"; await mkdir(join(dir, name === "@daytonaio/sdk" ? "esm" : "dist"), { recursive: true });
     const content = JSON.stringify({ name, version, type: "module", exports: { ".": { import: name === "@daytonaio/sdk" ? { types: "./esm/index.d.ts", default: entry } : entry } }, dependencies, ...extra });
     await writeFile(join(dir, "package.json"), content); await writeFile(join(dir, entry), "// compiled");
@@ -71,7 +72,7 @@ it.skipIf(process.platform === "win32")("rejects a FIFO authority without waitin
   const f=await fixture();const p=f.env.CLAYON_RUNNER_E2E_INSTALLED_DAYTONA_PLUGIN_AUTHORITY!;await rm(p);execFileSync("/usr/bin/mkfifo",[p],{timeout:5000,env:{}});await expect(verifyInstalledDaytonaPlugin(f.env,[cell])).rejects.toThrow("bounded unlinked regular file");
 });
 it("uses the verified public package in the existing API and rejects changed bytes before any mutation", async () => {
-  // This positive fixture models the sanitized installed launcher, not pnpm's parent environment.
+  // This positive fixture models the sanitized installed launcher, not the package manager's parent environment.
   vi.stubEnv("NODE_OPTIONS", undefined); vi.stubEnv("NODE_PATH", undefined);
   const f=await fixture(); for(const [k,v]of Object.entries(f.env))vi.stubEnv(k,v!);
   const calls:unknown[]=[];

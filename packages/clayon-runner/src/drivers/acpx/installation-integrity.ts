@@ -87,7 +87,7 @@ const QUALIFIED_CODEX_LINUX_X64_RUNTIME = Object.freeze({
 });
 
 // Claude's ACP server is not a self-contained bundle: its entrypoint imports
-// these three packages directly from pnpm's real store paths. Keep that exact
+// these three packages directly from the package manager's real install paths. Keep that exact
 // package graph version-bound and descriptor-pinned instead of granting the
 // provider ambient access to the workspace's complete node_modules ancestry.
 const QUALIFIED_CLAUDE_PROVIDER_DEPENDENCIES = Object.freeze([
@@ -100,7 +100,7 @@ const QUALIFIED_CLAUDE_PROVIDER_DEPENDENCIES = Object.freeze([
     packageName: "@anthropic-ai/claude-agent-sdk",
     packageVersion: "0.3.286",
     // The package's own package.json still declares 0.3.257 — 0.3.286 is
-    // only what pnpm resolves, forced by the
+    // only what the package manager resolves, forced by the
     // "claude-agent-acp@0.73.0>@anthropic-ai/claude-agent-sdk" override in
     // the workspace root. This field binds the declared string, not the
     // resolved one; packageVersion above binds the resolved install.
@@ -108,7 +108,7 @@ const QUALIFIED_CLAUDE_PROVIDER_DEPENDENCIES = Object.freeze([
   }),
   Object.freeze({
     packageName: "zod",
-    packageVersion: "4.4.3",
+    packageVersion: "4.6.7",
     dependencyDeclaration: "^4.0.0",
   }),
 ]);
@@ -1159,8 +1159,6 @@ async function inspectCommand(
       throw new Error(`ACPX ${agent} executable digest mismatch`);
     }
     return { bytes, digest, identity: afterIdentity };
-  } catch (error) {
-    throw error;
   } finally {
     await handle.close();
   }
@@ -1914,14 +1912,13 @@ function snapshotBootstrap(format: AcpxCommandFormat, guarded = false): string {
     `const directory = process.platform === "linux" ? "/proc/self/fd/${COMMAND_DIRECTORY_FD}" : privateSnapshot.roots[0];`,
     "const directoryUrl = pathToFileURL(`${directory}/`).href;",
     "const pinnedTarget = new URL(commandName, directoryUrl).href;",
-    'const target = pinnedTarget;',
-    "process.argv.splice(1, 7, fileURLToPath(target));",
+    "process.argv.splice(1, 7, fileURLToPath(pinnedTarget));",
     `const dependencyDirectoryUrls = Array.from({ length: dependencyAncestorCount }, (_, index) => pathToFileURL((privateSnapshot ? privateSnapshot.roots[index + 1] : "/proc/self/fd/" + (${DEPENDENCY_ANCESTOR_FD_START} + index)) + "/").href);`,
     'const canonicalRootUrl = (url) => pathToFileURL(fs.realpathSync(fileURLToPath(url))).href.replace(/\\/?$/, "/");',
     'const canonicalDirectoryUrl = process.platform === "linux" ? canonicalRootUrl(directoryUrl) : directoryUrl;',
     'const canonicalDependencyDirectoryUrls = process.platform === "linux" ? dependencyDirectoryUrls.map(canonicalRootUrl) : dependencyDirectoryUrls;',
-    "const dependencyAncestorByUrl = new Map([[target, 0]]);",
-    `const descriptorFormatByUrl = new Map([[target, ${JSON.stringify(format)}]]);`,
+    "const dependencyAncestorByUrl = new Map([[pinnedTarget, 0]]);",
+    `const descriptorFormatByUrl = new Map([[pinnedTarget, ${JSON.stringify(format)}]]);`,
     `const snapshotDescriptorAncestorIndex = ${snapshotDescriptorAncestorIndex.toString()};`,
     `const snapshotDescriptorResolution = ${snapshotDescriptorResolution.toString()};`,
     "const dependencyAncestorIndex = (url) => { const recorded = dependencyAncestorByUrl.get(url); return recorded === undefined ? snapshotDescriptorAncestorIndex(url, directoryUrl, dependencyDirectoryUrls) : recorded; };",
@@ -1933,8 +1930,8 @@ function snapshotBootstrap(format: AcpxCommandFormat, guarded = false): string {
     "const resolveBareFromDescriptor = (specifier, dependencyDirectoryUrl) => { resolvingDescriptorBare = true; try { return require.resolve(specifier, { paths: [fileURLToPath(dependencyDirectoryUrl)] }); } finally { resolvingDescriptorBare = false; } };",
     "registerHooks({ resolve(specifier, context, nextResolve) {",
     "if (resolvingDescriptorBare) return nextResolve(specifier, context);",
-    "if (specifier === target) return { url: target, shortCircuit: true };",
-    "const entryImport = context.parentURL === target;",
+    "if (specifier === pinnedTarget) return { url: pinnedTarget, shortCircuit: true };",
+    "const entryImport = context.parentURL === pinnedTarget;",
     "const parentDependencyAncestorIndex = entryImport ? 0 : dependencyAncestorIndex(context.parentURL);",
     'const relativeImport = (entryImport || parentDependencyAncestorIndex >= 0) && (specifier.startsWith("./") || specifier.startsWith("../"));',
     "const pinRelativeSpecifier = () => {",
@@ -1974,7 +1971,7 @@ function snapshotBootstrap(format: AcpxCommandFormat, guarded = false): string {
     "}",
     "});",
     "}, load(url, context, nextLoad) {",
-    `if (url === target) return { format: ${JSON.stringify(format)}, source, shortCircuit: true };`,
+    `if (url === pinnedTarget) return { format: ${JSON.stringify(format)}, source, shortCircuit: true };`,
     "const dependencyDescriptorIndex = dependencyDirectoryUrls.findIndex((dependencyDirectoryUrl) => url.startsWith(dependencyDirectoryUrl));",
     "const descriptorLookup = url.startsWith(directoryUrl) || dependencyDescriptorIndex >= 0;",
     "guardSnapshotModuleResolution(false, url, descriptorLookup);",
@@ -2005,7 +2002,7 @@ function snapshotBootstrap(format: AcpxCommandFormat, guarded = false): string {
     "} finally { fs.closeSync(moduleFd); }",
     "});",
     "} });",
-    "import(target).catch((error) => { console.error(error); process.exitCode = 1; });",
+    "import(pinnedTarget).catch((error) => { console.error(error); process.exitCode = 1; });",
   ].join("");
 }
 

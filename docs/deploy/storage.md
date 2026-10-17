@@ -23,7 +23,7 @@ Production or multi-node: use S3-compatible object storage (AWS S3, MinIO, Cloud
 Configure via CLI:
 
 ```sh
-pnpm clayon configure --section storage
+bun run clayon configure --section storage
 ```
 
 ## Configuration

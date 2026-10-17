@@ -9,13 +9,13 @@ Run Clayon locally with zero external dependencies.
 ## Prerequisites
 
 - Node.js 24.11+
-- pnpm 9+
+- Bun 1.4.3+
 
 ## Start Dev Server
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -30,7 +30,7 @@ No Docker or external database required. Clayon uses embedded PostgreSQL automat
 First-time install:
 
 ```sh
-pnpm clayon run
+bun run clayon run
 ```
 
 This does:
@@ -41,25 +41,25 @@ This does:
 
 ## Bind Presets In Dev
 
-Default `pnpm dev` stays in `local_trusted` with loopback-only binding.
+Default `bun run dev` stays in `local_trusted` with loopback-only binding.
 
 To open Clayon to a private network with login enabled:
 
 ```sh
-pnpm dev --bind lan
+bun run dev --bind lan
 ```
 
 For Tailscale-only binding on a detected tailnet address:
 
 ```sh
-pnpm dev --bind tailnet
+bun run dev --bind tailnet
 ```
 
 Legacy aliases still work and map to the older broad private-network behavior:
 
 ```sh
-pnpm dev --tailscale-auth
-pnpm dev --authenticated-private
+bun run dev --tailscale-auth
+bun run dev --authenticated-private
 ```
 
 Allow additional private hostnames:
@@ -87,10 +87,10 @@ For safer parallel local experiments, initialize a dedicated worktree instance i
 ```sh
 npx clayon worktree:make local-lab --seed-mode minimal
 cd ~/clayon-local-lab
-pnpm clayon worktree env                       # inspect generated env exports
+bun run clayon worktree env                       # inspect generated env exports
 eval "$(npx clayon worktree env)"             # bash/zsh
-pnpm clayon run
-pnpm clayon doctor
+bun run clayon run
+bun run clayon doctor
 ```
 
 If the experiment gets noisy, repair or reseed the worktree without touching the main branch:
@@ -113,7 +113,7 @@ To wipe local data and start fresh:
 
 ```sh
 rm -rf ~/.clayon/instances/default/db
-pnpm dev
+bun run dev
 ```
 
 ## Data Locations
@@ -130,5 +130,5 @@ pnpm dev
 Override with environment variables:
 
 ```sh
-CLAYON_HOME=/custom/path CLAYON_INSTANCE_ID=dev pnpm clayon run
+CLAYON_HOME=/custom/path CLAYON_INSTANCE_ID=dev bun run clayon run
 ```

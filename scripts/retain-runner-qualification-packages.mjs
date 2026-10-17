@@ -51,7 +51,7 @@ export function retainRunnerQualificationPackages({ repo, output, sourceRevision
     const sdk = JSON.parse(readFileSync(join(repo, 'packages/plugins/sdk/package.json')));
     writeFileSync(join(staging, 'packages/plugins/sdk/package.json'), JSON.stringify({ ...sdk, version: releaseVersion }));
     pack(plugin, pluginManifest.name, false);
-    // The separate private eval SDK is already built by pnpm build. Packing
+    // The separate private eval SDK is already built by bun run build. Packing
     // it does not substitute for the public server's packaged runner.
     const runner = join(staging, 'runner');
     mkdirSync(runner);

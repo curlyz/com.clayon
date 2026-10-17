@@ -16,8 +16,8 @@ value. `npx clayon` works on any machine with Node: it runs a local install
 of the `clayon` package, and it fetches the published package when no local
 install is present.
 
-Do not use `pnpm clayon` for a content-bearing argument. `pnpm clayon`
-is a `package.json` script. `pnpm` builds a `/bin/sh` command string and appends
+Do not use `bun run clayon` for a content-bearing argument. `bun run clayon`
+is a `package.json` script. `bun` builds a `/bin/sh` command string and appends
 the argument to it, so the shell reads the argument first. The shell interprets
 these spans before the CLI starts:
 
@@ -27,7 +27,7 @@ these spans before the CLI starts:
 A crafted value can run an arbitrary command as the invoking user. A crafted
 value can also expand an environment variable into the stored argument. No
 CLI-side check stops this, because the shell runs before `cli/src` starts. This
-is true even when the argument comes from a quoted shell variable, because `pnpm`
+is true even when the argument comes from a quoted shell variable, because `bun`
 re-evaluates the value in its own shell.
 
 Safe forms:
@@ -36,27 +36,28 @@ Safe forms:
   `argv` value and runs on any machine.
 - `node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts <command> <args>` —
   the safe form to run the local source from a monorepo checkout. It is the exact
-  command that the `pnpm clayon` script wraps, but it runs directly, so no
+  command that the `bun run clayon` script wraps, but it runs directly, so no
   shell reads the argument. Use it when you must test your local `cli/src`
   changes with a content-bearing argument.
 
 Unsafe or broken forms:
 
-- `pnpm clayon <command> <args>` — unsafe. `pnpm` runs the argument through a
-  shell first.
-- `pnpm run <script> -- <args>`, or any `package.json` script that wraps the CLI —
+- `bun run clayon <command> <args>` — unsafe. `bun run` runs the argument
+  through a shell first.
+- `bun run <script> -- <args>`, or any `package.json` script that wraps the CLI —
   unsafe for the same reason.
-- `pnpm exec clayon <command> <args>` — broken. The root workspace does not
-  depend on the `clayon` package, so `pnpm` does not link its binary into
-  `node_modules/.bin`. The command fails with `Command "clayon" not found`,
-  even after a build. Do not use it.
+- `bun x clayon <command> <args>` — wrong, not broken. `bun x` auto-installs
+  the `clayon` package from the npm registry when it is not linked locally, so
+  the command runs the PUBLISHED `clayon`, never the local `cli/src` changes.
+  An agent testing local source this way silently exercises stale published
+  code. Prefer the local form above.
 
 Static placeholders only: a document must show a static placeholder such as
 `<host>` in a command example, never a live `$( )` or `$NAME` span. The reader's
 own shell expands such a span on paste, before any CLI or `npx` receives argv, so
 a direct-exec form does not stop it.
 
-`pnpm clayon` stays acceptable only for a fully literal local lifecycle or
+`bun run clayon` stays acceptable only for a fully literal local lifecycle or
 setup command. A fully literal command carries no substitutable value. It has no
 placeholder, no example value the reader replaces, no interpolation, no path, no
 ref, no id, and no name. It holds the subcommand and, at most, flags that take no
@@ -64,7 +65,7 @@ value.
 
 The allowlist of literal commands lives in one place:
 `server/src/__tests__/cli-invocation-safety.test.ts`. A guard test enforces it
-fail-closed. Any `pnpm clayon` line whose command string is not an exact
+fail-closed. Any `bun run clayon` line whose command string is not an exact
 allowlist entry is an offender. The allowlist holds commands such as `run`,
 `onboard`, `onboard --yes`, `doctor`, `configure --section <name>`, `connect`,
 `env-lab up`, `env-lab down`, `context show`, `context list`,
@@ -84,7 +85,7 @@ For a command that must run the local checked-out source with a value, use the
 direct-exec form: `node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts
 <command> <args>`.
 
-The `pnpm --filter @clayon/*` build and test commands are not CLI
+The `bun run --filter @clayon/*` build and test commands are not CLI
 invocation. They do not change.
 
 ### Offline and air-gapped use
@@ -120,7 +121,7 @@ local source.
 Use repo script in development:
 
 ```sh
-pnpm clayon --help
+bun run clayon --help
 ```
 
 Recommended installation and interactive onboarding:
@@ -145,7 +146,7 @@ allowing it to bootstrap Node.js with privileged package-manager commands.
 First-time local bootstrap from a source checkout:
 
 ```sh
-pnpm clayon run
+bun run clayon run
 ```
 
 Choose local instance:
@@ -315,10 +316,10 @@ npx clayon allowed-hostname dotta-macbook-pro
 Bring up the default local SSH fixture for environment testing:
 
 ```sh
-pnpm clayon env-lab up
-pnpm clayon env-lab doctor
-pnpm clayon env-lab status --json
-pnpm clayon env-lab down
+bun run clayon env-lab up
+bun run clayon env-lab doctor
+bun run clayon env-lab status --json
+bun run clayon env-lab down
 ```
 
 All client commands support:
@@ -345,7 +346,7 @@ Connection failures include the attempted URL and a `GET /api/health` check hint
 ## Connect Wizard
 
 ```sh
-pnpm clayon connect
+bun run clayon connect
 ```
 
 `connect` confirms the resolved API base, verifies `GET /api/health`, authenticates board access when needed, and saves a persona-aware profile:
@@ -369,8 +370,8 @@ Store local defaults in `~/.clayon/context.json`:
 ```sh
 npx clayon context set --api-base http://localhost:3100 --company-id <company-id>
 npx clayon context set --persona agent --agent-id <agent-id> --api-key-env-var-name CLAYON_API_KEY
-pnpm clayon context show
-pnpm clayon context list
+bun run clayon context show
+bun run clayon context list
 npx clayon context use default
 ```
 
@@ -1157,7 +1158,7 @@ Default paths for the canonical install:
 Override base home or instance with env vars:
 
 ```sh
-CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev pnpm clayon run
+CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev bun run clayon run
 ```
 
 ## Storage Configuration
@@ -1165,7 +1166,7 @@ CLAYON_HOME=/custom/home CLAYON_INSTANCE_ID=dev pnpm clayon run
 Configure storage provider and settings:
 
 ```sh
-pnpm clayon configure --section storage
+bun run clayon configure --section storage
 ```
 
 Supported providers:

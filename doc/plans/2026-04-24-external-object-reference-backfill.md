@@ -8,10 +8,12 @@ Backfill existing issue titles, descriptions, comments, and documents into `exte
 
 Add a command parallel to the internal issue-reference backfill:
 
+None of these commands was ever implemented; the shipped sibling is `issue-references:backfill`.
+
 ```sh
-pnpm external-objects:backfill
-pnpm external-objects:backfill -- --company <company-id>
-pnpm external-objects:backfill -- --dry-run
+bun run external-objects:backfill
+bun run external-objects:backfill -- --company <company-id>
+bun run external-objects:backfill -- --dry-run
 ```
 
 ## Required Behavior

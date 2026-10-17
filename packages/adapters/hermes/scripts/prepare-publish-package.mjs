@@ -11,7 +11,7 @@ const devPackageJsonPath = join(packageDir, "package.dev.json");
 function findRepoRoot(startDir) {
   let current = startDir;
   while (current !== dirname(current)) {
-    if (existsSync(join(current, "pnpm-workspace.yaml"))) {
+    if (existsSync(join(current, "bun.lock"))) {
       return current;
     }
     current = dirname(current);

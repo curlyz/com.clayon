@@ -24,10 +24,6 @@ const rootPackage = JSON.parse(
 const serverPackage = JSON.parse(
   readFileSync(new URL("../server/package.json", import.meta.url), "utf8"),
 );
-const workspace = readFileSync(
-  new URL("../pnpm-workspace.yaml", import.meta.url),
-  "utf8",
-);
 const required = [
   ["@chat-adapter/discord", "4.39.0"],
   ["@chat-adapter/github", "4.39.0"],
@@ -51,7 +47,7 @@ for (const [name, version] of required) {
     );
     assert.ok(
       serverPackage.bundleDependencies.includes(name),
-      "npm consumers cannot apply this repository's pnpm patches",
+      "npm consumers cannot apply this repository's workspace patches",
     );
     assert.equal(
       installed.dependencies[name],
@@ -63,12 +59,8 @@ for (const [name, version] of required) {
       "the patched runtime must remain in the published tarball",
     );
     const specifier = `${name}@${version}`;
-    const patchPath = rootPackage.pnpm.patchedDependencies[specifier];
+    const patchPath = rootPackage.patchedDependencies[specifier];
     assert.equal(typeof patchPath, "string");
-    assert.ok(
-      workspace.includes(`"${specifier}": ${patchPath}`),
-      "both supported pnpm configuration paths must match",
-    );
     // Parse the actual full patch, not merely its configured filename. This is
     // read-only; clean-package materialization is a separate qualification.
     execFileSync("git", ["apply", "--stat", patchPath], {
@@ -94,7 +86,7 @@ test("release selection includes every chat runtime patch and the existing ACPX 
   const selected = selectBundledDependencyPatches(
     destination,
     serverPackage.bundleDependencies,
-    rootPackage.pnpm.patchedDependencies,
+    rootPackage.patchedDependencies,
   );
   assert.deepEqual(
     selected.map(({ specifier }) => specifier).sort(),
@@ -115,7 +107,7 @@ test("release selection includes every chat runtime patch and the existing ACPX 
       selectBundledDependencyPatches(
         destination,
         serverPackage.bundleDependencies,
-        rootPackage.pnpm.patchedDependencies,
+        rootPackage.patchedDependencies,
       ),
     /installed @discordjs\/ws@1\.2\.4/,
   );

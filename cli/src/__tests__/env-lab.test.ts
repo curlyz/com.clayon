@@ -131,13 +131,13 @@ describe("env-lab cleanup command hint", () => {
     expect(fromParent).toBe(fromRoot);
   });
 
-  it("never restores the unsafe pnpm invocation forms", () => {
+  it("never restores the unsafe package-manager invocation forms", () => {
     const command = buildEnvLabCleanupCommand();
 
-    // The bare `pnpm clayon` script form is unsafe. The `pnpm exec` form
+    // The bare `bun run clayon` script form is unsafe. The `bun x` form
     // does not resolve the CLI binary. Keep both out of the hint.
-    expect(command).not.toContain("pnpm clayon");
-    expect(command).not.toContain("pnpm exec clayon");
+    expect(command).not.toContain("bun run clayon");
+    expect(command).not.toContain("bun x clayon");
   });
 
   // A checkout path can hold shell metacharacters. A contributor copies the hint

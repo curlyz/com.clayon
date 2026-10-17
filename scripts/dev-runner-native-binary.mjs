@@ -17,7 +17,7 @@ export function resolveNativeRunnerRequirement({ exitCode, stdout }) {
         return { nativeRunnerRequired: payload.nativeRunnerRequired, valid: true };
       }
     } catch {
-      // Keep scanning earlier JSON-looking output from pnpm and runtime logging.
+      // Keep scanning earlier JSON-looking output from bun and runtime logging.
     }
   }
 

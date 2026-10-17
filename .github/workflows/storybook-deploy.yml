@@ -81,18 +81,18 @@ jobs:
             "https://codeload.github.com/clayon/clayon/tar.gz/$SOURCE_SHA" \
             --output "$RUNNER_TEMP/source.tar.gz"
           tar -xzf "$RUNNER_TEMP/source.tar.gz" --strip-components=1
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          version: 9.15.4
+          bun-version: 1.4.3
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           package-manager-cache: false
       # Feature branches omit lockfile commits; resolve their manifests just as PR CI does.
       - name: Resolve branch dependency lock
-        run: pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm build-storybook
+        run: bun install --ignore-scripts --lockfile-only
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run build-storybook
       - name: Record source and validate output
         id: artifact
         env:

@@ -17,7 +17,7 @@ must contain no Clayon key, no OpenAI key, no bearer value.
 From the repository root:
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/drivers/codex/codex-app-server-driver.test.ts \
   src/mock-core/live-console-demo-server.test.ts
 ```
@@ -31,7 +31,7 @@ Use an empty directory outside your Codex home:
 
 ```sh
 liveConsole_workspace="$(mktemp -d)"
-pnpm --filter @clayon/clayon-runner demo:live-console -- \
+bun run --filter @clayon/clayon-runner demo:live-console -- \
   --host 127.0.0.1 \
   --port 4174 \
   --working-directory "$liveConsole_workspace"

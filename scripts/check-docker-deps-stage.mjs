@@ -6,7 +6,7 @@ import process from "node:process";
 
 const repoRoot = process.cwd();
 const dockerfilePath = path.join(repoRoot, "Dockerfile");
-const workspacePath = path.join(repoRoot, "pnpm-workspace.yaml");
+const workspacePath = path.join(repoRoot, "package.json");
 
 function extractDepsStage(dockerfileText) {
   const lines = dockerfileText.split("\n");
@@ -25,15 +25,8 @@ function extractDepsStage(dockerfileText) {
   return captured.join("\n");
 }
 
-function parseWorkspaceRoots(workspaceText) {
-  return workspaceText
-    .split("\n")
-    .map((line) => line.match(/^\s*-\s+(.+)\s*$/)?.[1]?.trim() ?? null)
-    .map((entry) => {
-      if (!entry) return entry;
-      return entry.replace(/^(['"])(.*)\1$/, "$2");
-    })
-    .filter(Boolean)
+function parseWorkspaceRoots(workspaceEntries) {
+  return workspaceEntries
     .filter((entry) => !entry.startsWith("!"))
     .map((entry) => entry.replace(/\*+$/, ""))
     .filter((entry) => entry.length > 0)
@@ -132,9 +125,9 @@ function main() {
     process.exit(1);
   }
 
-  const workspaceRoots = parseWorkspaceRoots(readFileSync(workspacePath, "utf8"));
+  const workspaceRoots = parseWorkspaceRoots(JSON.parse(readFileSync(workspacePath, "utf8")).workspaces ?? []);
   if (workspaceRoots.length === 0) {
-    console.error("Could not derive workspace roots from pnpm-workspace.yaml.");
+    console.error("Could not derive workspace roots from package.json workspaces.");
     process.exit(1);
   }
 

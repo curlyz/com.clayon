@@ -155,11 +155,11 @@ test("preview workflow separates branch compilation from trusted publishing", ()
   const image = workflow.split("  image_preview:")[1].split("  publish_image_preview:")[0];
   const imagePublisher = workflow.split("  publish_image_preview:")[1].split("  result_preview:")[0];
   assert.doesNotMatch(builder, /id-token: write|packages: write|secrets\./);
-  assert.doesNotMatch(publisher, /ref: \$\{\{ inputs.source_ref|working-directory: source|pnpm install/);
+  assert.doesNotMatch(publisher, /ref: \$\{\{ inputs.source_ref|working-directory: source|bun install/);
   assert.match(publisher, /environment: npm-canary/);
   assert.match(image, /CLAYON_BUILD_COMMIT=\$\{\{ inputs.source_ref \}\}/);
   assert.doesNotMatch(image, /cache-(?:to|from):|canary-cloud|latest-cloud|packages: write|secrets\./);
-  assert.doesNotMatch(imagePublisher, /ref: \$\{\{ inputs.source_ref|docker\/build-push-action|pnpm install/);
+  assert.doesNotMatch(imagePublisher, /ref: \$\{\{ inputs.source_ref|docker\/build-push-action|bun install/);
   assert.match(imagePublisher, /publish-image/);
   assert.match(imagePublisher, /environment: npm-canary/);
   assert.match(imagePublisher, /github.ref == 'refs\/heads\/master'/);

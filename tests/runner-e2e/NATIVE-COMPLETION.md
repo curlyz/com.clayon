@@ -51,7 +51,7 @@ Credential-free admission runs before local environment/credential loading:
 ```sh
 node tests/runner-e2e/native-completion-checks.mjs --output-dir=/absolute/report/path
 node tests/runner-e2e/native-completion-checks.mjs --verify=/absolute/report/path/preflight.json
-pnpm test:e2e:runner -- --list --suite native-completion
+bun run test:e2e:runner -- --list --suite native-completion
 ```
 
 Admission requires a committed clean exact source, variant-appropriate schema,

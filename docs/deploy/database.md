@@ -1,7 +1,7 @@
 ---
 id: antl:clayon/docs/deploy/database
 title: Database
-summary: Embedded PGlite vs Docker Postgres vs hosted
+summary: Embedded PostgreSQL vs Docker Postgres vs hosted
 ---
 
 Clayon uses PostgreSQL via Drizzle ORM. Three ways to run it.
@@ -11,7 +11,7 @@ Clayon uses PostgreSQL via Drizzle ORM. Three ways to run it.
 Zero config: no `DATABASE_URL` means the server starts an embedded PostgreSQL instance automatically.
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 First start:
@@ -30,7 +30,7 @@ The Docker quickstart also uses embedded PostgreSQL by default.
 For a full PostgreSQL server locally:
 
 ```sh
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d db
 ```
 
 Starts PostgreSQL 17 on `localhost:5432`. Set the connection string:
@@ -44,7 +44,7 @@ Push the schema:
 
 ```sh
 DATABASE_URL=postgres://clayon:clayon@localhost:5432/clayon \
-  npx drizzle-kit push
+  bun run --cwd packages/db drizzle-kit push
 ```
 
 ## 3. Hosted PostgreSQL (Supabase)

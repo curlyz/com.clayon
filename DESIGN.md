@@ -6,7 +6,7 @@ id: antl:clayon/DESIGN
 
 **Status:** v1.0 draft, 2026-10-11. Replaces v0.3, the zero-visual-change simplification brief. Deliberate break: the product gets a new identity. Product name still open; working label "the lab".
 
-Product behaviour rules (form footers, mobile navigation, task chat, feedback, motion tokens) moved untouched to `doc/design/INTERACTION-RULES.md`; still in force. This file owns how the product looks and feels.
+Product behaviour rules (form footers, mobile navigation, task chat, feedback, motion tokens) are unchanged by this document; this file owns how the product looks and feels.
 
 ## What this document is for
 
@@ -48,7 +48,7 @@ From published production notes on the film (soft and hard materials mixed, a de
 - Render with `image-rendering: pixelated`. Scale by whole numbers only (1x, 2x, 3x). Never smooth, blur or rotate pixel art.
 - Source art is stored at its native pixel size as `.webp` (lossless for sprites). Sheets are cut on a fixed grid, one cell per character.
 - Hard 2px borders and hard offset shadows (no blur) are the only depth devices.
-- The art is generated through `codex exec` on the terra model, converted to webp, and recorded in `docs/superpowers/imagegen/index.html`.
+- The art is generated through `codex exec` on the terra model and converted to webp.
 
 ## Characters and Rive
 
@@ -139,7 +139,7 @@ Touch matches: tap = click, long press = menu, drag = drag.
 
 ### AG-UI events to character
 
-The app subscribes to the agent's AG-UI stream (CopilotKit `HttpAgent`) and maps each event for the run's agent. Event names are the AG-UI spec's; check against the pinned `@ag-ui/*` version (`0.0.59`) before wiring.
+The app subscribes to the agent's AG-UI stream (CopilotKit `HttpAgent`) and maps each event for the run's agent. Event names are the AG-UI spec's; check the `@ag-ui/*` version in force in the ui package before wiring.
 
 ```text
 [13]{AG-UI event,character reaction}:
@@ -215,9 +215,9 @@ Lab words appear in navigation labels, empty states and character lines only. Bu
 
 ## Enforcement
 
-- `pnpm check:token-gates` stays the gate for hex, raw px, arbitrary values and raw font-size.
+- `bun run check:token-gates` stays the gate for hex, raw px, arbitrary values and raw font-size.
 - Shape gate (not yet built): forbid `rounded-*` classes other than `rounded-none`, and any `border-radius` outside the token layer. Until it exists, review enforces the square law.
-- `pnpm --dir ui typecheck` and `pnpm build` pass.
+- `bun run --cwd ui typecheck` and `bun run build` pass.
 - Browser proof on every changed surface, at 390 wide and at 1280 wide.
 - `AGENTS.md` links here.
 
@@ -227,4 +227,4 @@ Server code, data contracts and behaviour rules are untouched by this redesign. 
 
 ## Draft references
 
-Visual drafts live in `doc/design/themes/` (`pixel`, `lab`); `lab` is closest to this document. Space, imhigh and Halo drafts are rejected directions, kept only for comparison.
+Space, imhigh and Halo drafts are rejected directions, kept only for comparison.

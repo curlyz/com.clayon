@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, globSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -109,7 +109,7 @@ function checkServerRuntimeAssets() {
       .join("\n");
 
     fail(
-      `Missing server runtime asset(s) in dist:\n${missingList}\nRun pnpm --filter @clayon/server build and ensure source runtime asset trees are copied into dist.`,
+      `Missing server runtime asset(s) in dist:\n${missingList}\nRun bun run --filter @clayon/server build and ensure source runtime asset trees are copied into dist.`,
     );
   }
 
@@ -124,20 +124,22 @@ if (args.has("--runtime-assets-only")) {
 }
 
 function listWorkspacePackages() {
-  const result = spawnSync("pnpm", ["ls", "-r", "--depth", "-1", "--json"], {
-    cwd: repoRoot,
-    encoding: "utf8",
-  });
+  // bun has no `ls -r --json`; expand the root package.json `workspaces` globs.
+  const patterns = readJson(path.join(repoRoot, "package.json")).workspaces ?? [];
+  const included = patterns.filter((pattern) => !pattern.startsWith("!"));
+  const excluded = patterns
+    .filter((pattern) => pattern.startsWith("!"))
+    .map((pattern) => pattern.slice(1));
+  const dirs = globSync(included, { cwd: repoRoot });
 
-  if (result.error) {
-    fail(`Unable to spawn pnpm to list workspace packages: ${result.error.message}`);
-  }
-
-  if (result.status !== 0) {
-    fail("Unable to list pnpm workspace packages.");
-  }
-
-  return JSON.parse(result.stdout);
+  return dirs
+    .filter((dir) => !excluded.some((pattern) => path.matchesGlob(dir, pattern)))
+    .map((dir) => path.join(repoRoot, dir))
+    .filter((dir) => existsSync(path.join(dir, "package.json")))
+    .map((dir) => ({
+      name: readJson(path.join(dir, "package.json")).name,
+      path: dir,
+    }));
 }
 
 function buildSkipsTypeScript(pkg) {
@@ -176,10 +178,10 @@ console.log(
 );
 
 if (buildGapPackages.length > 0) {
-  run("pnpm", ["--filter", "@clayon/plugin-sdk", "ensure-build-deps"]);
+  run("bun", ["run", "--filter", "@clayon/plugin-sdk", "ensure-build-deps"]);
 
   for (const workspacePkg of buildGapPackages) {
-    run("pnpm", ["--filter", workspacePkg.name, "typecheck"]);
+    run("bun", ["run", "--filter", workspacePkg.name, "typecheck"]);
   }
 }
 

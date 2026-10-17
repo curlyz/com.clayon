@@ -18,7 +18,7 @@ function parseProfiles(args) {
   for (let index = 0; index < args.length; index += 1) {
     if (args[index] !== "--profile" || !args[index + 1]) {
       throw new Error(
-        `Usage: pnpm smoke:local-provider -- --profile <${PROFILE_IDS.join("|")}|all>`,
+        `Usage: bun run smoke:local-provider --profile <${PROFILE_IDS.join("|")}|all>`,
       );
     }
     selected.push(args[++index]);

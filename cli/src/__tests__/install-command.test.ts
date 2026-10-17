@@ -106,7 +106,7 @@ describe("managed install commands", () => {
   });
 
   const createGitCheckoutRunCommand = (sha: string) =>
-    vi.fn(async (file: string, args: string[], _options?: Parameters<CommandRunner>[2]) => {
+    vi.fn(async (file: string, args: string[], options?: Parameters<CommandRunner>[2]) => {
       if (file === "curl" && !args.includes("--output")) return { stdout: JSON.stringify({ sha }), stderr: "" };
       if (file === "curl") { fs.writeFileSync(args[args.indexOf("--output") + 1], "archive"); return { stdout: "", stderr: "" }; }
       if (file === "tar") {
@@ -126,11 +126,10 @@ describe("managed install commands", () => {
         }
         return { stdout: "", stderr: "" };
       }
-      if (file === "corepack") {
-        if (args.includes("pack")) {
-          const destination = args[args.indexOf("--pack-destination") + 1];
-          const packageDir = args[args.indexOf("--dir") + 1];
-          const packageName = packageDir === "server" ? "clayon-server" : "clayon-shared";
+      if (file === "bun") {
+        if (args[0] === "pm" && args[1] === "pack") {
+          const destination = args[args.indexOf("--destination") + 1];
+          const packageName = path.basename(String(options?.cwd ?? "")) === "server" ? "clayon-server" : "clayon-shared";
           fs.writeFileSync(path.join(destination, `${packageName}-0.3.1.tgz`), "package");
         }
         return { stdout: "", stderr: "" };
@@ -160,8 +159,8 @@ describe("managed install commands", () => {
     expect(manifest).toMatchObject({ source: "git", repo: "HenkDz/clayon", ref: "master", sha });
     expect(manifest?.payloadPath).toContain(path.join("git", sha.slice(0, 12)));
     expect(runCommand.mock.calls.filter(([command, args]) => command === "curl" && args.includes("--output"))).toHaveLength(1);
-    expect(runCommand.mock.calls.filter(([command, args]) => command === "corepack" && args[1] === "install")).toHaveLength(1);
-    expect(runCommand.mock.calls.filter(([command, args]) => command === "corepack" && args.includes("pack"))).toHaveLength(2);
+    expect(runCommand.mock.calls.filter(([command, args]) => command === "bun" && args[0] === "install")).toHaveLength(1);
+    expect(runCommand.mock.calls.filter(([command, args]) => command === "bun" && args[0] === "pm" && args[1] === "pack")).toHaveLength(2);
     expect(runCommand.mock.calls.filter(([command, args]) => command === process.execPath && args[0]?.endsWith("prepare-bundled-package.mjs"))).toHaveLength(1);
     expect(runCommand.mock.calls.filter(([command, args]) => command === "npm" && args[0] === "pack")).toHaveLength(2);
     const installCall = runCommand.mock.calls.find(([command, args]) => command === "npm" && args[0] === "install");
@@ -175,16 +174,16 @@ describe("managed install commands", () => {
     await expect(installGitPayload("clayon/clayon", sha, runCommand, resolveInstallStorePaths())).resolves.toMatchObject({ version: "0.3.1", reused: false });
     const buildCalls = runCommand.mock.calls.filter(([file, args]) =>
       file === "bash" ||
-      file === "corepack" ||
+      file === "bun" ||
       (file === "npm" && args[0] === "pack") ||
       (file === process.execPath && args[0]?.endsWith("prepare-bundled-package.mjs")));
-    expect(buildCalls).toHaveLength(9);
+    expect(buildCalls).toHaveLength(8);
     for (const call of buildCalls) {
       const env = call[2]?.env;
       expect(env, `${call[0]} ${call[1].join(" ")} must run with an explicit env`).toBeDefined();
       expect(env, `${call[0]} ${call[1].join(" ")} must not inherit NODE_ENV`).not.toHaveProperty("NODE_ENV");
     }
-    const uiPackCall = buildCalls.find(([file, , options]) => file === "corepack" && options?.env?.CLAYON_RELEASE_REUSE_UI_DIST === "1");
+    const uiPackCall = buildCalls.find(([file, , options]) => file === "bun" && options?.env?.CLAYON_RELEASE_REUSE_UI_DIST === "1");
     expect(uiPackCall).toBeDefined();
   });
 

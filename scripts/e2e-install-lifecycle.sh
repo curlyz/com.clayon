@@ -63,10 +63,10 @@ else
   fail_ "1a bootstrap tarball download"; exit 1
 fi
 cd "$BOOT"
-if corepack pnpm install --frozen-lockfile > "$HOME/e2e-bootstrap-install.log" 2>&1; then
-  pass "1b bootstrap pnpm install"
+if bun install --frozen-lockfile > "$HOME/e2e-bootstrap-install.log" 2>&1; then
+  pass "1b bootstrap bun install"
 else
-  tail -40 "$HOME/e2e-bootstrap-install.log"; fail_ "1b bootstrap pnpm install"; exit 1
+  tail -40 "$HOME/e2e-bootstrap-install.log"; fail_ "1b bootstrap bun install"; exit 1
 fi
 if CLAYON_README_ASSET_REF="$E2E_REF" \
     bash scripts/build-npm.sh --skip-checks --skip-typecheck > "$HOME/e2e-bootstrap-build.log" 2>&1; then

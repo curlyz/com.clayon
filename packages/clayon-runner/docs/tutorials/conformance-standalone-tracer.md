@@ -20,25 +20,26 @@ You start the Rust mock core. Tracer validates one fixture, prints a determinist
 
 - repository checkout on the assigned runner branch;
 - Node.js 20 or newer;
-- pnpm 9 or newer;
+- Bun 1.4 or newer;
 - stable Rust with `cargo` on `PATH`;
 - commands run from the repository root.
 
 ## 1. Install the package tools
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-scripts --dev
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
 ```
 
-`--lockfile=false` follows repository policy: automation owns the
-root lockfile. `--offline` proves Conformance needs no newly downloaded package.
-`--dev` makes package tooling explicit even when the calling shell has
+`--no-save` keeps the install out of the manifest and the root lockfile,
+which automation owns. `--ignore-scripts` proves Conformance needs no
+postinstall hook from the newly linked package. `--dev` makes package
+tooling explicit even when the calling shell has
 `NODE_ENV=production`.
 
 ## 2. Build the standalone package
 
 ```sh
-pnpm --filter @clayon/clayon-runner build
+bun run --filter @clayon/clayon-runner build
 ```
 
 Expected: TypeScript writes package-local `dist/` files; Cargo builds
@@ -47,8 +48,8 @@ the `clayon-runner-core` crate under `runner/target/`.
 ## 3. Run the behavior and boundary tests
 
 ```sh
-pnpm --filter @clayon/clayon-runner test
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner test
+bun run --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
 Tests cover fixture validation, complete Rust and TypeScript mock-core paths,
@@ -58,7 +59,7 @@ boundary check must print `Standalone boundary check passed.`
 ## 4. Validate the documentation
 
 ```sh
-pnpm --filter @clayon/clayon-runner docs:validate
+bun run --filter @clayon/clayon-runner docs:validate
 ```
 
 Expected: documentation-link validation passes. Historical OKF and
@@ -67,7 +68,7 @@ recorded-evidence bundle intentionally deferred from this release.
 ## 5. Run the tracer
 
 ```sh
-pnpm --filter @clayon/clayon-runner trace:conformance
+bun run --filter @clayon/clayon-runner trace:conformance
 ```
 
 Expected final line:
@@ -82,7 +83,7 @@ Default tracer is Rust. Prove the TypeScript reference produces the
 same bytes:
 
 ```sh
-pnpm --filter @clayon/clayon-runner check:conformance-parity
+bun run --filter @clayon/clayon-runner check:conformance-parity
 ```
 
 Expected: `Rust and TypeScript Conformance tracer output matches the shared
@@ -99,7 +100,7 @@ sed -n '1,240p' packages/clayon-runner/protocol/fixtures/conformance-minimal-run
 After installation, repeat the same checks with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter @clayon/clayon-runner verify
 ```
 
 Continue with the cumulative end-to-end tutorial `antl:clayon/packages/clayon-runner/docs/tutorials/end-to-end`, which points

@@ -56,13 +56,13 @@ The adapter satisfies the same `runControlPlanePortConformance` contract used by
 ## Running the tests
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/conformance/control-plane-port.test.ts \
   src/mock-core/capability-mock-control-plane-adapter.test.ts
 ```
 
 Nine tests, no npm alias of their own — they also run inside
-`pnpm --filter @clayon/clayon-runner test`.
+`bun run --filter @clayon/clayon-runner test`.
 
 ## Related
 

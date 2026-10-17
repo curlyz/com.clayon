@@ -106,7 +106,7 @@ provider's dependencies, provide its API key and an immutable image reference,
 and specify a Linux amd64 runner built from this checkout:
 
 ```sh
-pnpm --dir packages/plugins/sandbox-providers/daytona install --frozen-lockfile
+bun install --cwd packages/plugins/sandbox-providers/daytona --frozen-lockfile
 CLAYON_LIVE_ENVIRONMENT=daytona \
 CLAYON_LIVE_DAYTONA_ENV_FILE=/path/to/private.env \
 CLAYON_LIVE_LINUX_RUNNER=/path/to/linux-amd64/clayon-runnerd \

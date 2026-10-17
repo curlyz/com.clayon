@@ -2,7 +2,7 @@
 
 This explicit-only Product E2E suite runs real Chromium, Clayon, an isolated
 database, the selected runner, and a real LLM. It is distinct from
-`pnpm test:lifecycle-baseline`, whose providers are scripted.
+`bun run test:lifecycle-baseline`, whose providers are scripted.
 
 ## Authored selection
 
@@ -54,18 +54,18 @@ attempt package, source/catalog provenance, usage and cost accounting.
 ## Discover, validate, execute
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite lifecycle-baseline
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite lifecycle-baseline
 
 # Billable: smallest explicit real-provider cell.
-pnpm test:e2e:runner -- --id lifecycle-baseline.runner-codex.local.lifecycle-completion-neutral
+bun run test:e2e:runner -- --id lifecycle-baseline.runner-codex.local.lifecycle-completion-neutral
 
 # Billable: paired question probes on both runtimes.
-pnpm test:e2e:runner -- --suite lifecycle-baseline --case lifecycle-question-neutral --case lifecycle-question-challenge
+bun run test:e2e:runner -- --suite lifecycle-baseline --case lifecycle-question-neutral --case lifecycle-question-challenge
 
 # Billable: full 40-cell baseline.
-pnpm test:e2e:runner -- --suite lifecycle-baseline --max-parallel 2
+bun run test:e2e:runner -- --suite lifecycle-baseline --max-parallel 2
 ```
 
 The suite is excluded from `--all` and generic selectors. Each cell owns an
@@ -138,7 +138,7 @@ plan-revision cases exercise explicit approval in standard mode. The new cases
 do not bypass either kind of approval requirement.
 
 ```sh
-pnpm test:e2e:runner -- --list --suite lifecycle-baseline --case lifecycle-work-mode-neutral --case lifecycle-work-mode-challenge
+bun run test:e2e:runner -- --list --suite lifecycle-baseline --case lifecycle-work-mode-neutral --case lifecycle-work-mode-challenge
 ```
 
 The historical 40- and 42-cell campaigns remain unchanged. Current verification

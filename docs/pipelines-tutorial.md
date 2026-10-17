@@ -637,7 +637,7 @@ Run the same flow end to end:
 CLAYON_API_URL=http://localhost:3100 \
 CLAYON_COMPANY_ID=<company-id> \
 CLAYON_API_KEY=<token> \
-pnpm smoke:pipelines-tutorial
+bun run smoke:pipelines-tutorial
 ```
 
 The smoke asserts:

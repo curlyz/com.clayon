@@ -28,7 +28,7 @@ When a vote is marked for sharing, Clayon immediately tries to upload the trace 
 ### Quick report (terminal)
 
 ```bash
-pnpm clayon feedback report
+bun run clayon feedback report
 ```
 
 Shows a color-coded summary: vote counts, per-trace details with reasons, and export statuses.
@@ -41,7 +41,7 @@ clayon feedback report
 npx clayon feedback report --api-base http://127.0.0.1:3000 --company-id <company-id>
 
 # Include raw payload dumps in the report
-pnpm clayon feedback report --payloads
+bun run clayon feedback report --payloads
 ```
 
 ### API endpoints
@@ -50,27 +50,27 @@ All endpoints require board-user access (automatic in local dev).
 
 **List votes for an issue:**
 ```bash
-curl http://127.0.0.1:3102/api/issues/<issueId>/feedback-votes
+curl http://127.0.0.1:3100/api/issues/<issueId>/feedback-votes
 ```
 
 **List trace bundles for an issue (with full payloads):**
 ```bash
-curl 'http://127.0.0.1:3102/api/issues/<issueId>/feedback-traces?includePayload=true'
+curl 'http://127.0.0.1:3100/api/issues/<issueId>/feedback-traces?includePayload=true'
 ```
 
 **List all traces company-wide:**
 ```bash
-curl 'http://127.0.0.1:3102/api/companies/<companyId>/feedback-traces?includePayload=true'
+curl 'http://127.0.0.1:3100/api/companies/<companyId>/feedback-traces?includePayload=true'
 ```
 
 **Get a single trace envelope record:**
 ```bash
-curl http://127.0.0.1:3102/api/feedback-traces/<traceId>
+curl http://127.0.0.1:3100/api/feedback-traces/<traceId>
 ```
 
 **Get the full export bundle for a trace:**
 ```bash
-curl http://127.0.0.1:3102/api/feedback-traces/<traceId>/bundle
+curl http://127.0.0.1:3100/api/feedback-traces/<traceId>/bundle
 ```
 
 #### Filtering
@@ -92,7 +92,7 @@ The trace endpoints accept query parameters:
 ### Export to files + zip
 
 ```bash
-pnpm clayon feedback export
+bun run clayon feedback export
 ```
 
 Creates a timestamped directory with:

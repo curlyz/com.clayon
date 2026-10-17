@@ -76,7 +76,7 @@ it("uses the direct public Playwright JS bin without bin-shim Node injection", a
   const invocation = runnerE2EPlaywrightInvocation(f.root,["--version"],true);
   expect(invocation.command).toBe(process.execPath);
   expect(JSON.parse(execFileSync(invocation.command,invocation.args,{env:{},timeout:5000,encoding:"utf8"}))).toEqual({nodePath:null,nodeOptions:null,args:["--version"]});
-  expect(runnerE2EPlaywrightInvocation(f.root,["--version"],false)).toEqual({command:"pnpm",args:["exec","playwright","--version"]});
+  expect(runnerE2EPlaywrightInvocation(f.root,["--version"],false)).toEqual({command:"bun",args:["x","playwright","--version"]});
   for (const key of ["NODE_PATH","NODE_OPTIONS"]) expect(()=>assertInstalledCliSelection({...f.env,[key]:""},[cells[0]!])).toThrow("ambient Node injection");
 });
 

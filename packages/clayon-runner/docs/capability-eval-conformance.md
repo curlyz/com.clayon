@@ -41,12 +41,12 @@ A **bounded Codex binding sample** picks one representative case from nine group
 
 ```sh
 # Run the 106-case suite in-process (one vitest file drives all cases).
-pnpm --filter @clayon/clayon-runner test:capability-evals
+bun run --filter @clayon/clayon-runner test:capability-evals
 
 # Build the public surface and write the parity report with per-group counts,
 # assertion classes, the fake-agent matrix, the bounded Codex sample, and the
 # semantic-operation execution counts.
-pnpm --filter @clayon/clayon-runner report:capability-evals
+bun run --filter @clayon/clayon-runner report:capability-evals
 ```
 
 The reporter writes `.clayon-local/evidence/capability/eval-parity-report.{json,md}`.
@@ -54,7 +54,7 @@ The reporter writes `.clayon-local/evidence/capability/eval-parity-report.{json,
 Run the bounded provider conformance matrix separately. It creates exactly one real Codex turn per checked-in eval group (16) while retaining the in-process mock control plane:
 
 ```sh
-pnpm --filter @clayon/clayon-runner report:capability-live-evals
+bun run --filter @clayon/clayon-runner report:capability-live-evals
 ```
 Each failure carries its case ID, assertion class, semantic operation,
 authorization decision, and final state diff. The report is generated on demand

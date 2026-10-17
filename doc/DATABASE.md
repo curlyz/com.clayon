@@ -7,7 +7,7 @@ Clayon uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team/). There are t
 If you don't set `DATABASE_URL`, the server automatically starts an embedded PostgreSQL instance and manages a local data directory.
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 That's it. On first start the server:
@@ -33,7 +33,7 @@ for the reporting and ownership rules.
 If you need to apply pending migrations manually, run:
 
 ```sh
-pnpm db:migrate
+bun run db:migrate
 ```
 
 When `DATABASE_URL` is unset, this command targets the current embedded PostgreSQL instance for your active Clayon config/instance.
@@ -43,9 +43,9 @@ Issue reference mentions follow the normal migration path: the schema migration 
 To backfill existing content manually after migrating, run:
 
 ```sh
-pnpm issue-references:backfill
+bun run issue-references:backfill
 # optional: limit to one company
-pnpm issue-references:backfill -- --company <company-id>
+bun run issue-references:backfill -- --company <company-id>
 ```
 
 Future issue, comment, and document writes sync references automatically without running the backfill command.
@@ -59,7 +59,7 @@ Docker note: the Docker quickstart image also uses embedded PostgreSQL by defaul
 For a full PostgreSQL server locally, use the included Docker Compose setup:
 
 ```sh
-docker compose up -d
+docker compose -f docker/docker-compose.yml up -d db
 ```
 
 This starts PostgreSQL 17 on `localhost:5432`. Then set the connection string:
@@ -74,13 +74,13 @@ Run migrations:
 
 ```sh
 DATABASE_URL=postgres://clayon:clayon@localhost:5432/clayon \
-  pnpm db:migrate
+  bun run db:migrate
 ```
 
 Start the server:
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 ## 3. Hosted PostgreSQL (Supabase)
@@ -144,7 +144,7 @@ DATABASE_APPLICATION_NAME=clayon  # application_name in pg_stat_activity; defaul
 ```sh
 # Use the direct connection (port 5432) for schema changes
 DATABASE_URL=postgres://postgres.[PROJECT-REF]:[PASSWORD]@...5432/postgres \
-  pnpm db:migrate
+  bun run db:migrate
 ```
 
 ### Free tier limits
@@ -235,7 +235,7 @@ When authoring migrations or one-time backfills:
 - Avoid unbounded full-table `UPDATE` or `DELETE` statements. Add a selective predicate and process rows in bounded batches when table size can be large.
 - Use `CREATE INDEX CONCURRENTLY` for large existing tables when the migration can run outside a transaction and must avoid long write locks.
 - Split schema changes, index creation, and data backfill into separate phases so each step has clear locking and rollback behavior.
-- Treat the `check:migrations` CI gate as the enforcement backstop for these rules. If it flags a migration, rewrite the migration or add a suppression comment with the indexed predicate, batch bound, and reason the remaining scan is safe.
+- Treat the local gate `bun run --filter @clayon/db check:migrations` as the enforcement backstop for these rules; PR CI runs only the migration-order check (`.github/scripts/check-pr-migration-order.mjs`; the dispatch-gated docker-runner-check verify job does run full typecheck/build, which both execute `check:migrations`). If it flags a migration, rewrite the migration or add a suppression comment with the indexed predicate, batch bound, and reason the remaining scan is safe.
 
 Private-task migrations `0313` and `0314` are explicitly allowlisted in the
 Clayon executor to run outside a file-wide transaction. Their idempotent
@@ -245,14 +245,14 @@ retry. A reserved connection holds a session advisory lock across all batch
 commits, so concurrent migrators recheck history only after the preceding runner
 finishes. Privacy triggers are replaced atomically. Bootstrap uses the same
 executor; other migrations remain transactional
-per file. Apply these migrations through `pnpm db:migrate` using a direct
+per file. Apply these migrations through `bun run db:migrate` using a direct
 connection, before enabling the new server and UI.
 
 ## Migration snapshots
 
 `drizzle-kit generate` diffs `packages/db/src/schema/` against the newest snapshot in `packages/db/src/migrations/meta/`. That snapshot must describe the schema that every migration produces when they run in order. A snapshot that drifts from the schema makes the *next* migration wrong, because `generate` folds the drift into it. The drift can add a column that an earlier migration already created, which makes that migration fail on a fresh database. It can also drop a column that the schema still uses.
 
-- Create every migration with `pnpm --filter @clayon/db generate`. Do not hand-write a snapshot.
+- Create every migration with `bun run --filter @clayon/db generate`. Do not hand-write a snapshot.
 - Do not hand-edit a snapshot to resolve a merge conflict. Renumber your migration and run `generate` again, as `packages/db/.gitattributes` describes.
 - The repo keeps only the newest 5 snapshots. `generate` runs `prune:snapshots` afterwards to delete older ones. Drizzle only reads the newest snapshot, and each snapshot is a full copy of the schema (over 1 MB each). Older snapshots are still in git history.
 - `packages/db/src/migration-snapshot-drift.test.ts` is the enforcement backstop. It repeats the diff that `generate` performs and fails when the newest snapshot no longer matches `packages/db/src/schema/`.
@@ -442,7 +442,7 @@ The plugin runtime tracks plugin-owned database namespaces and migrations in `pl
 Clayon supports automatic and manual logical database backups. These dumps include
 non-system database schemas such as `public`, the Drizzle migration journal, and
 plugin-owned database schemas. See `doc/DEVELOPING.md` for the current
-`clayon db:backup` / `pnpm db:backup` commands and backup retention
+`clayon db:backup` / `bun run db:backup` commands and backup retention
 configuration.
 
 Database backups do not include non-database instance files such as local-disk
@@ -496,7 +496,7 @@ CLAYON_SECRETS_STRICT_MODE=true
 You can set strict mode and provider defaults via:
 
 ```sh
-pnpm clayon configure --section secrets
+bun run clayon configure --section secrets
 ```
 
 Inline secret migration command:
@@ -505,7 +505,7 @@ Inline secret migration command:
 npx clayon secrets migrate-inline-env --company-id <company-id> --apply
 
 # direct database maintenance fallback
-pnpm secrets:migrate-inline-env --apply
+bun run secrets:migrate-inline-env --apply
 ```
 
 Hosted AWS provider notes live in [SECRETS-AWS-PROVIDER.md](./SECRETS-AWS-PROVIDER.md).

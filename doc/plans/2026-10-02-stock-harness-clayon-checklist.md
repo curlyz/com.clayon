@@ -537,7 +537,7 @@ secret-reference plumbing are inherited from existing profiles.
 
 | Coverage ID | Implemented change | Executable coverage | Live status |
 | --- | --- | --- | --- |
-| SH-1 | Native Codex additive developer instructions, including start/resume/recovery | TypeScript driver, runnerd transport, Runner Lab/live-session, and Rust provider tests in `pnpm test:e2e:runner:stock-harness`; native Codex cells exercise real hires. | Native Codex passes all three matched journeys in both variants; #14920 held constant, so task success is not before/after vendor-base proof. |
+| SH-1 | Native Codex additive developer instructions, including start/resume/recovery | TypeScript driver, runnerd transport, Runner Lab/live-session, and Rust provider tests in `bun run test:e2e:runner:stock-harness`; native Codex cells exercise real hires. | Native Codex passes all three matched journeys in both variants; #14920 held constant, so task success is not before/after vendor-base proof. |
 | SH-2 | Eight-word default hire `AGENTS.md` | Public creation/onboarding tests; exact independent public bundle oracle before and after provider execution for every stock-harness cell. | Candidate public tiny-bundle and budget receipts pass in all 24 retained cells. Behavioral delivery is not fully qualified; see F14–F17. |
 | SH-3 | Reduced shared task/chat defaults and removed generic resume contract | Shared renderer and ACPX/Codex/OpenCode/Pi/Hermes/Cursor Cloud regressions; actual legacy invocation prompts checked in the new suite. | Actual legacy prompts measured. Document-delivery regressions and clipped/missing receipts retained; additional carriers remain deferred item 2.2. |
 

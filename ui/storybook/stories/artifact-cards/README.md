@@ -59,10 +59,10 @@ app does not inspect arbitrary archive bytes.
 ## Run and verify
 
 ```sh
-pnpm storybook
-pnpm build-storybook
-pnpm --filter @clayon/ui typecheck
-pnpm check:token-gates
+bun run storybook
+bun run build-storybook
+bun run --filter @clayon/ui typecheck
+bun run check:token-gates
 ```
 
 Start at `/?path=/story/explorations-artifact-cards-pull-request--pull-request`.

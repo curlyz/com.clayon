@@ -43,7 +43,7 @@ provider manifest, and remote controller version checks aligned.
 
 ## Build and verify
 
-Run `pnpm --filter @clayon/clayon-runner test:opencode:qualification`
+Run `bun run --filter @clayon/clayon-runner test:opencode:qualification`
 after installing dependencies to exercise the actual pinned OpenCode executable.
 It checks health/version, session creation and retrieval, SSE messages, an async
 prompt, and session deletion against a loopback mock provider. It uses an
@@ -56,7 +56,7 @@ The fleet image is currently amd64-only because the pinned Cursor and GitHub CLI
 checksums cover amd64.
 
 ```bash
-content_id="$(pnpm --silent test:e2e:runner:image-id)"
+content_id="$(bun run --silent test:e2e:runner:image-id)"
 docker buildx build \
   --platform linux/amd64 \
   --build-arg CLAYON_RUNNER_CONTENT_ID="${content_id}" \
@@ -125,7 +125,7 @@ verifies the downloaded artifact, then passes that artifact's SHA-256 as the
 lock against this value before installation. The fixed Dockerfile default is
 for standalone builds; it must not replace a campaign's verified lock digest.
 Refresh the default from the clean tracked lockfile using the exact
-`pnpm install --resolution-only --ignore-scripts --no-frozen-lockfile` command,
+`bun install --lockfile-only --ignore-scripts` command,
 and verify a second resolution preserves the digest. A lockfile left by a
 filtered or incremental install can retain stale importer patch identities.
 Refresh exact runtime versions and qualification digests together; do not
@@ -144,7 +144,7 @@ A pack with candidate assets does not qualify or enable that provider.
 For an isolated Linux x64 Daytona qualification image, pass
 `--build-arg CLAYON_RUNNER_CANDIDATE_PROVIDERS=cursor` with the normal build arguments.
 Compute its content ID with the same selection:
-`pnpm --silent test:e2e:runner:image-id --candidate-providers=cursor`.
+`bun run --silent test:e2e:runner:image-id --candidate-providers=cursor`.
 Candidate assets and the default pack have distinct image identities. Never reuse
 the default image's content ID for a candidate build.
 Use each provider branch's recorded version and explicit model. Keep credentials

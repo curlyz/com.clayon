@@ -1,0 +1,38 @@
+{
+  "name": "@clayon/gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8810",
+    "generate": "wrangler types --env-interface PaperclipGatewayEnv -c ./wrangler.jsonc src/env.d.ts",
+    "db:migrate": "DATABASE_URL=postgres://paperclip:paperclip@127.0.0.1:5433/paperclip bun run --filter @clayon/db migrate",
+    "seed": "node --experimental-strip-types scripts/seed.ts",
+    "lint": "oxlint --format agent . --import-plugin --promise-plugin",
+    "format": "oxfmt --check .",
+    "format:fix": "oxfmt --write ."
+  },
+  "dependencies": {
+    "@clayon/openapi": "workspace:*",
+    "@clayon/db": "workspace:*",
+    "@inferdi/hono": "^6.1.0",
+    "@inferdi/inferdi": "^6.1.0",
+    "@orpc/json-schema": "2.0.0-beta.43",
+    "@orpc/openapi": "2.0.0-beta.43",
+    "@orpc/server": "2.0.0-beta.43",
+    "@orpc/zod": "2.0.0-beta.43",
+    "drizzle-orm": "^0.45.2",
+    "hono": "4.13.13",
+    "kysely": "^0.28.7",
+    "pg": "^8.16.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/pg": "^8.23.1",
+    "oxfmt": "0.67.0",
+    "oxlint": "1.82.0",
+    "typescript": "7.0.2",
+    "wrangler": "4.150.0"
+  }
+}

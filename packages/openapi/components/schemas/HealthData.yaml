@@ -1,0 +1,12 @@
+type: object
+required:
+  - status
+  - service
+properties:
+  status:
+    type: string
+    description: Always ok when this response is served.
+  service:
+    type: string
+    description: The service name, paperclip-api.
+additionalProperties: false

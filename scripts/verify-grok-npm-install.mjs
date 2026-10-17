@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Run on a disposable Linux verification host after pnpm build. No publication,
+// Run on a disposable Linux verification host after bun run build. No publication,
 // credentials, inference, or changes to release versions. Native provisioning is
 // explicit and separate from npm installation, and is removed in finally.
 import assert from 'node:assert/strict';
@@ -81,7 +81,7 @@ try {
   const sentinel = join(consumer, 'node_modules/clayon-verification-lifecycle-sentinel/lifecycle-ran');
   const consumerUid = process.getuid();
   const isolated = (command, options = {}) => run('docker', grokConsumerDockerArgs({ assets, consumer, cache, uid: consumerUid, gid: process.getgid(), command, ...options }));
-  // npm resolution is intentionally the public consumer graph, not the pnpm
+  // npm resolution is intentionally the public consumer graph, not the bun
   // workspace graph. Freeze that result before any lifecycle script can run.
   isolated(['npm', 'install', '--ignore-scripts', '--omit=dev', ...readdirSync(assets).filter(file => file.endsWith('.tgz')).map(file => `/packages/${file}`)], { download: true });
   assert.equal(existsSync(sentinel), false, 'Dependency download must not run lifecycle scripts');

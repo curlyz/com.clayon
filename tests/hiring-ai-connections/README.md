@@ -8,7 +8,7 @@ missing managed-connection bindings.
 Start from a fresh worktree with dependencies installed:
 
 ```sh
-pnpm exec tsx cli/src/index.ts test-drive --data-dir /tmp/clayon-hiring-qa --no-browser
+bun x tsx cli/src/index.ts test-drive --data-dir /tmp/clayon-hiring-qa --no-browser
 ```
 
 Use the URL printed at startup. Test-drive may choose another available port when
@@ -16,7 +16,7 @@ restarted. In a separate shell, export `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`,
 
 ```sh
 HIRING_AI_LIVE=1 HIRING_AI_TEST_URL=http://127.0.0.1:3100 \
-  pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'local:'
+  bun x playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'local:'
 ```
 
 For both Claude and Codex, the browser creates a task instructing the real parent to
@@ -40,7 +40,7 @@ see [Runner API tools](../../doc/runner-api-tools.md). For native coverage, use:
 
 ```sh
 HIRING_AI_LIVE=1 HIRING_AI_RUNNER=native HIRING_AI_TEST_URL=http://127.0.0.1:3100 \
-  pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'local: native: Codex'
+  bun x playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'local: native: Codex'
 ```
 
 This uses native Codex and native ACPX/Claude. It verifies native run persistence,
@@ -56,11 +56,11 @@ Build the plugin and provide `DAYTONA_API_KEY` plus an immutable, qualified runn
 image digest. See `tests/runner-e2e/README.md` for the image publication workflow.
 
 ```sh
-pnpm -C packages/plugins/sandbox-providers/daytona build
+bun run --cwd packages/plugins/sandbox-providers/daytona build
 HIRING_AI_LIVE=1 HIRING_AI_ENVIRONMENT=daytona \
   HIRING_AI_TEST_URL=http://127.0.0.1:3100 \
   HIRING_AI_DAYTONA_IMAGE=ghcr.io/clayon/clayon-daytona-runner@sha256:YOUR_DIGEST \
-  pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'daytona:'
+  bun x playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep 'daytona:'
 ```
 
 The same tests install the plugin only in the disposable instance, create a Daytona
@@ -103,14 +103,14 @@ handshake even when the individual provider version pins match.
 ## Regression and Storybook checks
 
 ```sh
-pnpm exec vitest run server/src/__tests__/agent-hire-ai-connections.test.ts \
+bun x vitest run server/src/__tests__/agent-hire-ai-connections.test.ts \
   server/src/services/legacy-execution-recovery.test.ts \
   server/src/services/execution-recovery-attempt.test.ts \
   server/src/services/native-runtime/runner-api.integration.test.ts \
   ui/src/features/connections/ConnectionIntentInteractionBody.test.tsx
-pnpm --filter @clayon/ui exec storybook dev -p 6010 -c storybook/.storybook --ci --no-open
+bun run --cwd ui storybook dev -p 6010 -c storybook/.storybook --ci --no-open
 HIRING_AI_STORYBOOK_URL=http://127.0.0.1:6010 \
-  pnpm exec playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep storybook
+  bun x playwright test --config tests/hiring-ai-connections/playwright.config.ts --grep storybook
 ```
 
 The Storybook checks use the production card and credential components with fixture

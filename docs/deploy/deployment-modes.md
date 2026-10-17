@@ -18,7 +18,7 @@ Default mode. Optimized for single-operator local use.
 
 ```sh
 # Set during onboard
-pnpm clayon onboard
+bun run clayon onboard
 # Choose "local_trusted"
 ```
 
@@ -36,7 +36,7 @@ For private network access (Tailscale, VPN, LAN).
 - **Bind**: choose `loopback`, `lan`, `tailnet`, or `custom`
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 # Choose "authenticated" -> "private"
 ```
 
@@ -56,7 +56,7 @@ For internet-facing deployment.
 - **Bind**: usually `loopback` behind a reverse proxy; `lan/custom` is advanced
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 # Choose "authenticated" -> "public"
 ```
 
@@ -79,11 +79,11 @@ A signed-in user visits this URL to claim board ownership. This:
 Update the deployment mode:
 
 ```sh
-pnpm clayon configure --section server
+bun run clayon configure --section server
 ```
 
 Runtime override via environment variable:
 
 ```sh
-CLAYON_DEPLOYMENT_MODE=authenticated CLAYON_BIND=lan pnpm clayon run
+CLAYON_DEPLOYMENT_MODE=authenticated CLAYON_BIND=lan bun run clayon run
 ```

@@ -3,7 +3,7 @@ Use this exact checklist.
 1. Start Clayon in auth mode.
 ```bash
 cd <clayon-repo-root>
-pnpm dev --bind lan
+bun run dev --bind lan
 ```
 Then verify:
 ```bash
@@ -90,5 +90,3 @@ docker compose -f /tmp/openclaw-docker/docker-compose.yml -f /tmp/openclaw-docke
 - Case A: `done` + marker comment.
 - Case B: `done` + marker comment + main-chat message visible.
 - Case C: original task done and new issue created from `/new` session.
-
-If you want, I can also give you a single “observer mode” command that runs the stock smoke harness while you watch the same steps live in UI.

@@ -328,7 +328,7 @@ package_publish_tool() {
   node -e '
     const pkg = require(process.cwd() + "/package.json");
     const bundled = pkg.bundleDependencies ?? pkg.bundledDependencies ?? [];
-    process.stdout.write(bundled.length > 0 ? "npm" : "pnpm");
+    process.stdout.write(bundled.length > 0 ? "npm" : "bun");
   '
 }
 
@@ -357,18 +357,35 @@ run_package_publish() {
     return
   fi
 
-  if [ "$disable_provenance" = "true" ]; then
-    pnpm publish --no-git-checks --tag "$dist_tag" --access public --provenance=false
-  else
-    pnpm publish --no-git-checks --tag "$dist_tag" --access public
+  # bun resolves `workspace:` ranges when it packs a tarball but cannot attest
+  # provenance, so bun packs and the pinned npm client uploads the tarball.
+  local tarball_dir tarball publish_status
+  tarball_dir="$(mktemp -d "${TMPDIR:-/tmp}/clayon-publish-pack.XXXXXX")"
+  if ! bun pm pack --destination "$tarball_dir" --ignore-scripts --quiet >/dev/null; then
+    rm -rf -- "${tarball_dir:?}"
+    return 1
   fi
+  tarball="$(find "$tarball_dir" -maxdepth 1 -name '*.tgz' | head -n 1)"
+  if [ -z "$tarball" ]; then
+    rm -rf -- "${tarball_dir:?}"
+    return 1
+  fi
+
+  publish_status=0
+  if [ "$disable_provenance" = "true" ]; then
+    run_bundled_npm_publish publish "$tarball" --tag "$dist_tag" --access public --provenance=false || publish_status=$?
+  else
+    run_bundled_npm_publish publish "$tarball" --tag "$dist_tag" --access public || publish_status=$?
+  fi
+  rm -rf -- "${tarball_dir:?}"
+  return "$publish_status"
 }
 
 publish_package_to_npm() {
   local dist_tag="$1"
   local package_name="$2"
   local package_version="$3"
-  local publish_tool="${4:-pnpm}"
+  local publish_tool="${4:-bun}"
   local publish_log
 
   publish_log="$(mktemp "${TMPDIR:-/tmp}/clayon-npm-publish.XXXXXX")"
@@ -433,7 +450,7 @@ wait_for_npm_package_versions() {
   # rest of its budget. The subshell also keeps this trap from clobbering
   # the caller's cleanup trap.
   (
-    local status_dir
+    status_dir=""
     local pids=()
     local specs=()
     local failures=()

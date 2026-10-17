@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clayon for your Codex, GLM and Claude team</title>
+<style>
+:root{--ink:#1b1b1b;--dim:#6b6b6b;--line:#e3e1dc;--band:#f4f2ee;--bg:#fbfaf7;--ok:#2f6b3a;--warn:#8a5a00}
+@media(prefers-color-scheme:dark){:root{--ink:#e8e6e1;--dim:#9a978f;--line:#2c2b28;--band:#1d1c1a;--bg:#141412;--ok:#8fc79a;--warn:#e0b45c}}
+*{box-sizing:border-box}html{font-family:"MonoLisa Nerd Font","MonoLisa",monospace;font-size:14px;line-height:1.7;color:var(--ink);background:var(--bg)}body{margin:0}main{max-width:1080px;margin:auto}header{background:var(--band);border-bottom:1px solid var(--line)}section{border-bottom:1px solid var(--line)}h1,h2,p,li,th,td,summary{padding:12px 28px;margin:0}h1{font-size:clamp(24px,4vw,40px);line-height:1.3;padding-top:32px}h2{font-size:18px;padding-top:26px}header p:last-child{padding-bottom:28px}.dim{color:var(--dim)}.callout{background:var(--band);border-left:3px solid var(--ok);padding:20px 28px}.warn{color:var(--warn)}ul,ol{margin:0;padding:0 0 18px 48px}li{padding:6px 28px 6px 0}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{color:var(--dim);font-size:12px;font-weight:400}td{padding-top:16px;padding-bottom:16px}a{color:var(--ink);text-underline-offset:4px}code{background:var(--band)}details{padding-bottom:16px}summary{cursor:pointer}footer{padding-bottom:20px}@media(max-width:600px){h1,h2,p,li,th,td,summary{padding-left:18px;padding-right:18px}th,td{padding:10px 8px;font-size:12px}ol,ul{padding-left:38px}.callout{padding:18px}li{padding-left:0}h1{padding-top:24px}}@media print{html{font-size:11px}details{display:block}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="dim">10 October 2026 · Personal workflow explanation</p>
+<h1>Three subscriptions.<br>One team you can manage.</h1>
+<p>How Clayon could turn your Codex, GLM and Claude sessions into tracked work, without replacing your harnesses or skills.</p>
+</header>
+<section aria-label="Recommendation">
+<p class="callout"><strong>Start with one project and three agent roles.</strong> Use Clayon to assign and inspect work; keep your existing skills as the engineering rules.</p>
+<p><strong>The value is less coordination work for you, not more intelligence from the models.</strong> Clayon supplies the task desk. Harnesses execute. Models reason. You retain approval authority.</p>
+</section>
+<section>
+<h2>What changes for you</h2>
+<table><thead><tr><th scope="col">Today</th><th scope="col">With Clayon</th><th scope="col">Why it matters</th></tr></thead><tbody>
+<tr><td>You switch between coding sessions to ask what happened.</td><td>Tasks collect assignments, comments, run history and artifacts.</td><td>You inspect one work thread instead of reconstructing several terminals.</td></tr>
+<tr><td>You manually pass plans and results between agents.</td><td>Roles and task delegation make the handoff explicit.</td><td>One agent implements; another checks the result against the same task.</td></tr>
+<tr><td>A terminal disappears and the work becomes difficult to recover.</td><td>Task records persist. Supporting adapters can resume saved sessions.</td><td>Work remains visible even when the original session is gone.</td></tr>
+<tr><td>You personally initiate repetitive work.</td><td>Optional routines create assigned tasks on schedules or triggers.</td><td>Maintenance becomes traceable rather than dependent on your memory.</td></tr>
+<tr><td>You need the Mac to see what agents are doing.</td><td>A hosted dashboard gives you remote visibility, including from your phone.</td><td>You can review and pause work without living in terminals.</td></tr>
+</tbody></table>
+</section>
+<section>
+<h2>How your subscriptions fit</h2>
+<p>A subscription is provider access, not a harness. Codex CLI, Claude Code and OpenCode are the tools Clayon can invoke.</p>
+<table><thead><tr><th scope="col">Your access</th><th scope="col">Connection path</th><th scope="col">Suggested responsibility</th></tr></thead><tbody>
+<tr><td><strong>Codex</strong></td><td>Bundled Codex CLI. Upstream documents browser-based subscription sign-in through Apps → Connections.</td><td>Implementation, difficult debugging and resolving findings.</td></tr>
+<tr><td><strong>Claude</strong></td><td>Bundled Claude Code CLI. Upstream documents the same subscription connection flow.</td><td>Architecture consultation and independent review, not the default delivery worker.</td></tr>
+<tr><td><strong>GLM</strong></td><td>OpenCode is bundled and multi-provider. Your exact GLM coding plan, endpoint and credential compatibility need verification.</td><td>Routine delivery, bounded maintenance and repeatable tasks.</td></tr>
+</tbody></table>
+<p class="warn"><strong>Important correction:</strong> owning all three subscriptions does not prove that all three work in this deployment. Connect and test each one.</p>
+<p>Provider sign-in must be available to the runtime on the VPS. Being signed in on your Mac does not automatically authenticate its containers.</p>
+</section>
+<section>
+<h2>A task you could actually give it</h2>
+<p><strong>Example:</strong> “Add an authenticated endpoint to this project, follow its existing conventions, and provide evidence that it works.”</p>
+<ol>
+<li><strong>You define the outcome.</strong> Attach repository context, acceptance criteria and allowed write paths.</li>
+<li><strong>A delivery agent executes.</strong> Choose GLM for routine scope or Codex for difficult implementation. It records results on the task.</li>
+<li><strong>An independent reviewer checks it.</strong> Claude or a separate Codex agent inspects changes and asks for falsifiable proof.</li>
+<li><strong>Findings return to the implementer.</strong> Fixes stay attached to the same task rather than becoming disconnected chat instructions.</li>
+<li><strong>You approve release separately.</strong> A completed agent run is not permission to commit, push, migrate or deploy without your task authority.</li>
+</ol>
+<p>This is a recommended operating setup, not an already-configured automatic pipeline. Roles, review policy and repository permissions must be wired explicitly.</p>
+</section>
+<section>
+<h2>What stays, what becomes the owner</h2>
+<table><thead><tr><th scope="col">Layer</th><th scope="col">Responsibility</th></tr></thead><tbody>
+<tr><td>Clayon</td><td>Task status, assignments, approvals, run history and work artifacts.</td></tr>
+<tr><td>Your <code>moe-*</code> skills and project instructions</td><td>Engineering methods, scope boundaries, proof requirements and deployment rules. They need explicit workspace access or supported skill installation.</td></tr>
+<tr><td>Codex CLI / Claude Code / OpenCode</td><td>Actual execution: reading repositories, making changes and invoking authorized tools.</td></tr>
+<tr><td>Dokploy</td><td>Container lifecycle, persistent volumes and deployment management on your VPS.</td></tr>
+<tr><td><code>moecli</code></td><td>Keep only functions with distinct value. Avoid maintaining a second competing task queue or two coordinators assigning the same work.</td></tr>
+</tbody></table>
+<p>Clayon is not documented here as having a native Crush adapter. Existing Crush sessions do not automatically appear in its dashboard.</p>
+</section>
+<section>
+<h2>What it will not solve</h2>
+<ul>
+<li><strong>No extra subscription quota.</strong> Multiple agents share provider limits; adding agents does not create more capacity.</li>
+<li><strong>No guaranteed dollar savings.</strong> Subscription sign-in and API-key billing are different paths. Verify which path each agent uses.</li>
+<li><strong>No authoritative subscription meter.</strong> Reported token costs are not the provider’s remaining plan allowance or reset timer.</li>
+<li><strong>No instant spending stop.</strong> Recorded usage and in-flight runs can delay budget enforcement.</li>
+<li><strong>No automatic safe autonomy.</strong> Never hand every agent unrestricted credentials, the Docker socket or all production repositories.</li>
+</ul>
+<p>Clayon adds storage, upgrades, authentication and backups to maintain. It earns that overhead when several tasks or agents need coordination.</p>
+</section>
+<section>
+<h2>Recommended choices</h2>
+<table><thead><tr><th scope="col">Decision</th><th scope="col">My recommendation</th><th scope="col">Why</th></tr></thead><tbody>
+<tr><td>Initial scale</td><td>One project, one delivery agent, one reviewer; choose the delivery harness per task.</td><td>Prove useful handoffs before creating a large agent organization.</td></tr>
+<tr><td>Authority</td><td>Explicit write scope and human release approval.</td><td>Separate successful execution from permission to change production.</td></tr>
+<tr><td>Credentials</td><td>Provider connections scoped to the intended agents.</td><td>Reuse eligible subscriptions without copying credentials into prompts or ordinary configuration.</td></tr>
+<tr><td>Automation</td><td>Manual tasks first; scheduled work only after permission and quota checks.</td><td>Avoid unattended loops before the runtime has earned trust.</td></tr>
+</tbody></table>
+</section>
+<section>
+<h2>Where setup actually stands</h2>
+<table><thead><tr><th scope="col">Boundary</th><th scope="col">Observed state</th><th scope="col">Still required</th></tr></thead><tbody>
+<tr><td>Container configuration</td><td>Compose prepared and syntax-validated; image digest resolved for Linux AMD64.</td><td>Deploy through Dokploy and verify startup.</td></tr>
+<tr><td>Storage and authentication</td><td>Named data volume and authenticated/public mode specified.</td><td>Generate signing secret, choose HTTPS URL, bootstrap admin and prove recovery.</td></tr>
+<tr><td>Control plane</td><td>Dokploy health and server APIs returned Cloudflare 502 during the earlier setup attempt.</td><td>Recheck current health; no Clayon deployment was completed.</td></tr>
+<tr><td>Harnesses</td><td>Upstream documents bundled CLIs and subscription sign-in.</td><td>Connect your accounts and run a bounded task through each intended harness.</td></tr>
+</tbody></table>
+<p>This is preparation, not a fully installed team. No provider account connection or real agent execution has been verified.</p>
+</section>
+<section>
+<h2>Source notes</h2>
+<p class="dim">Primary repository and deployment documentation inspected on 10 October 2026. Suggestions above are recommendations, not upstream guarantees.</p>
+<ul>
+<li>Repository: the <code>com.clayon</code> folder, with the Docker operator guide in <code>doc/DOCKER.md</code> and the deployment modes in <code>docs/deploy/deployment-modes.md</code>.</li>
+</ul>
+<p class="dim">The page itself has no network dependencies.</p>
+</section>
+<section>
+<h2>First proof of value</h2>
+<ol>
+<li>Restore and recheck Dokploy access.</li>
+<li>Deploy Clayon with authenticated HTTPS access and persistent storage.</li>
+<li>Connect one eligible subscription and verify a harmless, bounded run.</li>
+<li>Add an independent reviewer and complete one real task with evidence.</li>
+<li>Keep it only if handoffs become clearer and you spend less time coordinating.</li>
+</ol>
+</section>
+</main>
+</body>
+</html>

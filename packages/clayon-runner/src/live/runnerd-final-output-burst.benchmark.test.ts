@@ -19,7 +19,7 @@ import {
 
 // Opt in explicitly; never build/stage runnerd or invoke a real provider here.
 // Run from packages/clayon-runner:
-// CLAYON_FINAL_BURST_BENCHMARK=1 pnpm exec vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
+// CLAYON_FINAL_BURST_BENCHMARK=1 bun x vitest run src/live/runnerd-final-output-burst.benchmark.test.ts
 // CLAYON_FINAL_BURST_BINARY optionally selects an isolated comparison build;
 // the selected binary is still copied privately and verified unchanged.
 // This is an opt-in local filesystem benchmark, not a CPU-isolated performance

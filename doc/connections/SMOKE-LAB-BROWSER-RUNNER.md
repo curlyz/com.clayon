@@ -31,7 +31,7 @@ the Smoke Lab — a private box is a private box. Every smoke-lab service method
 (or `404 Smoke lab is disabled` when the flag is off).
 
 **The shared dev worktree service works as-is now.** The Clayon-managed dev
-service (`pnpm dev`, `CLAYON_DEPLOYMENT_MODE=authenticated` + `NODE_ENV=production`,
+service (`bun run dev`, `CLAYON_DEPLOYMENT_MODE=authenticated` + `NODE_ENV=production`,
 e.g. `http://clayon-dev:45439`) is private, so it can run the Smoke Lab directly —
 just turn the flag on. (Historically it was blocked because the gate required
 `local_trusted` + non-`production`; that restriction was removed in PAP-13351.) The
@@ -48,7 +48,7 @@ export NODE_ENV=test PORT=3211 \
   CLAYON_BIND=loopback \
   CLAYON_DEPLOYMENT_MODE=local_trusted \
   CLAYON_DEPLOYMENT_EXPOSURE=private
-pnpm clayon onboard --yes --run    # serves http://127.0.0.1:3211, own embedded PG
+bun run clayon onboard --yes --run    # serves http://127.0.0.1:3211, own embedded PG
 # wait for: GET /api/health -> 200
 ```
 

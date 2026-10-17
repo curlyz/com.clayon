@@ -189,9 +189,9 @@ Add a single storage subsystem for Clayon that supports:
 Run:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 If any command is skipped, document exactly what was skipped and why.

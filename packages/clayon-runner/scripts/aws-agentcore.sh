@@ -455,7 +455,7 @@ lab() {
   chmod 600 "$ACTIVE_FILE"
   trap 'rm -f "$ACTIVE_FILE"' EXIT INT TERM
   cd "$PACKAGE_DIR"
-  pnpm console:issue-thread
+  bun run console:issue-thread
 }
 
 destroy() {

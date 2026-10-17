@@ -153,7 +153,7 @@ verification, use:
 ```sh
 CLAYON_API_URL=http://127.0.0.1:3100 \
 CLAYON_AUTH_HEADER='Bearer <board-token>' \
-pnpm smoke:hermes-gateway-e2e
+bun run smoke:hermes-gateway-e2e
 ```
 
 The E2E smoke:
@@ -177,7 +177,7 @@ CLAYON_API_URL=http://127.0.0.1:3100 \
 CLAYON_AUTH_HEADER='Bearer <board-token>' \
 HERMES_GATEWAY_API_BASE_URL=http://127.0.0.1:8642 \
 HERMES_GATEWAY_API_KEY='<gateway-key>' \
-pnpm smoke:hermes-gateway-join
+bun run smoke:hermes-gateway-join
 ```
 
 See [HERMES_GATEWAY_SMOKE.md](./HERMES_GATEWAY_SMOKE.md) for Docker Desktop,
@@ -193,8 +193,8 @@ Use these entry points depending on who is driving setup:
   llm.txt-style setup instructions.
 - CLI invite flow: `npx clayon invite create`, `invite show`,
   `invite onboarding:text`, `join approve`, and `join claim-key`.
-- Smoke helpers: `pnpm smoke:hermes-gateway-e2e` for fresh-state Docker
-  verification and `pnpm smoke:hermes-gateway-join` for an already-running
+- Smoke helpers: `bun run smoke:hermes-gateway-e2e` for fresh-state Docker
+  verification and `bun run smoke:hermes-gateway-join` for an already-running
   gateway.
 - Adapter development override: Adapter manager can install
   `@clayon/hermes-clayon-adapter` as an external override, but normal

@@ -5,6 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { z } from "zod";
 import { assertManagedShimWritable, writeManagedShim, buildNextManifest, flipCurrentAtomic, isManagedExecutable, pruneInstallPayloads, readInstallManifest, resolveInstallStorePaths, withInstallStoreLock, writeInstallManifestAtomic, type InstallChannel, type InstallManifest, type InstallRecord, type InstallStorePaths } from "../install-store.js";
 import { dbBackupCommand } from "./db-backup.js";
 import { assertSupportedNodeVersion, installGitPayload, installNpmPayload, PUBLIC_NPM_REGISTRY, resolveGitHubRef, resolvePublishedVersion, type CommandRunner } from "./install.js";
@@ -21,6 +22,15 @@ type Dependencies = { executablePath: string; runCommand: CommandRunner; backup:
 
 const DATABASE_UNREACHABLE_CODES = new Set(["ECONNREFUSED", "EHOSTUNREACH", "ENETUNREACH", "ETIMEDOUT"]);
 
+const DATABASE_UNREACHABLE_MESSAGE_PATTERN = /\b(?:ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT)\b|connection refused/i;
+
+const DATABASE_ERROR_CAUSE_SCHEMA = z.object({
+  code: z.string().optional().catch(undefined),
+  message: z.string().optional().catch(undefined),
+  cause: z.unknown().optional(),
+  errors: z.array(z.unknown()).optional().catch(undefined),
+});
+
 function hasClayonInstanceData(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim())
     || fs.existsSync(resolveConfigPath())
@@ -28,22 +38,23 @@ function hasClayonInstanceData(): boolean {
 }
 
 function isDatabaseUnreachableError(error: unknown): boolean {
-  const pending = [error];
+  const pending: unknown[] = [error];
   const seen = new Set<unknown>();
   while (pending.length > 0) {
     const current = pending.pop();
     if (current === null || current === undefined || seen.has(current)) continue;
     seen.add(current);
-    if (typeof current === "string") {
-      if (/\b(?:ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT)\b|connection refused/i.test(current)) return true;
+    const asString = z.string().safeParse(current);
+    if (asString.success) {
+      if (DATABASE_UNREACHABLE_MESSAGE_PATTERN.test(asString.data)) return true;
       continue;
     }
-    if (typeof current !== "object") continue;
-    const record = current as Record<string, unknown>;
-    if (typeof record.code === "string" && DATABASE_UNREACHABLE_CODES.has(record.code)) return true;
-    if (typeof record.message === "string" && /\b(?:ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT)\b|connection refused/i.test(record.message)) return true;
-    if (record.cause !== undefined) pending.push(record.cause);
-    if (Array.isArray(record.errors)) pending.push(...record.errors);
+    const asRecord = DATABASE_ERROR_CAUSE_SCHEMA.safeParse(current);
+    if (!asRecord.success) continue;
+    if (asRecord.data.code !== undefined && DATABASE_UNREACHABLE_CODES.has(asRecord.data.code)) return true;
+    if (asRecord.data.message !== undefined && DATABASE_UNREACHABLE_MESSAGE_PATTERN.test(asRecord.data.message)) return true;
+    if (asRecord.data.cause !== undefined) pending.push(asRecord.data.cause);
+    if (asRecord.data.errors !== undefined) pending.push(...asRecord.data.errors);
   }
   return false;
 }
@@ -179,7 +190,7 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
     return;
   }
   if (mode === "npx") { emit(options, { mode, action: "install" }, "This is an ephemeral npx install. Run `clayon install`, then use `clayon update` from the managed shim."); return; }
-  if (mode === "source" || mode === "unknown") { emit(options, { mode, action: "manual" }, "This appears to be a source checkout. Update it with `git pull` followed by `pnpm install`; Clayon will not mutate the repository."); return; }
+  if (mode === "source" || mode === "unknown") { emit(options, { mode, action: "manual" }, "This appears to be a source checkout. Update it with `git pull` followed by `bun install`; Clayon will not mutate the repository."); return; }
   if (!options.check && !options.dryRun) assertSupportedNodeVersion();
   const request = resolveUpdateRequest(mode === "managed" ? manifest : null, options);
   if (mode === "managed" && manifest?.source === "git") {
@@ -219,7 +230,7 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
   const targetVersion = await resolvePublishedVersion(request.spec, runCommand);
   const currentVersion = manifest?.version ?? (mode === "global-npm" ? packageVersion : undefined);
   const comparison = currentVersion ? compareVersions(targetVersion, currentVersion) : 1;
-  if (options.check) { emit(options, { mode, currentVersion: currentVersion ?? null, targetVersion, updateAvailable: comparison > 0, downgrade: comparison < 0, channel: request.channel }, comparison > 0 ? `Update available: ${targetVersion}` : comparison < 0 ? `Target ${targetVersion} is older than ${currentVersion}.` : `clayon${targetVersion} is current.`); if (comparison > 0) process.exitCode = 10; return; }
+  if (options.check) { emit(options, { mode, currentVersion: currentVersion ?? null, targetVersion, updateAvailable: comparison > 0, downgrade: comparison < 0, channel: request.channel }, comparison > 0 ? `Update available: ${targetVersion}` : comparison < 0 ? `Target ${targetVersion} is older than ${currentVersion}.` : `clayon ${targetVersion} is current.`); if (comparison > 0) process.exitCode = 10; return; }
   if (mode === "global-npm") {
     if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(`Downgrade Clayon from ${currentVersion} to ${targetVersion}?`); if (!confirmed) throw new Error("Downgrade cancelled. Re-run with --yes to confirm explicitly."); }
     const args = ["install", "-g", `clayon@${targetVersion}`, `--registry=${PUBLIC_NPM_REGISTRY}`, `--@clayon:registry=${PUBLIC_NPM_REGISTRY}`]; console.log(`Running: npm ${args.join(" ")}`);
@@ -245,7 +256,7 @@ export async function updateCommand(options: UpdateOptions, overrides: Partial<D
     emit(options, { mode, action: "update", targetVersion, dryRun: Boolean(options.dryRun), command: ["npm", ...args] }, options.dryRun ? "Dry run complete." : pc.green(`Updated global npm install to ${targetVersion}.`)); return;
   }
   if (!manifest) throw new Error("Managed install metadata is missing.");
-  if (comparison === 0) { emit(options, { mode, currentVersion, targetVersion, changed: false }, `clayon${targetVersion} is already active.`); return; }
+  if (comparison === 0) { emit(options, { mode, currentVersion, targetVersion, changed: false }, `clayon ${targetVersion} is already active.`); return; }
   if (comparison < 0 && options.yes !== true) { const confirmed = await (overrides.confirm ?? defaultConfirm)(`Downgrade Clayon from ${currentVersion} to ${targetVersion}?`); if (!confirmed) throw new Error("Downgrade cancelled. Re-run with --yes to confirm explicitly."); }
   if (options.dryRun) { emit(options, { mode, currentVersion, targetVersion, action: comparison < 0 ? "downgrade" : "update", backup: options.backup !== false, dryRun: true }, `Would ${comparison < 0 ? "downgrade" : "update"} Clayon ${currentVersion} → ${targetVersion}${options.backup === false ? " without a backup" : " after a database backup"}.`); return; }
   if (options.backup !== false) await runPreUpdateBackup(options, overrides.backup ?? (() => dbBackupCommand({})), overrides.hasInstanceData);

@@ -471,6 +471,6 @@ Current process-only cancellation maps are insufficient by themselves for Cursor
 
 ### Verification
 
-- [ ] `pnpm -r typecheck`
-- [ ] `pnpm test:run`
-- [ ] `pnpm build`
+- [ ] `bun run --filter '*' typecheck`
+- [ ] `bun run test:run`
+- [ ] `bun run build`

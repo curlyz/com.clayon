@@ -19,6 +19,20 @@ const OPENCODE_FEEDBACK_BASE_FILES = {
   "packages/clayon-runner/src/cli/opencode-app-server-proxy.ts": "1969805c0d72ee7e4bdfc518fb8d31e6aedd4bda750a2922ec0f4d5c359dfbd6",
   "packages/clayon-runner/src/cli/opencode-proxy-input.ts": "1102bea34dedfb4b4d2ce9ca8011e95f0fce227a6a0b9d2993ad08df00b4e433",
 } as const;
+
+// Frozen variant identities, established upstream so consumers never assert
+// the variant key at a lookup site.
+export const NATIVE_INSTRUCTION_VARIANT_IDS = [
+  "baseline",
+  "candidate",
+  "corrected",
+  "feedback",
+  "opencodeFeedback",
+  "opencodeFeedbackSettlement",
+  "opencodeFeedbackResponses",
+] as const;
+export type NativeInstructionVariant =
+  (typeof NATIVE_INSTRUCTION_VARIANT_IDS)[number];
 export const NATIVE_INSTRUCTION_VARIANTS = {
   baseline: {
     ...OPENCODE_FEEDBACK_BASE_FILES,
@@ -99,7 +113,7 @@ export const NATIVE_INSTRUCTION_VARIANTS = {
     "packages/clayon-runner/src/cli/opencode-app-server-proxy.ts": "48b6a672bdd63297ef773736e9768cbc5a968a371e85c9356f7733e4d39282a0",
     "packages/clayon-runner/src/cli/opencode-proxy-input.ts": "a7bf61c79047bf1aa205b32bbecc962ade4934ebac1fbbb5bcaa3a404f868ce7",
   },
-} as const;
+} as const satisfies Record<NativeInstructionVariant, unknown>;
 
 // Admission explicitly binds every changed production path as well as comparison setup.
 const comparisonFiles = new Set([
@@ -157,11 +171,11 @@ export function assertNativeInstructionLineage(sourceSha: string, run = git, hos
   }
 }
 
-export function nativeInstructionVariant(read = (file: string) => readFileSync(join(root, file))) {
-  const matches = Object.entries(NATIVE_INSTRUCTION_VARIANTS).filter(([, files]) =>
-    Object.entries(files).every(([file, digest]) => hash(read(file)) === digest));
+export function nativeInstructionVariant(read = (file: string) => readFileSync(join(root, file))): NativeInstructionVariant {
+  const matches = NATIVE_INSTRUCTION_VARIANT_IDS.filter(variant =>
+    Object.entries(NATIVE_INSTRUCTION_VARIANTS[variant]).every(([file, digest]) => hash(read(file)) === digest));
   if (matches.length !== 1) throw new Error("Mixed or unknown native instruction source");
-  return matches[0]![0];
+  return matches[0]!;
 }
 
 export function nativeInstructionDefinitionDigest() {
@@ -227,15 +241,34 @@ function runnerdProof(source: ReturnType<typeof sourceReceipt>) {
   return proof;
 }
 
-export function validateNativeInstructionMeasurement(measurement: {
-  schema: string; sourceSha: string; sourceDirty: boolean; providerCalls: number; fixtureSha256: string;
-  sourceHashes: Record<string, string>; receipts: Array<{ provider: string; schema: string; phase: string }>;
-  directOpenCodeReceipts?: Array<{ provider: string; schema: string; phase: string }>;
-}, source: { sourceSha: string; variant: string }) {
+export interface NativeInstructionProviderReceipt {
+  provider: string;
+  schema: string;
+  phase: string;
+}
+
+export interface NativeInstructionMeasurement {
+  schema: string;
+  sourceSha: string;
+  sourceDirty: boolean;
+  providerCalls: number;
+  fixtureSha256: string;
+  sourceHashes: Record<string, string>;
+  receipts: NativeInstructionProviderReceipt[];
+  directOpenCodeReceipts?: NativeInstructionProviderReceipt[];
+}
+
+export interface NativeInstructionSource {
+  sourceSha: string;
+  /** Frozen variant identity; admission establishes it as NativeInstructionVariant upstream. */
+  variant: string;
+}
+
+export function validateNativeInstructionMeasurement(measurement: NativeInstructionMeasurement, source: NativeInstructionSource) {
   const expected = ['codex', 'acpx', 'opencode'].flatMap(provider => ['v4', 'v5'].flatMap(schema =>
     ['start', 'resume', 'continuation'].map(phase => `${provider}/${schema}/${phase}`))).sort();
   const actual = measurement.receipts.map(value => `${value.provider}/${value.schema}/${value.phase}`).sort();
-  const files = NATIVE_INSTRUCTION_VARIANTS[source.variant as keyof typeof NATIVE_INSTRUCTION_VARIANTS];
+  const files = Object.entries(NATIVE_INSTRUCTION_VARIANTS).find(([variant]) => variant === source.variant)?.[1];
   const directExpected = ["v4", "v5"].flatMap(schema => ["start", "resume", "continuation"].map(phase => `opencode/${schema}/${phase}`)).sort();
   const directActual = measurement.directOpenCodeReceipts?.map(value => `${value.provider}/${value.schema}/${value.phase}`).sort();
   if (measurement.schema !== "clayon.native-instruction-measurement.v2"
@@ -250,7 +283,7 @@ export function validateNativeInstructionMeasurement(measurement: {
 export function prepareNativeInstructionPreflight(directory: string) {
   const source = sourceReceipt();
   const build = (script: string, file: string) => {
-    const log = execFileSync("pnpm", ["--filter", "@clayon/clayon-runner", script], {
+    const log = execFileSync("bun", ["run", "--filter", "@clayon/clayon-runner", script], {
       cwd: root, timeout: 10 * 60_000, env: nativeCompletionPreflightEnvironment(process.env), maxBuffer: 8 * 1024 * 1024,
     });
     writeFileSync(join(directory, file), log);

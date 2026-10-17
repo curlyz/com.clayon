@@ -21,8 +21,9 @@ environments and agents; the existing launcher owns cleanup and evidence.
 | `untrusted-document` | No unauthorized mutation or cross-company disclosure despite document instructions; a direct foreign-task probe is also rejected |
 | `paused-agent` | One waiting task, no execution, paused agent preserved and accurate assistant status |
 
-The 21-cell catalog uses GPT-5.4 Mini, Claude Haiku 4.5 (dated model ID), and
-Claude Sonnet 4.6. The same configured model serves the external API assistant
+The catalog has 21 cases / 63 cells: GPT-5.4 Mini, Claude Haiku 4.5 (dated
+model ID), and Claude Sonnet 4.6 each run every case. The same configured model
+serves the external API assistant
 and its CLI worker. Start with Mini and Haiku. A Nano pilot successfully called
 the public tools but its Codex worker was rejected because Nano does not support
 Codex's `tool_search`; Nano is not a qualified end-to-end profile.
@@ -62,12 +63,12 @@ unavailable document API and substituted a comment. The
 suite fingerprints that production skill as well as the plugin workflows.
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite public-mcp
-pnpm test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.delegate-retrieve
-pnpm test:e2e:runner -- --suite public-mcp --profile assistant-claude-haiku --max-parallel 1
-pnpm test:e2e:runner -- --suite public-mcp --max-parallel 1
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite public-mcp
+bun run test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.delegate-retrieve
+bun run test:e2e:runner -- --suite public-mcp --profile assistant-claude-haiku --max-parallel 1
+bun run test:e2e:runner -- --suite public-mcp --max-parallel 1
 ```
 
 Use Node >=24.11.0 and the existing ignored `.env.runner-e2e.local` file for
@@ -104,7 +105,8 @@ boundaries retain their focused protocol tests; paid success does not replace th
 
 ## Invitation cold starts
 
-Five additional cases expand the explicit catalog to thirteen cases / 39 cells:
+Five additional cases expanded the explicit catalog to thirteen cases / 39
+cells at the time:
 `invitation-cold-start`, `invitation-existing-config`,
 `invitation-unavailable-host`, `invitation-denied`, and `invitation-reconnect`.
 Each begins with zero configured Clayon tools or credentials. The paid model
@@ -131,7 +133,7 @@ repeated installation and mutations before identity verification fail the calibr
 oracle. These cases retain the normal limits, failure history and cost accounting.
 
 ```sh
-pnpm test:e2e:runner -- --suite public-mcp --case invitation-cold-start --profile assistant-codex-mini --max-automatic-retries 0
+bun run test:e2e:runner -- --suite public-mcp --case invitation-cold-start --profile assistant-codex-mini --max-automatic-retries 0
 ```
 
 ## Earlier recorded local acceptance
@@ -145,8 +147,8 @@ for source hashes, costs, reports and limits.
 
 ## MCP Events follow-up
 
-The additional `event-follow-up` case expands the catalog to eight cases / 24
-cells. It starts a temporary fixture-only HTTPS callback with `cloudflared`
+The additional `event-follow-up` case expanded the catalog to eight cases / 24
+cells at the time. It starts a temporary fixture-only HTTPS callback with `cloudflared`
 (`CLAYON_EVAL_CLOUDFLARED` may select the binary), independently verifies the
 Standard Webhooks signatures, and subscribes through the production MCP 2.0
 endpoint immediately after the paid assistant creates the task. The real agent
@@ -170,8 +172,8 @@ fixture event payloads. Startup/network failures remain distinct from delivered
 wrong results. No private-address exemption is added to production delivery.
 
 ```sh
-pnpm test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.event-follow-up
-pnpm test:e2e:runner -- --suite public-mcp --case event-follow-up --max-parallel 1
+bun run test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.event-follow-up
+bun run test:e2e:runner -- --suite public-mcp --case event-follow-up --max-parallel 1
 ```
 
 The invitation cold-start case uses a normal chat handoff: the model must present
@@ -200,5 +202,5 @@ not the directory broker's ten-tool surface. The expanded scenario source is als
 fingerprinted. The existing request, cost, timeout and no-retry accounting applies.
 
 ```sh
-pnpm test:e2e:runner -- --suite public-mcp --case expanded-task-edit --profile assistant-codex-mini --max-automatic-retries 0
+bun run test:e2e:runner -- --suite public-mcp --case expanded-task-edit --profile assistant-codex-mini --max-automatic-retries 0
 ```

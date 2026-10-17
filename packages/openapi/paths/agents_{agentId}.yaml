@@ -1,0 +1,21 @@
+get:
+  operationId: readAgent
+  summary: One agent of the roster
+  description: The roster subset of one agent by id. An unknown id answers 404.
+  parameters:
+    - name: agentId
+      in: path
+      required: true
+      description: The agent id.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: The agent
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/AgentEnvelope.yaml
+    '404':
+      description: No agent with that id

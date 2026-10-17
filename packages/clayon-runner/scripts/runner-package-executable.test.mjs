@@ -9,16 +9,17 @@ import { test } from "node:test";
 
 const runnerRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(join(runnerRoot, "package.json"), "utf8"));
-const pnpmScript = process.env.npm_execpath;
-const pnpm = pnpmScript?.replaceAll("\\", "/").endsWith("/pnpm.cjs")
-  ? [process.execPath, pnpmScript] : [process.platform === "win32" ? "pnpm.cmd" : "pnpm"];
+const bun = process.platform === "win32" ? "bun.exe" : "bun";
 
 // The full clean-consumer check packs this Runner package, installs it offline,
 // then launches defaultCapabilityRunnerdBinary() without a binary override.
-// This small actual pack/install regression isolates pnpm's mode normalization,
-// including the absent alternate-platform executable and a negative control.
+// This small actual pack/install regression isolates bun's mode handling,
+// including the absent alternate-platform executable. Unlike pnpm, `bun pm pack`
+// has no executableFiles normalization: it keeps the on-disk mode, so the staged
+// binary's executable bit (set by stage-runner-binary.mjs) is what survives, with
+// or without the publishConfig declaration.
 for (const declared of [true, false]) {
-  test(`pnpm installed native mode ${declared ? "honors executableFiles" : "rejects an undeclared executable"}`,
+  test(`bun installed native mode keeps the staged executable bit ${declared ? "with" : "without"} executableFiles`,
     { skip: process.platform === "win32" ? "POSIX executable-bit contract" : false }, async t => {
       const root = await mkdtemp(join(tmpdir(), "runner-executable-pack-"));
       t.after(() => rm(root, { recursive: true, force: true }));
@@ -32,7 +33,7 @@ for (const declared of [true, false]) {
         npm_config_audit: "false", npm_config_fund: "false", npm_config_update_notifier: "false" };
       const run = (command, args, cwd) => execFileSync(command, args,
         { cwd, env, encoding: "utf8", timeout: 60_000, maxBuffer: 1024 * 1024 });
-      assert.equal(run(pnpm[0], [...pnpm.slice(1), "--version"], source).trim(), "9.15.4");
+      assert.match(run(bun, ["--version"], source).trim(), /^\d+\.\d+\.\d+/);
       assert.deepEqual(manifest.publishConfig.executableFiles,
         ["./dist/bin/clayon-runnerd", "./dist/bin/clayon-runnerd.exe"]);
       await writeFile(join(source, "package.json"), JSON.stringify({
@@ -44,18 +45,14 @@ for (const declared of [true, false]) {
       const executable = join(source, "dist/bin/clayon-runnerd");
       await writeFile(executable, "#!/bin/sh\nprintf 'packaged-native-fixture\\n'\n");
       await chmod(executable, 0o755);
-      run(pnpm[0], [...pnpm.slice(1), "pack", "--pack-destination", output], source);
+      run(bun, ["pm", "pack", "--ignore-scripts", "--destination", output], source);
       const archives = (await readdir(output)).filter(name => name.endsWith(".tgz"));
       assert.equal(archives.length, 1);
       await writeFile(join(consumer, "package.json"), JSON.stringify({ name: "runner-consumer", private: true }));
       run("npm", ["install", "--offline", "--ignore-scripts", "--package-lock=false", join(output, archives[0])], consumer);
       const installed = join(consumer, "node_modules/runner-executable-fixture/dist/bin/clayon-runnerd");
       assert.deepEqual(await readFile(installed), await readFile(executable));
-      if (declared) {
-        await access(installed, constants.X_OK);
-        assert.equal(run(installed, [], consumer).trim(), "packaged-native-fixture");
-      } else {
-        await assert.rejects(access(installed, constants.X_OK), { code: "EACCES" });
-      }
+      await access(installed, constants.X_OK);
+      assert.equal(run(installed, [], consumer).trim(), "packaged-native-fixture");
     });
 }

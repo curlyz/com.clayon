@@ -16,7 +16,7 @@ Current implementation status:
 ## Prerequisites
 
 - Node.js 24.11+
-- pnpm 9+
+- Bun 1.4.3 (pinned by `packageManager`)
 
 ## Google sign-in
 
@@ -44,11 +44,11 @@ http://localhost:2009/api/auth/callback/google
 
 ## Dependency Lockfile Policy
 
-GitHub Actions owns `pnpm-lock.yaml`.
+GitHub Actions owns `bun.lock`.
 
-- Do not commit `pnpm-lock.yaml` in pull requests.
+- Do not commit `bun.lock` in pull requests.
 - Pull request CI validates dependency resolution when manifests change.
-- Pushes to `master` regenerate `pnpm-lock.yaml` with `pnpm install --lockfile-only --no-frozen-lockfile`, commit it back if needed, and then run verification with `--frozen-lockfile`.
+- Pushes to `master` regenerate `bun.lock` with `bun install --lockfile-only`, commit it back if needed, and then run verification with `--frozen-lockfile`.
 
 ## Trusted PR Workflow
 
@@ -73,8 +73,8 @@ supported reruns still use them.
 From repo root:
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -82,11 +82,11 @@ This starts:
 - API server: `http://localhost:3100`
 - UI: served by the API server in dev middleware mode (same origin as API)
 
-`pnpm dev` runs the server in watch mode and restarts on changes from workspace packages (including adapter packages). Use `pnpm dev:once` to run without file watching.
+`bun run dev` runs the server in watch mode and restarts on changes from workspace packages (including adapter packages). Use `bun run dev:once` to run without file watching.
 
-`pnpm dev:once` auto-applies pending local migrations by default before starting the dev server.
+`bun run dev:once` auto-applies pending local migrations by default before starting the dev server.
 
-`pnpm dev` and `pnpm dev:once` are now idempotent for the current repo and instance: if the matching Clayon dev runner is already alive, Clayon reports the existing process instead of starting a duplicate.
+`bun run dev` and `bun run dev:once` are now idempotent for the current repo and instance: if the matching Clayon dev runner is already alive, Clayon reports the existing process instead of starting a duplicate.
 
 To run against a separate local state root, pass `--data-dir`. The dev runner
 translates it to an isolated `CLAYON_HOME` before migration checks or server
@@ -94,25 +94,25 @@ startup, so embedded PostgreSQL and other default instance state live under that
 directory:
 
 ```sh
-pnpm dev --data-dir ./tmp/clayon-dev
+bun run dev --data-dir ./tmp/clayon-dev
 ```
 
 Pass the same option to the service-management commands so they use the
 isolated runtime-service registry:
 
 ```sh
-pnpm dev:list --data-dir ./tmp/clayon-dev
-pnpm dev:stop --data-dir ./tmp/clayon-dev
+bun run dev:list --data-dir ./tmp/clayon-dev
+bun run dev:stop --data-dir ./tmp/clayon-dev
 ```
 
 Issue execution may also use project execution workspace policies and workspace runtime services for per-project worktrees, preview servers, and managed dev commands. Configure those through the project workspace/runtime surfaces rather than starting long-running unmanaged processes when a task needs a reusable service.
 
-### Mobile-friendly preview (`pnpm dev:mobile`)
+### Mobile-friendly preview (`bun run dev:mobile`)
 
-The vite dev server serves an unbundled module graph. This is fast to reload on a local machine but too heavy for phones and tablets on slow links (airplane wifi, mobile data, distant tailnet peers). `pnpm dev:mobile` builds the UI once and serves the small production bundle on port `3101` via `vite preview`, proxying `/api` requests to the dev API on `3100`.
+The vite dev server serves an unbundled module graph. This is fast to reload on a local machine but too heavy for phones and tablets on slow links (airplane wifi, mobile data, distant tailnet peers). `bun run dev:mobile` builds the UI once and serves the small production bundle on port `3101` via `vite preview`, proxying `/api` requests to the dev API on `3100`.
 
-- `pnpm dev:mobile` — build the UI and start the preview server on `:3101`. Rebuild manually to pick up UI source changes.
-- `pnpm dev:both` — run `pnpm dev` and `pnpm dev:mobile` together with prefixed output and shared signal handling.
+- `bun run dev:mobile` — build the UI and start the preview server on `:3101`. Rebuild manually to pick up UI source changes.
+- `bun run dev:both` — run `bun run dev` and `bun run dev:mobile` together with prefixed output and shared signal handling.
 
 The preview server binds `0.0.0.0` and accepts any Host, so a tailnet or LAN address (e.g. `http://<host>.ts.net:3101/`) works out of the box. The `/api` proxy sets `x-forwarded-host` and `x-forwarded-proto`, which the server's board mutation guard uses to trust the browser's Origin — mutations from `:3101` succeed against the API on `:3100` without further configuration. An HTTPS tunnel in front of the preview server (ngrok, tailscale funnel) is also supported: the tunnel's `x-forwarded-proto` header is preserved when set.
 
@@ -132,8 +132,8 @@ fixtures in the production shell and thread with an agent and two humans, both
 human viewer perspectives, light mode, and mobile.
 
 ```sh
-pnpm storybook
-pnpm build-storybook
+bun run storybook
+bun run build-storybook
 ```
 
 These run the `@clayon/ui` Storybook on port `6006` and build the static output to `ui/storybook-static/`.
@@ -258,7 +258,7 @@ default model, because the default ACP engine ignores effort.
 
 Mobile entity picker sheets use a modal popover so touch scrolling stays inside
 the sheet even when it is portalled outside the new-task dialog. Run
-`pnpm exec playwright test --config tests/e2e/playwright.config.ts tests/e2e/new-task-picker-touch.spec.ts`
+`bun x playwright test --config tests/e2e/playwright.config.ts tests/e2e/new-task-picker-touch.spec.ts`
 to verify native touch scrolling and selection in both assignee and model lists.
 The test uses a fixed model catalog and a reduced viewport to cover limited
 space while the phone keyboard is open; it does not require a provider login.
@@ -267,15 +267,15 @@ The Storybook visual regression suite uses external PNG baselines instead of
 committed screenshots:
 
 ```sh
-pnpm test:storybook-visual
-pnpm test:storybook-visual:update
+bun run test:storybook-visual
+bun run test:storybook-visual:update
 ```
 
-`pnpm test:storybook-visual` downloads and verifies the baseline archive from
+`bun run test:storybook-visual` downloads and verifies the baseline archive from
 `tests/storybook-visual/baseline-manifest.json` before running Playwright.
 Accepted visual changes should update the manifest metadata and publish a new
-immutable archive with `pnpm storybook-visual:baseline pack` and
-`pnpm storybook-visual:baseline upload`; do not commit generated PNG snapshots.
+immutable archive with `bun run storybook-visual:baseline pack` and
+`bun run storybook-visual:baseline upload`; do not commit generated PNG snapshots.
 
 Known limitation: Storybook visual baselines are Linux/Ubuntu-only. The manifest
 pins the capture environment to `ubuntu-24.04` and the Playwright suite uses
@@ -367,18 +367,18 @@ the Tailwind `font-sans` token to those bundled files before system fallbacks.
 Linux screenshot or Storybook capture jobs should not install host Inter packages
 or inject external font CSS to make Clayon text render correctly.
 
-Font assets live in Vite's public directory so `pnpm --filter @clayon/ui build`
+Font assets live in Vite's public directory so `bun run --filter @clayon/ui build`
 emits them under `ui/dist/fonts/`. The server package copies the same output into
 `server/ui-dist/fonts/` through `scripts/prepare-server-ui-dist.sh`.
 
 Inspect or stop the current repo's managed dev runner:
 
 ```sh
-pnpm dev:list
-pnpm dev:stop
+bun run dev:list
+bun run dev:stop
 ```
 
-`pnpm dev:once` now tracks backend-relevant file changes and pending migrations. When the current boot is stale, the board UI shows a `Restart required` banner. You can also enable guarded auto-restart in `Instance Settings > Experimental`, which waits for queued/running local agent runs to finish before restarting the dev server.
+`bun run dev:once` now tracks backend-relevant file changes and pending migrations. When the current boot is stale, the board UI shows a `Restart required` banner. You can also enable guarded auto-restart in `Instance Settings > Experimental`, which waits for queued/running local agent runs to finish before restarting the dev server.
 
 Worktree dependency provisioning records its fingerprint only after a successful
 install. Frozen installs with outdated lockfiles or patched-dependency hash
@@ -404,7 +404,7 @@ Primary-instance rebuilds that restart `clayon.service` can request one-shot liv
 
 ```sh
 old_main_pid="$(systemctl show clayon.service -p MainPID --value)"
-pnpm --filter @clayon/server exec tsx ../scripts/request-hot-restart.ts --server-pid "$old_main_pid"
+bun run --cwd server tsx ../scripts/request-hot-restart.ts --server-pid "$old_main_pid"
 systemctl restart clayon.service
 ```
 
@@ -446,7 +446,7 @@ drain-and-retry path:
 
 ```sh
 old_main_pid="$(systemctl show clayon.service -p MainPID --value)"
-pnpm --filter @clayon/server exec tsx ../scripts/request-hot-restart.ts \
+bun run --cwd server tsx ../scripts/request-hot-restart.ts \
   --server-pid "$old_main_pid" --drain-required
 systemctl restart clayon.service
 ```
@@ -486,7 +486,7 @@ finalized and have a queued retry rather than be adopted.
 Tailscale/private-auth dev mode:
 
 ```sh
-pnpm dev --bind lan
+bun run dev --bind lan
 ```
 
 This runs dev as `authenticated/private` with a private-network bind preset.
@@ -495,20 +495,20 @@ account, and use the setup screen to claim the first instance admin from the
 browser. The CLI fallback remains:
 
 ```sh
-pnpm clayon auth bootstrap-ceo
+bun run clayon auth bootstrap-ceo
 ```
 
 For Tailscale-only reachability on a detected tailnet address:
 
 ```sh
-pnpm dev --bind tailnet
+bun run dev --bind tailnet
 ```
 
 Legacy aliases still map to the old broad private-network behavior:
 
 ```sh
-pnpm dev --tailscale-auth
-pnpm dev --authenticated-private
+bun run dev --tailscale-auth
+bun run dev --authenticated-private
 ```
 
 Allow additional private hostnames (for example custom Tailscale hostnames):
@@ -519,28 +519,23 @@ npx clayon allowed-hostname dotta-macbook-pro
 
 ## Test Commands
 
-The [feature map](../feature-map/README.md) is an optional reference for user
-entry points, targeted tests, manual verification recipes, and coverage gaps.
-Its page inventory is a source snapshot. The documented journeys have separate
-verification steps and do not run automatically from the map.
-
 Use the cheap local default unless you are specifically working on browser flows:
 
 ```sh
-pnpm test
+bun run test
 ```
 
-`pnpm test` runs the Vitest suite only. For interactive Vitest watch mode use:
+`bun run test` runs the Vitest suite only. For interactive Vitest watch mode use:
 
 ```sh
-pnpm test:watch
+bun run test:watch
 ```
 
 Browser suites stay separate:
 
 ```sh
-pnpm test:e2e
-pnpm test:release-smoke
+bun run test:e2e
+bun run test:release-smoke
 ```
 
 These browser suites are intended for targeted local verification and CI, not the default agent/human test command.
@@ -550,7 +545,7 @@ its throwaway instance and serves that build with
 `CLAYON_UI_DEV_MIDDLEWARE=false`. This exercises the
 shipped assets, including service-worker takeover and reload, without traversing
 the development server's unbundled module graph on each navigation. Browser
-assertion deadlines and retries remain unchanged. Use `pnpm dev` separately when
+assertion deadlines and retries remain unchanged. Use `bun run dev` separately when
 verifying Vite/HMR behavior.
 
 For normal issue work, start with the smallest targeted check that proves the change. Reserve repo-wide typecheck/build/test runs for PR-ready handoff or changes broad enough that narrow checks do not cover the risk.
@@ -561,7 +556,7 @@ The task search relevance rubric and regression corpus are documented in
 [SEARCH.md](SEARCH.md). Run the real PostgreSQL relevance suite with:
 
 ```sh
-pnpm exec vitest run server/src/__tests__/task-search-quality.test.ts
+bun x vitest run server/src/__tests__/task-search-quality.test.ts
 ```
 
 Set `SEARCH_EVAL_SCALE=1` to additionally measure a disposable 10,000-task,
@@ -603,7 +598,7 @@ An explicit override remains authoritative and fails closed if invalid.
 For a first-time local install, you can bootstrap and run in one command:
 
 ```sh
-pnpm clayon run
+bun run clayon run
 ```
 
 > **Note: private npm registry `.npmrc` + first-run onboarding**
@@ -826,7 +821,7 @@ The server will automatically use embedded PostgreSQL and persist data at:
 Override home or instance:
 
 ```sh
-CLAYON_HOME=/custom/path CLAYON_INSTANCE_ID=dev pnpm clayon run
+CLAYON_HOME=/custom/path CLAYON_INSTANCE_ID=dev bun run clayon run
 ```
 
 No Docker or external database is required for this mode.
@@ -870,7 +865,7 @@ For local development, the default storage provider is `local_disk`, which persi
 Configure storage provider/settings:
 
 ```sh
-pnpm clayon configure --section storage
+bun run clayon configure --section storage
 ```
 
 ## Agent Artifact Uploads
@@ -1014,9 +1009,9 @@ Seeded worktree instances quarantine copied live execution by default for both `
 
 The same quarantine stops copied project/execution-workspace runtime desired states and clears copied runtime process claims. Without this reset, booting the cloned Clayon database could restart a source workspace's dev service from the isolated instance, creating duplicate runners, port reassignment, and stale public URLs.
 
-After `worktree init`, both the server and the CLI auto-load the repo-local `.clayon/.env` when run inside that worktree, so normal commands like `pnpm dev`, `clayon doctor`, and `clayon db:backup` stay scoped to the worktree instance.
+After `worktree init`, both the server and the CLI auto-load the repo-local `.clayon/.env` when run inside that worktree, so normal commands like `bun run dev`, `clayon doctor`, and `clayon db:backup` stay scoped to the worktree instance.
 
-`pnpm dev` now fails fast in a linked git worktree when `.clayon/.env` is missing, instead of silently booting against the default instance/port. If that happens, run `clayon worktree init` in the worktree first.
+`bun run dev` now fails fast in a linked git worktree when `.clayon/.env` is missing, instead of silently booting against the default instance/port. If that happens, run `clayon worktree init` in the worktree first.
 
 ### Lean worktrees and deferred seeding
 
@@ -1026,7 +1021,7 @@ Seeding state is tracked in `.clayon/seed-manifest.json`. The versioned manifest
 
 The default `worktree init` still seeds eagerly. A lean worktree (created without an eager seed) has a `pending` manifest until something seeds it on demand:
 
-- `pnpm clayon worktree ensure-seeded` performs the deferred seed **exactly once**. It is lock-guarded and idempotent: only a complete `verified` manifest short-circuits it, so it is safe to call repeatedly and from concurrent processes. Managed workspaces derive the source from the control-plane-provided base project workspace when it carries its own `.clayon/config.json`, and otherwise from the control plane's own registered instance config; either way the workspace's manifest never selects it. Manual worktrees must pass `--from-config`.
+- `bun run clayon worktree ensure-seeded` performs the deferred seed **exactly once**. It is lock-guarded and idempotent: only a complete `verified` manifest short-circuits it, so it is safe to call repeatedly and from concurrent processes. Managed workspaces derive the source from the control-plane-provided base project workspace when it carries its own `.clayon/config.json`, and otherwise from the control plane's own registered instance config; either way the workspace's manifest never selects it. Manual worktrees must pass `--from-config`.
 - `clayon run` calls `ensureWorktreeSeeded` automatically before doctor/boot. Managed runs transparently seed a lean worktree from their registered base workspace; an unmanaged lean worktree must first run `worktree ensure-seeded --from-config <source-config>`.
 - Managed Clayon git worktrees default to the repository's `scripts/provision-worktree.sh` when the strategy omits `provisionCommand`. When a registered source config exists, setup creates the isolated config and pending manifest. Runtime startup also runs `scripts/provision-worktree-runtime.sh` automatically when no explicit runtime provision command is configured and the manifest is not verified. Explicitly configured provision commands still take precedence.
 - An environment-configured server may have no local seed config. If neither the base checkout nor the default control-plane instance has one, a fresh worktree prepares its dependencies without creating a development instance. This also applies when `CLAYON_CONFIG` names the default `$CLAYON_HOME/instances/$CLAYON_INSTANCE_ID/config.json` path, as the Docker image does. Setup creates no config, environment file, or seed manifest and does not claim runtime or seed readiness. A later request for a seeded development runtime still needs a canonical registered source config. Once that source exists, provisioning the checkout again creates the development instance normally.
@@ -1040,13 +1035,13 @@ The seed process must own the target embedded PostgreSQL lifecycle for that enti
 
 The seed manifest never grants source-path authority. Its source path and instance are diagnostic assertions derived from the realpath-canonical registered source. Deferred seeding resolves registration independently before taking the seed lock; under that lock it replaces stale source diagnostics from the registered value and then revalidates the manifest before any backup, service stop, spawn, or database mutation. Missing registration, invalid registered paths, source/target identity collisions, target-instance mismatches, and company mismatches fail closed.
 
-**Unverified-seed guard.** `pnpm dev` (the dev-runner) refuses to boot a worktree whose manifest is pending, running, failed, malformed, or missing required verification evidence and points you at the fix:
+**Unverified-seed guard.** `bun run dev` (the dev-runner) refuses to boot a worktree whose manifest is pending, running, failed, malformed, or missing required verification evidence and points you at the fix:
 
 ```
-[clayon] this worktree database is seed-pending. Run `pnpm clayon worktree ensure-seeded` before `pnpm dev`.
+[clayon] this worktree database is seed-pending. Run `bun run clayon worktree ensure-seeded` before `bun run dev`.
 ```
 
-This guard (`isWorktreeSeedPending` in `server/src/dev-runner-worktree.ts`) prevents `pnpm dev` from starting the app against an empty or partially restored database — run `worktree ensure-seeded` once and re-run `pnpm dev`.
+This guard (`isWorktreeSeedPending` in `server/src/dev-runner-worktree.ts`) prevents `bun run dev` from starting the app against an empty or partially restored database — run `worktree ensure-seeded` once and re-run `bun run dev`.
 
 Provisioned git worktrees also pause seeded routines that still have enabled schedule triggers in the isolated worktree database by default. This prevents copied daily/cron routines from firing unexpectedly inside the new workspace instance during development without disabling webhook/API-only routines.
 
@@ -1152,7 +1147,7 @@ Examples:
 ```sh
 # From inside a linked worktree, rebuild missing .clayon metadata and reseed it from the default instance.
 cd /path/to/clayon/.clayon/worktrees/PAP-1132-assistant-ui-pap-1131-make-issues-comments-be-like-a-chat
-pnpm clayon worktree repair
+bun run clayon worktree repair
 
 # From the primary checkout, create or repair a linked worktree for a branch under .clayon/worktrees/.
 # This command repairs the local checkout, so run the checked-out CLI through the direct-exec form.
@@ -1231,8 +1226,8 @@ npx clayon worktree:make experiment --no-seed
 Examples:
 
 ```sh
-pnpm clayon worktree env
-pnpm clayon worktree env --json
+bun run clayon worktree env
+bun run clayon worktree env --json
 eval "$(npx clayon worktree env)"
 ```
 
@@ -1647,9 +1642,9 @@ failed turn's sandbox running.
 Run the credential-free real-process restart suite with:
 
 ```sh
-pnpm --filter @clayon/clayon-runner build:runner-binaries
-pnpm exec vitest run server/src/services/native-runtime/native-runner-restart-recovery.integration.test.ts
-pnpm --filter @clayon/clayon-runner exec vitest run src/live/runnerd-codex-transport.test.ts -t 'adopts a live runner'
+bun run --filter @clayon/clayon-runner build:runner-binaries
+bun x vitest run server/src/services/native-runtime/native-runner-restart-recovery.integration.test.ts
+bun run --cwd packages/clayon-runner vitest run src/live/runnerd-codex-transport.test.ts -t 'adopts a live runner'
 ```
 
 The suite uses isolated PostgreSQL state, isolated `CLAYON_HOME` roots, real
@@ -1693,18 +1688,18 @@ this legacy default because its protocol supplies the control-plane contract.
 Validate the catalog without writing the manifest:
 
 ```sh
-pnpm --filter @clayon/skills-catalog validate
+bun run --filter @clayon/skills-catalog validate
 ```
 
 Regenerate `generated/catalog.json` after editing any catalog `SKILL.md`,
 frontmatter, file inventory, category, or slug:
 
 ```sh
-pnpm --filter @clayon/skills-catalog build:manifest
+bun run --filter @clayon/skills-catalog build:manifest
 ```
 
 The package's `build` script runs `build:manifest` and then `tsc`; tests live
-under `pnpm --filter @clayon/skills-catalog test`. Validation fails when:
+under `bun run --filter @clayon/skills-catalog test`. Validation fails when:
 
 - a catalog entry is not under `catalog/bundled/<category>/<slug>` or
   `catalog/optional/<category>/<slug>`
@@ -1721,7 +1716,7 @@ only), `assets` (other non-script files), or `scripts_executables` (any
 executable script). The build contract is documented in
 `doc/plans/2026-05-26-skills-cli-catalog-contract.md`.
 
-CI runs `pnpm --filter @clayon/skills-catalog validate` and the package's
+CI runs `bun run --filter @clayon/skills-catalog validate` and the package's
 vitest suite, so always regenerate the manifest in the same commit as the
 catalog change.
 
@@ -1744,13 +1739,13 @@ packages/teams-catalog/
 Validate without writing the manifest:
 
 ```sh
-pnpm --filter @clayon/teams-catalog validate
+bun run --filter @clayon/teams-catalog validate
 ```
 
 Regenerate `generated/catalog.json` after editing catalog team files:
 
 ```sh
-pnpm --filter @clayon/teams-catalog build:manifest
+bun run --filter @clayon/teams-catalog build:manifest
 ```
 
 Team install/preview APIs enforce source policy. External skill sources require
@@ -1783,7 +1778,7 @@ To wipe local dev data and start fresh:
 
 ```sh
 rm -rf ~/.clayon/instances/default/db
-pnpm dev
+bun run dev
 ```
 
 ## Optional: Use External Postgres
@@ -1809,15 +1804,15 @@ main/default instance keeps the normal enabled-by-default behavior.
 Configure these in:
 
 ```sh
-pnpm clayon configure --section database
+bun run clayon configure --section database
 ```
 
 Run a one-off backup manually:
 
 ```sh
-pnpm clayon db:backup
+bun run clayon db:backup
 # or:
-pnpm db:backup
+bun run db:backup
 ```
 
 Environment overrides:
@@ -1868,9 +1863,9 @@ Authenticated deployments default strict mode on unless explicitly overridden.
 
 CLI configuration support:
 
-- `pnpm clayon onboard` writes a default `secrets` config section (`local_encrypted`, strict mode off, key file path set) and creates a local key file when needed.
-- `pnpm clayon configure --section secrets` lets you update provider/strict mode/key path and creates the local key file when needed.
-- `pnpm clayon doctor` validates secrets adapter configuration, can create a missing local key file with `--repair`, and reports missing AWS Secrets Manager bootstrap env when that provider is selected.
+- `bun run clayon onboard` writes a default `secrets` config section (`local_encrypted`, strict mode off, key file path set) and creates a local key file when needed.
+- `bun run clayon configure --section secrets` lets you update provider/strict mode/key path and creates the local key file when needed.
+- `bun run clayon doctor` validates secrets adapter configuration, can create a missing local key file with `--repair`, and reports missing AWS Secrets Manager bootstrap env when that provider is selected.
 - Provider health is available at `GET /api/companies/:companyId/secret-providers/health` and reports local key permission warnings plus backup guidance.
 
 Per-company provider vaults are configured in the board UI under
@@ -1882,8 +1877,8 @@ for the operator model.
 Migration helper for existing inline env secrets:
 
 ```sh
-pnpm secrets:migrate-inline-env         # dry run
-pnpm secrets:migrate-inline-env --apply # apply migration
+bun run secrets:migrate-inline-env         # dry run
+bun run secrets:migrate-inline-env --apply # apply migration
 ```
 
 ## Internal Connection Token Brokers
@@ -1954,8 +1949,8 @@ npx clayon context set --api-base http://localhost:3100 --company-id <company-id
 Then run commands without repeating flags:
 
 ```sh
-pnpm clayon issue list
-pnpm clayon dashboard get
+bun run clayon issue list
+bun run clayon dashboard get
 ```
 
 See full command reference in `doc/CLI.md`.
@@ -1984,7 +1979,7 @@ fresh-state Docker smoke setup.
 Run the end-to-end OpenClaw join smoke harness:
 
 ```sh
-pnpm smoke:openclaw-join
+bun run smoke:openclaw-join
 ```
 
 What it validates:
@@ -2007,7 +2002,7 @@ Optional auth flags (for authenticated mode):
 ## PostHog MCP Live Smoke Test
 
 The PostHog smoke targets an already-running authenticated Clayon instance.
-It is deliberately separate from `pnpm test` and `pnpm test:e2e` because it
+It is deliberately separate from `bun run test` and `bun run test:e2e` because it
 uses a live vendor OAuth flow and creates a short-lived connection plus one
 fresh-run proof issue.
 
@@ -2015,7 +2010,7 @@ fresh-run proof issue.
 INTEGRATIONS_POSTHOG_CLAYON_E2E_EMAIL=operator@example.test \
 INTEGRATIONS_POSTHOG_CLAYON_DEV_LOGIN_PASSWORD='<environment-delivered>' \
 INTEGRATIONS_POSTHOG_POSTHOG_PROJECT_ID=483530 \
-pnpm smoke:posthog-live https://clayon.example.test
+bun run smoke:posthog-live https://clayon.example.test
 ```
 
 The command fails before browser launch unless all three integration bindings
@@ -2041,7 +2036,7 @@ node --test scripts/smoke/posthog-live.test.mjs
 To boot OpenClaw in Docker and print a host-browser dashboard URL in one command:
 
 ```sh
-pnpm smoke:openclaw-docker-ui
+bun run smoke:openclaw-docker-ui
 ```
 
 This script lives at `scripts/smoke/openclaw-docker-ui.sh` and automates clone/build/config/start for Compose-based local OpenClaw UI testing.
@@ -2124,7 +2119,7 @@ The company React context retains only its object identity in Vite's per-module
 account scope. This lets a refreshed consumer read a provider from the preceding
 module version. Production builds do not use the development cache.
 
-Run `pnpm test:e2e:browser-context` to test this with real Vite modules and
+Run `bun run test:e2e:browser-context` to test this with real Vite modules and
 Chromium. The test starts its own loopback Vite server and mocks API responses;
 it needs no running Clayon instance or provider credentials. The same spec lives
 in the default `test:e2e` discovery tree, so the existing Chrome CI shards run it

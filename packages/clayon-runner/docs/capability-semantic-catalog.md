@@ -56,8 +56,8 @@ Tool schemas contain no credential fields. Inputs containing protected keys or c
 Generate and verify the checked-in contracts with:
 
 ```sh
-pnpm --dir packages/clayon-runner generate:semantic-contracts
-pnpm --dir packages/clayon-runner check:semantic-contracts
+bun run --cwd packages/clayon-runner generate:semantic-contracts
+bun run --cwd packages/clayon-runner check:semantic-contracts
 ```
 
 The generated contract is `generated/capability/semantic-tool-contracts.json`. Capability traceability remains under `generated/capability/` and is checked with `check:capability-contract`.

@@ -47,10 +47,10 @@ the same native Codex model and production tool contracts. This is a bounded pil
 not a cross-model reliability, speed, or cost claim.
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite plan-task-guidance
-pnpm test:e2e:runner -- --id plan-task-guidance.runner-codex.local.short-cohesive --max-parallel 1
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite plan-task-guidance
+bun run test:e2e:runner -- --id plan-task-guidance.runner-codex.local.short-cohesive --max-parallel 1
 ```
 
 Each attempt keeps `plan-task-source.json`, `plan-task-guidance.json`,

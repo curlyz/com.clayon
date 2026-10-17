@@ -74,7 +74,7 @@ versions below.
 Common to every protocol:
 
 ```bash
-pnpm add \
+bun add \
   @opentelemetry/sdk-node@0.221.0 \
   @opentelemetry/auto-instrumentations-node@0.79.0 \
   @opentelemetry/resources@2.10.0 \
@@ -92,7 +92,7 @@ Then add the exporter for the protocol you intend to use:
 For example, for the default gRPC path:
 
 ```bash
-pnpm add @opentelemetry/exporter-trace-otlp-grpc@0.221.0
+bun add @opentelemetry/exporter-trace-otlp-grpc@0.221.0
 ```
 
 ### 2. Set the environment
@@ -297,7 +297,7 @@ enabling error monitoring on a mismatch (see "Server request data"
 below).
 
 ```bash
-pnpm add @sentry/node@10.71.0
+bun add @sentry/node@10.71.0
 ```
 
 **The hosted image variant ships this package pre-installed.** A managed
@@ -1336,7 +1336,7 @@ Read-only listings validate caches without downloading or repairing them. A
 publication lock left by an abruptly terminated process is reported for operator
 cleanup; remove it only after confirming its recorded PID is no longer running.
 
-Run `pnpm --filter @clayon/server exec tsx ../scripts/benchmark-skill-preparation.ts` for an isolated embedded
+Run `bun run --cwd server tsx ../scripts/benchmark-skill-preparation.ts` for an isolated embedded
 PostgreSQL benchmark with 114 mixed skills and at least 400 remote files. It
 reports one cold sample and ten warm samples (one in a new process), refresh and
 fetch counts, rebuilds, missing entries, and content checks. Upstream responses are

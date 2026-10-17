@@ -1633,13 +1633,13 @@ it("uses the public server npm package as the authority for vendored sidecars", 
   });
 });
 
-it("keeps a self-rooted pnpm deployment inside its dependency authority", async () => {
+it("keeps a self-rooted bun deployment inside its dependency authority", async () => {
   const deploymentRoot = await mkdtemp(
     join(tmpdir(), "clayon-deployed-provider-root-"),
   );
   const deployedPackageRoot = deploymentRoot;
   await mkdir(join(deployedPackageRoot, "dist", "cli"), { recursive: true });
-  await mkdir(join(deploymentRoot, "node_modules", ".pnpm"), {
+  await mkdir(join(deploymentRoot, "node_modules"), {
     recursive: true,
   });
   try {

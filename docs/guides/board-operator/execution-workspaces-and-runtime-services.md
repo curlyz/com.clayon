@@ -81,7 +81,7 @@ Proxy or tailnet route fronting the process: keep readiness and browser exposure
 ```json
 {
   "name": "clayon-dev",
-  "command": "pnpm dev --bind lan",
+  "command": "bun run dev --bind lan",
   "port": { "type": "auto" },
   "readiness": {
     "type": "http",

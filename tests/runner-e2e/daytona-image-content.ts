@@ -16,12 +16,11 @@ export const DAYTONA_IMAGE_DOCKERFILE_PATH = "docker/daytona-runner/Dockerfile";
 // without first changing this content-identity contract.
 export const DAYTONA_IMAGE_INPUT_PATHS = [
   ".dockerignore",
-  ".npmrc",
+  "bun.lock",
+  "bunfig.toml",
   "docker/daytona-runner/Dockerfile",
   "package.json",
   "patches",
-  "pnpm-lock.yaml",
-  "pnpm-workspace.yaml",
   "scripts/link-plugin-dev-sdk.mjs",
   "tsconfig.base.json",
   "packages/clayon-eval-kernel/package.json",
@@ -52,8 +51,6 @@ export const DAYTONA_IMAGE_INPUT_PATHS = [
   "packages/clayon-runner/scripts/cursor-native-usage.mjs",
   "packages/clayon-runner/scripts/cursor-native-usage-source.json",
   "packages/clayon-runner/scripts/provision-cursor.mjs",
-  "packages/clayon-runner/cursor-distributions.json",
-  "packages/clayon-runner/cursor-contract.json",
   // Pi runtime/extension/Node/closure pins are included by the src tree below.
   "packages/clayon-runner/src",
   "packages/clayon-runner/styles.css",
@@ -311,9 +308,8 @@ if (invokedPath && import.meta.url === pathToFileURL(invokedPath).href) {
   computeDaytonaImageContentId({ candidateProviders })
     .then((contentId) => process.stdout.write(`${contentId}\n`))
     .catch((error: unknown) => {
-      process.stderr.write(
-        `${error instanceof Error ? error.message : String(error)}\n`,
-      );
+      const text = String(error).replace(/^Error:\s*/, "");
+      process.stderr.write(`${text}\n`);
       process.exitCode = 1;
     });
 }

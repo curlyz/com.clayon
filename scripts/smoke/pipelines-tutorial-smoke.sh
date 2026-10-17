@@ -10,7 +10,7 @@ fi
 : "${CLAYON_API_KEY:?Set CLAYON_API_KEY for the target dev instance.}"
 : "${CLAYON_COMPANY_ID:?Set CLAYON_COMPANY_ID for the target dev company.}"
 
-read -r -a PC_CMD <<< "${CLAYON_CMD:-pnpm --silent clayon}"
+read -r -a PC_CMD <<< "${CLAYON_CMD:-bun run --silent clayon}"
 RUN_KEY="${PIPELINE_SMOKE_KEY:-$(date +%Y%m%d%H%M%S)}"
 RELEASE_PIPELINE="release-coverage-${RUN_KEY}"
 FEATURE_PIPELINE="feature-content-${RUN_KEY}"

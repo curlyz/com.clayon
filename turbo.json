@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "agentGuidance": false,
+  "concurrency": "2",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "cache": false
+    }
+  }
+}

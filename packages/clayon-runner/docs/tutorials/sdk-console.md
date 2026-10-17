@@ -30,9 +30,9 @@ Run commands from the repository root.
 ## 1. Run the small SDK tests
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:sdk
-pnpm --filter @clayon/clayon-runner check:browser-tokens
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner test:sdk
+bun run --filter @clayon/clayon-runner check:browser-tokens
+bun run --filter @clayon/clayon-runner check:forbidden-imports
 ```
 
 These tests check reducer parity, components, tokens, and package boundaries.
@@ -40,7 +40,7 @@ These tests check reducer parity, components, tokens, and package boundaries.
 ## 2. Open both apps with the fake driver
 
 ```sh
-pnpm --filter @clayon/clayon-runner console:sdk
+bun run --filter @clayon/clayon-runner console:sdk
 ```
 
 Open these pages:
@@ -107,14 +107,14 @@ feature.
 On a machine with Playwright system libraries:
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:browser:sdk
+bun run --filter @clayon/clayon-runner test:browser:sdk
 ```
 
 On a minimal Debian or Ubuntu machine without root access:
 
 ```sh
 cd packages/clayon-runner
-bash scripts/verify-rootless-linux.sh pnpm run test:browser:sdk
+bash scripts/verify-rootless-linux.sh bun run test:browser:sdk
 ```
 
 This runs keyboard, accessibility, reconnect, gap-recovery, replay, fake
@@ -126,7 +126,7 @@ Use a machine where the local Codex CLI is already authenticated.
 
 ```sh
 cd packages/clayon-runner
-bash scripts/verify-rootless-linux.sh pnpm run record:sdk:codex
+bash scripts/verify-rootless-linux.sh bun run record:sdk:codex
 ```
 
 Test runs a safe completion through both public consumers. Checks that
@@ -140,7 +140,7 @@ proves the same public transport and identity boundary against Codex.
 ## 7. Run the package acceptance command
 
 ```sh
-pnpm --filter @clayon/clayon-runner verify
+bun run --filter @clayon/clayon-runner verify
 ```
 
 Use `verify:rootless` if the host needs package-local browser libraries.

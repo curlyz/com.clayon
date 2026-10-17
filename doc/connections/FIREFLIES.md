@@ -181,9 +181,9 @@ accounts or send provider requests.
 | `editable-sections.production.tsx` | Advanced creation with shared signing-mode description |
 
 ```sh
-pnpm storybook
-pnpm build-storybook
-pnpm exec playwright test --config tests/storybook-visual/fireflies-pr.config.ts
+bun run storybook
+bun run build-storybook
+bun x playwright test --config tests/storybook-visual/fireflies-pr.config.ts
 ```
 
 The browser check loads every review story, runs its interaction assertions, and

@@ -364,9 +364,9 @@ UI tests:
 
 Repo verification before merge:
 
-- `pnpm -r typecheck`
-- `pnpm test:run`
-- `pnpm build`
+- `bun run --filter '*' typecheck`
+- `bun run test:run`
+- `bun run build`
 
 ## 12. Risks and Mitigations
 

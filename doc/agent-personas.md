@@ -71,8 +71,8 @@ new versioned artwork, `node scripts/sync-agent-palette-tokens.mjs` synchronizes
 the TS palette data; `--check` detects drift. This does not generate images.
 
 Storybook: **Agents / Personas**. Run with
-`CLAYON_STORYBOOK_API_URL=http://localhost:<isolated-port> pnpm storybook`.
-`pnpm build-storybook` automatically packages all finite avatar presets (17
+`CLAYON_STORYBOOK_API_URL=http://localhost:<isolated-port> bun run storybook`.
+`bun run build-storybook` automatically packages all finite avatar presets (17
 palettes plus muted gray, nine poses, eleven logical sizes, both densities).
 The build uses the same bounded Node worker pool, SVG renderer, and Sharp pipeline
 as the API. Storybook-only URL resolution points to relative PNG paths under the
@@ -91,10 +91,10 @@ transition durations; the connection status hold remains readable.
 Focused checks:
 
 ```sh
-pnpm exec vitest run packages/shared/src/agent-appearance.test.ts server/src/__tests__/agent-avatars.test.ts
+bun x vitest run packages/shared/src/agent-appearance.test.ts server/src/__tests__/agent-avatars.test.ts
 node scripts/sync-agent-palette-tokens.mjs --check
-pnpm check:token-gates
-pnpm build-storybook
+bun run check:token-gates
+bun run build-storybook
 ```
 
 The 500-avatar story must create zero WebGL contexts and load no live runtime.
@@ -105,7 +105,7 @@ appearance after refresh alongside normal typecheck/test/build checks.
 Linux visual/performance checks (against the self-contained built Storybook):
 
 ```sh
-pnpm exec playwright test --config tests/storybook-visual/agent-personas.config.ts
+bun x playwright test --config tests/storybook-visual/agent-personas.config.ts
 ```
 
 Use the Playwright 1.62.1 Noble image for authoritative Linux baselines. The suite

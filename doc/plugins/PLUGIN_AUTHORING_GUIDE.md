@@ -4,7 +4,7 @@ This guide describes the current, implemented way to create a Clayon plugin in t
 
 It is intentionally narrower than [PLUGIN_SPEC.md](./PLUGIN_SPEC.md). The spec includes future ideas; this guide only covers the alpha surface that exists now.
 
-> **New to plugins?** Start with the short [Local Plugin Development guide](./LOCAL_PLUGIN_DEVELOPMENT.md) — it walks the CLI happy path (`plugin init` → `pnpm dev` → `plugin install <path>`) end to end. Come back here for the full manifest surface, worker capabilities, and UI components.
+> **New to plugins?** Start with the short [Local Plugin Development guide](./LOCAL_PLUGIN_DEVELOPMENT.md) — it walks the CLI happy path (`plugin init` → `bun run dev` → `plugin install <path>`) end to end. Come back here for the full manifest surface, worker capabilities, and UI components.
 
 ## Current reality
 
@@ -203,15 +203,15 @@ Outside this monorepo, the scaffold snapshots `@clayon/plugin-sdk` from the loca
 
 ## Local development workflow
 
-See the short [Local Plugin Development guide](./LOCAL_PLUGIN_DEVELOPMENT.md) for the full happy path (`pnpm dev` → `clayon plugin install <absolute-path>` → `clayon plugin list`) and reload semantics.
+See the short [Local Plugin Development guide](./LOCAL_PLUGIN_DEVELOPMENT.md) for the full happy path (`bun run dev` → `clayon plugin install <absolute-path>` → `clayon plugin list`) and reload semantics.
 
 Minimum verification from the generated plugin folder:
 
 ```bash
-pnpm install
-pnpm typecheck
-pnpm test
-pnpm build
+bun install
+bun run typecheck
+bun run test
+bun run build
 ```
 
 ## Supported alpha surface
@@ -735,17 +735,17 @@ Rules:
 At minimum:
 
 ```bash
-pnpm --filter <your-plugin-package> typecheck
-pnpm --filter <your-plugin-package> test
-pnpm --filter <your-plugin-package> build
+bun run --filter <your-plugin-package> typecheck
+bun run --filter <your-plugin-package> test
+bun run --filter <your-plugin-package> build
 ```
 
 If you changed host integration too, also run:
 
 ```bash
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```
 
 For image-supplied plugins and the persistent shell lifecycle, see

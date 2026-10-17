@@ -14,7 +14,6 @@
 <p align="center">
   <a href="https://github.com/clayon/clayon/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a>
   <a href="https://github.com/clayon/clayon/stargazers"><img src="https://img.shields.io/github/stars/clayon/clayon?style=flat" alt="Stars" /></a>
-  <a href="https://discord.gg/m4HZY7xNG3"><img src="https://img.shields.io/discord/000000000?label=discord" alt="Discord" /></a>
 </p>
 
 <br/>
@@ -299,13 +298,13 @@ Or manually:
 ```bash
 git clone https://github.com/clayon/clayon.git
 cd clayon
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts the API server at `http://localhost:3100`. An embedded PostgreSQL database is created automatically — no setup required.
 
-> **Requirements:** Node.js 24.11+, pnpm 9.15+
+> **Requirements:** Node.js 24.11+, Bun 1.4.3+
 
 <br/>
 
@@ -347,19 +346,19 @@ The board UI has matching Export and Import pages in company settings: the Expor
 ## Development
 
 ```bash
-pnpm dev              # Full dev (API + UI, watch mode)
-pnpm dev:once         # Full dev without file watching
-pnpm dev:server       # Server only
-pnpm build            # Build all
-pnpm typecheck        # Type checking
-pnpm test             # Cheap default test run (Vitest only)
-pnpm test:watch       # Vitest watch mode
-pnpm test:e2e         # Playwright browser suite
-pnpm db:generate      # Generate DB migration
-pnpm db:migrate       # Apply migrations
+bun run dev              # Full dev (API + UI, watch mode)
+bun run dev:once         # Full dev without file watching
+bun run dev:server       # Server only
+bun run build            # Build all
+bun run typecheck        # Type checking
+bun run test             # Cheap default test run (Vitest only)
+bun run test:watch       # Vitest watch mode
+bun run test:e2e         # Playwright browser suite
+bun run db:generate      # Generate DB migration
+bun run db:migrate       # Apply migrations
 ```
 
-`pnpm test` does not run Playwright. Browser suites stay separate and are typically run only when working on those flows or in CI.
+`bun run test` does not run Playwright. Browser suites stay separate and are typically run only when working on those flows or in CI.
 
 See [doc/DEVELOPING.md](https://github.com/clayon/clayon/blob/master/doc/DEVELOPING.md) for the full development guide.
 
@@ -429,7 +428,7 @@ MIT.
 ## History
 
 Fork of the upstream clayon/clayon project, taken over by anatalab
-2026-10-11; upstream references were removed at takeover. Git history is the
+2026-10-11; upstream references retained for provenance. Git history is the
 archive of everything upstream.
 
 <br/>

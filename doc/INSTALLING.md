@@ -263,8 +263,8 @@ Source checkout for development:
 ```sh
 git clone https://github.com/clayon/clayon.git
 cd clayon
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 The managed `clayon update` command can update managed and global npm

@@ -2,7 +2,7 @@
 
 First-party Modal sandbox provider plugin for Clayon.
 
-Like the other sandbox-provider packages in this repo, it lives inside the Clayon monorepo but is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn for Modal's SDK dependencies.
+Like the other sandbox-provider packages in this repo, it lives inside the Clayon monorepo but is intentionally excluded from the root Bun workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn for Modal's SDK dependencies.
 
 ## Install
 
@@ -49,10 +49,10 @@ Because there is no real pause, **`reuseLease: true` keeps billing running** unt
 
 ```bash
 cd packages/plugins/sandbox-providers/modal
-pnpm install --ignore-workspace --no-lockfile
-pnpm build
-pnpm test
-pnpm typecheck
+bun install --no-save
+bun run build
+bun run test
+bun run typecheck
 ```
 
 These commands assume the repo root has already been installed once so the local `@clayon/plugin-sdk` workspace package is available to the compiler during development.

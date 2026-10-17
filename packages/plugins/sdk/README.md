@@ -34,7 +34,7 @@ In your plugin manifest you declare:
 ## Install
 
 ```bash
-pnpm add @clayon/plugin-sdk
+bun add @clayon/plugin-sdk
 ```
 
 ## Current deployment caveats
@@ -57,6 +57,11 @@ If you are authoring a plugin for others to deploy, treat npm-packaged installat
 ```ts
 import { definePlugin, runWorker } from "@clayon/plugin-sdk";
 
+interface CalculatorParams {
+  a: number;
+  b: number;
+}
+
 const plugin = definePlugin({
   async setup(ctx) {
     ctx.events.on("issue.created", async (event) => {
@@ -74,8 +79,8 @@ const plugin = definePlugin({
         properties: { a: { type: "number" }, b: { type: "number" } },
         required: ["a", "b"]
       }
-    }, async (params) => {
-      const { a, b } = params as { a: number; b: number };
+    }, async (params: CalculatorParams) => {
+      const { a, b } = params;
       return { content: `Result: ${a + b}`, data: { result: a + b } };
     });
   },
@@ -102,7 +107,7 @@ runWorker(plugin, import.meta.url);
 
 **Context (`ctx`) in setup:** `config`, `localFolders`, `events`, `jobs`, `launchers`, `http`, `secrets`, `activity`, `state`, `entities`, `projects`, `companies`, `issues`, `agents`, `goals`, `access`, `authorization`, `data`, `actions`, `streams`, `tools`, `metrics`, `logger`, `manifest`. Worker-side host APIs are capability-gated; declare capabilities in the manifest.
 
-**Agents:** `ctx.agents.invoke(agentId, companyId, opts)` for one-shot invocation. `ctx.agents.sessions` for two-way chat: `create`, `list`, `sendMessage` (with streaming `onEvent` callback), `close`. See the [Plugin Authoring Guide](../../doc/plugins/PLUGIN_AUTHORING_GUIDE.md#agent-sessions-two-way-chat) for details.
+**Agents:** `ctx.agents.invoke(agentId, companyId, opts)` for one-shot invocation. `ctx.agents.sessions` for two-way chat: `create`, `list`, `sendMessage` (with streaming `onEvent` callback), `close`. See the [Plugin Authoring Guide](../../../doc/plugins/PLUGIN_AUTHORING_GUIDE.md#managed-clayon-resources) for details.
 
 **Jobs:** Declare in `manifest.jobs` with `jobKey`, `displayName`, `schedule` (cron). Register handler with `ctx.jobs.register(jobKey, fn)`. **Webhooks:** Declare in `manifest.webhooks` with `endpointKey`; handle in `onWebhook(input)`. **State:** `ctx.state.get/set/delete(scopeKey)`; scope kinds: `instance`, `company`, `project`, `project_workspace`, `agent`, `issue`, `goal`, `run`.
 
@@ -664,7 +669,16 @@ Returns an async function that calls the worker's `performAction` handler. Throw
 
 ```tsx
 import { useState } from "react";
-import { usePluginAction, type PluginBridgeError } from "@clayon/plugin-sdk/ui";
+import { z } from "zod";
+import { usePluginAction } from "@clayon/plugin-sdk/ui";
+
+const bridgeErrorSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+});
+
+const readErrorMessage = (error: unknown): string =>
+  bridgeErrorSchema.safeParse(error).data?.message ?? "Unknown error";
 
 export function ResyncButton({ context }: PluginWidgetProps) {
   const resync = usePluginAction("resync");
@@ -677,7 +691,7 @@ export function ResyncButton({ context }: PluginWidgetProps) {
     try {
       await resync({ companyId: context.companyId });
     } catch (err) {
-      setError((err as PluginBridgeError).message);
+      setError(readErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -844,8 +858,6 @@ export function WikiFiles() {
       nodes={nodes}
       expandedPaths={["wiki"]}
       selectedFile="wiki/index.md"
-      onToggleDir={(path) => console.log("toggle", path)}
-      onSelectFile={(path) => console.log("select", path)}
     />
   );
 }
@@ -870,8 +882,8 @@ export function AssignmentControls({ companyId }: { companyId: string }) {
         companyId={companyId}
         value={assignee}
         onChange={(value, selection) => {
+          // selection carries assigneeAgentId and assigneeUserId for the chosen assignee.
           setAssignee(value);
-          console.log(selection.assigneeAgentId, selection.assigneeUserId);
         }}
       />
       <ProjectPicker
@@ -1044,10 +1056,19 @@ Project-scoped example (appears only on project detail pages):
 
 ```tsx
 import { useState } from "react";
+import { z } from "zod";
 import {
   useHostContext,
   usePluginAction,
 } from "@clayon/plugin-sdk/ui";
+
+const bridgeErrorSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+});
+
+const readErrorMessage = (error: unknown): string =>
+  bridgeErrorSchema.safeParse(error).data?.message ?? "Unknown error";
 
 export function SyncToolbarButton() {
   const context = useHostContext();
@@ -1064,7 +1085,7 @@ export function SyncToolbarButton() {
       await syncProject({ projectId: context.projectId });
       setOpen(false);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Sync failed");
+      setErrorMessage(readErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -1120,13 +1141,24 @@ Plugins can push real-time events from the worker to the UI using server-sent ev
 In `setup()`, use `ctx.streams` to open a channel, emit events, and close when done:
 
 ```ts
+import { z } from "zod";
+
+const chatActionParamsSchema = z.object({
+  companyId: z.string(),
+  prompt: z.string(),
+});
+
 const plugin = definePlugin({
   async setup(ctx) {
     ctx.actions.register("chat", async (params) => {
-      const companyId = params.companyId as string;
+      const parsed = chatActionParamsSchema.safeParse(params);
+      if (!parsed.success) {
+        throw new Error(`Invalid chat params: ${parsed.error.message}`);
+      }
+      const { companyId, prompt } = parsed.data;
       ctx.streams.open("chat-stream", companyId);
 
-      for await (const token of streamFromLLM(params.prompt as string)) {
+      for await (const token of streamFromLLM(prompt)) {
         ctx.streams.emit("chat-stream", { text: token });
       }
 
@@ -1175,10 +1207,20 @@ The agent doesn't know about streams — the worker decides what to relay. Encod
 **Worker:**
 
 ```ts
+import { z } from "zod";
+
+const askAgentParamsSchema = z.object({
+  agentId: z.string(),
+  companyId: z.string(),
+  prompt: z.string(),
+});
+
 ctx.actions.register("ask-agent", async (params) => {
-  const { agentId, companyId, prompt } = params as {
-    agentId: string; companyId: string; prompt: string;
-  };
+  const parsed = askAgentParamsSchema.safeParse(params);
+  if (!parsed.success) {
+    throw new Error(`Invalid ask-agent params: ${parsed.error.message}`);
+  }
+  const { agentId, companyId, prompt } = parsed.data;
 
   const channel = `agent:${agentId}`;
   ctx.streams.open(channel, companyId);
@@ -1244,8 +1286,8 @@ const session = await ctx.agents.sessions.create(agentId, companyId);
 await ctx.agents.sessions.sendMessage(session.sessionId, companyId, {
   prompt: "Help me triage this issue",
   onEvent: (event) => {
-    if (event.eventType === "chunk") console.log(event.message);
-    if (event.eventType === "done") console.log("Stream complete");
+    if (event.eventType === "chunk") ctx.logger.info("Agent chunk", { message: event.message });
+    if (event.eventType === "done") ctx.logger.info("Stream complete");
   },
 });
 

@@ -15,6 +15,7 @@ import { createSkilllessCodexThreadConfig } from "../packages/clayon-runner/src/
 import { AttemptJournal } from "../packages/clayon-runner/src/evals/attempt-journal.js";
 import { estimateModelCostNanodollars } from "../packages/clayon-runner/src/evals/model-pricing.js";
 import { CONNECTION_INTENT_AGENT_GUIDANCE } from "../packages/shared/src/connection-intent-guidance.js";
+import { z } from "zod";
 
 if (process.argv.includes("--catalog")) {
   process.stdout.write(JSON.stringify(runnerApiCatalog()) + "\n");
@@ -48,14 +49,113 @@ function fileDigest(path: string): Promise<string | null> {
 const runtimeBuild = {
   runnerBinarySha256: await fileDigest(defaultCapabilityRunnerdBinary()),
   workerSourceSha256: await fileDigest(resolve("scripts/runner-api-eval-worker.ts")),
-  lockfileSha256: await fileDigest(resolve("pnpm-lock.yaml")),
+  lockfileSha256: await fileDigest(resolve("bun.lock")),
 };
 output({ ready: true });
-const record = (value: unknown): Record<string, any> => value && typeof value === "object" ? value as Record<string, any> : {};
+const recordShape = z.record(z.string(), z.unknown());
+const record = (value: unknown): Record<string, unknown> => {
+  const parsed = recordShape.safeParse(value);
+  return parsed.success ? { ...parsed.data } : {};
+};
+// A real count is a number or a pure integer string. Number() coercion would
+// let true→1, [5]→5 and []→0 slip past the conservative accounting gate, so
+// parse the shape with zod first (moe:typescript/no-type-guards), then
+// convert the validated value. The safe-integer check still rejects
+// NaN/Infinity (z.number() accepts them) and out-of-range strings.
+const countShape = z.union([z.number(), z.string().regex(/^-?\d+$/)]);
+const asCount = (value: unknown): number | null => {
+  const parsed = countShape.safeParse(value);
+  return parsed.success && Number.isSafeInteger(Number(parsed.data))
+    ? Number(parsed.data)
+    : null;
+};
+// Provider-reported USD cost is fractional; an integer-only parse would
+// null every nonzero value and silence provider-cost accounting.
+const asFiniteFloat = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+const toolCallItemIdShape = z.object({ id: z.string() });
+const errorMessageShape = z.object({ message: z.string().optional() });
+// A caught error is unknown; extract its message without a type guard
+// (moe:typescript/no-type-guards): parse the { message } shape, else stringify.
+const errorMessage = (error: unknown): string => {
+  const parsed = errorMessageShape.safeParse(error);
+  const message = parsed.success ? parsed.data.message : undefined;
+  return message ?? String(error);
+};
+type FixtureValue = string | number | boolean | null | undefined | FixtureValue[] | { [key: string]: FixtureValue };
+// Fixture payloads arrive as unknown JSON from the controller; the recursive
+// shape validates them at the boundary so expand() never narrows with runtime
+// type guards (moe:typescript/no-type-guards).
+const fixtureValueShape: z.ZodType<FixtureValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.undefined(),
+    z.array(fixtureValueShape),
+    z.record(z.string(), fixtureValueShape),
+  ]),
+);
+type EvalToolCall = {
+  tool: string;
+  arguments: unknown;
+  callId: string;
+  startedMs: number;
+  result?: unknown;
+  error?: string;
+  status?: unknown;
+  durationMs?: number;
+};
+type EvalUsage = {
+  inputTokens: number;
+  outputTokens: number;
+  cachedInputTokens: number;
+  cacheWriteTokens?: number;
+  estimatedCostNanodollars: number;
+  providerRequests: number | null;
+  accountingProvenance?: string;
+  preflight?: boolean;
+  providerUsageUpdateCount?: number;
+  providerRequestCountSource?: string;
+  providerReportedCostNanodollars?: number | null;
+  cacheWriteUsdPerMillionTokens?: number;
+  cacheWritePricing?: string;
+};
+// Controller requests arrive as unknown JSONL; this shape owns the boundary so
+// the loop never narrows with runtime type guards (moe:typescript/no-type-guards).
+// The controller may end the stream with a bare shutdown line, so the schema is
+// a union: a shutdown-only line carries just shutdown, and a full request line
+// keeps every required field (a non-shutdown line missing them still throws
+// Malformed).
+const evalControllerRequestShape = z.union([
+  z.object({ shutdown: z.literal(true) }),
+  z.object({
+  shutdown: z.boolean().optional(),
+  outputDirectory: z.string(),
+  attemptId: z.string(),
+  model: z.string(),
+  mode: z.enum(["standard", "ask", "planning"]),
+  arm: z.string().optional(),
+  conversation: z.boolean().optional(),
+  connectionScenario: z.enum(["fresh", "pending", "declined", "custom", "foreign", "stale_owner", "ready"]).optional(),
+  prompt: z.string().optional(),
+  calls: z.array(z.object({ tool: z.string(), arguments: z.unknown(), callId: z.string().optional() })).optional(),
+  reservationId: z.string().optional(),
+  maxCostUsd: z.number().optional(),
+  preflight: z.boolean().optional(),
+  }),
+]);
+type EvalControllerRequest = z.infer<typeof evalControllerRequestShape>;
 
 try {
   for await (const line of createInterface({ input: process.stdin })) {
-    const request = JSON.parse(line);
+    const parsedRequest = evalControllerRequestShape.safeParse(JSON.parse(line));
+    if (!parsedRequest.success) throw new Error(`Malformed controller request on JSONL line: ${parsedRequest.error.message}`);
+    const request: EvalControllerRequest = parsedRequest.data;
     if (request.shutdown) break;
     const directory = resolve(request.outputDirectory);
     await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -68,13 +168,25 @@ try {
     let providerVersion: string | null = null;
     const fixture = await server.fixture({ mode: request.mode, apiToolsEnabled: request.arm !== "baseline", reset: true, conversation: request.conversation === true, connectionScenario: request.connectionScenario });
     const initialState = await fixture.snapshot();
-    const substitutions = Object.fromEntries(Object.entries(fixture).filter(([, value]) => typeof value === "string"));
-    const expand = (value: any): any => typeof value === "string" ? value.replace(/\{\{(\w+)\}\}/g, (_, key) => String(substitutions[key] ?? (() => { throw new Error(`Unknown fixture variable ${key}`); })())) : Array.isArray(value) ? value.map(expand) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, expand(entry)])) : value;
-    const calls: Record<string, any>[] = [], notifications: unknown[] = [];
+    const substitutions: Record<string, string> = {};
+    for (const [key, value] of Object.entries(fixture)) {
+      const text = z.string().safeParse(value);
+      if (text.success) substitutions[key] = text.data;
+    }
+    const expand = (value: unknown): FixtureValue => {
+      const text = z.string().safeParse(value);
+      if (text.success) return text.data.replace(/\{\{(\w+)\}\}/g, (_, key) => String(substitutions[key] ?? (() => { throw new Error(`Unknown fixture variable ${key}`); })()));
+      const list = z.array(fixtureValueShape).safeParse(value);
+      if (list.success) return list.data.map(expand);
+      const entries = z.record(z.string(), fixtureValueShape).safeParse(value);
+      if (entries.success) return Object.fromEntries(Object.entries(entries.data).map(([key, entry]) => [key, expand(entry)]));
+      return fixtureValueShape.parse(value);
+    };
+    const calls: EvalToolCall[] = [], notifications: unknown[] = [];
     const observedToolCallIds = new Set<string>();
     const definitions = await fixture.authority.definitions();
     const prompt = expand(request.prompt ?? "");
-    let error: string | null = null, evidence: unknown = null, thread: Record<string, any> = {}, usage: Record<string, any> | null = null;
+    let error: string | null = null, evidence: unknown = null, thread: Record<string, unknown> = {}, usage: EvalUsage | null = null;
     let usageUpdates = 0, lastUsageFingerprint = "", terminalSeen = false, providerTurnStarted = false;
     let diagnosticTail: string | null = null;
     let bundle: ReturnType<typeof createRunnerdCodexTransport> | undefined;
@@ -82,11 +194,11 @@ try {
     const invoke = async (tool: string, args: unknown, callId: string) => {
       observedToolCallIds.add(callId);
       if (observedToolCallIds.size > 12) throw new Error("Attempt tool-call ceiling reached");
-      const call: Record<string, any> = { tool, arguments: args, callId, startedMs: performance.now() - started };
+      const call: EvalToolCall = { tool, arguments: args, callId, startedMs: performance.now() - started };
       calls.push(call);
       journal.append({ kind: "tool_dispatch", ...call });
       try { call.result = await fixture.authority.execute({ tool, arguments: args, callId }); }
-      catch (caught) { call.error = caught instanceof Error ? caught.message : String(caught); call.status = record(caught).status; }
+      catch (caught) { call.error = errorMessage(caught); call.status = record(caught).status; }
       call.durationMs = performance.now() - started - call.startedMs;
       journal.append({ kind: "tool_result", ...call });
       return call;
@@ -145,8 +257,9 @@ try {
           journal.append({ kind: "notification", ...retained });
           notifications.push(retained);
           const item = record(record(notification.params).item);
-          if (["dynamicToolCall", "tool_call", "tool_result"].includes(item.type) && typeof item.id === "string") {
-            observedToolCallIds.add(item.id);
+          const itemId = toolCallItemIdShape.safeParse(item);
+          if (["dynamicToolCall", "tool_call", "tool_result"].includes(String(item.type)) && itemId.success) {
+            observedToolCallIds.add(itemId.data.id);
             if (observedToolCallIds.size > 12) { error = "Attempt tool-call ceiling reached, including provider-rejected calls"; break; }
           }
           if (notification.method === "thread/tokenUsage/updated") {
@@ -155,14 +268,22 @@ try {
             const cumulative = record(tokenUsage.total ?? tokenUsage.totalTokenUsage ?? tokenUsage.total_token_usage ?? tokenUsage);
             if (request.model === "claude-sonnet-5" && params.runDeltaAvailable !== true) continue;
             const total = request.model === "claude-sonnet-5" ? record(tokenUsage.runDelta) : cumulative;
-            const cacheWriteTokens = total.cacheWriteTokens ?? 0;
-            const inputTokens = (total.inputTokens ?? total.input_tokens) + (request.model === "claude-sonnet-5" ? (total.cacheReadTokens ?? 0) : isOpenRouter ? (total.cacheReadTokens ?? total.cachedInputTokens ?? 0) : 0);
-            const outputTokens = total.outputTokens ?? total.output_tokens;
-            const cachedInputTokens = total.cacheReadTokens ?? total.cachedInputTokens ?? total.cache_read_input_tokens ?? 0;
-            if ([inputTokens, outputTokens, cachedInputTokens, cacheWriteTokens].every(value => Number.isSafeInteger(value) && value >= 0)) {
+            // A present-but-invalid cacheWriteTokens must block further paid
+            // attempts (conservative), not silently coerce to 0; only an
+            // absent field defaults to 0.
+            const cacheWriteTokensRaw = asCount(total.cacheWriteTokens);
+            const cacheWriteTokensMissing = total.cacheWriteTokens === null || total.cacheWriteTokens === undefined || total.cacheWriteTokens === "";
+            const cacheWriteTokens = cacheWriteTokensRaw ?? 0;
+            const inputTokensRaw = asCount(total.inputTokens) ?? asCount(total.input_tokens);
+            const inputTokens = inputTokensRaw === null ? null : inputTokensRaw + (request.model === "claude-sonnet-5" ? (asCount(total.cacheReadTokens) ?? 0) : isOpenRouter ? (asCount(total.cacheReadTokens) ?? asCount(total.cachedInputTokens) ?? 0) : 0);
+            const outputTokens = asCount(total.outputTokens) ?? asCount(total.output_tokens);
+            const cachedInputTokens = asCount(total.cacheReadTokens) ?? asCount(total.cachedInputTokens) ?? asCount(total.cache_read_input_tokens) ?? 0;
+            if (inputTokens !== null && outputTokens !== null && cachedInputTokens >= 0 && inputTokens >= 0 && outputTokens >= 0 && (cacheWriteTokensMissing || (cacheWriteTokensRaw !== null && cacheWriteTokens >= 0))) {
               const fingerprint = `${inputTokens}:${outputTokens}:${cachedInputTokens}`;
               if (fingerprint !== lastUsageFingerprint) { usageUpdates++; lastUsageFingerprint = fingerprint; }
-              usage = { inputTokens, outputTokens, cachedInputTokens, cacheWriteTokens, providerRequests: (total.requests ?? total.providerRequests ?? 0) > 0 ? total.requests ?? total.providerRequests : null, providerUsageUpdateCount: usageUpdates, providerRequestCountSource: (total.requests ?? total.providerRequests ?? 0) > 0 ? "provider" : "not reported; providerUsageUpdateCount is a proxy", providerReportedCostNanodollars: cumulative.providerCostUsd > 0 ? Math.round(cumulative.providerCostUsd * 1e9) : null, ...estimateModelCostNanodollars(request.model, { inputTokens, outputTokens, cachedInputTokens }) };
+              const providerRequests = asCount(total.requests) ?? asCount(total.providerRequests);
+              const providerCostUsd = asFiniteFloat(cumulative.providerCostUsd);
+              usage = { inputTokens, outputTokens, cachedInputTokens, cacheWriteTokens, providerRequests: providerRequests !== null && providerRequests > 0 ? providerRequests : null, providerUsageUpdateCount: usageUpdates, providerRequestCountSource: providerRequests !== null && providerRequests > 0 ? "provider" : "not reported; providerUsageUpdateCount is a proxy", providerReportedCostNanodollars: providerCostUsd !== null && providerCostUsd > 0 ? Math.round(providerCostUsd * 1e9) : null, ...estimateModelCostNanodollars(request.model, { inputTokens, outputTokens, cachedInputTokens }) };
               // A conservative one-hour cache-write ceiling (2× standard input)
               // covers either cache duration when the runtime omits its TTL.
               if (request.model === "claude-sonnet-5" || request.model === "openrouter/anthropic/claude-sonnet-5") {
@@ -188,7 +309,7 @@ try {
           error ??= "Missing provider accounting; block further paid attempts";
         }
       }
-    } catch (caught) { error ??= caught instanceof Error ? caught.message : String(caught); }
+    } catch (caught) { error ??= errorMessage(caught); }
     finally {
       if (timer) clearTimeout(timer);
       if (bundle) {

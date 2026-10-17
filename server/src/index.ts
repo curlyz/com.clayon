@@ -39,6 +39,7 @@ import { and, eq } from "drizzle-orm";
 import {
   createDb,
   ensurePostgresDatabase,
+  type Db,
   formatEmbeddedPostgresError,
   getPostgresDataDirectory,
   inspectMigrations,
@@ -97,6 +98,7 @@ import {
   workspaceOperationService,
 } from "./services/index.js";
 import { questionResponseDeliveryService } from "./services/question-response-delivery.js";
+import { toolActionDeliveryService } from "./services/tool-action-delivery.js";
 import { deliverNativeQuestionResponse } from "./services/native-runtime/native-question-bridge.js";
 import { queueIssueAssignmentWakeup } from "./services/issue-assignment-wakeup.js";
 import { createSecretProposalsService } from "./services/secret-proposals.js";
@@ -298,7 +300,7 @@ async function startServerWithDatabaseTeardown(
       if (!apply) {
         throw new Error(
           `${label} has pending migrations (${formatPendingMigrationSummary(state.pendingMigrations)}). ` +
-            "Refusing to start against a stale schema. Run pnpm db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
+            "Refusing to start against a stale schema. Run bun run db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
         );
       }
   
@@ -319,7 +321,7 @@ async function startServerWithDatabaseTeardown(
       throw migrationRefusalError(
         state,
         `${label} has pending migrations (${formatPendingMigrationSummary(state.pendingMigrations)}). ` +
-          "Refusing to start against a stale schema. Run pnpm db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
+          "Refusing to start against a stale schema. Run bun run db:migrate or set CLAYON_MIGRATION_AUTO_APPLY=true.",
       );
     }
 
@@ -363,7 +365,7 @@ async function startServerWithDatabaseTeardown(
   const LOCAL_BOARD_USER_EMAIL = "local@clayon.local";
   const LOCAL_BOARD_USER_NAME = "Board";
   
-  async function ensureLocalTrustedBoardPrincipal(db: any): Promise<void> {
+  async function ensureLocalTrustedBoardPrincipal(db: Db): Promise<void> {
     const now = new Date();
     const existingUser = await db
       .select({ id: authUsers.id })
@@ -707,7 +709,7 @@ async function startServerWithDatabaseTeardown(
     | ((headers: Headers) => Promise<BetterAuthSessionResult | null>)
     | undefined;
   if (config.deploymentMode === "local_trusted") {
-    await ensureLocalTrustedBoardPrincipal(db as any);
+    await ensureLocalTrustedBoardPrincipal(db);
   }
   const accessBackfill = await backfillPrincipalAccessCompatibility(db as any);
   if (accessBackfill.agentMembershipsInserted > 0 || accessBackfill.humanGrantsInserted > 0) {
@@ -963,7 +965,11 @@ async function startServerWithDatabaseTeardown(
   });
   const configuredApiUrl = process.env.CLAYON_API_URL?.trim() || runtimeApiUrl;
   // Upgrade admission runs before every WebSocket listener, outside Express.
-  const server = createClayonHttpServer(app as unknown as RequestListener, {
+  // Express's app call signature takes Request/Response; http.createServer calls
+  // a RequestListener with IncomingMessage/ServerResponse, so the adapter const
+  // bridges the two families at one named point.
+  const appRequestListener: RequestListener = app as unknown as RequestListener;
+  const server = createClayonHttpServer(appRequestListener, {
     apiUrl: configuredApiUrl,
     httpOptions: cloudWarmStandbyServerOptions(() => isWarmStandby() || isIdleTaskDrainActive()),
   });
@@ -1268,7 +1274,7 @@ async function startServerWithDatabaseTeardown(
     [DELIVERY_QUEUES.chatCompletion, chatCompletionDeliveries],
     [DELIVERY_QUEUES.connection, connectionDeliveries],
     [DELIVERY_QUEUES.question, questionResponseDeliveries],
-    [DELIVERY_QUEUES.toolAction, app.locals.toolActionDeliveries as ReturnType<typeof import("./services/tool-action-delivery.js").toolActionDeliveryService>],
+    [DELIVERY_QUEUES.toolAction, app.locals.toolActionDeliveries as ReturnType<typeof toolActionDeliveryService>],
   ] as const).map(([queue, service]) => deliveryWork.register(queue, {
     retryMs: config.heartbeatSchedulerIntervalMs,
     run: () => service.sweepPending(),

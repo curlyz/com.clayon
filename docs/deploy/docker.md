@@ -4,7 +4,7 @@ title: Docker
 summary: Docker Compose quickstart
 ---
 
-Run Clayon in Docker without installing Node or pnpm locally.
+Run Clayon in Docker without installing Node or Bun locally.
 
 ## Compose Quickstart (Recommended)
 

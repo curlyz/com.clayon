@@ -76,7 +76,7 @@ This is one authenticated mode with two safety policies, not two different auth 
 Default command remains:
 
 ```sh
-pnpm clayon onboard
+bun run clayon onboard
 ```
 
 Interactive server step:
@@ -97,7 +97,7 @@ Flags are optional power-user overrides, not required for normal setup.
 Default command remains interactive:
 
 ```sh
-pnpm clayon configure --section server
+bun run clayon configure --section server
 ```
 
 Same mode/exposure questions and defaults as onboarding.
@@ -107,7 +107,7 @@ Same mode/exposure questions and defaults as onboarding.
 Default command remains flagless:
 
 ```sh
-pnpm clayon doctor
+bun run clayon doctor
 ```
 
 Doctor reads configured mode/exposure and applies relevant checks.
@@ -209,9 +209,9 @@ This change is a clean cut:
 
 ## Acceptance Criteria
 
-1. `pnpm clayon onboard` is interactive-first and defaults to `local_trusted`.
+1. `bun run clayon onboard` is interactive-first and defaults to `local_trusted`.
 2. authenticated mode is one runtime mode with `private/public` exposure guidance.
-3. `pnpm clayon doctor` works flagless with mode-aware checks.
+3. `bun run clayon doctor` works flagless with mode-aware checks.
 4. no extra compatibility aliases for dropped naming variants.
 5. Board identity is represented by real DB user/role/membership integration points, enabling consistent task assignment and permission behavior.
 
@@ -220,7 +220,7 @@ This change is a clean cut:
 Before merge:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run --filter '*' typecheck
+bun run test:run
+bun run build
 ```

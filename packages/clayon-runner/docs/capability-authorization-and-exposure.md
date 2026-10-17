@@ -44,7 +44,7 @@ This is the security-gate outcome (TASK-16902) and its remediation (TASK-16909):
 ## Running the tests
 
 ```sh
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/tools/capability-semantic-tools.test.ts
 ```
 

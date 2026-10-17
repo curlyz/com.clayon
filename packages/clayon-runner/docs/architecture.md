@@ -90,9 +90,9 @@ This rule applies to type-only imports, exports, dynamic imports, CommonJS `requ
 ## Enforcement
 
 ```sh
-pnpm --filter @clayon/clayon-runner check:forbidden-imports
-pnpm --filter @clayon/clayon-runner test
-pnpm --filter @clayon/clayon-runner check:replay-parity
+bun run --filter @clayon/clayon-runner check:forbidden-imports
+bun run --filter @clayon/clayon-runner test
+bun run --filter @clayon/clayon-runner check:replay-parity
 ```
 
 The first command scans package source, scripts, and manifest. The test command additionally asserts the negative fixture is rejected. The normal scan excludes that fixture so a deliberate proof does not fail the package.

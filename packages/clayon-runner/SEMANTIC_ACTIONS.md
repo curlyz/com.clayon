@@ -48,7 +48,7 @@ allowlisted references only.
 runtime declarations. Change the TypeScript source, then run:
 
 ```sh
-pnpm --filter @clayon/clayon-runner generate:semantic-action-catalog
+bun run --filter @clayon/clayon-runner generate:semantic-action-catalog
 ```
 
 The package build and catalog tests compare the checked-in inventory byte for

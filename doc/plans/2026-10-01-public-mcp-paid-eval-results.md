@@ -103,11 +103,11 @@ The [implementation plan](2026-09-30-clayon-public-mcp-and-plugins.md) retains i
 Use Node >=24.11.0 and the documented ignored credential file. Start with one inexpensive cell before selecting the entire paid suite.
 
 ```sh
-pnpm test:e2e:runner:typecheck
-pnpm test:e2e:runner:unit
-pnpm test:e2e:runner -- --list --suite public-mcp
-pnpm test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.delegate-retrieve
-pnpm test:e2e:runner -- --suite public-mcp --max-parallel 1
+bun run test:e2e:runner:typecheck
+bun run test:e2e:runner:unit
+bun run test:e2e:runner -- --list --suite public-mcp
+bun run test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.delegate-retrieve
+bun run test:e2e:runner -- --suite public-mcp --max-parallel 1
 ```
 
 ## MCP Events qualification
@@ -218,7 +218,7 @@ To reproduce a cheap Events cell, install `cloudflared`, provide the existing
 ignored eval credentials, then run:
 
 ```sh
-pnpm test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.event-follow-up
+bun run test:e2e:runner -- --id public-mcp.assistant-codex-mini.local.event-follow-up
 ```
 
 ## Experimental-settings regression (2026-10-02)

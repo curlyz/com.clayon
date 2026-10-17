@@ -35,13 +35,13 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "cross-env CLAYON_MIGRATION_PROMPT=never CLAYON_MIGRATION_AUTO_APPLY=true tsx ./scripts/dev-watch.ts",
     "prepare:ui-dist": "bash ../scripts/prepare-server-ui-dist.sh",
-    "build": "pnpm run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc && mkdir -p dist/onboarding-assets dist/built-ins dist/services/scripts dist/vendor/clayon-runner && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && cp -Rf ../packages/clayon-runner/dist/. dist/vendor/clayon-runner/ && node scripts/write-build-stamp.mjs",
-    "prepack": "pnpm run prepare:ui-dist && pnpm run build",
+    "build": "bun run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc && mkdir -p dist/onboarding-assets dist/built-ins dist/services/scripts dist/vendor/clayon-runner && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && cp -Rf ../packages/clayon-runner/dist/. dist/vendor/clayon-runner/ && node scripts/write-build-stamp.mjs",
+    "prepack": "bun run prepare:ui-dist && bun run build",
     "postpack": "rm -rf ui-dist",
     "clean": "rm -rf dist",
     "start": "node dist/index.js",
-    "prepare:runner-vendor": "pnpm --filter @clayon/clayon-runner build",
-    "typecheck": "pnpm run prepare:runner-vendor && pnpm --filter @clayon/plugin-sdk ensure-build-deps && tsc --noEmit"
+    "prepare:runner-vendor": "bun run --filter @clayon/clayon-runner build",
+    "typecheck": "bun run prepare:runner-vendor && bun run --filter @clayon/plugin-sdk ensure-build-deps && tsc --noEmit"
   },
   "dependencies": {
     "@agentclientprotocol/codex-acp": "1.6.2",

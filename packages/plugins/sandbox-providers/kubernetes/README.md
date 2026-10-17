@@ -167,14 +167,14 @@ This plugin adopts patterns from `openclaw-rocks/openclaw-operator`:
 
 ```bash
 cd packages/plugins/sandbox-providers/kubernetes
-pnpm install --ignore-workspace
-pnpm test           # unit tests only (fast)
-pnpm typecheck
-pnpm build
+bun install
+bun run test           # unit tests only (fast)
+bun run typecheck
+bun run build
 ```
 
 To run the kind-cluster integration test (requires `kubectl --context kind-clayon` and a pre-loaded alpine image; see `test/integration/end-to-end-run.test.ts`):
 
 ```bash
-RUN_K8S_INTEGRATION_TESTS=1 pnpm test test/integration/end-to-end-run.test.ts
+RUN_K8S_INTEGRATION_TESTS=1 bun run test test/integration/end-to-end-run.test.ts
 ```

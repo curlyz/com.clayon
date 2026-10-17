@@ -112,31 +112,6 @@ change. Retained v7 paid cases below remain exact historical evidence, not v8
 qualification. Fresh pack/image admission and the required exact-runtime local
 and Daytona qualification remain outstanding.
 
-
-If the target is missing, outside the workspace, conflicting, malformed, too
-large, contains control/direction-format characters, or would be redacted, the
-request offers only the provider's one-time denial (when present) and cancellation.
-Forged once/session grants are rejected. Raw `kind: edit` is required; titles do
-not infer operation type. Non-edit permissions retain their existing behavior.
-Default/full-auto selection is unchanged: callbacks handled by Clayon receive
-this check before any permission-mode fallback; no new automatic grant is added.
-The existing transport policy still applies before permission handling.
-
-The declaration binds the context projector, permission adapter, workspace path
-validator, semantic redaction policy, and generated tool-operation classifier.
-A recursive value-import test requires every non-builtin policy dependency to
-remain in this source hash set; type-only imports do not affect execution.
-The candidate v9 digest was refreshed before live admission to close this
-transitive policy binding. No retained v8 evidence is regraded. Copilot's
-native executable, patched inner distribution, and shared ACPX patch are unchanged;
-the sidecar assets and runner's embedded admission digest change. Older profile
-identities cannot be admitted as v9 or reused as matching warm sessions. Fresh
-runtime packs/images and exact-revision local/Daytona qualification are pending.
-Earlier denial cases establish their own no-write behavior; their generic
-`Create file` card did not prove complete decision context. Deterministic adapter,
-sidecar and direct-driver tests cover safe and denied context; no new live claim
-or native USD/accounting capability is implied.
-
 Historical v8 qualification checkpoint (2026-09-30): **Copilot profile v8 remains unqualified.** The a8df warm attempt passed all nine Product matchers and daemon invariants, but the supervisor failed final-pack cleanup on an extra executable; the exact orphan was later retired safely and the original failure remains. The earlier 5c69 warm-PID failure is a separate unchanged historical grade. Sidecar rotation per `attach_run` is ACPX authority rotation, separate from daemon continuity. The Daytona denial observed no write but failed its original cancellation fixture after receiving normal provider completion; later checks were not graded. Its database timestamp does not establish that completion was durably observable before Stop, so the earlier ordering inference is withdrawn.
 
 Shutdown ownership [#14730](https://github.com/clayon/clayon/pull/14730), head `d09ed62b6`, has Apex 5/5 and all 52 checks green. Denial settlement [#14733](https://github.com/clayon/clayon/pull/14733), head `1b47b30be`, passes 220 focused tests and E2E typecheck; fresh review and CI are pending. Suite v4 requires a retained pre-dispatch API observation for the normal-completion branch. Neither accepted branch proves Stop reached active work. Neither change has a live qualification pass; final-source verification remains pending. V8 binds the shared ACPX patch under a new digest, rejects v7 sessions, and adds no usage/cost capability. Native per-run USD is unknown.
@@ -574,8 +549,8 @@ does not verify any GitHub model's availability.
 python3 packages/clayon-runner/scripts/probe-copilot-acp.py --package-root /path/to/copilot-darwin-arm64/package --scenario deny-write
 python3 packages/clayon-runner/scripts/probe-copilot-acp.py --package-root /path/to/copilot-darwin-arm64/package --scenario attached-shell
 node --test packages/clayon-runner/scripts/materialize-copilot-binary.test.mjs packages/clayon-runner/scripts/build-copilot-distribution.test.mjs
-pnpm --filter @clayon/clayon-runner exec vitest run src/drivers/acpx/copilot-events.test.ts src/drivers/acpx/copilot-profile.test.ts src/drivers/acpx/copilot-evidence.test.ts
-pnpm --filter @clayon/clayon-runner exec vitest run src/drivers/acpx/copilot-extension-adapter.test.ts src/drivers/acpx/copilot-registry.test.ts
+bun run --cwd packages/clayon-runner vitest run src/drivers/acpx/copilot-events.test.ts src/drivers/acpx/copilot-profile.test.ts src/drivers/acpx/copilot-evidence.test.ts
+bun run --cwd packages/clayon-runner vitest run src/drivers/acpx/copilot-extension-adapter.test.ts src/drivers/acpx/copilot-registry.test.ts
 ```
 
 Retained real-binary evidence:

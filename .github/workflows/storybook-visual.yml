@@ -45,54 +45,55 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          version: 9.15.4
+          persist-credentials: false
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
-          cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Cache Storybook visual baseline archive
-        uses: actions/cache@v6.1.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tests/storybook-visual/.cache
           key: storybook-visual-baseline-${{ runner.os }}-${{ hashFiles('tests/storybook-visual/baseline-manifest.json') }}
 
       - name: Download Storybook visual baseline
-        run: pnpm storybook-visual:baseline download
+        run: bun run storybook-visual:baseline download
 
       - name: Verify Storybook visual baseline
-        run: pnpm storybook-visual:baseline verify
+        run: bun run storybook-visual:baseline verify
 
       - name: Build Storybook
-        run: pnpm build-storybook
+        run: bun run build-storybook
 
       - name: Run Storybook visual tests
-        if: ${{ github.event.inputs.update_snapshots != 'true' }}
+        if: ${{ inputs.update_snapshots != true }}
         run: npx playwright test --config tests/storybook-visual/playwright.config.ts
 
       - name: Generate updated snapshots for review
-        if: ${{ github.event.inputs.update_snapshots == 'true' }}
+        if: ${{ inputs.update_snapshots == true }}
         run: npx playwright test --config tests/storybook-visual/playwright.config.ts --update-snapshots
 
       - name: Pack updated baseline review bundle
-        if: ${{ github.event.inputs.update_snapshots == 'true' }}
-        run: pnpm storybook-visual:baseline pack
+        if: ${{ inputs.update_snapshots == true }}
+        run: bun run storybook-visual:baseline pack
 
       - name: Upload Storybook visual report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
           name: storybook-visual-report-${{ github.run_id }}
@@ -103,8 +104,8 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload updated baseline review bundle
-        uses: actions/upload-artifact@v7
-        if: ${{ github.event.inputs.update_snapshots == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: ${{ inputs.update_snapshots == true }}
         with:
           name: storybook-visual-baseline-review-${{ github.run_id }}
           path: tests/storybook-visual/baseline-review/snapshots.tgz

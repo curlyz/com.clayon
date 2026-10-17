@@ -21,22 +21,22 @@ the future binding boundary reference `antl:clayon/packages/clayon-runner/docs/c
 
 ## What you need
 
-- Node.js 20 or newer and pnpm 9 or newer. This tutorial was verified with Node
-  22.22.2 and pnpm 9.15.4.
+- Node.js 20 or newer and Bun 1.4 or newer. This tutorial was verified with Node
+  22.22.2.
 - No Rust toolchain. Every command in this tutorial is TypeScript/Node only. (A
   full `verify` still builds Rust, but nothing here does.)
-- No network access after `pnpm install`.
+- No network access after `bun install`.
 
 Install the package workspace from the repository root:
 
 ```sh
-pnpm install --filter @clayon/clayon-runner --lockfile=false --offline --ignore-scripts --dev
+bun install --filter @clayon/clayon-runner --no-save --ignore-scripts --dev
 ```
 
 ## 1. Prove the 106-case conformance suite (about 1 minute)
 
 ```sh
-pnpm --filter @clayon/clayon-runner test:capability-evals
+bun run --filter @clayon/clayon-runner test:capability-evals
 ```
 
 Runs the eval-derived conformance suite entirely in-process against the
@@ -52,7 +52,7 @@ per-group counts, assertion classes, the fake-agent operation matrix, the
 bounded Codex binding sample, generate the parity report:
 
 ```sh
-pnpm --filter @clayon/clayon-runner report:capability-evals
+bun run --filter @clayon/clayon-runner report:capability-evals
 ```
 
 Expected final line:
@@ -64,7 +64,7 @@ Capability eval conformance passed: 106 cases across 16 groups.
 Report writes to
 `.clayon-local/evidence/capability/eval-parity-report.{json,md}`. Generated
 on demand, not committed; a clean checkout does not
-contain it. Delete before `pnpm --filter @clayon/clayon-runner docs:validate`
+contain it. Delete before `bun run --filter @clayon/clayon-runner docs:validate`
 (the report carries no OKF frontmatter and would otherwise fail the knowledge
 bundle check — see Known gaps `antl:clayon/packages/clayon-runner/docs/tutorials/capability-scenario-explorer#known-gaps-and-boundaries`).
 
@@ -80,7 +80,7 @@ The 16 groups and case counts are fixed by the capability contract:
 ## 2. Open the scenario explorer (about 2 minutes)
 
 ```sh
-pnpm --filter @clayon/clayon-runner demo:scenarios
+bun run --filter @clayon/clayon-runner demo:scenarios
 ```
 
 Open `http://127.0.0.1:4183/scenario-explorer/`. Explorer is read-only.
@@ -132,34 +132,34 @@ each with its purpose and expected result.
 
 ```sh
 # Capability contract: completeness, uniqueness, one-to-one MCP folds, no drift.
-pnpm --filter @clayon/clayon-runner check:capability-inventory
-pnpm --filter @clayon/clayon-runner test:capability-inventory
+bun run --filter @clayon/clayon-runner check:capability-inventory
+bun run --filter @clayon/clayon-runner test:capability-inventory
 
 # Mock control plane adapter and shared ControlPlanePort conformance.
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/conformance/control-plane-port.test.ts \
   src/mock-core/capability-mock-control-plane-adapter.test.ts
 
 # Semantic tool catalog and authorization/redaction engine.
-pnpm --filter @clayon/clayon-runner exec vitest run \
+bun x vitest run \
   src/tools/capability-semantic-tools.test.ts
 
 # 106-case conformance and the parity/fake-agent/bounded-Codex report.
-pnpm --filter @clayon/clayon-runner test:capability-evals
-pnpm --filter @clayon/clayon-runner report:capability-evals
+bun run --filter @clayon/clayon-runner test:capability-evals
+bun run --filter @clayon/clayon-runner report:capability-evals
 
 # Scenario runtime, explorer components, and route determinism (49 tests).
-pnpm --filter @clayon/clayon-runner test:scenarios
+bun run --filter @clayon/clayon-runner test:scenarios
 
 # Browser information architecture, accessibility, determinism, and boundary.
-pnpm --filter @clayon/clayon-runner test:browser:scenarios
-
-# Deterministic 24-image screenshot acceptance set.
-# Recorded evidence generation is deferred from this release.
+bun run --filter @clayon/clayon-runner test:browser:scenarios
 
 # Documentation links.
-pnpm --filter @clayon/clayon-runner docs:validate
+bun run --filter @clayon/clayon-runner docs:validate
 ```
+
+The deterministic 24-image screenshot acceptance set is not runnable here:
+recorded evidence generation is deferred from this release.
 
 ## Known gaps and boundaries
 

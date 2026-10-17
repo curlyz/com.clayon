@@ -18,8 +18,8 @@ dev). Future work may automate this in CI.
 
 ```bash
 cd packages/plugins/sandbox-providers/kubernetes
-pnpm install --ignore-workspace
-pnpm build
+bun install
+bun run build
 ```
 
 Expected: `dist/` populated with compiled `.js` and `.d.ts` files. No errors.
@@ -33,7 +33,7 @@ cd /path/to/clayon
 export CLAYON_HOME=/tmp/clayon-smoke
 export CLAYON_INSTANCE_ID=smoke
 export CLAYON_DEPLOYMENT_MODE=local_trusted
-pnpm --filter @clayon/server dev
+bun run --filter @clayon/server dev
 ```
 
 Wait for `Server listening on 127.0.0.1:3100`.

@@ -27,7 +27,7 @@ and the use cases behind a factory function. Code outside the module imports
 that entry point, never a file inside `domain/`, `application/`, or
 `adapters/` directly.
 
-`pnpm check:module-boundaries` enforces these rules for production source
+`bun run check:module-boundaries` enforces these rules for production source
 files. It also checks access to the company deletion entry point below.
 
 ## Company deletion

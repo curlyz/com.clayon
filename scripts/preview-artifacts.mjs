@@ -141,7 +141,7 @@ export function packPreview(source, output, sha, { exec = execFileSync } = {}) {
   if (exec("git", ["rev-parse", "HEAD"], { cwd: source, encoding: "utf8" }).trim() !== sha) throw new Error("Source checkout differs from the requested commit.");
   mkdirSync(output, { recursive: true });
   for (const short of ["shared", "db"]) {
-    exec("pnpm", ["--filter", `@clayon/${short}`, "build"], { cwd: source, stdio: "inherit" });
+    exec("bun", ["run", "--filter", `@clayon/${short}`, "build"], { cwd: source, stdio: "inherit" });
     const packageDir = path.join(source, "packages", short);
     const originalText = readFileSync(path.join(packageDir, "package.json"), "utf8");
     const original = JSON.parse(originalText);
@@ -149,7 +149,7 @@ export function packPreview(source, output, sha, { exec = execFileSync } = {}) {
     const staging = path.join(output, `package-${short}`);
     if ((pkg.bundleDependencies ?? []).length) {
       // The established helper materializes patched embedded-postgres instead
-      // of publishing pnpm's dependency symlinks.
+      // of publishing the workspace's dependency symlinks.
       writeFileSync(path.join(packageDir, "package.json"), JSON.stringify(pkg));
       try { prepareBundledPackage(packageDir, staging, { sourceRoot: source }); }
       finally { writeFileSync(path.join(packageDir, "package.json"), originalText); }

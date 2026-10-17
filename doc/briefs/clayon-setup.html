@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connect the Mac to Clayon on the VPS (Headscale)</title>
+    <style>
+      /* MonoLisa Nerd Font only: the installed face first, the bundled woff2 beside the draft second. */
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src:
+          local("MonoLisa Nerd Font"),
+          url("fonts/MonoLisaNerdFont-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "MonoLisa Nerd Font";
+        src:
+          local("MonoLisa Nerd Font Bold"),
+          url("fonts/MonoLisaNerdFont-Bold.woff2") format("woff2");
+        font-weight: 700;
+        font-style: normal;
+      }
+      :root {
+        --ink: #1b1b1b;
+        --dim: #6b6b6b;
+        --line: #e3e1dc;
+        --band: #f4f2ee;
+        --bg: #fbfaf7;
+        --ok: #2f6b3a;
+        --warn: #8a5a00;
+        --bad: #9b2c2c;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #e8e6e1;
+          --dim: #9a978f;
+          --line: #2c2b28;
+          --band: #1d1c1a;
+          --bg: #141412;
+          --ok: #8fc79a;
+          --warn: #e0b45c;
+          --bad: #e08a8a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-family: "MonoLisa Nerd Font", "MonoLisa", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      body {
+        margin: 0;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      header,
+      section {
+        padding: 24px 32px;
+        border-bottom: 1px solid var(--line);
+      }
+      header {
+        background: var(--band);
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 0 0 12px;
+        text-transform: lowercase;
+      }
+      h3 {
+        font-size: 14px;
+        margin: 16px 0 8px;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      .dim {
+        color: var(--dim);
+      }
+      .callout {
+        border-left: 3px solid var(--ink);
+        padding: 8px 12px;
+        background: var(--band);
+        margin: 0 0 8px;
+      }
+      ul,
+      ol {
+        margin: 0 0 8px;
+        padding-left: 20px;
+      }
+      li + li {
+        margin-top: 4px;
+      }
+      ul.tasks {
+        list-style: none;
+        padding-left: 0;
+      }
+      ul.tasks li.done::before {
+        content: "✓ ";
+        color: var(--ok);
+      }
+      ul.tasks li.open::before {
+        content: "✗ ";
+        color: var(--dim);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        vertical-align: top;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: var(--dim);
+        font-weight: 400;
+      }
+      .ok {
+        color: var(--ok);
+      }
+      .warn {
+        color: var(--warn);
+      }
+      .bad {
+        color: var(--bad);
+      }
+      code {
+        background: var(--band);
+        padding: 0 4px;
+      }
+      pre {
+        background: var(--band);
+        padding: 12px 16px;
+        margin: 0 0 8px;
+        overflow-x: auto;
+        font-family: inherit;
+        line-height: 1.4;
+      }
+      @media (max-width: 600px) {
+        header,
+        section {
+          padding: 20px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Connect the Mac to Clayon on the VPS</h1>
+        <p class="dim">2026-10-10 · instructions · self-hosted Headscale, so https://clayon.app can run coding agents in the Mac's <code>~/usr/antl</code></p>
+      </header>
+
+      <section>
+        <p class="callout">
+          ▶ YOUR TURN — <b>approve Tailscale's network extension and turn on Remote Login for <code>curlyz</code> -> part A, steps A1 and A2</b>
+        </p>
+        <p class="callout">
+          ▶ WAITING — <b>the Headscale deploy is queued behind another session's Clayon deploy (running since 16:24 UTC) -> no action; it starts when that finishes</b>
+        </p>
+      </section>
+
+      <section>
+        <h2>what this builds</h2>
+        <p>Clayon stays on the VPS as the one control plane. Coding agents run on the Mac in the real checkout, so every edit appears in the editor and <code>git status</code> while it happens (operator: "when coding, i prefer still seeing my code, instead of completely relying on the vps").</p>
+        <h3>the run path</h3>
+        <pre>
+┌───────────────────┐                  ┌─────────────┐     ┌─────────────────────────┐
+│                   │                  │             │     │                         │
+│                   │                  │             │     │                         │
+│  Clayon on VPS ├ssh─over─tailnet─►│   Mac sshd  ├────►│ agent run in ~/usr/antl │
+│ SSH env curly-mac │                  │ user curlyz │     │                         │
+│                   │                  │             │     │                         │
+└───────────────────┘                  └─────────────┘     └─────────────────────────┘
+</pre>
+        <h3>the private network</h3>
+        <pre>
+┌────────────────┐       ┌─────────────────────────┐
+│                │       │                         │
+│                │       │                         │
+│ tailscale node ├─joins►│        headscale        │
+│     on VPS     │       │ headscale.curly.ng:8443 │
+│                │       │                         │
+└────────────────┘       └─────────────────────────┘
+                                      ▲
+                                      │
+                                      │
+                                      │
+                                      │
+┌────────────────┐                  joins
+│                │                    │
+│                │                    │
+│ Tailscale app  ├────────────────────┘
+│     on Mac     │
+│                │
+└────────────────┘
+</pre>
+        <ul>
+          <li><b>Headscale</b> is the self-hosted replacement for Tailscale's cloud: it hands out private addresses and keys. No Tailscale account is involved.</li>
+          <li>The official open-source <b>Tailscale app</b> on the Mac and a <b>Tailscale node</b> on the VPS both join Headscale. The traffic between them is encrypted WireGuard.</li>
+          <li>Headscale's own relay runs on the VPS too, so no third-party relay is used.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>status</h2>
+        <ul class="tasks">
+          <li class="done">Cloudflare DNS token for the certificate, limited to the <code>curly.ng</code> zone and the VPS IP</li>
+          <li class="done">DNS record <code>headscale.curly.ng</code> → <code>169.58.127.220</code>, DNS-only (Headscale does not work behind Cloudflare's proxy)</li>
+          <li class="done">Dokploy stack <code>headscale</code> created (project <code>server</code>), compose in <code>dokploy/headscale.compose.yml</code></li>
+          <li class="done">Tailscale app installed on the Mac with brew (1.104.1)</li>
+          <li class="open">Headscale deployed and serving <code>https://headscale.curly.ng:8443</code> (queued)</li>
+          <li class="open">network extension approved on the Mac (A1)</li>
+          <li class="open">Remote Login on for <code>curlyz</code> (A2)</li>
+          <li class="open">VPS node and Mac joined to Headscale (B2, B3)</li>
+          <li class="open">Clayon SSH environment <code>curly-mac</code> and agents moved (C)</li>
+          <li class="open">proof run (D)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>part A · your steps on the Mac</h2>
+
+        <h3>A1 · approve Tailscale's network extension</h3>
+        <ol>
+          <li>Tailscale is already open (menu bar icon). If macOS shows "System Extension Blocked" or asks to add a VPN configuration, click <b>Allow</b> and enter your password.</li>
+          <li>If no prompt appears: System Settings → <b>Privacy &amp; Security</b> → scroll to Security → click <b>Allow</b> next to Tailscale.</li>
+          <li><b>Do not</b> click "Log in" or sign in with Google or GitHub. That would join Tailscale's cloud. Part B points the app at your own Headscale.</li>
+        </ol>
+
+        <h3>A2 · turn on Remote Login for curlyz only</h3>
+        <p><b>Option 1, System Settings (easiest):</b></p>
+        <ol>
+          <li>System Settings → <b>General</b> → <b>Sharing</b>.</li>
+          <li>Turn <b>Remote Login</b> on.</li>
+          <li>Click the ⓘ next to it → "Allow access for" → <b>Only these users</b> → keep only <code>curlyz</code>.</li>
+          <li>Leave "Allow full disk access for remote users" <b>off</b>.</li>
+        </ol>
+        <p><b>Option 2, terminal</b> (in Claude Code, prefix each with <code>!</code>). <code>systemsetup</code> fails without Full Disk Access, so this uses <code>launchctl</code>:</p>
+        <pre>sudo launchctl enable system/com.openssh.sshd
+sudo launchctl bootstrap system /System/Library/LaunchDaemons/ssh.plist
+sudo dseditgroup -o create -q com.apple.access_ssh
+sudo dseditgroup -o edit -a curlyz -t user com.apple.access_ssh</pre>
+        <p class="dim">The first two start SSH; the last two limit it to curlyz.</p>
+
+        <h3>A3 · tell me</h3>
+        <p>Say "done". I check both from here, then run parts B to D.</p>
+      </section>
+
+      <section>
+        <h2>part B · server and network (I do this)</h2>
+        <table>
+          <tr>
+            <th>#</th>
+            <th>step</th>
+            <th>detail</th>
+          </tr>
+          <tr>
+            <td>B1</td>
+            <td>Deploy the <code>headscale</code> stack</td>
+            <td>Headscale v0.29.4, plus a Caddy container that serves HTTPS on TCP 8443 with a Let's Encrypt certificate via Cloudflare DNS, plus a one-shot that creates the user <code>curly</code> and an API key. Headscale's relay STUN is on UDP 3478.</td>
+          </tr>
+          <tr>
+            <td>B2</td>
+            <td>Join the VPS</td>
+            <td>Add a <code>tailscale</code> service (official image, host network) with a one-time key tagged <code>tag:vps</code>, so every VPS container can reach the tailnet.</td>
+          </tr>
+          <tr>
+            <td>B3</td>
+            <td>Join the Mac</td>
+            <td>I run the app's own CLI with a one-time key tagged <code>tag:mac</code>:<br /><code>/Applications/Tailscale.app/Contents/MacOS/Tailscale up --login-server https://headscale.curly.ng:8443 --auth-key … --hostname curly-mac</code></td>
+          </tr>
+          <tr>
+            <td>B4</td>
+            <td>Access rule</td>
+            <td>Headscale policy: only <code>tag:vps</code> may reach <code>tag:mac</code>, only on port 22. Nothing else crosses in either direction.</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>part C · Clayon wiring (I do this)</h2>
+        <ol>
+          <li>Create a dedicated SSH key for Clayon. The public half goes in <code>~/.ssh/authorized_keys</code> with <code>from="100.64.0.0/10"</code>, so it only works from the private network. The private half becomes a Clayon secret.</li>
+          <li>Turn on Clayon's Environments (Settings → Instance settings → Experimental).</li>
+          <li>Add the SSH environment <code>curly-mac</code>: host <code>curly-mac</code> (its private address), user <code>curlyz</code>, the key, path <code>/Users/curlyz/usr/antl</code>. Press Test.</li>
+          <li>Move Engineer A, Engineer B, Reviewer and Designer onto <code>curly-mac</code>, with working directory <code>/Users/curlyz/usr/antl</code> and the absolute path to <code>opencode</code>.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>part D · proof</h2>
+        <ol>
+          <li>A test issue asks Engineer A to write <code>/Users/curlyz/usr/antl/.clayon-mac-proof.txt</code> with the date and <code>hostname</code>.</li>
+          <li>Pass: the file appears on your Mac, and the run log shows the Mac's hostname, not the VPS container.</li>
+          <li>Then I delete the file and report.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>who runs where</h2>
+        <table>
+          <tr>
+            <th>runs on</th>
+            <th>agents</th>
+            <th>available</th>
+          </tr>
+          <tr>
+            <td>Mac, <code>~/usr/antl</code></td>
+            <td>Engineer A, Engineer B, Reviewer, Designer: everything that reads or writes code</td>
+            <td class="warn">while the Mac is awake and online</td>
+          </tr>
+          <tr>
+            <td>VPS</td>
+            <td>CEO, Principal Engineer, Researcher, Release Manager</td>
+            <td class="ok">always</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>security</h2>
+        <ul>
+          <li><b>New public ports on the VPS:</b> TCP 8443 (Headscale over HTTPS) and UDP 3478 (relay STUN). Both are Headscale's; Caddy serves only <code>headscale.curly.ng</code>.</li>
+          <li><b>Mac exposure:</b> SSH is reachable only from the private network, by one key, and only from the VPS (policy B4). The Mac opens no port to the internet.</li>
+          <li><b>Why your own user:</b> your OpenCode, Claude and Codex logins and your checkout live there; a separate user would have neither.</li>
+          <li><b>Code safety:</b> each issue names its write scope, and nothing is committed or pushed without your approval.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>troubleshooting</h2>
+        <table>
+          <tr>
+            <th>symptom</th>
+            <th>check</th>
+          </tr>
+          <tr>
+            <td>Mac agent runs fail</td>
+            <td>Is the Mac awake and online? Run <code>/Applications/Tailscale.app/Contents/MacOS/Tailscale status</code>; it must list the VPS node.</td>
+          </tr>
+          <tr>
+            <td>SSH refused</td>
+            <td>Remote Login still on (System Settings → Sharing)? <code>launchctl print system/com.openssh.sshd</code> must succeed.</td>
+          </tr>
+          <tr>
+            <td>slow or relayed link</td>
+            <td><code>Tailscale netcheck</code> and <code>Tailscale ping contabo-eu-vps6</code> show a direct path or the antl relay.</td>
+          </tr>
+          <tr>
+            <td>"opencode: command not found"</td>
+            <td>The agent's adapter command must be the absolute path (nvm installs are not on SSH's PATH).</td>
+          </tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>undo</h2>
+        <ol>
+          <li>Disconnect the Mac: <code>/Applications/Tailscale.app/Contents/MacOS/Tailscale down</code>, or quit the app.</li>
+          <li>Close SSH: turn Remote Login off, and remove the Clayon key line from <code>~/.ssh/authorized_keys</code>.</li>
+          <li>Remove the server side: delete the <code>headscale</code> stack in Dokploy, the <code>headscale.curly.ng</code> DNS record and the Cloudflare token "contabo-eu-vps6 headscale caddy dns-01".</li>
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

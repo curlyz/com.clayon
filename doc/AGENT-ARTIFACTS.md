@@ -200,14 +200,14 @@ native registration with generic API tools disabled, duplicate retries, Unicode
 filenames, company isolation, and downloads after deleting the workspace.
 
 ```sh
-pnpm exec vitest run server/src/__tests__/file-delivery-bridges.test.ts
+bun x vitest run server/src/__tests__/file-delivery-bridges.test.ts
 ```
 
 To run the same suite on disposable Daytona sandboxes, install the standalone
 Daytona plugin's dependencies and set `DAYTONA_API_KEY` in the test process:
 
 ```sh
-CLAYON_FILE_DELIVERY_DAYTONA=1 pnpm exec vitest run server/src/__tests__/file-delivery-bridges.test.ts
+CLAYON_FILE_DELIVERY_DAYTONA=1 bun x vitest run server/src/__tests__/file-delivery-bridges.test.ts
 ```
 
 The live fixture deletes each sandbox before checking that its attachments

@@ -110,8 +110,8 @@ base_cli_files_present() {
   [[ -f "$base_cli_runner_path" && -f "$base_cli_entry_path" ]]
 }
 
-# File existence is not enough: pnpm links package node_modules into the
-# versioned virtual store, so a lockfile change plus a partial/filtered install
+# File existence is not enough: bun links workspace package node_modules into
+# the install layout, so a lockfile change plus a partial/filtered install
 # in the base workspace leaves dangling symlinks that fail ESM resolution at
 # runtime. Actually boot the CLI to prove its import graph resolves.
 base_cli_healthy() {
@@ -120,17 +120,13 @@ base_cli_healthy() {
 }
 
 repair_base_workspace_install() {
-  command -v pnpm >/dev/null 2>&1 || return 1
-  [[ -f "$base_cwd/package.json" && -f "$base_cwd/pnpm-lock.yaml" ]] || return 1
-  echo "Base workspace CLI at $base_cli_entry_path failed its health check (typically dangling pnpm symlinks after a partial install); repairing with pnpm install in $base_cwd." >&2
-  # --force guarantees relinking even when pnpm's up-to-date heuristics would
+  command -v bun >/dev/null 2>&1 || return 1
+  [[ -f "$base_cwd/package.json" && -f "$base_cwd/bun.lock" ]] || return 1
+  echo "Base workspace CLI at $base_cli_entry_path failed its health check (typically dangling symlinks after a partial install); repairing with bun install in $base_cwd." >&2
+  # --force guarantees relinking even when bun's up-to-date heuristics would
   # otherwise skip the dangling symlinks; --frozen-lockfile keeps the repair
   # from mutating the shared base workspace's lockfile.
-  local repair_cmd=(pnpm install --prod=false --force --frozen-lockfile --config.confirmModulesPurge=false)
-  # pnpm 9.15.4 calls the deprecated url.parse() in toNerfDart on every
-  # install. Node 24 reports that call as DEP0169. Remove this flag when the
-  # pinned pnpm no longer calls url.parse() in that path.
-  local repair_node_options="${NODE_OPTIONS:-} --disable-warning=DEP0169"
+  local repair_cmd=(bun install --force --frozen-lockfile)
   # Resolve the real git dir so locking also covers base workspaces that are
   # linked worktrees, where "$base_cwd/.git" is a file rather than a directory.
   local repair_lock_dir=""
@@ -153,11 +149,11 @@ repair_base_workspace_install() {
         echo "Base workspace CLI became healthy while waiting for the repair lock; skipping reinstall." >&2
         exit 0
       fi
-      env -u NODE_ENV CI=true NODE_OPTIONS="$repair_node_options" "${repair_cmd[@]}" >&2 || exit 1
+      env -u NODE_ENV CI=true "${repair_cmd[@]}" >&2 || exit 1
       base_cli_healthy
     )
   else
-    (cd "$base_cwd" && env -u NODE_ENV CI=true NODE_OPTIONS="$repair_node_options" "${repair_cmd[@]}" >&2 && base_cli_healthy)
+    (cd "$base_cwd" && env -u NODE_ENV CI=true "${repair_cmd[@]}" >&2 && base_cli_healthy)
   fi
 }
 
@@ -176,10 +172,10 @@ run_isolated_worktree_init() {
     return
   fi
 
-  if command -v pnpm >/dev/null 2>&1 && pnpm clayon --help >/dev/null 2>&1; then
+  if command -v bun >/dev/null 2>&1 && bun run clayon --help >/dev/null 2>&1; then
     (
       cd "$worktree_cwd" &&
-        pnpm clayon worktree init --force --no-seed --seed-mode minimal --name "$worktree_name" --instance "$worktree_instance_id" --from-config "$source_config_path"
+        bun run clayon worktree init --force --no-seed --seed-mode minimal --name "$worktree_name" --instance "$worktree_instance_id" --from-config "$source_config_path"
     )
     return
   fi
@@ -196,7 +192,7 @@ run_isolated_worktree_init() {
 }
 
 clayon_command_available() {
-  if command -v pnpm >/dev/null 2>&1 && pnpm clayon --help >/dev/null 2>&1; then
+  if command -v bun >/dev/null 2>&1 && bun run clayon --help >/dev/null 2>&1; then
     return 0
   fi
 
@@ -700,7 +696,7 @@ list_base_node_modules_paths() {
       | sed 's#^\./##'
 }
 
-compute_pnpm_install_fingerprint() {
+compute_bun_install_fingerprint() {
   WORKTREE_CWD="$worktree_cwd" node <<'EOF'
 const crypto = require("node:crypto");
 const fs = require("node:fs");
@@ -722,7 +718,7 @@ function walk(dir) {
 
     if (
       entry.isFile()
-      && (entry.name === "package.json" || entry.name === "pnpm-lock.yaml" || entry.name === "pnpm-workspace.yaml")
+      && (entry.name === "package.json" || entry.name === "bun.lock" || entry.name === "bunfig.toml")
     ) {
       files.push(absolutePath);
     }
@@ -730,11 +726,11 @@ function walk(dir) {
 }
 
 walk(root);
-// package.json is the pnpm 9 patch manifest for this repository. Hash the
+// package.json is the bun patch manifest for this repository. Hash the
 // declared paths, including non-.patch filenames and patches outside patches/.
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
-for (const patch of Object.values(manifest.pnpm?.patchedDependencies ?? {})) {
-  if (typeof patch !== "string") throw new Error("Invalid pnpm patch path");
+for (const patch of Object.values(manifest.patchedDependencies ?? {})) {
+  if (typeof patch !== "string") throw new Error("Invalid bun patch path");
   const file = path.resolve(root, patch);
   if (!files.includes(file)) files.push(file);
 }
@@ -753,10 +749,10 @@ process.stdout.write(hash.digest("hex"));
 EOF
 }
 
-if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; then
+if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/bun.lock" ]]; then
   needs_install=0
-  install_fingerprint_path="$clayon_dir/pnpm-install-fingerprint"
-  current_install_fingerprint="$(compute_pnpm_install_fingerprint)"
+  install_fingerprint_path="$clayon_dir/bun-install-fingerprint"
+  current_install_fingerprint="$(compute_bun_install_fingerprint)"
   previous_install_fingerprint=""
   if [[ -f "$install_fingerprint_path" ]]; then
     previous_install_fingerprint="$(cat "$install_fingerprint_path")"
@@ -813,17 +809,14 @@ if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; t
       done
     }
 
-    run_pnpm_install() {
+    run_bun_install() {
       local stdout_path stderr_path exit_code
       stdout_path="$(mktemp)"
       stderr_path="$(mktemp)"
 
       if (
         cd "$worktree_cwd"
-        # pnpm 9.15.4 calls the deprecated url.parse() in toNerfDart on every
-        # install. Node 24 reports that call as DEP0169. Remove this flag
-        # when the pinned pnpm no longer calls url.parse() in that path.
-        NODE_OPTIONS="${NODE_OPTIONS:-} --disable-warning=DEP0169" pnpm install --prod=false "$@"
+        bun install "$@"
       ) >"$stdout_path" 2>"$stderr_path"; then
         cat "$stdout_path"
         cat "$stderr_path" >&2
@@ -835,7 +828,7 @@ if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; t
 
       cat "$stdout_path"
       cat "$stderr_path" >&2
-      if grep -Eq "ERR_PNPM_(OUTDATED_LOCKFILE|LOCKFILE_CONFIG_MISMATCH)" "$stdout_path" "$stderr_path"; then
+      if grep -Eqi "lockfile had changes, but lockfile is frozen|lockfile is frozen" "$stdout_path" "$stderr_path"; then
         rm -f "$stdout_path" "$stderr_path"
         return 90
       fi
@@ -844,13 +837,13 @@ if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; t
       return "$exit_code"
     }
 
-    if run_pnpm_install --frozen-lockfile; then
+    if run_bun_install --frozen-lockfile; then
       :
     else
       install_exit_code=$?
       if [[ "$install_exit_code" -eq 90 ]]; then
-        echo "pnpm-lock.yaml is out of date in this execution workspace; retrying install without --frozen-lockfile." >&2
-        run_pnpm_install --no-frozen-lockfile || {
+        echo "bun.lock is out of date in this execution workspace; retrying install without --frozen-lockfile." >&2
+        run_bun_install || {
           restore_moved_symlinks
           exit 1
         }
@@ -861,7 +854,7 @@ if [[ -f "$worktree_cwd/package.json" && -f "$worktree_cwd/pnpm-lock.yaml" ]]; t
     fi
 
     cleanup_moved_symlinks
-    current_install_fingerprint="$(compute_pnpm_install_fingerprint)"
+    current_install_fingerprint="$(compute_bun_install_fingerprint)"
     printf '%s\n' "$current_install_fingerprint" >"$install_fingerprint_path"
   fi
 

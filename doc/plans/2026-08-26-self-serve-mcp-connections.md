@@ -324,7 +324,7 @@ self-host distribution terms are approved.
 - [x] Routing tests prove all 29 store-visible providers are actionable, all 22 release-gated providers remain absent, and all three blocked providers remain absent.
 - [x] Metadata preflight tests prove Jira discovery sends no credential, makes no registration request, and treats an authentication challenge as endpoint reachability.
 - [x] Browser handoff checks reach provider authorization for 35 of 37 automatic-OAuth catalog entries; Brex and instance-disabled Gmail remain explicitly tracked above.
-- [x] `pnpm check:token-gates` is required for the UI change.
+- [x] `bun run check:token-gates` is required for the UI change.
 - [ ] Complete the account-bound live proof column above before declaring each provider production-verified.
 
 ## Remaining external verification

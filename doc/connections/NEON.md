@@ -181,7 +181,7 @@ prefer development or testing projects over production data.
 Source of truth: the `neon` block in `scripts/ingest-app-definitions.mjs`, the
 ledger row in `packages/shared/src/self-serve-mcp-research.json`, and the two
 reviews in `doc/connections/tool-method-permission-reviews.json`. Regenerate
-with `pnpm connections:ingest-app-definitions` (or `--definitions-only`
+with `bun run connections:ingest-app-definitions` (or `--definitions-only`
 without the research corpus).
 
 ## Wizard path

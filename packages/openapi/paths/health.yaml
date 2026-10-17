@@ -1,0 +1,11 @@
+get:
+  operationId: health
+  summary: Liveness of the gateway
+  description: Answers 200 with the service name and a generatedAt stamp.
+  responses:
+    '200':
+      description: The gateway is up
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Health.yaml

@@ -24,11 +24,17 @@ import {
   touchLocalServiceRegistryRecord,
   writeLocalServiceRegistryRecord,
 } from "../server/src/services/local-service-supervisor.ts";
+import { z } from "zod";
 
 // Keep these values local so the dev runner can boot from the server package's
 // tsx context without requiring workspace package resolution first.
 const BIND_MODES = ["loopback", "lan", "tailnet", "custom"] as const;
 type BindMode = (typeof BIND_MODES)[number];
+
+function parseBindMode(value: string): BindMode | null {
+  const matched = BIND_MODES.find((candidate) => candidate === value);
+  return matched ?? null;
+}
 
 const mode = process.argv[2] === "watch" ? "watch" : "dev";
 let cliArgs: string[];
@@ -38,20 +44,20 @@ try {
   cliArgs = appliedOptions.forwardedArgs;
   dataDir = appliedOptions.dataDir;
 } catch (error) {
-  console.error(`[clayon] ${error instanceof Error ? error.message : String(error)}`);
+  console.error(`[clayon] ${errorMessage(error)}`);
   process.exit(1);
 }
 
 const worktreeEnvBootstrap = bootstrapDevRunnerWorktreeEnv(repoRoot, process.env);
 if (worktreeEnvBootstrap.missingEnv) {
   console.error(
-    `[clayon] linked git worktree at ${repoRoot} is missing ${path.relative(repoRoot, worktreeEnvBootstrap.envPath)}. Run \`clayon worktree init\` in this worktree before \`pnpm dev\`.`,
+    `[clayon] linked git worktree at ${repoRoot} is missing ${path.relative(repoRoot, worktreeEnvBootstrap.envPath)}. Run \`clayon worktree init\` in this worktree before \`bun run dev\`.`,
   );
   process.exit(1);
 }
 if (isWorktreeSeedPending(repoRoot)) {
   console.error(
-    "[clayon] this worktree database is seed-pending. Run `pnpm clayon worktree ensure-seeded` before `pnpm dev`.",
+    "[clayon] this worktree database is seed-pending. Run `bun run clayon worktree ensure-seeded` before `bun run dev`.",
   );
   process.exit(1);
 }
@@ -80,7 +86,7 @@ const watchedDirectories = [
 const watchedFiles = [
   ".env",
   "package.json",
-  "pnpm-workspace.yaml",
+  "bunfig.toml",
   "tsconfig.base.json",
   "tsconfig.json",
   "vitest.config.ts",
@@ -120,11 +126,12 @@ for (let index = 0; index < cliArgs.length; index += 1) {
   }
   if (arg === "--bind") {
     const value = cliArgs[index + 1];
-    if (!value || value.startsWith("--") || !BIND_MODES.includes(value as BindMode)) {
+    const parsedBindMode = value === undefined ? null : parseBindMode(value);
+    if (!value || value.startsWith("--") || parsedBindMode === null) {
       console.error(`[clayon] invalid --bind value. Use one of: ${BIND_MODES.join(", ")}`);
       process.exit(1);
     }
-    bindMode = value as BindMode;
+    bindMode = parsedBindMode;
     index += 1;
     continue;
   }
@@ -147,8 +154,8 @@ if (process.env.npm_config_tailscale_auth === "true") {
 if (process.env.npm_config_authenticated_private === "true") {
   tailscaleAuth = true;
 }
-if (!bindMode && process.env.npm_config_bind && BIND_MODES.includes(process.env.npm_config_bind as BindMode)) {
-  bindMode = process.env.npm_config_bind as BindMode;
+if (!bindMode && process.env.npm_config_bind) {
+  bindMode = parseBindMode(process.env.npm_config_bind);
 }
 if (!bindHost && process.env.npm_config_bind_host) {
   bindHost = process.env.npm_config_bind_host;
@@ -232,13 +239,13 @@ const existingRunner = await findAdoptableLocalService({
   port: serverPort,
 });
 if (existingRunner) {
-  console.log(
-    `[clayon] ${devService.serviceName} already running (pid ${existingRunner.pid}${typeof existingRunner.metadata?.childPid === "number" ? `, child ${existingRunner.metadata.childPid}` : ""})`,
-  );
+  const existingRunnerMetadata = z.object({ childPid: z.number() }).safeParse(existingRunner.metadata);
+  const childSuffix = existingRunnerMetadata.success ? `, child ${existingRunnerMetadata.data.childPid}` : "";
+  console.log(`[clayon] ${devService.serviceName} already running (pid ${existingRunner.pid}${childSuffix})`);
   process.exit(0);
 }
 
-const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const bunBin = process.platform === "win32" ? "bun.exe" : "bun";
 let previousSnapshot = collectWatchedSnapshot();
 let dirtyPaths = new Set<string>();
 let pendingMigrations: string[] = [];
@@ -253,10 +260,30 @@ let childExitPromise: Promise<{ code: number; signal: NodeJS.Signals | null }> |
 let scanTimer: ReturnType<typeof setInterval> | null = null;
 let autoRestartTimer: ReturnType<typeof setInterval> | null = null;
 
+const errorMessageShape = z.object({ message: z.string().optional() });
+// The one allowed instanceof form: parse inside zod, never narrow by hand
+// (moe:typescript/no-type-guards).
+const errorInstanceShape = z.instanceof(Error);
+
+// A caught error is unknown; extract its message without a type guard
+// (moe:typescript/no-type-guards): parse the { message } shape, else stringify.
+function errorMessage(error: unknown): string {
+  const parsed = errorMessageShape.safeParse(error);
+  const message = parsed.success ? parsed.data.message : undefined;
+  return message ?? String(error);
+}
+
 function toError(error: unknown, context = "Dev runner command failed") {
-  if (error instanceof Error) return error;
   if (error === undefined) return new Error(context);
-  if (typeof error === "string") return new Error(`${context}: ${error}`);
+  // An already-Error value keeps its original identity and stack.
+  const original = errorInstanceShape.safeParse(error);
+  if (original.success) return original.data;
+  const parsed = errorMessageShape.safeParse(error);
+  const message = parsed.success ? parsed.data.message : undefined;
+  if (message) return new Error(message);
+  // A bare string error renders unquoted; only objects fall through to JSON.
+  const asString = z.string().safeParse(error);
+  if (asString.success) return new Error(`${context}: ${asString.data}`);
 
   try {
     return new Error(`${context}: ${JSON.stringify(error)}`);
@@ -296,14 +323,14 @@ function exitForSignal(signal: NodeJS.Signals) {
   process.exit(1);
 }
 
-function collectWatchedSnapshot() {
+function collectWatchedSnapshot(): Map<string, string> {
   return collectDevServerWatchedSnapshot({
     repoRoot,
     watchedDirectories,
     watchedFiles,
     ignoredDirectoryNames,
     ignoredRelativePaths,
-  }) as Map<string, string>;
+  });
 }
 
 function ensureDevStatusDirectory() {
@@ -368,13 +395,17 @@ async function updateDevServiceRecord(extra?: Record<string, unknown>) {
   });
 }
 
-async function runPnpm(args: string[], options: {
+type RunBunOptions = {
   stdio?: "inherit" | ["ignore", "pipe", "pipe"];
   env?: NodeJS.ProcessEnv;
   cwd?: string;
-} = {}) {
+};
+
+// Runs `bun run <args>`: package scripts, `--filter <pkg> <script>`, or
+// `--cwd <dir> <bin> ...` for a binary inside a workspace package.
+async function runBun(args: string[], options: RunBunOptions = {}) {
   return await new Promise<{ code: number; signal: NodeJS.Signals | null; stdout: string; stderr: string }>((resolve, reject) => {
-    const spawned = spawn(pnpmBin, args, {
+    const spawned = spawn(bunBin, ["run", ...args], {
       stdio: options.stdio ?? ["ignore", "pipe", "pipe"],
       env: options.env ?? process.env,
       cwd: options.cwd,
@@ -409,21 +440,47 @@ async function runPnpm(args: string[], options: {
   });
 }
 
-async function getMigrationStatusPayload() {
-  const status = await runPnpm(
-    ["--silent", "--filter", "@clayon/db", "exec", "tsx", "src/migration-status.ts", "--json"],
-    { env },
+const migrationStatusShape = z.object({
+  status: z.string().optional(),
+  pendingMigrations: z.array(z.string()).optional(),
+});
+
+const devHealthPayloadShape = z.object({
+  devServer: z
+    .object({
+      enabled: z.boolean().optional(),
+      autoRestartEnabled: z.boolean().optional(),
+      activeRunCount: z.number().optional(),
+    })
+    .optional(),
+  serverInfo: z
+    .object({
+      processStartedAt: z.string().optional(),
+    })
+    .optional(),
+});
+
+type DevHealthPayload = z.infer<typeof devHealthPayloadShape>;
+
+type MigrationStatusPayload = z.infer<typeof migrationStatusShape>;
+
+async function getMigrationStatusPayload(): Promise<MigrationStatusPayload> {
+  // Spawn from the absolute repo root: the dev runner's process cwd is
+  // <repo>/server, so a relative --cwd would resolve to server/packages/db.
+  const status = await runBun(
+    ["--silent", "--cwd", "packages/db", "tsx", "src/migration-status.ts", "--json"],
+    { env, cwd: repoRoot },
   );
   if (status.code !== 0) {
     process.stderr.write(
       status.stderr ||
         status.stdout ||
-        `[clayon] Command failed with code ${status.code}: pnpm --filter @clayon/db exec tsx src/migration-status.ts --json\n`,
+        `[clayon] Command failed with code ${status.code}: bun run --cwd packages/db tsx src/migration-status.ts --json\n`,
     );
     process.exit(status.code);
   }
 
-  // pnpm can interleave its own reporter lines (e.g. "Unsupported engine"
+  // The package manager can interleave its own reporter lines (e.g. engine
   // warnings) into stdout, so parse the last line that is a JSON object
   // instead of trusting the whole stream.
   const jsonLines = status.stdout
@@ -432,7 +489,8 @@ async function getMigrationStatusPayload() {
     .filter((line) => line.startsWith("{"));
   for (let index = jsonLines.length - 1; index >= 0; index -= 1) {
     try {
-      return JSON.parse(jsonLines[index]) as { status?: string; pendingMigrations?: string[] };
+      const payload = migrationStatusShape.parse(JSON.parse(jsonLines[index]));
+      return payload;
     } catch {
       // keep scanning earlier JSON-looking lines
     }
@@ -448,14 +506,20 @@ async function getMigrationStatusPayload() {
 async function refreshPendingMigrations() {
   const payload = await getMigrationStatusPayload();
   pendingMigrations =
-    payload.status === "needsMigrations" && Array.isArray(payload.pendingMigrations)
-      ? payload.pendingMigrations.filter((entry) => typeof entry === "string" && entry.trim().length > 0)
+    payload.status === "needsMigrations"
+      ? (payload.pendingMigrations?.filter((entry) => entry.trim().length > 0) ?? [])
       : [];
   writeDevServerStatus();
   return payload;
 }
 
-async function maybePreflightMigrations(options: { interactive?: boolean; autoApply?: boolean; exitOnDecline?: boolean } = {}) {
+type MigrationPreflightOptions = {
+  interactive?: boolean;
+  autoApply?: boolean;
+  exitOnDecline?: boolean;
+};
+
+async function maybePreflightMigrations(options: MigrationPreflightOptions = {}) {
   const interactive = options.interactive ?? mode === "watch";
   const autoApply = options.autoApply ?? env.CLAYON_MIGRATION_AUTO_APPLY === "true";
   const exitOnDecline = options.exitOnDecline ?? mode === "watch";
@@ -497,7 +561,7 @@ async function maybePreflightMigrations(options: { interactive?: boolean; autoAp
     return;
   }
 
-  const exit = await runPnpm(["db:migrate"], {
+  const exit = await runBun(["db:migrate"], {
     stdio: "inherit",
     env,
     cwd: repoRoot,
@@ -515,7 +579,7 @@ async function maybePreflightMigrations(options: { interactive?: boolean; autoAp
 
 async function buildPluginSdk() {
   console.log("[clayon] building plugin sdk...");
-  const result = await runPnpm(
+  const result = await runBun(
     ["--filter", "@clayon/plugin-sdk", "build"],
     { stdio: "inherit" },
   );
@@ -530,16 +594,17 @@ async function buildPluginSdk() {
 }
 
 async function getNativeRunnerRequired(): Promise<boolean> {
-  const status = await runPnpm(
+  // Spawn from the absolute repo root: the dev runner's process cwd is
+  // <repo>/server, so a relative --cwd would resolve to server/server.
+  const status = await runBun(
     [
       "--silent",
-      "--filter",
-      "@clayon/server",
-      "exec",
+      "--cwd",
+      "server",
       "tsx",
       "src/dev-native-runner-status.ts",
     ],
-    { env },
+    { env, cwd: repoRoot },
   );
   if (status.signal) {
     exitForSignal(status.signal);
@@ -560,7 +625,7 @@ async function getNativeRunnerRequired(): Promise<boolean> {
 
 async function buildClayonRunner() {
   console.log("[clayon] building clayon runner...");
-  const typescriptResult = await runPnpm(
+  const typescriptResult = await runBun(
     ["--filter", "@clayon/clayon-runner", "build:typescript"],
     { stdio: "inherit" },
   );
@@ -584,7 +649,7 @@ async function buildClayonRunner() {
   }
 
   console.log("[clayon] building clayon runner native binary...");
-  const binaryResult = await runPnpm(
+  const binaryResult = await runBun(
     ["--filter", "@clayon/clayon-runner", "build:binary"],
     { stdio: "inherit" },
   );
@@ -628,7 +693,7 @@ function uiBundleIsFresh(): boolean {
 
 async function buildUiBundleForManagedRuntime(): Promise<boolean> {
   console.log("[clayon] managed runtime: building the UI bundle for static serving...");
-  const result = await runPnpm(
+  const result = await runBun(
     ["--filter", "@clayon/ui", "build"],
     { stdio: "inherit" },
   );
@@ -673,14 +738,14 @@ async function scanForBackendChanges() {
   }
 }
 
-async function getDevHealthPayload() {
+async function getDevHealthPayload(): Promise<DevHealthPayload> {
   const response = await fetch(`http://127.0.0.1:${serverPort}/api/health`, {
     headers: devServerStatusToken ? { [devServerStatusTokenHeader]: devServerStatusToken } : undefined,
   });
   if (!response.ok) {
     throw new Error(`Health request failed (${response.status})`);
   }
-  return await parseJsonResponseWithLimit(response);
+  return devHealthPayloadShape.parse(await parseJsonResponseWithLimit(response));
 }
 
 async function waitForChildExit() {
@@ -712,8 +777,8 @@ async function startServerChild() {
 
   const serverScript = mode === "watch" ? "dev:watch" : "dev";
   child = spawn(
-    pnpmBin,
-    ["--filter", "@clayon/server", serverScript, ...forwardedArgs],
+    bunBin,
+    ["run", "--filter", "@clayon/server", serverScript, ...forwardedArgs],
     { stdio: "inherit", env, shell: process.platform === "win32" },
   );
 
@@ -754,7 +819,7 @@ async function maybeAutoRestartChild() {
   if (!manualRestartRequest && dirtyPaths.size === 0 && pendingMigrations.length === 0) return;
 
   restartInFlight = true;
-  let health: { devServer?: { enabled?: boolean; autoRestartEnabled?: boolean; activeRunCount?: number } } | null = null;
+  let health: DevHealthPayload | null = null;
   try {
     health = await getDevHealthPayload();
   } catch {
@@ -767,12 +832,7 @@ async function maybeAutoRestartChild() {
     restartInFlight = false;
     return;
   }
-  const observedServerIdentity =
-    typeof (health as { serverInfo?: { processStartedAt?: unknown } })
-      .serverInfo?.processStartedAt === "string"
-      ? (health as { serverInfo: { processStartedAt: string } }).serverInfo
-          .processStartedAt
-      : null;
+  const observedServerIdentity = health?.serverInfo?.processStartedAt ?? null;
   if (
     manualRestartRequest?.previousServerIdentity &&
     observedServerIdentity !== manualRestartRequest.previousServerIdentity

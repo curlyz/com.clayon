@@ -315,7 +315,7 @@ export async function renderRunnerWorkflowWithCanonicalEvalbook({
   );
   await access(resolve(viewerRoot, "index.html")).catch(() => {
     throw new Error(
-      "Evalbook requires the chat viewer. Run pnpm --filter @clayon/clayon-runner build:issue-thread first.",
+      "Evalbook requires the chat viewer. Run bun run --filter @clayon/clayon-runner build:issue-thread first.",
     );
   });
   const runsRoot = resolve(outputDirectory, "evalbook-runs");

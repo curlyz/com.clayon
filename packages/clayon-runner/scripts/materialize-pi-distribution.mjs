@@ -16,8 +16,13 @@ const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = resolve(packageRoot, "../..");
 const lockDirectory = join(packageRoot, "scripts/pi-distribution");
 const patchPath = join(workspaceRoot, "patches/pi-acp@0.0.33.patch");
-const securityPatchPath = join(workspaceRoot, "patches/brace-expansion@5.0.9.patch");
+// The retired npm flow patched Pi's bundled brace-expansion 5.0.9 in place. Bun
+// installs the locked registry 5.0.12 directly, so the patch is no longer
+// applied. The digest stays because the acpx Pi profile declaration binds it.
 export const PI_BRACE_SECURITY_PATCH_SHA256 = "5273a195b952f233336122842faaf650193c04f36b9359d20d4d63079b0ce814";
+/** Bun builds the closure; its install layout is only reproduced by this version. */
+export const PI_BUN_VERSION = "1.4.3";
+const PI_REGISTRY = "https://registry.npmjs.org";
 const supportedTargets = new Set(["darwin-arm64", "darwin-x64", "linux-x64"]);
 export const PI_DISTRIBUTION_PINS = Object.freeze({
   wrapper: "0.0.33", runtime: "1.0.0", sdk: "0.26.0", zod: "3.25.76", nodeVersion: PI_NODE_VERSION, undici: "8.10.2", nodeBundledUndici: "7.29.1",
@@ -28,28 +33,61 @@ const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 /** Install the published Pi graph; then apply the one pinned security correction. */
 export function piDistributionInstallCommand() {
-  return ["ci", "--ignore-scripts", "--include=optional", "--omit=dev", "--no-audit", "--no-fund", "--registry=https://registry.npmjs.org", "--userconfig=.npmrc", "--globalconfig=.npmrc-global"];
+  return ["install", "--frozen-lockfile", "--ignore-scripts", "--production", "--linker=hoisted", "--no-summary", `--registry=${PI_REGISTRY}`];
+}
+
+/** bun.lock is JSONC (trailing commas); anything still malformed throws. */
+export function parseBunLock(text) {
+  return JSON.parse(text.replace(/,(\s*[}\]])/g, "$1"));
 }
 
 function supports(list, current) {
-  return !Array.isArray(list) || (list.includes(current) || !list.some((value) => !value.startsWith("!"))) && !list.includes(`!${current}`);
+  const values = typeof list === "string" ? [list] : list;
+  return !Array.isArray(values) || (values.includes(current) || !values.some((value) => !value.startsWith("!"))) && !values.includes(`!${current}`);
+}
+
+/** A bun.lock key is `parent/child` package names; scoped names take two segments. */
+function lockKeyNames(key) {
+  const parts = key.split("/");
+  const names = [];
+  for (let index = 0; index < parts.length; index++) {
+    if (parts[index].startsWith("@")) { names.push(`${parts[index]}/${parts[index + 1] ?? ""}`); index++; }
+    else names.push(parts[index]);
+  }
+  return names;
+}
+
+/** Registry tarball URL a shrinkwrap entry must name for a pinned package. */
+function registryTarball(name, version) {
+  return `${PI_REGISTRY}/${name}/-/${name.slice(name.lastIndexOf("/") + 1)}-${version}.tgz`;
 }
 
 /** Prove installed package versions and the complete published Pi graph. */
 export async function verifyLockedPiPackageGraph(root, lock, target = { platform: process.platform, architecture: process.arch }) {
-  if (lock.lockfileVersion !== 3 || !lock.packages || typeof lock.packages !== "object") throw new Error("Pi distribution lock is invalid");
+  if (lock.lockfileVersion !== 2 || !lock.packages || typeof lock.packages !== "object") throw new Error("Pi distribution lock is invalid");
+  const pinnedPackages = [];
+  const optionalNames = new Set();
+  for (const [key, entry] of Object.entries(lock.packages)) {
+    const [id, registry, meta, integrity] = Array.isArray(entry) ? entry : [];
+    const at = typeof id === "string" ? id.lastIndexOf("@") : -1;
+    const name = at > 0 ? id.slice(0, at) : "";
+    const version = at > 0 ? id.slice(at + 1) : "";
+    const keyNames = lockKeyNames(key);
+    if (!key || key.includes("\\") || key.split("/").some((part) => part === ".." || part === "." || !part) || !name || keyNames.at(-1) !== name
+      || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version) || registry !== "" || !/^sha512-[A-Za-z0-9+/]+=*$/.test(integrity ?? "")) throw new Error("Pi distribution lock contains an unpinned package");
+    for (const optional of Object.keys(meta?.optionalDependencies ?? {})) optionalNames.add(optional);
+    pinnedPackages.push({ path: `node_modules/${keyNames.join("/node_modules/")}`, name, version, integrity, meta: meta ?? {} });
+  }
   let verified = 0;
-  for (const [path, entry] of Object.entries(lock.packages)) {
-    if (!path) continue;
-    if (!path.startsWith("node_modules/") || path.split("/").some((part) => part === ".." || part === "." || !part) || path.includes("\\") || entry.link || typeof entry.version !== "string" || !/^https:\/\/registry\.npmjs\.org\//.test(entry.resolved ?? "") || !/^sha512-[A-Za-z0-9+/]+=*$/.test(entry.integrity ?? "")) throw new Error("Pi distribution lock contains an unpinned package");
-    const compatible = supports(entry.os, target.platform) && supports(entry.cpu, target.architecture);
+  for (const { path, name, version, meta } of pinnedPackages) {
+    const compatible = supports(meta.os, target.platform) && supports(meta.cpu, target.architecture);
     let metadata;
     try { metadata = JSON.parse(await readFile(join(root, path, "package.json"), "utf8")); }
     catch (error) {
-      if (error.code === "ENOENT" && entry.optional === true && !compatible) continue;
+      if (error.code === "ENOENT" && optionalNames.has(name) && !compatible) continue;
       throw new Error(`Pi distribution is missing locked package ${path}`);
     }
-    if (metadata.version !== entry.version) throw new Error(`Pi distribution package differs from its lock: ${path}`);
+    if (metadata.version !== version) throw new Error(`Pi distribution package differs from its lock: ${path}`);
     verified++;
   }
   const piPath = "node_modules/@earendil-works/pi-coding-agent";
@@ -57,16 +95,17 @@ export async function verifyLockedPiPackageGraph(root, lock, target = { platform
   if (shrinkwrap.version !== PI_DISTRIBUTION_PINS.runtime || shrinkwrap.lockfileVersion !== 3) throw new Error("Pi upstream shrinkwrap is missing or changed");
   for (const [path, entry] of Object.entries(shrinkwrap.packages)) {
     if (!path) continue;
-    const pinned = lock.packages[`${piPath}/${path}`];
-    // Pi bundles its dependency payload, so npm overrides do not replace it.
-    // Only this reviewed build-owned patch may differ from the upstream graph.
+    const name = path.slice(path.lastIndexOf("node_modules/") + "node_modules/".length);
+    const pinned = pinnedPackages.find((candidate) => candidate.name === name && candidate.version === entry.version);
+    // Bun resolves the locked flat graph and ignores Pi's bundled payload, so the
+    // upstream shrinkwrap is now compared to the lock, not to the installed tree.
+    // Only this reviewed correction may differ from the upstream graph.
     if (path === "node_modules/brace-expansion" && entry.version === "5.0.9"
       && entry.integrity === "sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg=="
-      && entry.resolved === "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz"
-      && pinned?.version === "5.0.12"
-      && pinned.integrity === "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ=="
-      && pinned.resolved === "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.12.tgz") continue;
-    if (!pinned || pinned.version !== entry.version || (entry.integrity !== undefined && pinned.integrity !== entry.integrity) || pinned.resolved !== entry.resolved) throw new Error(`Pi distribution dropped or changed shrinkwrapped package ${path}`);
+      && entry.resolved === registryTarball(name, "5.0.9")
+      && pinnedPackages.some((candidate) => candidate.name === name && candidate.version === "5.0.12"
+        && candidate.integrity === "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==")) continue;
+    if (!pinned || (entry.integrity !== undefined && pinned.integrity !== entry.integrity) || entry.resolved !== registryTarball(name, entry.version)) throw new Error(`Pi distribution dropped or changed shrinkwrapped package ${path}`);
   }
   return verified;
 }
@@ -119,28 +158,14 @@ export function piDistributionBootstrapSource() {
   ].join("\n");
 }
 
-/** The already hash-verified Node archive also pins setup's package manager. */
-export async function resolvePiBundledNpm(nodeRoot) {
-  const npmRoot = join(nodeRoot, "lib/node_modules/npm");
-  const manifest = join(npmRoot, "package.json");
-  const entry = join(npmRoot, "bin/npm-cli.js");
-  for (const path of [manifest, entry]) {
-    const info = await lstat(path);
-    if (!info.isFile() || info.isSymbolicLink() || info.nlink !== 1 || await realpath(path) !== path) throw new Error("Pinned Pi npm has an invalid archive entry");
-  }
-  if (JSON.parse(await readFile(manifest, "utf8")).version !== "11.19.0") throw new Error("Pinned Pi Node archive has an unexpected npm version");
-  return entry;
-}
-
 /** Build on the target platform. No lifecycle scripts, model requests, or auth. */
-export async function materializePiDistribution({ outputRoot, nodeExecutable, npmExecutable = "npm", inputs, checkCancelled = () => {} }) {
+export async function materializePiDistribution({ outputRoot, nodeExecutable, bunExecutable = "bun", inputs, checkCancelled = () => {} }) {
   // Cancellation is observed between bounded subprocesses. A setup signal must
-  // not abandon an npm/tar child while it still owns staging files.
+  // not abandon a bun/tar child while it still owns staging files.
   const runOwned = async (...args) => { checkCancelled(); const result = await run(...args); checkCancelled(); return result; };
   checkCancelled();
   const inputLockDirectory = inputs?.lockDirectory ?? lockDirectory;
   const inputPatchPath = inputs?.patchPath ?? patchPath;
-  const inputSecurityPatchPath = inputs?.securityPatchPath ?? securityPatchPath;
   const helperSourcePath = inputs?.helperSourcePath ?? join(packageRoot, "src/drivers/acpx/pi-acp-runtime.ts");
   const extensionSourcePath = inputs?.extensionSourcePath ?? join(packageRoot, "src/drivers/acpx/pi-runtime-extension.ts");
   if (typeof outputRoot !== "string" || !outputRoot || !isAbsolute(outputRoot)) throw new Error("Pi distribution output must be absolute");
@@ -155,7 +180,6 @@ export async function materializePiDistribution({ outputRoot, nodeExecutable, np
     const target = `${process.platform}-${process.arch}`;
     const nodePin = PI_NODE_DISTRIBUTIONS[target];
     let node;
-    let bundledNpm;
     if (nodeExecutable) node = await realpath(nodeExecutable);
     else {
       const archiveName = `node-v${PI_NODE_VERSION}-${target}.tar.gz`;
@@ -170,34 +194,29 @@ export async function materializePiDistribution({ outputRoot, nodeExecutable, np
       if (hash(bytes) !== nodePin.archiveSha256) throw new Error("Pi Node archive does not match its release pin");
       const archivePath = join(staging, archiveName); await writeFile(archivePath, bytes);
       const nodeRoot = join(staging, "node-extract"); await mkdir(nodeRoot);
-      await runOwned("tar", ["-xzf", archivePath, "-C", nodeRoot, "--strip-components=1", `node-v${PI_NODE_VERSION}-${target}/bin/node`, `node-v${PI_NODE_VERSION}-${target}/lib/node_modules/npm`], { timeout: 30_000 });
+      await runOwned("tar", ["-xzf", archivePath, "-C", nodeRoot, "--strip-components=1", `node-v${PI_NODE_VERSION}-${target}/bin/node`], { timeout: 30_000 });
       node = join(nodeRoot, "bin/node");
-      bundledNpm = await resolvePiBundledNpm(nodeRoot);
     }
     if (hash(await readFile(node)) !== nodePin.executableSha256 || (await lstat(node)).size !== nodePin.executableSize) throw new Error("Pi Node executable does not match its target release pin");
     const version = (await runOwned(node, ["--version"], { env: {}, timeout: buildNodeStartupTimeout() })).stdout.trim();
     if (version !== `v${PI_NODE_VERSION}`) throw new Error("Pi distribution requires exact pinned Node version");
     if ((await runOwned(node, ["-p", "process.versions.undici"], { env: {}, timeout: buildNodeStartupTimeout() })).stdout.trim() !== PI_DISTRIBUTION_PINS.nodeBundledUndici) throw new Error("Pi Node bundled Undici differs from its reviewed security pin");
     await mkdir(runtimeRoot);
-    await Promise.all(["package.json", "package-lock.json"].map((name) => copyFile(join(inputLockDirectory, name), join(runtimeRoot, name))));
-    await writeFile(join(runtimeRoot, ".npmrc"), "registry=https://registry.npmjs.org/\nignore-scripts=true\naudit=false\nfund=false\n");
-    await writeFile(join(runtimeRoot, ".npmrc-global"), "");
+    await Promise.all(["package.json", "bun.lock"].map((name) => copyFile(join(inputLockDirectory, name), join(runtimeRoot, name))));
     const buildHome = join(staging, "build-home"); await mkdir(buildHome);
-    // Do not inherit NPM_TOKEN, npm_config_*, NODE_OPTIONS, provider keys or user
-    // .npmrc. Public registry downloads need no private application credential.
+    // Do not inherit NPM_TOKEN, BUN_CONFIG_*, NODE_OPTIONS, provider keys or a user
+    // .bunfig/.npmrc. Public registry downloads need no private application credential.
     const environment = Object.fromEntries(["PATH", "LANG", "LC_ALL", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "https_proxy", "http_proxy", "no_proxy", "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS"].flatMap((key) => typeof process.env[key] === "string" ? [[key, process.env[key]]] : []));
     environment.HOME = buildHome;
-    // npm 10 prunes non-host packages bundled by upstream Pi, unlike the npm
-    // 11.19.0 used to qualify this complete closure. Public setup must use the
-    // npm pinned by the verified Node archive, never whichever npm is on PATH.
-    await runOwned(bundledNpm ? node : npmExecutable, [...(bundledNpm ? [bundledNpm] : []), ...piDistributionInstallCommand()], { cwd: runtimeRoot, env: environment, timeout: 300_000, maxBuffer: 4 * 1024 * 1024 });
-    const installedLockBytes = await readFile(join(runtimeRoot, "package-lock.json"));
-    if (!installedLockBytes.equals(await readFile(join(inputLockDirectory, "package-lock.json")))) throw new Error("Pi installation changed its committed lock");
-    const lock = JSON.parse(installedLockBytes.toString("utf8"));
-    if (hash(await readFile(inputSecurityPatchPath)) !== PI_BRACE_SECURITY_PATCH_SHA256) throw new Error("Pi dependency security patch differs from its reviewed pin");
-    const braceRoot = join(runtimeRoot, "node_modules/@earendil-works/pi-coding-agent/node_modules/brace-expansion");
-    await runOwned("git", ["apply", "--check", inputSecurityPatchPath], { cwd: braceRoot, env: environment, timeout: 10_000 });
-    await runOwned("git", ["apply", inputSecurityPatchPath], { cwd: braceRoot, env: environment, timeout: 10_000 });
+    environment.BUN_INSTALL_CACHE_DIR = join(buildHome, "bun-cache");
+    // Bun's hoisted layout is only qualified for the pinned version. The frozen
+    // lock still rejects any tarball whose integrity differs from bun.lock.
+    const bunVersion = (await runOwned(bunExecutable, ["--version"], { env: environment, timeout: 10_000 })).stdout.trim();
+    if (bunVersion !== PI_BUN_VERSION) throw new Error("Pi distribution requires exact pinned Bun version");
+    await runOwned(bunExecutable, piDistributionInstallCommand(), { cwd: runtimeRoot, env: environment, timeout: 300_000, maxBuffer: 4 * 1024 * 1024 });
+    const installedLockBytes = await readFile(join(runtimeRoot, "bun.lock"));
+    if (!installedLockBytes.equals(await readFile(join(inputLockDirectory, "bun.lock")))) throw new Error("Pi installation changed its committed lock");
+    const lock = parseBunLock(installedLockBytes.toString("utf8"));
     const packageCount = await verifyLockedPiPackageGraph(runtimeRoot, lock);
     const wrapper = join(runtimeRoot, "node_modules/pi-acp");
     await runOwned("git", ["apply", "--check", inputPatchPath], { cwd: wrapper, env: environment, timeout: 10_000 });
@@ -224,15 +243,14 @@ export async function materializePiDistribution({ outputRoot, nodeExecutable, np
     assertPiNodeSystemDependencies(dependencyListing, process.platform);
     if ((await runOwned(copiedNode, ["--version"], { env: {}, timeout: buildNodeStartupTimeout() })).stdout.trim() !== version) throw new Error("Copied Pi Node cannot execute after relocation");
     await rm(buildHome, { recursive: true });
-    // npm-generated .bin links and hidden lock metadata are not package payload
-    // files. No launch uses PATH; excluding them makes the closure regular-only.
+    // Bun-generated .bin links are not package payload files. No launch uses
+    // PATH; excluding them makes the closure regular-only.
     for (const file of await inventoryPiRuntimeFiles(runtimeRoot)) {
       if (file.kind === "symlink") {
         if (!/(?:^|\/)node_modules\/\.bin\/[^/]+$/.test(file.path)) throw new Error("Pi package payload contains an unsupported symbolic link");
         await unlink(join(runtimeRoot, file.path));
       }
     }
-    await rm(join(runtimeRoot, "node_modules/.package-lock.json"), { force: true });
     await writeFile(join(runtimeRoot, "pi-entry.cjs"), piDistributionBootstrapSource());
     for (const item of await readdir(staging)) if (item !== "runtime") await rm(join(staging, item), { recursive: true, force: true });
     const { manifest, manifestDigest } = await writePiDistributionManifest(runtimeRoot);
@@ -248,7 +266,7 @@ export async function materializePiDistribution({ outputRoot, nodeExecutable, np
     const metadata = {
       schema: "clayon.pi-distribution.v1", pins: PI_DISTRIBUTION_PINS,
       target: { platform: process.platform, architecture: process.arch, nodeVersion: version.slice(1) },
-      packageCount, lockSha256: hash(await readFile(join(runtimeRoot, "package-lock.json"))), manifestDigest,
+      packageCount, lockSha256: hash(await readFile(join(runtimeRoot, "bun.lock"))), manifestDigest,
       runtimeRoot: "runtime", nativeClosureSha256, manifest,
     };
     await writeFile(join(staging, "pi-distribution.json"), `${JSON.stringify(metadata, null, 2)}\n`);

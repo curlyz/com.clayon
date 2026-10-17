@@ -246,8 +246,7 @@ export function buildWorktreeConfig(input: {
   const { sourceConfig, paths, serverPort, databasePort } = input;
   const nowIso = (input.now ?? new Date()).toISOString();
 
-  const source = sourceConfig;
-  const authPublicBaseUrl = rewriteLocalUrlPort(source?.auth.publicBaseUrl, serverPort);
+  const authPublicBaseUrl = rewriteLocalUrlPort(sourceConfig?.auth.publicBaseUrl, serverPort);
 
   return {
     $meta: {
@@ -255,56 +254,57 @@ export function buildWorktreeConfig(input: {
       updatedAt: nowIso,
       source: "configure",
     },
-    ...(source?.llm ? { llm: source.llm } : {}),
+    ...(sourceConfig?.llm ? { llm: sourceConfig.llm } : {}),
     database: {
       mode: "embedded-postgres",
       embeddedPostgresDataDir: paths.embeddedPostgresDataDir,
       embeddedPostgresPort: databasePort,
       backup: {
         enabled: false,
-        intervalMinutes: source?.database.backup.intervalMinutes ?? 60,
-        retentionDays: source?.database.backup.retentionDays ?? 30,
+        intervalMinutes: sourceConfig?.database.backup.intervalMinutes ?? 60,
+        retentionDays: sourceConfig?.database.backup.retentionDays ?? 30,
         dir: paths.backupDir,
       },
     },
     logging: {
-      mode: source?.logging.mode ?? "file",
+      mode: sourceConfig?.logging.mode ?? "file",
       logDir: paths.logDir,
     },
     server: {
-      deploymentMode: source?.server.deploymentMode ?? "local_trusted",
-      exposure: source?.server.exposure ?? "private",
-      ...(source?.server.bind ? { bind: source.server.bind } : {}),
-      ...(source?.server.customBindHost ? { customBindHost: source.server.customBindHost } : {}),
-      host: source?.server.host ?? "127.0.0.1",
+      deploymentMode: sourceConfig?.server.deploymentMode ?? "local_trusted",
+      exposure: sourceConfig?.server.exposure ?? "private",
+      ...(sourceConfig?.server.bind ? { bind: sourceConfig.server.bind } : {}),
+      ...(sourceConfig?.server.customBindHost ? { customBindHost: sourceConfig.server.customBindHost } : {}),
+      host: sourceConfig?.server.host ?? "127.0.0.1",
       port: serverPort,
-      allowedHostnames: source?.server.allowedHostnames ?? [],
-      serveUi: source?.server.serveUi ?? true,
+      allowedHostnames: sourceConfig?.server.allowedHostnames ?? [],
+      crossOriginApiOrigins: sourceConfig?.server.crossOriginApiOrigins ?? [],
+      serveUi: sourceConfig?.server.serveUi ?? true,
     },
     auth: {
-      baseUrlMode: source?.auth.baseUrlMode ?? "auto",
+      baseUrlMode: sourceConfig?.auth.baseUrlMode ?? "auto",
       ...(authPublicBaseUrl ? { publicBaseUrl: authPublicBaseUrl } : {}),
-      disableSignUp: source?.auth.disableSignUp ?? false,
+      disableSignUp: sourceConfig?.auth.disableSignUp ?? false,
     },
     telemetry: {
-      enabled: source?.telemetry?.enabled ?? true,
+      enabled: sourceConfig?.telemetry?.enabled ?? true,
     },
     storage: {
-      provider: source?.storage.provider ?? "local_disk",
+      provider: sourceConfig?.storage.provider ?? "local_disk",
       localDisk: {
         baseDir: paths.storageDir,
       },
       s3: {
-        bucket: source?.storage.s3.bucket ?? "clayon",
-        region: source?.storage.s3.region ?? "us-east-1",
-        endpoint: source?.storage.s3.endpoint,
-        prefix: source?.storage.s3.prefix ?? "",
-        forcePathStyle: source?.storage.s3.forcePathStyle ?? false,
+        bucket: sourceConfig?.storage.s3.bucket ?? "clayon",
+        region: sourceConfig?.storage.s3.region ?? "us-east-1",
+        endpoint: sourceConfig?.storage.s3.endpoint,
+        prefix: sourceConfig?.storage.s3.prefix ?? "",
+        forcePathStyle: sourceConfig?.storage.s3.forcePathStyle ?? false,
       },
     },
     secrets: {
-      provider: source?.secrets.provider ?? "local_encrypted",
-      strictMode: source?.secrets.strictMode ?? false,
+      provider: sourceConfig?.secrets.provider ?? "local_encrypted",
+      strictMode: sourceConfig?.secrets.strictMode ?? false,
       localEncrypted: {
         keyFilePath: paths.secretsKeyFilePath,
       },
@@ -334,7 +334,7 @@ function shellEscape(value: string): string {
 
 export function formatShellExports(entries: Record<string, string>): string {
   return Object.entries(entries)
-    .filter(([, value]) => typeof value === "string" && value.trim().length > 0)
+    .filter(([, value]) => value.trim().length > 0)
     .map(([key, value]) => `export ${key}=${shellEscape(value)}`)
     .join("\n");
 }
